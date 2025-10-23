@@ -23,7 +23,7 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const { error } = await signIn(email, password);
+      const { error, accountType, profile, store } = await signIn(email, password);
 
       if (error) {
         toast.error('ログインに失敗しました', {
@@ -33,7 +33,17 @@ export default function LoginPage() {
       }
 
       toast.success('ログインしました');
-      router.push('/map');
+      
+      // アカウントタイプによってリダイレクト先を変更
+      if (accountType === 'platform') {
+        // 運営会社アカウント
+        router.push('/store/manage');
+      } else if (accountType === 'store') {
+        // 店舗アカウント
+        router.push(`/store/manage/${store?.id}/update`);
+      } else {
+        router.push('/map');
+      }
     } catch (error) {
       toast.error('エラーが発生しました');
     } finally {

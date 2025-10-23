@@ -6,14 +6,24 @@ import { supabase } from '@/lib/supabase/client';
 import type { Database } from '@/lib/supabase/types';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
+type Store = Database['public']['Tables']['stores']['Row'];
+
+type AccountType = 'platform' | 'store';
 
 interface AuthContextType {
   user: User | null;
   profile: Profile | null;
+  store: Store | null;
+  accountType: AccountType | null;
   session: Session | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
-  signUp: (email: string, password: string, displayName: string, isBusiness: boolean) => Promise<{ error: Error | null }>;
+  signIn: (email: string, password: string) => Promise<{ 
+    error: Error | null; 
+    accountType?: AccountType; 
+    profile?: Profile | null;
+    store?: Store | null;
+  }>;
+  signUp: (email: string, password: string, displayName: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
 }
 
@@ -22,6 +32,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [store, setStore] = useState<Store | null>(null);
+  const [accountType, setAccountType] = useState<AccountType | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -32,13 +44,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(session?.user ?? null);
 
       if (session?.user) {
-        const { data } = await supabase
+        // まずprofilesテーブルをチェック（運営会社アカウント）
+        const { data: profileData } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', session.user.id)
           .maybeSingle();
 
-        setProfile(data);
+        if (profileData) {
+          setProfile(profileData);
+          setAccountType('platform');
+          setStore(null);
+        } else {
+          // profilesになければstoresテーブルをチェック（店舗アカウント）
+          const { data: storeData } = await supabase
+            .from('stores')
+            .select('*')
+            .eq('id', session.user.id)
+            .maybeSingle();
+
+          if (storeData) {
+            setStore(storeData);
+            setAccountType('store');
+            setProfile(null);
+          }
+        }
       }
 
       setLoading(false);
@@ -52,15 +82,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(session?.user ?? null);
 
         if (session?.user) {
-          const { data } = await supabase
+          // まずprofilesテーブルをチェック（運営会社アカウント）
+          const { data: profileData } = await supabase
             .from('profiles')
             .select('*')
             .eq('id', session.user.id)
             .maybeSingle();
 
-          setProfile(data);
+          if (profileData) {
+            setProfile(profileData);
+            setAccountType('platform');
+            setStore(null);
+          } else {
+            // profilesになければstoresテーブルをチェック（店舗アカウント）
+            const { data: storeData } = await supabase
+              .from('stores')
+              .select('*')
+              .eq('id', session.user.id)
+              .maybeSingle();
+
+            if (storeData) {
+              setStore(storeData);
+              setAccountType('store');
+              setProfile(null);
+            }
+          }
         } else {
           setProfile(null);
+          setStore(null);
+          setAccountType(null);
         }
       })();
     });
@@ -72,29 +122,59 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { error, data } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) throw error;
+
+      // ログイン成功後、アカウントタイプを判定
+      if (data.user) {
+        // まずprofilesテーブルをチェック（運営会社アカウント）
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', data.user.id)
+          .maybeSingle();
+
+        if (profileData) {
+          return { error: null, accountType: 'platform' as AccountType, profile: profileData };
+        }
+
+        // profilesになければstoresテーブルをチェック（店舗アカウント）
+        const { data: storeData } = await supabase
+          .from('stores')
+          .select('*')
+          .eq('id', data.user.id)
+          .maybeSingle();
+
+        if (storeData) {
+          return { error: null, accountType: 'store' as AccountType, store: storeData };
+        }
+
+        // どちらにも存在しない場合
+        throw new Error('アカウント情報が見つかりません');
+      }
+
       return { error: null };
     } catch (error) {
       return { error: error as Error };
     }
   };
 
-  const signUp = async (email: string, password: string, displayName: string, isBusiness: boolean) => {
+  const signUp = async (email: string, password: string, displayName: string) => {
     try {
-      console.log('Starting sign up process...');
+      console.log('Starting platform account sign up process...');
       
-      // Supabaseでユーザー作成
+      // Supabaseでユーザー作成（運営会社アカウント用）
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
             display_name: displayName,
+            account_type: 'platform',
           }
         }
       });
@@ -111,14 +191,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       console.log('User created:', data.user.id);
 
-      // プロフィールを作成
+      // 運営会社のプロフィールを作成
       const { error: profileError } = await supabase
         .from('profiles')
         .insert({
           id: data.user.id,
           email,
           display_name: displayName,
-          is_business: isBusiness,
+          is_business: true, // 運営会社は常にtrue
         } as any);
 
       if (profileError) {
@@ -144,6 +224,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       value={{
         user,
         profile,
+        store,
+        accountType,
         session,
         loading,
         signIn,

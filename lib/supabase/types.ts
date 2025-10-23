@@ -45,17 +45,20 @@ export interface Database {
         Row: {
           id: string
           owner_id: string
+          email: string
           name: string
           description: string | null
           address: string
           latitude: number
           longitude: number
           phone: string | null
+          website_url: string | null
           opening_hours: Json | null
           image_url: string | null
           menu_images: Json
           is_open: boolean
-          vacancy_status: 'vacant' | 'moderate' | 'crowded'
+          vacancy_status: 'vacant' | 'moderate' | 'full' | 'closed'
+          status_message: string | null
           male_ratio: number
           female_ratio: number
           last_updated: string
@@ -65,17 +68,20 @@ export interface Database {
         Insert: {
           id?: string
           owner_id: string
+          email: string
           name: string
           description?: string | null
           address: string
           latitude: number
           longitude: number
           phone?: string | null
+          website_url?: string | null
           opening_hours?: Json | null
           image_url?: string | null
           menu_images?: Json
           is_open?: boolean
-          vacancy_status?: 'vacant' | 'moderate' | 'crowded'
+          vacancy_status?: 'vacant' | 'moderate' | 'full' | 'closed'
+          status_message?: string | null
           male_ratio?: number
           female_ratio?: number
           last_updated?: string
@@ -85,17 +91,20 @@ export interface Database {
         Update: {
           id?: string
           owner_id?: string
+          email?: string
           name?: string
           description?: string | null
           address?: string
           latitude?: number
           longitude?: number
           phone?: string | null
+          website_url?: string | null
           opening_hours?: Json | null
           image_url?: string | null
           menu_images?: Json
           is_open?: boolean
-          vacancy_status?: 'vacant' | 'moderate' | 'crowded'
+          vacancy_status?: 'vacant' | 'moderate' | 'full' | 'closed'
+          status_message?: string | null
           male_ratio?: number
           female_ratio?: number
           last_updated?: string

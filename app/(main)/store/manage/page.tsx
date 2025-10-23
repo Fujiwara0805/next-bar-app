@@ -16,18 +16,25 @@ type Store = Database['public']['Tables']['stores']['Row'];
 
 export default function StoreManagePage() {
   const router = useRouter();
-  const { user, profile } = useAuth();
+  const { user, profile, accountType, store } = useAuth();
   const [stores, setStores] = useState<Store[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!profile?.is_business) {
-      router.push('/profile');
+    // 店舗アカウントの場合は自分の更新画面にリダイレクト
+    if (accountType === 'store' && store) {
+      router.push(`/store/manage/${store.id}/update`);
+      return;
+    }
+
+    // 運営会社アカウントのみこの画面にアクセス可能
+    if (!profile?.is_business || accountType !== 'platform') {
+      router.push('/login');
       return;
     }
 
     fetchStores();
-  }, [profile, router]);
+  }, [profile, accountType, store, router]);
 
   const fetchStores = async () => {
     if (!user) return;
@@ -54,8 +61,10 @@ export default function StoreManagePage() {
         return '空席あり';
       case 'moderate':
         return 'やや混雑';
-      case 'crowded':
-        return '混雑';
+      case 'full':
+        return '満席';
+      case 'closed':
+        return '閉店';
       default:
         return '不明';
     }
@@ -67,8 +76,10 @@ export default function StoreManagePage() {
         return 'bg-green-500';
       case 'moderate':
         return 'bg-yellow-500';
-      case 'crowded':
+      case 'full':
         return 'bg-red-500';
+      case 'closed':
+        return 'bg-gray-500';
       default:
         return 'bg-gray-500';
     }

@@ -9,7 +9,9 @@ import {
   Phone, 
   ArrowLeft,
   Loader2,
-  Search
+  Search,
+  Mail,
+  Lock
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -36,6 +38,8 @@ export default function NewStorePage() {
   const [latitude, setLatitude] = useState('');
   const [longitude, setLongitude] = useState('');
   const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
   // 店舗名候補
   const [suggestions, setSuggestions] = useState<google.maps.places.AutocompletePrediction[]>([]);
@@ -239,6 +243,16 @@ export default function NewStorePage() {
       return;
     }
 
+    if (!email.trim()) {
+      toast.error('店舗用のメールアドレスを入力してください');
+      return;
+    }
+
+    if (!password || password.length < 6) {
+      toast.error('パスワードは6文字以上で入力してください');
+      return;
+    }
+
     if (!latitude || !longitude) {
       const ok = await handleGeocodeAddress();
       if (!ok) {
@@ -250,10 +264,34 @@ export default function NewStorePage() {
     setLoading(true);
 
     try {
-      const { error } = await supabase
+      // 1. 店舗用のSupabase認証アカウントを作成
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: email.trim(),
+        password,
+        options: {
+          data: {
+            store_name: name.trim(),
+            account_type: 'store',
+          }
+        }
+      });
+
+      if (authError) {
+        console.error('Auth error:', authError);
+        throw new Error(`認証アカウントの作成に失敗: ${authError.message}`);
+      }
+
+      if (!authData.user) {
+        throw new Error('認証アカウントの作成に失敗しました');
+      }
+
+      // 2. storesテーブルに店舗情報を登録（idは認証アカウントのIDを使用）
+      const { error: storeError } = await supabase
         .from('stores')
         .insert({
-          owner_id: user.id,
+          id: authData.user.id, // 店舗アカウントのIDを使用
+          owner_id: user.id, // 運営会社のID
+          email: email.trim(),
           name: name.trim(),
           description: description.trim() || null,
           address: address.trim(),
@@ -264,17 +302,22 @@ export default function NewStorePage() {
           vacancy_status: 'vacant',
           male_ratio: 50,
           female_ratio: 50,
-        } as any)
-        .select()
-        .single();
+        } as any);
 
-      if (error) throw error;
+      if (storeError) {
+        console.error('Store error:', storeError);
+        // 店舗登録に失敗した場合、作成した認証アカウントは残るが問題ない
+        throw new Error(`店舗情報の登録に失敗: ${storeError.message}`);
+      }
 
-      toast.success('店舗を登録しました');
+      toast.success('店舗を登録しました', {
+        description: `ログイン用メールアドレス: ${email}`,
+      });
       router.push('/store/manage');
     } catch (error) {
       console.error('Error:', error);
-      toast.error('店舗の登録に失敗しました');
+      const errorMsg = error instanceof Error ? error.message : '店舗の登録に失敗しました';
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -418,6 +461,55 @@ export default function NewStorePage() {
                   placeholder="03-1234-5678"
                   disabled={loading}
                 />
+              </div>
+
+              {/* セパレーター */}
+              <div className="border-t pt-6">
+                <h3 className="font-bold text-lg mb-2">店舗ログイン情報</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  店舗側がログインして情報を更新するためのアカウントを作成します
+                </p>
+              </div>
+
+              {/* 店舗用メールアドレス */}
+              <div className="space-y-2">
+                <Label htmlFor="email">
+                  <Mail className="w-4 h-4 inline mr-2" />
+                  店舗用メールアドレス <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="store@example.com"
+                  required
+                  disabled={loading}
+                />
+                <p className="text-xs text-muted-foreground">
+                  店舗側がログインする際に使用します
+                </p>
+              </div>
+
+              {/* 店舗用パスワード */}
+              <div className="space-y-2">
+                <Label htmlFor="password">
+                  <Lock className="w-4 h-4 inline mr-2" />
+                  店舗用パスワード <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="6文字以上"
+                  required
+                  minLength={6}
+                  disabled={loading}
+                />
+                <p className="text-xs text-muted-foreground">
+                  最低6文字、数字と記号を含めることを推奨
+                </p>
               </div>
 
               {/* 送信ボタン */}

@@ -53,7 +53,7 @@ export default function RegisterPage() {
 
       console.log('Attempting to sign up:', { email, displayName });
 
-      const { error } = await signUp(email, password, displayName, true);
+      const { error } = await signUp(email, password, displayName);
 
       if (error) {
         console.error('Sign up error:', error);
@@ -118,9 +118,9 @@ export default function RegisterPage() {
           className="w-full max-w-md"
         >
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold mb-2">企業アカウント登録</h1>
+            <h1 className="text-3xl font-bold mb-2">運営会社アカウント登録</h1>
             <p className="text-muted-foreground">
-              店舗情報を管理するためのアカウントを作成
+              店舗を作成・管理するためのアカウントを作成
             </p>
           </div>
 
@@ -140,13 +140,13 @@ export default function RegisterPage() {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="displayName">表示名</Label>
+              <Label htmlFor="displayName">会社名</Label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <Building className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <Input
                   id="displayName"
                   type="text"
-                  placeholder="店舗名"
+                  placeholder="運営会社名"
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
                   className="pl-10"
@@ -197,9 +197,9 @@ export default function RegisterPage() {
               <div className="flex items-center gap-3">
                 <Building className="w-5 h-5 text-primary" />
                 <div>
-                  <p className="font-medium">企業アカウントとして登録されます</p>
+                  <p className="font-medium">運営会社アカウントとして登録されます</p>
                   <p className="text-xs text-muted-foreground">
-                    店舗情報の管理と更新が可能になります
+                    店舗の作成・管理・更新が可能になります
                   </p>
                 </div>
               </div>
