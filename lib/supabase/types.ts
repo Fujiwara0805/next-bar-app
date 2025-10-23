@@ -103,41 +103,6 @@ export interface Database {
           updated_at?: string
         }
       }
-      posts: {
-        Row: {
-          id: string
-          user_id: string
-          store_id: string | null
-          content: string
-          images: Json
-          latitude: number | null
-          longitude: number | null
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          store_id?: string | null
-          content: string
-          images?: Json
-          latitude?: number | null
-          longitude?: number | null
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          store_id?: string | null
-          content?: string
-          images?: Json
-          latitude?: number | null
-          longitude?: number | null
-          created_at?: string
-          updated_at?: string
-        }
-      }
     }
     Views: {}
     Functions: {}

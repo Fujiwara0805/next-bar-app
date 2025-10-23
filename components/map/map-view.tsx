@@ -15,6 +15,7 @@ export function MapView({ stores, center, onStoreClick }: MapViewProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
   const markersRef = useRef<google.maps.Marker[]>([]);
+  const userMarkerRef = useRef<google.maps.Marker | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -66,6 +67,7 @@ export function MapView({ stores, center, onStoreClick }: MapViewProps) {
     initMap();
   }, [center]);
 
+  // 店舗マーカーの表示
   useEffect(() => {
     if (!mapInstanceRef.current) return;
 
@@ -96,6 +98,55 @@ export function MapView({ stores, center, onStoreClick }: MapViewProps) {
       markersRef.current.push(marker);
     });
   }, [stores, onStoreClick]);
+
+  // 現在地マーカーの表示
+  useEffect(() => {
+    if (!mapInstanceRef.current || !center) return;
+
+    // 既存の現在地マーカーを削除
+    if (userMarkerRef.current) {
+      userMarkerRef.current.setMap(null);
+    }
+
+    // カスタム画像を使用した現在地マーカーを作成
+    const userMarker = new google.maps.Marker({
+      position: center,
+      map: mapInstanceRef.current,
+      icon: {
+        url: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1749098791/%E9%B3%A9_azif4f.png',
+        scaledSize: new google.maps.Size(48, 48), // サイズ調整
+        anchor: new google.maps.Point(24, 24), // 中心を基準点に
+      },
+      title: '現在地',
+      zIndex: 1000, // 他のマーカーより前面に表示
+      animation: google.maps.Animation.DROP, // ドロップアニメーション
+    });
+
+    // 現在地の周りに円（精度範囲）を表示
+    const accuracyCircle = new google.maps.Circle({
+      map: mapInstanceRef.current,
+      center: center,
+      radius: 100, // 100メートル
+      fillColor: '#4285F4',
+      fillOpacity: 0.1,
+      strokeColor: '#4285F4',
+      strokeOpacity: 0.3,
+      strokeWeight: 2,
+    });
+
+    userMarkerRef.current = userMarker;
+
+    // マップの中心を現在地に移動
+    mapInstanceRef.current.panTo(center);
+
+    // クリーンアップ関数
+    return () => {
+      if (userMarkerRef.current) {
+        userMarkerRef.current.setMap(null);
+      }
+      accuracyCircle.setMap(null);
+    };
+  }, [center]);
 
   const getMarkerColor = (status: string) => {
     switch (status) {

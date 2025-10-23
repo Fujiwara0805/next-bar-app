@@ -136,3 +136,41 @@
     padding-right: env(safe-area-inset-right);
   }
 }
+
+/* PWA対応 - セーフエリアサポート */
+.safe-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.safe-left {
+  padding-left: env(safe-area-inset-left);
+}
+
+.safe-right {
+  padding-right: env(safe-area-inset-right);
+}
+
+/* モバイルブラウザのアドレスバー対策 */
+.min-h-screen {
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+}
+
+html {
+  height: -webkit-fill-available;
+}
+
+/* タッチ操作の最適化 */
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* スクロールの最適化 */
+* {
+  -webkit-overflow-scrolling: touch;
+}
