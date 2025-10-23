@@ -86,14 +86,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (email: string, password: string, displayName: string, isBusiness: boolean) => {
     try {
+      console.log('Starting sign up process...');
+      
+      // Supabaseでユーザー作成
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          data: {
+            display_name: displayName,
+          }
+        }
       });
 
-      if (error) throw error;
-      if (!data.user) throw new Error('ユーザー作成に失敗しました');
+      if (error) {
+        console.error('Auth sign up error:', error);
+        throw error;
+      }
+      
+      if (!data.user) {
+        console.error('No user returned from sign up');
+        throw new Error('ユーザー作成に失敗しました');
+      }
 
+      console.log('User created:', data.user.id);
+
+      // プロフィールを作成
       const { error: profileError } = await supabase
         .from('profiles')
         .insert({
@@ -103,10 +121,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           is_business: isBusiness,
         } as any);
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error('Profile creation error:', profileError);
+        throw new Error(`プロフィール作成に失敗: ${profileError.message}`);
+      }
+
+      console.log('Profile created successfully');
 
       return { error: null };
     } catch (error) {
+      console.error('Sign up error:', error);
       return { error: error as Error };
     }
   };

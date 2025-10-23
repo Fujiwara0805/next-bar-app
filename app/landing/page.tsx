@@ -54,36 +54,98 @@ export default function LandingPage() {
   const handleLocationPermission = async (allow: boolean) => {
     if (allow) {
       if (navigator.geolocation) {
+        // 位置情報取得のオプション
+        const options = {
+          enableHighAccuracy: true, // 高精度モード
+          timeout: 10000, // 10秒でタイムアウト
+          maximumAge: 0 // キャッシュを使用しない
+        };
+
         navigator.geolocation.getCurrentPosition(
           (position) => {
             // 位置情報取得成功
-            setLocationPermission('granted');
-            localStorage.setItem('userLocation', JSON.stringify({
+            const location = {
               lat: position.coords.latitude,
               lng: position.coords.longitude,
-            }));
+              timestamp: Date.now(), // タイムスタンプを追加
+              accuracy: position.coords.accuracy // 精度情報も保存
+            };
+            
+            setLocationPermission('granted');
+            
+            // localStorageに保存
+            localStorage.setItem('userLocation', JSON.stringify(location));
+            
+            console.log('位置情報を保存しました:', location);
+            
             setShowLocationModal(false);
             router.push('/map');
           },
           (error) => {
             console.error('位置情報の取得に失敗しました:', error);
             setLocationPermission('denied');
-            // エラーでも地図ページに遷移（デフォルト位置で表示）
+            
+            // エラーメッセージを表示
+            let errorMessage = '位置情報の取得に失敗しました。';
+            switch(error.code) {
+              case error.PERMISSION_DENIED:
+                errorMessage = '位置情報の使用が拒否されました。';
+                break;
+              case error.POSITION_UNAVAILABLE:
+                errorMessage = '位置情報が利用できません。';
+                break;
+              case error.TIMEOUT:
+                errorMessage = '位置情報の取得がタイムアウトしました。';
+                break;
+            }
+            
+            alert(errorMessage + ' デフォルトの位置で表示します。');
+            
+            // デフォルト位置（東京）を保存
+            const defaultLocation = {
+              lat: 35.6812,
+              lng: 139.7671,
+              timestamp: Date.now(),
+              isDefault: true
+            };
+            localStorage.setItem('userLocation', JSON.stringify(defaultLocation));
+            
             setTimeout(() => {
               setShowLocationModal(false);
               router.push('/map');
             }, 1500);
-          }
+          },
+          options
         );
       } else {
         // Geolocation APIが使えない場合
         alert('お使いのブラウザは位置情報に対応していません');
+        
+        // デフォルト位置を保存
+        const defaultLocation = {
+          lat: 35.6812,
+          lng: 139.7671,
+          timestamp: Date.now(),
+          isDefault: true
+        };
+        localStorage.setItem('userLocation', JSON.stringify(defaultLocation));
+        
         setShowLocationModal(false);
         router.push('/map');
       }
     } else {
       // 位置情報を許可しない場合
       setLocationPermission('denied');
+      
+      // デフォルト位置を保存
+      const defaultLocation = {
+        lat: 35.6812,
+        lng: 139.7671,
+        timestamp: Date.now(),
+        isDefault: true
+      };
+      localStorage.setItem('userLocation', JSON.stringify(defaultLocation));
+      
       setShowLocationModal(false);
       router.push('/map');
     }

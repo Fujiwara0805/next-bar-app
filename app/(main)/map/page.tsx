@@ -3,12 +3,11 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Users, Search, X, Filter, ArrowLeft } from 'lucide-react';
+import { MapPin, Users, X, Filter, ArrowLeft } from 'lucide-react';
 import { MapView } from '@/components/map/map-view';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { supabase } from '@/lib/supabase/client';
 import type { Database } from '@/lib/supabase/types';
 
@@ -20,7 +19,6 @@ export default function MapPage() {
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     fetchStores();
@@ -44,7 +42,7 @@ export default function MapPage() {
   };
 
   const loadUserLocation = () => {
-    // localStorageから位置情報を取得（ランディングページで保存済み）
+    // localStorageから位置情報を取得
     const savedLocation = localStorage.getItem('userLocation');
     if (savedLocation) {
       try {
@@ -56,27 +54,8 @@ export default function MapPage() {
       }
     }
 
-    // 保存された位置情報がない場合、再度取得を試みる
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const location = {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          };
-          setUserLocation(location);
-          localStorage.setItem('userLocation', JSON.stringify(location));
-        },
-        (error) => {
-          console.error('Error getting location:', error);
-          // エラーの場合はデフォルト位置（東京）を使用
-          setUserLocation({ lat: 35.6812, lng: 139.7671 });
-        }
-      );
-    } else {
-      // Geolocation APIが使えない場合はデフォルト位置
-      setUserLocation({ lat: 35.6812, lng: 139.7671 });
-    }
+    // 保存された位置情報がない場合、デフォルト位置を使用
+    setUserLocation({ lat: 35.6812, lng: 139.7671 });
   };
 
   const getVacancyLabel = (status: string) => {
@@ -112,7 +91,7 @@ export default function MapPage() {
         <motion.div
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="w-full space-y-2 sm:space-y-3"
+          className="w-full"
         >
           {/* ロゴと戻るボタン */}
           <div className="flex items-center justify-between">
@@ -123,27 +102,12 @@ export default function MapPage() {
                 onClick={() => router.push('/landing')}
                 className="w-7 h-7 sm:w-8 sm:h-8 rounded-full hover:bg-primary/10"
               >
-                <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
-              </Button>
               <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
               <span className="font-bold text-sm sm:text-base">MachiNow</span>
+              </Button>
             </div>
-          </div>
-
-          {/* 検索バー */}
-          <div className="relative">
-            <Search className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder="お店を検索..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 sm:pl-12 h-10 sm:h-12 text-sm sm:text-base bg-white/95 backdrop-blur-sm shadow-lg border-0 rounded-full"
-            />
-          </div>
-
-          {/* フィルターボタン */}
-          <div className="flex justify-end">
+            
+            {/* フィルターボタン */}
             <Button
               size="icon"
               className="w-10 h-10 sm:w-12 sm:h-12 rounded-full shadow-lg bg-white/95 backdrop-blur-sm hover:bg-white"

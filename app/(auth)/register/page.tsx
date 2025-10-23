@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { MapPin, Mail, Lock, User, Building, Loader2 } from 'lucide-react';
+import { MapPin, Mail, Lock, User, Building, Loader2, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,31 +18,80 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setErrorMessage('');
 
     try {
-      if (password.length < 6) {
-        toast.error('パスワードは6文字以上である必要があります');
+      // バリデーション
+      if (!displayName.trim()) {
+        const error = '表示名を入力してください';
+        setErrorMessage(error);
+        toast.error(error);
         setLoading(false);
         return;
       }
 
+      if (!email.trim()) {
+        const error = 'メールアドレスを入力してください';
+        setErrorMessage(error);
+        toast.error(error);
+        setLoading(false);
+        return;
+      }
+
+      if (password.length < 6) {
+        const error = 'パスワードは6文字以上である必要があります';
+        setErrorMessage(error);
+        toast.error(error);
+        setLoading(false);
+        return;
+      }
+
+      console.log('Attempting to sign up:', { email, displayName });
+
       const { error } = await signUp(email, password, displayName, true);
 
       if (error) {
+        console.error('Sign up error:', error);
+        
+        let errorMsg = '登録に失敗しました';
+        
+        // エラーメッセージの詳細化
+        if (error.message.includes('already registered') || error.message.includes('already exists')) {
+          errorMsg = 'このメールアドレスは既に登録されています';
+        } else if (error.message.includes('invalid email')) {
+          errorMsg = 'メールアドレスの形式が正しくありません';
+        } else if (error.message.includes('weak password')) {
+          errorMsg = 'パスワードが弱すぎます。より強力なパスワードを設定してください';
+        } else if (error.message) {
+          errorMsg = error.message;
+        }
+        
+        setErrorMessage(errorMsg);
         toast.error('登録に失敗しました', {
-          description: error.message || 'もう一度お試しください。',
+          description: errorMsg,
         });
         return;
       }
 
-      toast.success('アカウントを作成しました');
-      router.push('/map');
+      console.log('Sign up successful');
+      toast.success('アカウントを作成しました', {
+        description: '店舗情報を登録できます',
+      });
+      
+      // 成功後、店舗管理画面または店舗登録画面へ
+      router.push('/store/manage');
     } catch (error) {
-      toast.error('エラーが発生しました');
+      console.error('Unexpected error:', error);
+      const errorMsg = error instanceof Error ? error.message : 'エラーが発生しました';
+      setErrorMessage(errorMsg);
+      toast.error('エラーが発生しました', {
+        description: errorMsg,
+      });
     } finally {
       setLoading(false);
     }
@@ -75,6 +124,20 @@ export default function RegisterPage() {
             </p>
           </div>
 
+          {/* エラーメッセージ表示 */}
+          {errorMessage && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3"
+            >
+              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-red-800">{errorMessage}</p>
+              </div>
+            </motion.div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="displayName">表示名</Label>
@@ -83,11 +146,12 @@ export default function RegisterPage() {
                 <Input
                   id="displayName"
                   type="text"
-                  placeholder="山田太郎"
+                  placeholder="店舗名"
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
                   className="pl-10"
                   required
+                  disabled={loading}
                 />
               </div>
             </div>
@@ -104,6 +168,7 @@ export default function RegisterPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   className="pl-10"
                   required
+                  disabled={loading}
                 />
               </div>
             </div>
@@ -120,8 +185,12 @@ export default function RegisterPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   className="pl-10"
                   required
+                  disabled={loading}
                 />
               </div>
+              <p className="text-xs text-muted-foreground">
+                最低6文字、数字と記号を含めることを推奨
+              </p>
             </div>
 
             <div className="p-4 border rounded-lg bg-primary/5">

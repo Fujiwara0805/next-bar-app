@@ -16,8 +16,11 @@ export function MapView({ stores, center, onStoreClick }: MapViewProps) {
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
   const markersRef = useRef<google.maps.Marker[]>([]);
   const userMarkerRef = useRef<google.maps.Marker | null>(null);
+  const accuracyCircleRef = useRef<google.maps.Circle | null>(null);
   const [loading, setLoading] = useState(true);
+  const [mapReady, setMapReady] = useState(false);
 
+  // Google Maps初期化（初回のみ）
   useEffect(() => {
     const initMap = async () => {
       try {
@@ -28,28 +31,39 @@ export function MapView({ stores, center, onStoreClick }: MapViewProps) {
           return;
         }
 
+        // 既にスクリプトが読み込まれているかチェック
+        if (window.google && window.google.maps) {
+          console.log('Google Maps already loaded');
+          if (!mapInstanceRef.current) {
+            createMap();
+          }
+          return;
+        }
+
+        // 既にスクリプトタグが存在するかチェック
+        const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
+        if (existingScript) {
+          console.log('Google Maps script tag already exists, waiting for load...');
+          const checkGoogle = setInterval(() => {
+            if (window.google && window.google.maps) {
+              clearInterval(checkGoogle);
+              if (!mapInstanceRef.current) {
+                createMap();
+              }
+            }
+          }, 100);
+          return;
+        }
+
         const script = document.createElement('script');
         script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
         script.async = true;
         script.defer = true;
+        script.id = 'google-maps-script';
 
         script.onload = () => {
-          if (!mapRef.current) return;
-
-          const defaultCenter = center || { lat: 35.6812, lng: 139.7671 };
-
-          const map = new google.maps.Map(mapRef.current, {
-            center: defaultCenter,
-            zoom: 15,
-            disableDefaultUI: false,
-            zoomControl: true,
-            mapTypeControl: false,
-            streetViewControl: false,
-            fullscreenControl: false,
-          });
-
-          mapInstanceRef.current = map;
-          setLoading(false);
+          console.log('Google Maps script loaded');
+          createMap();
         };
 
         script.onerror = () => {
@@ -64,12 +78,48 @@ export function MapView({ stores, center, onStoreClick }: MapViewProps) {
       }
     };
 
+    const createMap = () => {
+      if (!mapRef.current || mapInstanceRef.current) return;
+
+      const defaultCenter = center || { lat: 35.6812, lng: 139.7671 };
+      console.log('Creating map with center:', defaultCenter);
+
+      const map = new google.maps.Map(mapRef.current, {
+        center: defaultCenter,
+        zoom: 15,
+        disableDefaultUI: false,
+        zoomControl: true,
+        mapTypeControl: false,
+        streetViewControl: false,
+        fullscreenControl: false,
+      });
+
+      mapInstanceRef.current = map;
+      setLoading(false);
+      
+      // マップが完全に初期化されたらフラグを立てる
+      google.maps.event.addListenerOnce(map, 'idle', () => {
+        console.log('Map is ready');
+        setMapReady(true);
+      });
+    };
+
     initMap();
-  }, [center]);
+  }, []); // 空の依存配列で初回のみ実行
+
+  // centerが変更されたときにマップの中心を更新
+  useEffect(() => {
+    if (mapInstanceRef.current && center && mapReady) {
+      console.log('Updating map center:', center);
+      mapInstanceRef.current.panTo(center);
+    }
+  }, [center, mapReady]);
 
   // 店舗マーカーの表示
   useEffect(() => {
-    if (!mapInstanceRef.current) return;
+    if (!mapInstanceRef.current || !mapReady) return;
+
+    console.log('Updating store markers:', stores.length);
 
     markersRef.current.forEach((marker) => marker.setMap(null));
     markersRef.current = [];
@@ -97,16 +147,41 @@ export function MapView({ stores, center, onStoreClick }: MapViewProps) {
 
       markersRef.current.push(marker);
     });
-  }, [stores, onStoreClick]);
+  }, [stores, onStoreClick, mapReady]);
 
   // 現在地マーカーの表示
   useEffect(() => {
-    if (!mapInstanceRef.current || !center) return;
+    if (!mapInstanceRef.current || !mapReady || !center) {
+      console.log('Cannot create user marker:', {
+        hasMap: !!mapInstanceRef.current,
+        mapReady,
+        hasCenter: !!center
+      });
+      return;
+    }
 
-    // 既存の現在地マーカーを削除
+    console.log('Creating user marker at:', center);
+
+    // 既存の現在地マーカーと円を削除
     if (userMarkerRef.current) {
       userMarkerRef.current.setMap(null);
     }
+    if (accuracyCircleRef.current) {
+      accuracyCircleRef.current.setMap(null);
+    }
+
+    // 現在地の周りに円（精度範囲）を表示
+    const accuracyCircle = new google.maps.Circle({
+      map: mapInstanceRef.current,
+      center: center,
+      radius: 100,
+      fillColor: '#4285F4',
+      fillOpacity: 0.15,
+      strokeColor: '#4285F4',
+      strokeOpacity: 0.4,
+      strokeWeight: 2,
+    });
+    accuracyCircleRef.current = accuracyCircle;
 
     // カスタム画像を使用した現在地マーカーを作成
     const userMarker = new google.maps.Marker({
@@ -114,39 +189,29 @@ export function MapView({ stores, center, onStoreClick }: MapViewProps) {
       map: mapInstanceRef.current,
       icon: {
         url: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1749098791/%E9%B3%A9_azif4f.png',
-        scaledSize: new google.maps.Size(48, 48), // サイズ調整
-        anchor: new google.maps.Point(24, 24), // 中心を基準点に
+        scaledSize: new google.maps.Size(48, 48),
+        anchor: new google.maps.Point(24, 24),
       },
       title: '現在地',
-      zIndex: 1000, // 他のマーカーより前面に表示
-      animation: google.maps.Animation.DROP, // ドロップアニメーション
-    });
-
-    // 現在地の周りに円（精度範囲）を表示
-    const accuracyCircle = new google.maps.Circle({
-      map: mapInstanceRef.current,
-      center: center,
-      radius: 100, // 100メートル
-      fillColor: '#4285F4',
-      fillOpacity: 0.1,
-      strokeColor: '#4285F4',
-      strokeOpacity: 0.3,
-      strokeWeight: 2,
+      zIndex: 1000,
+      animation: google.maps.Animation.DROP,
+      optimized: false,
     });
 
     userMarkerRef.current = userMarker;
 
-    // マップの中心を現在地に移動
-    mapInstanceRef.current.panTo(center);
+    console.log('User marker created successfully');
 
     // クリーンアップ関数
     return () => {
       if (userMarkerRef.current) {
         userMarkerRef.current.setMap(null);
       }
-      accuracyCircle.setMap(null);
+      if (accuracyCircleRef.current) {
+        accuracyCircleRef.current.setMap(null);
+      }
     };
-  }, [center]);
+  }, [center, mapReady]);
 
   const getMarkerColor = (status: string) => {
     switch (status) {
@@ -170,6 +235,14 @@ export function MapView({ stores, center, onStoreClick }: MapViewProps) {
             <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-2" />
             <p className="text-sm text-muted-foreground">地図を読み込み中...</p>
           </div>
+        </div>
+      )}
+      {/* デバッグ情報 */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="absolute top-20 left-4 bg-black/70 text-white text-xs p-2 rounded z-50">
+          <div>Map Ready: {mapReady ? '✓' : '✗'}</div>
+          <div>Center: {center ? `${center.lat.toFixed(4)}, ${center.lng.toFixed(4)}` : 'None'}</div>
+          <div>User Marker: {userMarkerRef.current ? '✓' : '✗'}</div>
         </div>
       )}
     </div>
