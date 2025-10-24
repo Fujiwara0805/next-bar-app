@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import {
@@ -14,6 +14,8 @@ import {
   Info,
   Image as ImageIcon,
   ExternalLink,
+  X,  // ←追加
+  Upload,  // ←追加
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,7 +24,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useAuth } from '@/lib/auth/context';
 import { supabase } from '@/lib/supabase/client';
@@ -73,6 +74,8 @@ export default function StoreUpdatePage() {
   const [loading, setLoading] = useState(false);
   const [fetchingStore, setFetchingStore] = useState(true);
   const [store, setStore] = useState<Store | null>(null);
+  
+  const fileInputRef = useRef<HTMLInputElement>(null);  // ←追加
 
   // 基本情報フォーム
   const [name, setName] = useState('');
@@ -95,6 +98,11 @@ export default function StoreUpdatePage() {
   const [budgetMax, setBudgetMax] = useState<number>(0);
   const [paymentMethods, setPaymentMethods] = useState<string[]>([]);
   const [facilities, setFacilities] = useState<string[]>([]);
+
+  // 画像関連のstate
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [mainImageIndex, setMainImageIndex] = useState(0);
 
   useEffect(() => {
     // 運営会社アカウントまたは店舗アカウントのみアクセス可能
@@ -155,6 +163,9 @@ export default function StoreUpdatePage() {
         setBudgetMax(storeData.budget_max || 0);
         setPaymentMethods(storeData.payment_methods || []);
         setFacilities(storeData.facilities || []);
+
+        // 画像URLの設定 ←変更: image_url削除
+        setImageUrls(storeData.image_urls || []);
       }
     } catch (error) {
       console.error('Error fetching store:', error);
@@ -295,6 +306,145 @@ export default function StoreUpdatePage() {
     );
   };
 
+  // 画像アップロード処理 ←追加
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    
+    // 最大5枚まで
+    if (imageUrls.length + files.length > 5) {
+      toast.error('画像は最大5枚までアップロードできます');
+      return;
+    }
+
+    setUploadingImage(true);
+
+    try {
+      const uploadedUrls: string[] = [];
+
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        
+        // ファイルサイズチェック（5MB以下）
+        if (file.size > 5 * 1024 * 1024) {
+          toast.error(`${file.name}は5MBを超えています`);
+          continue;
+        }
+
+        // ファイル名を生成（ユニーク）
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${params.id}/${Date.now()}_${i}.${fileExt}`;
+
+        // Supabase Storageにアップロード
+        const { data, error } = await supabase.storage
+          .from('store-images')
+          .upload(fileName, file, {
+            cacheControl: '3600',
+            upsert: false
+          });
+
+        if (error) throw error;
+
+        // パブリックURLを取得
+        const { data: { publicUrl } } = supabase.storage
+          .from('store-images')
+          .getPublicUrl(fileName);
+
+        uploadedUrls.push(publicUrl);
+      }
+
+      // 新しい画像URLを追加
+      const newImageUrls = [...imageUrls, ...uploadedUrls];
+      setImageUrls(newImageUrls);
+
+      // データベースを更新 ←変更: image_url削除
+      let query = (supabase.from('stores') as any)
+        .update({
+          image_urls: newImageUrls,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', params.id as string);
+
+      if (accountType === 'platform') {
+        query = query.eq('owner_id', user!.id);
+      }
+
+      const { error: updateError } = await query;
+      if (updateError) throw updateError;
+
+      toast.success('画像をアップロードしました');
+      fetchStore();
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast.error('画像のアップロードに失敗しました');
+    } finally {
+      setUploadingImage(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  // 画像削除処理 ←変更: image_url削除
+  const handleImageDelete = async (urlToDelete: string, index: number) => {
+    if (!confirm('この画像を削除しますか？')) return;
+
+    setUploadingImage(true);
+
+    try {
+      // URLからファイルパスを抽出
+      const url = new URL(urlToDelete);
+      const pathParts = url.pathname.split('/store-images/');
+      if (pathParts.length < 2) {
+        throw new Error('Invalid image URL');
+      }
+      const filePath = pathParts[1];
+
+      // Storageから削除
+      const { error: deleteError } = await supabase.storage
+        .from('store-images')
+        .remove([filePath]);
+
+      if (deleteError) throw deleteError;
+
+      // 配列から削除
+      const newImageUrls = imageUrls.filter((_, i) => i !== index);
+      setImageUrls(newImageUrls);
+
+      // メイン画像のインデックスを調整
+      if (index === mainImageIndex && newImageUrls.length > 0) {
+        setMainImageIndex(0);
+      } else if (index < mainImageIndex) {
+        setMainImageIndex(mainImageIndex - 1);
+      }
+
+      // データベースを更新 ←変更: image_url削除
+      let query = (supabase.from('stores') as any)
+        .update({
+          image_urls: newImageUrls,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', params.id as string);
+
+      if (accountType === 'platform') {
+        query = query.eq('owner_id', user!.id);
+      }
+
+      const { error: updateError } = await query;
+      if (updateError) throw updateError;
+
+      toast.success('画像を削除しました');
+      fetchStore();
+    } catch (error) {
+      console.error('Error deleting image:', error);
+      toast.error('画像の削除に失敗しました');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  // メイン画像設定 ←削除（不要になったため）
+
   const handleSignOut = async () => {
     try {
       await signOut();
@@ -339,16 +489,16 @@ export default function StoreUpdatePage() {
       </header>
 
       <div className="max-w-4xl mx-auto p-4">
-        {/* 店舗カード */}
+        {/* 店舗カード ←変更 */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
           <Card className="p-6 mb-6">
             <div className="flex items-start gap-4">
-              {store.image_url ? (
+              {imageUrls.length > 0 ? (
                 <img
-                  src={store.image_url}
+                  src={imageUrls[mainImageIndex]}
                   alt={store.name}
                   className="w-24 h-24 rounded-lg object-cover"
                 />
@@ -791,24 +941,105 @@ export default function StoreUpdatePage() {
                   </div>
                 </Card>
 
+                {/* 店舗画像カード ←更新 */}
                 <Card className="p-6">
                   <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
                     <ImageIcon className="w-5 h-5" />
                     店舗画像
                   </h2>
                   <p className="text-sm text-muted-foreground mb-4">
-                    画像アップロード機能は今後実装予定です
+                    最大5枚まで画像をアップロードできます（1枚あたり最大5MB）
                   </p>
-                  <div className="grid grid-cols-3 gap-4">
-                    {[1, 2, 3, 4, 5].map((i) => (
-                      <div
-                        key={i}
-                        className="aspect-square rounded-lg border-2 border-dashed border-muted-foreground/25 flex items-center justify-center bg-muted/50"
+
+                  {/* アップロード済み画像 */}
+                  <div className="grid grid-cols-3 gap-4 mb-4">
+                    {imageUrls.map((url, index) => (
+                      <motion.div
+                        key={url}
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="relative aspect-square rounded-lg overflow-hidden border-2 border-border group"
                       >
-                        <ImageIcon className="w-8 h-8 text-muted-foreground/50" />
-                      </div>
+                        <img
+                          src={url}
+                          alt={`店舗画像 ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                        
+                        {/* メイン画像バッジ ←変更 */}
+                        {index === mainImageIndex && (
+                          <div className="absolute top-2 left-2 bg-primary text-primary-foreground px-2 py-1 rounded text-xs font-bold">
+                            メイン
+                          </div>
+                        )}
+
+                        {/* ホバー時のアクション ←変更 */}
+                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
+                          {index !== mainImageIndex && (
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="secondary"
+                              onClick={() => setMainImageIndex(index)}
+                              disabled={uploadingImage}
+                            >
+                              メイン画像に設定
+                            </Button>
+                          )}
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => handleImageDelete(url, index)}
+                            disabled={uploadingImage}
+                          >
+                            <X className="w-4 h-4 mr-1" />
+                            削除
+                          </Button>
+                        </div>
+                      </motion.div>
                     ))}
+
+                    {/* アップロードボタン */}
+                    {imageUrls.length < 5 && (
+                      <motion.div
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        <label
+                          htmlFor="image-upload"
+                          className="aspect-square rounded-lg border-2 border-dashed border-muted-foreground/25 flex flex-col items-center justify-center bg-muted/50 cursor-pointer hover:bg-muted transition-colors"
+                        >
+                          {uploadingImage ? (
+                            <Loader2 className="w-8 h-8 text-muted-foreground animate-spin" />
+                          ) : (
+                            <>
+                              <Upload className="w-8 h-8 text-muted-foreground/50 mb-2" />
+                              <span className="text-xs text-muted-foreground">
+                                画像を追加
+                              </span>
+                            </>
+                          )}
+                        </label>
+                        <input
+                          ref={fileInputRef}
+                          id="image-upload"
+                          type="file"
+                          accept="image/jpeg,image/jpg,image/png,image/webp"
+                          multiple
+                          onChange={handleImageUpload}
+                          disabled={uploadingImage}
+                          className="hidden"
+                        />
+                      </motion.div>
+                    )}
                   </div>
+
+                  {imageUrls.length === 0 && (
+                    <p className="text-center text-sm text-muted-foreground py-8">
+                      画像がアップロードされていません
+                    </p>
+                  )}
                 </Card>
 
                 <Button

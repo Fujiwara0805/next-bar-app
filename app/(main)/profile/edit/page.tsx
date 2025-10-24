@@ -46,7 +46,6 @@ export default function ProfileEditPage() {
   const [address, setAddress] = useState('');
   const [phone, setPhone] = useState('');
   const [websiteUrl, setWebsiteUrl] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
   const [openingHours, setOpeningHours] = useState<OpeningHours>({
     mon: DEFAULT_HOURS,
     tue: DEFAULT_HOURS,
@@ -86,7 +85,6 @@ export default function ProfileEditPage() {
         setAddress(storeData.address);
         setPhone(storeData.phone || '');
         setWebsiteUrl(storeData.website_url || '');
-        setImageUrl(storeData.image_url || '');
         
         if (storeData.opening_hours) {
           setOpeningHours(storeData.opening_hours as OpeningHours);
@@ -138,7 +136,6 @@ export default function ProfileEditPage() {
         address: address.trim(),
         phone: phone.trim() || null,
         website_url: websiteUrl.trim() || null,
-        image_url: imageUrl.trim() || null,
         opening_hours: openingHours as any,
         updated_at: new Date().toISOString(),
       };
@@ -238,29 +235,6 @@ export default function ProfileEditPage() {
                 />
               </div>
 
-              <div>
-                <Label htmlFor="imageUrl">店舗画像URL</Label>
-                <div className="flex gap-2">
-                  <ImageIcon className="w-5 h-5 text-muted-foreground mt-2" />
-                  <Input
-                    id="imageUrl"
-                    value={imageUrl}
-                    onChange={(e) => setImageUrl(e.target.value)}
-                    placeholder="https://example.com/image.jpg"
-                    type="url"
-                  />
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-6">
-            <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
-              <MapPin className="w-5 h-5" />
-              所在地・連絡先
-            </h2>
-
-            <div className="space-y-4">
               <div>
                 <Label htmlFor="address">住所 *</Label>
                 <Input

@@ -29,6 +29,8 @@ export default function StoreDetailPage() {
   const params = useParams();
   const [store, setStore] = useState<Store | null>(null);
   const [loading, setLoading] = useState(true);
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   useEffect(() => {
     if (params.id) {
@@ -45,7 +47,11 @@ export default function StoreDetailPage() {
         .maybeSingle();
 
       if (error) throw error;
-      setStore(data);
+      if (data) {
+        const storeData = data as Store;
+        setStore(storeData);
+        setImageUrls(storeData.image_urls || []);
+      }
     } catch (error) {
       console.error('Error fetching store:', error);
     } finally {
@@ -141,10 +147,10 @@ export default function StoreDetailPage() {
           transition={{ delay: 0.1 }}
         >
           {/* 店舗画像カルーセル（今後実装） */}
-          {store.image_url && (
+          {store.image_urls && store.image_urls.length > 0 && (
             <div className="w-full h-64 mb-4 rounded-lg overflow-hidden">
               <img
-                src={store.image_url}
+                src={store.image_urls[0]}
                 alt={store.name}
                 className="w-full h-full object-cover"
               />

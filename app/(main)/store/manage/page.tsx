@@ -191,10 +191,10 @@ export default function StoreManagePage() {
                 transition={{ delay: index * 0.05 }}
               >
                 <Card className="overflow-hidden">
-                  {store.image_url && (
+                  {store.image_urls && store.image_urls.length > 0 && (
                     <div className="h-40 overflow-hidden">
                       <img
-                        src={store.image_url}
+                        src={store.image_urls[0]}
                         alt={store.name}
                         className="w-full h-full object-cover"
                       />

@@ -60,8 +60,7 @@ export interface Database {
           budget_max: number | null
           payment_methods: string[] | null
           facilities: string[] | null
-          image_url: string | null
-          menu_images: Json
+          image_urls: string[] | null  // ←これのみ残す
           is_open: boolean
           vacancy_status: 'vacant' | 'moderate' | 'full' | 'closed'
           status_message: string | null
@@ -89,8 +88,7 @@ export interface Database {
           budget_max?: number | null
           payment_methods?: string[] | null
           facilities?: string[] | null
-          image_url?: string | null
-          menu_images?: Json
+          image_urls?: string[] | null  // ←これのみ残す
           is_open?: boolean
           vacancy_status?: 'vacant' | 'moderate' | 'full' | 'closed'
           status_message?: string | null
@@ -118,8 +116,7 @@ export interface Database {
           budget_max?: number | null
           payment_methods?: string[] | null
           facilities?: string[] | null
-          image_url?: string | null
-          menu_images?: Json
+          image_urls?: string[] | null  // ←これのみ残す
           is_open?: boolean
           vacancy_status?: 'vacant' | 'moderate' | 'full' | 'closed'
           status_message?: string | null
