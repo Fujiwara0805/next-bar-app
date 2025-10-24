@@ -162,6 +162,12 @@ export default function StoreDetailPage() {
   const formatBusinessHours = (hours: any) => {
     if (!hours) return '情報なし';
     
+    // 文字列の場合はそのまま返す
+    if (typeof hours === 'string') {
+      return hours;
+    }
+    
+    // オブジェクト形式の場合は従来の処理
     const dayLabels: any = {
       monday: '月',
       tuesday: '火',
@@ -300,9 +306,6 @@ export default function StoreDetailPage() {
                     {getVacancyLabel(store.vacancy_status)}
                   </span>
                 </motion.div>
-                <Badge variant="outline" className="text-sm py-1">
-                  {store.is_open ? '営業中' : '閉店'}
-                </Badge>
               </div>
             </div>
 
@@ -364,7 +367,7 @@ export default function StoreDetailPage() {
                   </p>
                   {store.regular_holiday && (
                     <p className="text-sm text-muted-foreground mt-1">
-                      定休日: {store.regular_holiday}
+                      {store.regular_holiday}
                     </p>
                   )}
                 </div>
