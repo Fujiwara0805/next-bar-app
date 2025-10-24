@@ -22,7 +22,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-// import { Slider } from '@/components/ui/slider'; ←この行を削除
+import { Slider } from '@/components/ui/slider';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useAuth } from '@/lib/auth/context';
 import { supabase } from '@/lib/supabase/client';
 import { toast } from 'sonner';
@@ -87,6 +88,14 @@ export default function StoreUpdatePage() {
   const [maleCount, setMaleCount] = useState(0);  // ←変更: maleRatio → maleCount
   const [femaleCount, setFemaleCount] = useState(0);  // ←変更: femaleRatio → femaleCount
 
+  // 基本情報フォーム - 追加
+  const [businessHours, setBusinessHours] = useState<any>({});
+  const [regularHoliday, setRegularHoliday] = useState('');
+  const [budgetMin, setBudgetMin] = useState<number>(0);
+  const [budgetMax, setBudgetMax] = useState<number>(0);
+  const [paymentMethods, setPaymentMethods] = useState<string[]>([]);
+  const [facilities, setFacilities] = useState<string[]>([]);
+
   useEffect(() => {
     // 運営会社アカウントまたは店舗アカウントのみアクセス可能
     if (!accountType || (accountType !== 'platform' && accountType !== 'store')) {
@@ -138,6 +147,14 @@ export default function StoreUpdatePage() {
         setStatusMessage(storeData.status_message || '');
         setMaleCount(storeData.male_ratio);  // ←変更: male_ratioを人数として使用
         setFemaleCount(storeData.female_ratio);  // ←変更: female_ratioを人数として使用
+
+        // 新規フィールドの設定
+        setBusinessHours(storeData.business_hours || {});
+        setRegularHoliday(storeData.regular_holiday || '');
+        setBudgetMin(storeData.budget_min || 0);
+        setBudgetMax(storeData.budget_max || 0);
+        setPaymentMethods(storeData.payment_methods || []);
+        setFacilities(storeData.facilities || []);
       }
     } catch (error) {
       console.error('Error fetching store:', error);
@@ -166,6 +183,12 @@ export default function StoreUpdatePage() {
           address: address.trim(),
           phone: phone.trim() || null,
           website_url: websiteUrl.trim() || null,
+          business_hours: businessHours,  // ←追加
+          regular_holiday: regularHoliday.trim() || null,  // ←追加
+          budget_min: budgetMin || null,  // ←追加
+          budget_max: budgetMax || null,  // ←追加
+          payment_methods: paymentMethods,  // ←追加
+          facilities: facilities,  // ←追加
           updated_at: new Date().toISOString(),
         })
         .eq('id', params.id as string);
@@ -254,6 +277,23 @@ export default function StoreUpdatePage() {
   };
 
   // handleMaleRatioChange関数を削除 ←削除
+
+  // 支払い方法とチェックボックスのハンドラー
+  const handlePaymentMethodToggle = (method: string) => {
+    setPaymentMethods(prev => 
+      prev.includes(method) 
+        ? prev.filter(m => m !== method)
+        : [...prev, method]
+    );
+  };
+
+  const handleFacilityToggle = (facility: string) => {
+    setFacilities(prev => 
+      prev.includes(facility) 
+        ? prev.filter(f => f !== facility)
+        : [...prev, facility]
+    );
+  };
 
   const handleSignOut = async () => {
     try {
@@ -605,6 +645,148 @@ export default function StoreUpdatePage() {
                       <p className="text-xs text-muted-foreground">
                         ログイン用のメールアドレスは変更できません
                       </p>
+                    </div>
+
+                    {/* 営業時間 */}
+                    <div className="space-y-2">
+                      <Label>営業時間</Label>
+                      <div className="space-y-3 border rounded-lg p-4">
+                        {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map((day) => {
+                          const dayLabels: any = {
+                            monday: '月曜日',
+                            tuesday: '火曜日',
+                            wednesday: '水曜日',
+                            thursday: '木曜日',
+                            friday: '金曜日',
+                            saturday: '土曜日',
+                            sunday: '日曜日'
+                          };
+                          
+                          return (
+                            <div key={day} className="grid grid-cols-4 gap-2 items-center">
+                              <Label className="text-sm">{dayLabels[day]}</Label>
+                              <Input
+                                type="time"
+                                placeholder="開店"
+                                value={businessHours[day]?.open || ''}
+                                onChange={(e) => setBusinessHours({
+                                  ...businessHours,
+                                  [day]: { ...businessHours[day], open: e.target.value }
+                                })}
+                                disabled={loading}
+                              />
+                              <Input
+                                type="time"
+                                placeholder="閉店"
+                                value={businessHours[day]?.close || ''}
+                                onChange={(e) => setBusinessHours({
+                                  ...businessHours,
+                                  [day]: { ...businessHours[day], close: e.target.value }
+                                })}
+                                disabled={loading}
+                              />
+                              <div className="flex items-center space-x-2">
+                                <Checkbox
+                                  id={`${day}-closed`}
+                                  checked={businessHours[day]?.closed || false}
+                                  onCheckedChange={(checked) => setBusinessHours({
+                                    ...businessHours,
+                                    [day]: { ...businessHours[day], closed: checked }
+                                  })}
+                                />
+                                <Label htmlFor={`${day}-closed`} className="text-xs">定休日</Label>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* 定休日（補足情報） */}
+                    <div className="space-y-2">
+                      <Label htmlFor="regularHoliday">定休日（補足）</Label>
+                      <Input
+                        id="regularHoliday"
+                        value={regularHoliday}
+                        onChange={(e) => setRegularHoliday(e.target.value)}
+                        placeholder="例: 月曜日、年末年始"
+                        disabled={loading}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        祝日や特別な休業日などを記載
+                      </p>
+                    </div>
+
+                    {/* 予算 */}
+                    <div className="space-y-2">
+                      <Label>予算（円）</Label>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Input
+                            type="number"
+                            min="0"
+                            step="100"
+                            placeholder="最低予算"
+                            value={budgetMin || ''}
+                            onChange={(e) => setBudgetMin(parseInt(e.target.value) || 0)}
+                            disabled={loading}
+                          />
+                        </div>
+                        <div>
+                          <Input
+                            type="number"
+                            min="0"
+                            step="100"
+                            placeholder="最高予算"
+                            value={budgetMax || ''}
+                            onChange={(e) => setBudgetMax(parseInt(e.target.value) || 0)}
+                            disabled={loading}
+                          />
+                        </div>
+                      </div>
+                      {budgetMin > 0 && budgetMax > 0 && (
+                        <p className="text-sm text-muted-foreground">
+                          予算目安: ¥{budgetMin.toLocaleString()} 〜 ¥{budgetMax.toLocaleString()}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* 支払い方法 */}
+                    <div className="space-y-2">
+                      <Label>支払い方法</Label>
+                      <div className="grid grid-cols-2 gap-3">
+                        {['現金', 'クレジットカード', '電子マネー', 'QRコード決済', 'デビットカード', '交通系IC'].map((method) => (
+                          <div key={method} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`payment-${method}`}
+                              checked={paymentMethods.includes(method)}
+                              onCheckedChange={() => handlePaymentMethodToggle(method)}
+                            />
+                            <Label htmlFor={`payment-${method}`} className="text-sm font-normal">
+                              {method}
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* 設備 */}
+                    <div className="space-y-2">
+                      <Label>設備・サービス</Label>
+                      <div className="grid grid-cols-2 gap-3">
+                        {['Wi-Fi', '喫煙可', '分煙', '禁煙', '駐車場', 'カウンター席', '個室', 'テラス席', 'ペット可', 'バリアフリー'].map((facility) => (
+                          <div key={facility} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`facility-${facility}`}
+                              checked={facilities.includes(facility)}
+                              onCheckedChange={() => handleFacilityToggle(facility)}
+                            />
+                            <Label htmlFor={`facility-${facility}`} className="text-sm font-normal">
+                              {facility}
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </Card>

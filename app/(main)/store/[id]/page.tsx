@@ -8,7 +8,12 @@ import {
   MapPin,
   Clock,
   Users,
-  Phone
+  Phone,
+  CreditCard,
+  Wifi,
+  Calendar,
+  DollarSign,
+  ExternalLink,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -74,6 +79,27 @@ export default function StoreDetailPage() {
     }
   };
 
+  // 営業時間の表示用関数
+  const formatBusinessHours = (hours: any) => {
+    if (!hours) return '情報なし';
+    
+    const dayLabels: any = {
+      monday: '月',
+      tuesday: '火',
+      wednesday: '水',
+      thursday: '木',
+      friday: '金',
+      saturday: '土',
+      sunday: '日'
+    };
+
+    return Object.entries(hours).map(([day, time]: any) => {
+      if (time.closed) return `${dayLabels[day]}: 定休日`;
+      if (time.open && time.close) return `${dayLabels[day]}: ${time.open} - ${time.close}`;
+      return null;
+    }).filter(Boolean).join(', ') || '情報なし';
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -114,6 +140,17 @@ export default function StoreDetailPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
         >
+          {/* 店舗画像カルーセル（今後実装） */}
+          {store.image_url && (
+            <div className="w-full h-64 mb-4 rounded-lg overflow-hidden">
+              <img
+                src={store.image_url}
+                alt={store.name}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          )}
+
           <Card className="p-6">
             <div className="mb-4">
               <h2 className="text-2xl font-bold mb-3">{store.name}</h2>
@@ -139,29 +176,71 @@ export default function StoreDetailPage() {
               </>
             )}
 
+            {/* 一言メッセージ */}
+            {store.status_message && (
+              <>
+                <div className="p-3 bg-primary/5 border-l-4 border-primary rounded mb-4">
+                  <p className="text-sm">{store.status_message}</p>
+                </div>
+                <Separator className="my-4" />
+              </>
+            )}
+
             <div className="space-y-4">
+              {/* 住所 */}
               <div className="flex items-start gap-3">
                 <MapPin className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
-                <div>
+                <div className="flex-1">
                   <p className="text-sm font-medium mb-1">住所</p>
                   <p className="text-sm text-muted-foreground">{store.address}</p>
                 </div>
               </div>
 
+              {/* 営業時間 */}
+              <div className="flex items-start gap-3">
+                <Clock className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium mb-1">営業時間</p>
+                  <p className="text-sm text-muted-foreground">
+                    {formatBusinessHours(store.business_hours)}
+                  </p>
+                  {store.regular_holiday && (
+                    <p className="text-sm text-muted-foreground mt-1">
+                      定休日: {store.regular_holiday}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* 予算 */}
+              {store.budget_min && store.budget_max && (
+                <div className="flex items-start gap-3">
+                  <DollarSign className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium mb-1">予算</p>
+                    <p className="text-sm text-muted-foreground">
+                      ¥{store.budget_min.toLocaleString()} 〜 ¥{store.budget_max.toLocaleString()}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* 来客層 */}
               <div className="flex items-start gap-3">
                 <Users className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium mb-1">来客層</p>
+                <div className="flex-1">
+                  <p className="text-sm font-medium mb-1">現在の来客層</p>
                   <p className="text-sm text-muted-foreground">
-                    男性 {store.male_ratio}% / 女性 {store.female_ratio}%
+                    男性 {store.male_ratio}人 / 女性 {store.female_ratio}人
                   </p>
                 </div>
               </div>
 
+              {/* 電話番号 */}
               {store.phone && (
                 <div className="flex items-start gap-3">
                   <Phone className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
-                  <div>
+                  <div className="flex-1">
                     <p className="text-sm font-medium mb-1">電話番号</p>
                     <a
                       href={`tel:${store.phone}`}
@@ -173,46 +252,62 @@ export default function StoreDetailPage() {
                 </div>
               )}
 
-              <div className="flex items-start gap-3">
-                <Clock className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium mb-1">営業時間</p>
-                  <p className="text-sm text-muted-foreground">
-                    {store.opening_hours ? JSON.stringify(store.opening_hours) : '情報なし'}
-                  </p>
+              {/* ウェブサイト */}
+              {store.website_url && (
+                <div className="flex items-start gap-3">
+                  <ExternalLink className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium mb-1">ウェブサイト</p>
+                    <a
+                      href={store.website_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-primary hover:underline"
+                    >
+                      {store.website_url}
+                    </a>
+                  </div>
                 </div>
-              </div>
+              )}
+
+              {/* 支払い方法 */}
+              {store.payment_methods && store.payment_methods.length > 0 && (
+                <div className="flex items-start gap-3">
+                  <CreditCard className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium mb-1">支払い方法</p>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {store.payment_methods.map((method) => (
+                        <Badge key={method} variant="secondary">
+                          {method}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 設備 */}
+              {store.facilities && store.facilities.length > 0 && (
+                <div className="flex items-start gap-3">
+                  <Wifi className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium mb-1">設備・サービス</p>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {store.facilities.map((facility) => (
+                        <Badge key={facility} variant="outline">
+                          {facility}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </Card>
         </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          <Card className="p-6">
-            <h3 className="text-lg font-bold mb-4">混雑状況の推移</h3>
-            <div className="h-32 flex items-center justify-center text-sm text-muted-foreground">
-              混雑状況グラフ（今後実装予定）
-            </div>
-          </Card>
-        </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
-          <Button
-            className="w-full"
-            size="lg"
-            onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${store.latitude},${store.longitude}`, '_blank')}
-          >
-            <MapPin className="w-4 h-4 mr-2" />
-            地図で見る
-          </Button>
-        </motion.div>
       </div>
     </div>
   );

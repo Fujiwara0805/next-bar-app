@@ -54,6 +54,12 @@ export interface Database {
           phone: string | null
           website_url: string | null
           opening_hours: Json | null
+          business_hours: Json | null
+          regular_holiday: string | null
+          budget_min: number | null
+          budget_max: number | null
+          payment_methods: string[] | null
+          facilities: string[] | null
           image_url: string | null
           menu_images: Json
           is_open: boolean
@@ -77,6 +83,12 @@ export interface Database {
           phone?: string | null
           website_url?: string | null
           opening_hours?: Json | null
+          business_hours?: Json | null
+          regular_holiday?: string | null
+          budget_min?: number | null
+          budget_max?: number | null
+          payment_methods?: string[] | null
+          facilities?: string[] | null
           image_url?: string | null
           menu_images?: Json
           is_open?: boolean
@@ -100,6 +112,12 @@ export interface Database {
           phone?: string | null
           website_url?: string | null
           opening_hours?: Json | null
+          business_hours?: Json | null
+          regular_holiday?: string | null
+          budget_min?: number | null
+          budget_max?: number | null
+          payment_methods?: string[] | null
+          facilities?: string[] | null
           image_url?: string | null
           menu_images?: Json
           is_open?: boolean
@@ -118,3 +136,12 @@ export interface Database {
     Enums: {}
   }
 }
+
+// 営業時間の型定義
+export type BusinessHours = {
+  [key in 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday']?: {
+    open: string;
+    close: string;
+    closed?: boolean;
+  };
+};
