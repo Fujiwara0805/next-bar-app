@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Edit, LogOut, Building, Calendar, Settings as SettingsIcon, Info } from 'lucide-react';
+import { Edit, LogOut, Building, Calendar, Settings as SettingsIcon, Info, Key } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -230,6 +230,14 @@ export default function ProfilePage() {
           )}
 
           <div className="mt-6 space-y-2">
+            <Button
+              variant="outline"
+              className="w-full justify-start"
+              onClick={() => router.push('/profile/change-password')}
+            >
+              <Key className="w-4 h-4 mr-2" />
+              パスワード変更
+            </Button>
             <Button
               variant="outline"
               className="w-full justify-start"

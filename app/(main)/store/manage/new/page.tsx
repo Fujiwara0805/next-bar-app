@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { PasswordInput } from '@/components/ui/password-input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
@@ -264,6 +265,13 @@ export default function NewStorePage() {
     setLoading(true);
 
     try {
+      // 現在のセッションを保存
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+
+      if (!currentSession) {
+        throw new Error('セッションが見つかりません。再度ログインしてください。');
+      }
+
       // 1. 店舗用のSupabase認証アカウントを作成
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: email.trim(),
@@ -278,6 +286,12 @@ export default function NewStorePage() {
 
       if (authError) {
         console.error('Auth error:', authError);
+        
+        // メールアドレス重複のエラーを判定
+        if (authError.message.includes('already registered') || authError.message.includes('User already registered')) {
+          throw new Error(`このメールアドレス（${email}）は既に使用されています。別のメールアドレスを使用してください。`);
+        }
+        
         throw new Error(`認証アカウントの作成に失敗: ${authError.message}`);
       }
 
@@ -285,11 +299,21 @@ export default function NewStorePage() {
         throw new Error('認証アカウントの作成に失敗しました');
       }
 
-      // 2. storesテーブルに店舗情報を登録（idは認証アカウントのIDを使用）
+      const newStoreUserId = authData.user.id;
+
+      // 2. 元の運営会社のセッションに戻す
+      if (currentSession) {
+        await supabase.auth.setSession({
+          access_token: currentSession.access_token,
+          refresh_token: currentSession.refresh_token,
+        });
+      }
+
+      // 3. storesテーブルに店舗情報を登録（運営会社のセッションで実行）
       const { error: storeError } = await supabase
         .from('stores')
         .insert({
-          id: authData.user.id, // 店舗アカウントのIDを使用
+          id: newStoreUserId, // 店舗アカウントのIDを使用
           owner_id: user.id, // 運営会社のID
           email: email.trim(),
           name: name.trim(),
@@ -306,7 +330,6 @@ export default function NewStorePage() {
 
       if (storeError) {
         console.error('Store error:', storeError);
-        // 店舗登録に失敗した場合、作成した認証アカウントは残るが問題ない
         throw new Error(`店舗情報の登録に失敗: ${storeError.message}`);
       }
 
@@ -497,9 +520,8 @@ export default function NewStorePage() {
                   <Lock className="w-4 h-4 inline mr-2" />
                   店舗用パスワード <span className="text-red-500">*</span>
                 </Label>
-                <Input
+                <PasswordInput
                   id="password"
-                  type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="6文字以上"
