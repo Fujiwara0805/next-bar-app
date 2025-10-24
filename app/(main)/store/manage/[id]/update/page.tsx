@@ -22,7 +22,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Slider } from '@/components/ui/slider';
+// import { Slider } from '@/components/ui/slider'; ←この行を削除
 import { useAuth } from '@/lib/auth/context';
 import { supabase } from '@/lib/supabase/client';
 import { toast } from 'sonner';
@@ -84,8 +84,8 @@ export default function StoreUpdatePage() {
   // 店舗状況フォーム
   const [vacancyStatus, setVacancyStatus] = useState<'vacant' | 'moderate' | 'full' | 'closed'>('closed');
   const [statusMessage, setStatusMessage] = useState('');
-  const [maleRatio, setMaleRatio] = useState(50);
-  const [femaleRatio, setFemaleRatio] = useState(50);
+  const [maleCount, setMaleCount] = useState(0);  // ←変更: maleRatio → maleCount
+  const [femaleCount, setFemaleCount] = useState(0);  // ←変更: femaleRatio → femaleCount
 
   useEffect(() => {
     // 運営会社アカウントまたは店舗アカウントのみアクセス可能
@@ -136,8 +136,8 @@ export default function StoreUpdatePage() {
         setEmail(storeData.email);
         setVacancyStatus(storeData.vacancy_status as 'vacant' | 'moderate' | 'full' | 'closed');
         setStatusMessage(storeData.status_message || '');
-        setMaleRatio(storeData.male_ratio);
-        setFemaleRatio(storeData.female_ratio);
+        setMaleCount(storeData.male_ratio);  // ←変更: male_ratioを人数として使用
+        setFemaleCount(storeData.female_ratio);  // ←変更: female_ratioを人数として使用
       }
     } catch (error) {
       console.error('Error fetching store:', error);
@@ -212,8 +212,8 @@ export default function StoreUpdatePage() {
           vacancy_status: vacancyStatus,
           status_message: statusMessage.trim() || null,
           is_open: vacancyStatus !== 'closed',
-          male_ratio: maleRatio,
-          female_ratio: femaleRatio,
+          male_ratio: maleCount,  // ←変更: 人数を保存
+          female_ratio: femaleCount,  // ←変更: 人数を保存
           last_updated: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         })
@@ -253,10 +253,7 @@ export default function StoreUpdatePage() {
     }
   };
 
-  const handleMaleRatioChange = (value: number[]) => {
-    setMaleRatio(value[0]);
-    setFemaleRatio(100 - value[0]);
-  };
+  // handleMaleRatioChange関数を削除 ←削除
 
   const handleSignOut = async () => {
     try {
@@ -400,29 +397,63 @@ export default function StoreUpdatePage() {
                 </Card>
 
                 <Card className="p-6">
-                  <h2 className="text-lg font-bold mb-4">男女比</h2>
+                  <h2 className="text-lg font-bold mb-4">男女数</h2>
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">男性: {maleRatio}%</span>
-                      <span className="text-sm font-medium">女性: {femaleRatio}%</span>
+                    <div className="grid grid-cols-2 gap-4">
+                      {/* 男性数入力 */}
+                      <div className="space-y-2">
+                        <Label htmlFor="maleCount">男性数</Label>
+                        <Input
+                          id="maleCount"
+                          type="number"
+                          min="0"
+                          value={maleCount}
+                          onChange={(e) => setMaleCount(parseInt(e.target.value) || 0)}
+                          placeholder="0"
+                          disabled={loading}
+                        />
+                      </div>
+                      
+                      {/* 女性数入力 */}
+                      <div className="space-y-2">
+                        <Label htmlFor="femaleCount">女性数</Label>
+                        <Input
+                          id="femaleCount"
+                          type="number"
+                          min="0"
+                          value={femaleCount}
+                          onChange={(e) => setFemaleCount(parseInt(e.target.value) || 0)}
+                          placeholder="0"
+                          disabled={loading}
+                        />
+                      </div>
                     </div>
-                    <Slider
-                      value={[maleRatio]}
-                      onValueChange={handleMaleRatioChange}
-                      max={100}
-                      step={5}
-                      className="w-full"
-                    />
-                    <div className="flex gap-2 h-4">
-                      <div
-                        className="bg-blue-500 rounded transition-all"
-                        style={{ width: `${maleRatio}%` }}
-                      />
-                      <div
-                        className="bg-pink-500 rounded transition-all"
-                        style={{ width: `${femaleRatio}%` }}
-                      />
+                    
+                    {/* 合計表示 */}
+                    <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                      <span className="text-sm font-medium">合計人数</span>
+                      <span className="text-lg font-bold">{maleCount + femaleCount}人</span>
                     </div>
+                    
+                    {/* ビジュアル表示 */}
+                    {(maleCount + femaleCount) > 0 && (
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-blue-600">男性: {maleCount}人 ({Math.round((maleCount / (maleCount + femaleCount)) * 100)}%)</span>
+                          <span className="text-pink-600">女性: {femaleCount}人 ({Math.round((femaleCount / (maleCount + femaleCount)) * 100)}%)</span>
+                        </div>
+                        <div className="flex gap-2 h-4">
+                          <div
+                            className="bg-blue-500 rounded transition-all"
+                            style={{ width: `${(maleCount / (maleCount + femaleCount)) * 100}%` }}
+                          />
+                          <div
+                            className="bg-pink-500 rounded transition-all"
+                            style={{ width: `${(femaleCount / (maleCount + femaleCount)) * 100}%` }}
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </Card>
 
