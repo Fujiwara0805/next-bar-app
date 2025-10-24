@@ -94,6 +94,21 @@ export default function MapPage() {
     }
   };
 
+  const getVacancyIcon = (status: string) => {
+    switch (status) {
+      case 'vacant':
+        return 'https://res.cloudinary.com/dz9trbwma/image/upload/v1761311529/%E7%A9%BA%E5%B8%AD%E3%81%82%E3%82%8A_rzejgw.png';
+      case 'moderate':
+        return 'https://res.cloudinary.com/dz9trbwma/image/upload/v1761311676/%E3%82%84%E3%82%84%E6%B7%B7%E9%9B%91_qjfizb.png';
+      case 'full':
+        return 'https://res.cloudinary.com/dz9trbwma/image/upload/v1761311529/%E6%BA%80%E5%B8%AD_gszsqi.png';
+      case 'closed':
+        return 'https://res.cloudinary.com/dz9trbwma/image/upload/v1761312616/Closed_an6a8o.png';
+      default:
+        return '';
+    }
+  };
+
   const getVacancyColor = (status: string) => {
     switch (status) {
       case 'vacant':
@@ -187,14 +202,20 @@ export default function MapPage() {
                         <ExternalLink className="w-3 h-3" />
                       </motion.button>
                       {/* 空席情報を大きく表示 */}
-                      <div className="mb-2">
-                        <Badge
-                          variant="secondary"
-                          className={`${getVacancyColor(selectedStore.vacancy_status)} text-white text-xl py-1 px-3`}
-                        >
+                      <motion.div 
+                        className="mb-2 flex items-center gap-2"
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                      >
+                        <img 
+                          src={getVacancyIcon(selectedStore.vacancy_status)}
+                          alt={getVacancyLabel(selectedStore.vacancy_status)}
+                          className="w-8 h-8 object-contain"
+                        />
+                        <span className="text-xl font-bold">
                           {getVacancyLabel(selectedStore.vacancy_status)}
-                        </Badge>
-                      </div>
+                        </span>
+                      </motion.div>
                     </div>
                     <Button
                       size="icon"
@@ -223,22 +244,38 @@ export default function MapPage() {
       </AnimatePresence>
 
       {/* 混雑状況の凡例 - レスポンシブ対応 */}
-      <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 z-10 bg-white/90 backdrop-blur-sm rounded-lg p-2 sm:p-3 shadow-lg">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 z-10 bg-white/90 backdrop-blur-sm rounded-lg p-2 sm:p-3 shadow-lg"
+      >
         <div className="flex gap-2 sm:gap-3 text-[10px] sm:text-xs">
           <div className="flex items-center gap-1">
-            <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-green-500" />
-            <span>空席</span>
+            <img 
+              src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761311529/%E7%A9%BA%E5%B8%AD%E3%81%82%E3%82%8A_rzejgw.png"
+              alt="空席あり"
+              className="w-4 h-4 sm:w-5 sm:h-5 object-contain"
+            />
+            <span>空席あり</span>
           </div>
           <div className="flex items-center gap-1">
-            <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-yellow-500" />
+            <img 
+              src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761311676/%E3%82%84%E3%82%84%E6%B7%B7%E9%9B%91_qjfizb.png"
+              alt="やや混雑"
+              className="w-4 h-4 sm:w-5 sm:h-5 object-contain"
+            />
             <span>やや混雑</span>
           </div>
           <div className="flex items-center gap-1">
-            <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-red-500" />
+            <img 
+              src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761311529/%E6%BA%80%E5%B8%AD_gszsqi.png"
+              alt="満席"
+              className="w-4 h-4 sm:w-5 sm:h-5 object-contain"
+            />
             <span>満席</span>
           </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

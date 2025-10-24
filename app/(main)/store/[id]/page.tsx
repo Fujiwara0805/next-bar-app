@@ -65,10 +65,27 @@ export default function StoreDetailPage() {
         return '空席あり';
       case 'moderate':
         return 'やや混雑';
-      case 'crowded':
-        return '混雑';
+      case 'full':
+        return '満席';
+      case 'closed':
+        return '閉店中';
       default:
         return '不明';
+    }
+  };
+
+  const getVacancyIcon = (status: string) => {
+    switch (status) {
+      case 'vacant':
+        return 'https://res.cloudinary.com/dz9trbwma/image/upload/v1761311529/%E7%A9%BA%E5%B8%AD%E3%81%82%E3%82%8A_rzejgw.png';
+      case 'moderate':
+        return 'https://res.cloudinary.com/dz9trbwma/image/upload/v1761311676/%E3%82%84%E3%82%84%E6%B7%B7%E9%9B%91_qjfizb.png';
+      case 'full':
+        return 'https://res.cloudinary.com/dz9trbwma/image/upload/v1761311529/%E6%BA%80%E5%B8%AD_gszsqi.png';
+      case 'closed':
+        return 'https://res.cloudinary.com/dz9trbwma/image/upload/v1761312616/Closed_an6a8o.png';
+      default:
+        return '';
     }
   };
 
@@ -78,8 +95,10 @@ export default function StoreDetailPage() {
         return 'bg-green-500';
       case 'moderate':
         return 'bg-yellow-500';
-      case 'crowded':
+      case 'full':
         return 'bg-red-500';
+      case 'closed':
+        return 'bg-gray-500';
       default:
         return 'bg-gray-500';
     }
@@ -160,14 +179,23 @@ export default function StoreDetailPage() {
           <Card className="p-6">
             <div className="mb-4">
               <h2 className="text-2xl font-bold mb-3">{store.name}</h2>
-              <div className="flex gap-2 mb-3">
-                <Badge
-                  variant="secondary"
-                  className={`${getVacancyColor(store.vacancy_status)} text-white`}
+              <div className="flex gap-2 mb-3 items-center flex-wrap">
+                {/* 空席情報アイコン */}
+                <motion.div 
+                  className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
                 >
-                  {getVacancyLabel(store.vacancy_status)}
-                </Badge>
-                <Badge variant="outline">
+                  <img 
+                    src={getVacancyIcon(store.vacancy_status)}
+                    alt={getVacancyLabel(store.vacancy_status)}
+                    className="w-8 h-8 object-contain"
+                  />
+                  <span className="text-lg font-bold">
+                    {getVacancyLabel(store.vacancy_status)}
+                  </span>
+                </motion.div>
+                <Badge variant="outline" className="text-sm py-1">
                   {store.is_open ? '営業中' : '閉店'}
                 </Badge>
               </div>

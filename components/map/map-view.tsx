@@ -131,13 +131,11 @@ export function MapView({ stores, center, onStoreClick }: MapViewProps) {
         map: mapInstanceRef.current!,
         title: store.name,
         icon: {
-          path: google.maps.SymbolPath.CIRCLE,
-          scale: 10,
-          fillColor: getMarkerColor(store.vacancy_status),
-          fillOpacity: 1,
-          strokeColor: '#ffffff',
-          strokeWeight: 2,
+          url: getMarkerIcon(store.vacancy_status),
+          scaledSize: new google.maps.Size(40, 40),
+          anchor: new google.maps.Point(20, 20),
         },
+        optimized: false,
       });
 
       marker.addListener('click', () => {
@@ -216,18 +214,18 @@ export function MapView({ stores, center, onStoreClick }: MapViewProps) {
     };
   }, [center, mapReady]);
 
-  const getMarkerColor = (status: string) => {
+  const getMarkerIcon = (status: string) => {
     switch (status) {
       case 'vacant':
-        return '#4CAF50';
+        return 'https://res.cloudinary.com/dz9trbwma/image/upload/v1761311529/%E7%A9%BA%E5%B8%AD%E3%81%82%E3%82%8A_rzejgw.png';
       case 'moderate':
-        return '#FFC107';
+        return 'https://res.cloudinary.com/dz9trbwma/image/upload/v1761311676/%E3%82%84%E3%82%84%E6%B7%B7%E9%9B%91_qjfizb.png';
       case 'full':
-        return '#F44336';
+        return 'https://res.cloudinary.com/dz9trbwma/image/upload/v1761311529/%E6%BA%80%E5%B8%AD_gszsqi.png';
       case 'closed':
-        return '#9E9E9E';
+        return 'https://res.cloudinary.com/dz9trbwma/image/upload/v1761312616/Closed_an6a8o.png';
       default:
-        return '#009688';
+        return 'https://res.cloudinary.com/dz9trbwma/image/upload/v1761311529/%E7%A9%BA%E5%B8%AD%E3%81%82%E3%82%8A_rzejgw.png';
     }
   };
 

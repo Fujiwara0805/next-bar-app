@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, MapIcon, X, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/lib/supabase/client';
@@ -88,6 +88,21 @@ export default function StoreListPage() {
         return '閉店中';
       default:
         return '不明';
+    }
+  };
+
+  const getVacancyIcon = (status: string) => {
+    switch (status) {
+      case 'vacant':
+        return 'https://res.cloudinary.com/dz9trbwma/image/upload/v1761311529/%E7%A9%BA%E5%B8%AD%E3%81%82%E3%82%8A_rzejgw.png';
+      case 'moderate':
+        return 'https://res.cloudinary.com/dz9trbwma/image/upload/v1761311676/%E3%82%84%E3%82%84%E6%B7%B7%E9%9B%91_qjfizb.png';
+      case 'full':
+        return 'https://res.cloudinary.com/dz9trbwma/image/upload/v1761311529/%E6%BA%80%E5%B8%AD_gszsqi.png';
+      case 'closed':
+        return 'https://res.cloudinary.com/dz9trbwma/image/upload/v1761312616/Closed_an6a8o.png';
+      default:
+        return '';
     }
   };
 
@@ -213,14 +228,20 @@ export default function StoreListPage() {
                           </motion.button>
                           
                           {/* 空席情報 */}
-                          <div className="mb-2">
-                            <Badge
-                              variant="secondary"
-                              className={`${getVacancyColor(store.vacancy_status)} text-white text-xl py-1 px-3`}
-                            >
+                          <motion.div 
+                            className="mb-2 flex items-center gap-2"
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                          >
+                            <img 
+                              src={getVacancyIcon(store.vacancy_status)}
+                              alt={getVacancyLabel(store.vacancy_status)}
+                              className="w-8 h-8 object-contain"
+                            />
+                            <span className="text-xl font-bold">
                               {getVacancyLabel(store.vacancy_status)}
-                            </Badge>
-                          </div>
+                            </span>
+                          </motion.div>
                           
                           {/* 一言メッセージ */}
                           {store.status_message && (
