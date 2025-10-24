@@ -11,7 +11,10 @@ import {
   Loader2,
   Search,
   Mail,
-  Lock
+  Link,
+  Lock,
+  Clock,
+  DollarSign
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,6 +22,7 @@ import { PasswordInput } from '@/components/ui/password-input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/auth/context';
 import { toast } from 'sonner';
@@ -32,15 +36,24 @@ export default function NewStorePage() {
   const [geocoding, setGeocoding] = useState(false);
   const [mapsLoaded, setMapsLoaded] = useState(false);
 
-  // フォームステート
+  // フォームステート - 基本情報
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [address, setAddress] = useState('');
   const [latitude, setLatitude] = useState('');
   const [longitude, setLongitude] = useState('');
   const [phone, setPhone] = useState('');
+  const [websiteUrl, setWebsiteUrl] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
+  // 営業時間をテキスト形式に変更
+  const [businessHours, setBusinessHours] = useState('');
+  const [regularHoliday, setRegularHoliday] = useState('');
+  const [budgetMin, setBudgetMin] = useState<number>(0);
+  const [budgetMax, setBudgetMax] = useState<number>(0);
+  const [paymentMethods, setPaymentMethods] = useState<string[]>([]);
+  const [facilities, setFacilities] = useState<string[]>([]);
 
   // 店舗名候補
   const [suggestions, setSuggestions] = useState<google.maps.places.AutocompletePrediction[]>([]);
@@ -51,7 +64,7 @@ export default function NewStorePage() {
   const placesServiceRef = useRef<google.maps.places.PlacesService | null>(null);
   const geocoderRef = useRef<google.maps.Geocoder | null>(null);
 
-  // Google Maps API初期化（スクリプト自動ロード + フォールバック）
+  // Google Maps API初期化
   useEffect(() => {
     const initMaps = () => {
       if (window.google?.maps?.places) {
@@ -66,9 +79,8 @@ export default function NewStorePage() {
       return false;
     };
 
-    if (initMaps()) return; // 既に読み込み済み
+    if (initMaps()) return;
 
-    // 未読み込みの場合はスクリプトを挿入
     const existing = document.querySelector<HTMLScriptElement>('script[data-gmaps-loader="true"]');
     if (existing) {
       existing.addEventListener('load', () => initMaps());
@@ -163,22 +175,19 @@ export default function NewStorePage() {
     );
   };
 
-  // 住所から位置情報を取得（同期/RESTフォールバック対応）
+  // 住所から位置情報を取得
   const handleGeocodeAddress = async (): Promise<boolean> => {
     if (!address.trim()) {
       toast.error('住所を入力してください');
       return false;
     }
 
-    // Google Maps APIが未初期化なら初期化待機
     if (!geocoderRef.current && !mapsLoaded) {
-      // 軽く待ってみる
       await new Promise((r) => setTimeout(r, 400));
     }
 
     setGeocoding(true);
 
-    // 1) Geocoderが使える場合
     if (geocoderRef.current) {
       try {
         const res = await new Promise<google.maps.GeocoderResult[] | null>((resolve) => {
@@ -198,11 +207,10 @@ export default function NewStorePage() {
           return true;
         }
       } catch (e) {
-        // 続行してフォールバックへ
+        // フォールバック
       }
     }
 
-    // 2) REST APIフォールバック（フロントでの直接呼び出し）
     try {
       if (!GOOGLE_MAPS_API_KEY) throw new Error('APIキー未設定');
       const resp = await fetch(
@@ -224,6 +232,24 @@ export default function NewStorePage() {
     setGeocoding(false);
     toast.error('位置情報を取得できませんでした');
     return false;
+  };
+
+  // 支払い方法のトグル
+  const handlePaymentMethodToggle = (method: string) => {
+    setPaymentMethods(prev => 
+      prev.includes(method) 
+        ? prev.filter(m => m !== method)
+        : [...prev, method]
+    );
+  };
+
+  // 設備のトグル
+  const handleFacilityToggle = (facility: string) => {
+    setFacilities(prev => 
+      prev.includes(facility) 
+        ? prev.filter(f => f !== facility)
+        : [...prev, facility]
+    );
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -265,14 +291,12 @@ export default function NewStorePage() {
     setLoading(true);
 
     try {
-      // 現在のセッションを保存
       const { data: { session: currentSession } } = await supabase.auth.getSession();
 
       if (!currentSession) {
         throw new Error('セッションが見つかりません。再度ログインしてください。');
       }
 
-      // 1. 店舗用のSupabase認証アカウントを作成
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: email.trim(),
         password,
@@ -287,7 +311,6 @@ export default function NewStorePage() {
       if (authError) {
         console.error('Auth error:', authError);
         
-        // メールアドレス重複のエラーを判定
         if (authError.message.includes('already registered') || authError.message.includes('User already registered')) {
           throw new Error(`このメールアドレス（${email}）は既に使用されています。別のメールアドレスを使用してください。`);
         }
@@ -301,7 +324,6 @@ export default function NewStorePage() {
 
       const newStoreUserId = authData.user.id;
 
-      // 2. 元の運営会社のセッションに戻す
       if (currentSession) {
         await supabase.auth.setSession({
           access_token: currentSession.access_token,
@@ -309,12 +331,11 @@ export default function NewStorePage() {
         });
       }
 
-      // 3. storesテーブルに店舗情報を登録（運営会社のセッションで実行）
       const { error: storeError } = await supabase
         .from('stores')
         .insert({
-          id: newStoreUserId, // 店舗アカウントのIDを使用
-          owner_id: user.id, // 運営会社のID
+          id: newStoreUserId,
+          owner_id: user.id,
           email: email.trim(),
           name: name.trim(),
           description: description.trim() || null,
@@ -322,6 +343,13 @@ export default function NewStorePage() {
           latitude: parseFloat(latitude),
           longitude: parseFloat(longitude),
           phone: phone.trim() || null,
+          website_url: websiteUrl.trim() || null,
+          business_hours: businessHours,
+          regular_holiday: regularHoliday.trim() || null,
+          budget_min: budgetMin || null,
+          budget_max: budgetMax || null,
+          payment_methods: paymentMethods,
+          facilities: facilities,
           is_open: false,
           vacancy_status: 'vacant',
           male_ratio: 50,
@@ -419,7 +447,7 @@ export default function NewStorePage() {
                   id="description"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="店舗の特徴や雰囲気"
+                  placeholder="店舗の特徴や雰囲気を入力"
                   rows={3}
                   disabled={loading}
                 />
@@ -484,6 +512,131 @@ export default function NewStorePage() {
                   placeholder="03-1234-5678"
                   disabled={loading}
                 />
+              </div>
+
+              {/* ウェブサイト */}
+              <div className="space-y-2">
+                <Label htmlFor="website">
+                  <Link className="w-4 h-4 inline mr-2" />
+                  メディア情報（公式サイト、Instagram、Twitterなど）
+                </Label>
+                <Input
+                  id="website"
+                  type="url"
+                  value={websiteUrl}
+                  onChange={(e) => setWebsiteUrl(e.target.value)}
+                  placeholder="https://example.com"
+                  disabled={loading}
+                />
+              </div>
+
+              {/* 営業時間 - テキスト形式に変更 */}
+              <div className="space-y-2">
+                <Label htmlFor="businessHours">
+                  <Clock className="w-4 h-4 inline mr-2" />
+                  営業時間
+                </Label>
+                <Textarea
+                  id="businessHours"
+                  value={businessHours}
+                  onChange={(e) => setBusinessHours(e.target.value)}
+                  placeholder="例: 月〜金 18:00-24:00, 土日 17:00-25:00"
+                  rows={3}
+                  disabled={loading}
+                />
+                <p className="text-xs text-muted-foreground">
+                  営業時間を自由な形式で入力してください
+                </p>
+              </div>
+
+              {/* 定休日（補足） */}
+              <div className="space-y-2">
+                <Label htmlFor="regularHoliday">定休日</Label>
+                <Input
+                  id="regularHoliday"
+                  value={regularHoliday}
+                  onChange={(e) => setRegularHoliday(e.target.value)}
+                  placeholder="例: 月曜日、年末年始"
+                  disabled={loading}
+                />
+                <p className="text-xs text-muted-foreground">
+                  定休日や特別な休業日などを記載
+                </p>
+              </div>
+
+              {/* 予算 */}
+              <div className="space-y-2">
+                <Label>
+                  <DollarSign className="w-4 h-4 inline mr-2" />
+                  予算（円）
+                </Label>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="100"
+                      placeholder="最低予算"
+                      value={budgetMin || ''}
+                      onChange={(e) => setBudgetMin(parseInt(e.target.value) || 0)}
+                      disabled={loading}
+                    />
+                  </div>
+                  <div>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="100"
+                      placeholder="最高予算"
+                      value={budgetMax || ''}
+                      onChange={(e) => setBudgetMax(parseInt(e.target.value) || 0)}
+                      disabled={loading}
+                    />
+                  </div>
+                </div>
+                {budgetMin > 0 && budgetMax > 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    予算目安: ¥{budgetMin.toLocaleString()} 〜 ¥{budgetMax.toLocaleString()}
+                  </p>
+                )}
+              </div>
+
+              {/* 支払い方法 */}
+              <div className="space-y-2">
+                <Label>支払い方法</Label>
+                <div className="grid grid-cols-2 gap-3">
+                  {['現金', 'クレジットカード', '電子マネー', 'QRコード決済', 'デビットカード', '交通系IC'].map((method) => (
+                    <div key={method} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`payment-${method}`}
+                        checked={paymentMethods.includes(method)}
+                        onCheckedChange={() => handlePaymentMethodToggle(method)}
+                      />
+                      <Label htmlFor={`payment-${method}`} className="text-sm font-normal">
+                        {method}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* 設備 */}
+              <div className="space-y-2">
+                <Label>設備・サービス</Label>
+                <div className="grid grid-cols-2 gap-3">
+                  {['Wi-Fi', '喫煙可', '分煙', '禁煙', '駐車場', 'カウンター席', '個室', 'テラス席', 'ペット可', 'バリアフリー'].map((facility) => (
+                    <div key={facility} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`facility-${facility}`}
+                        checked={facilities.includes(facility)}
+                        onCheckedChange={() => handleFacilityToggle(facility)}
+                      />
+                      <Label htmlFor={`facility-${facility}`} className="text-sm font-normal">
+                        {facility}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               {/* セパレーター */}

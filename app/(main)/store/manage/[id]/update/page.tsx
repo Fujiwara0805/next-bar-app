@@ -16,6 +16,7 @@ import {
   ExternalLink,
   X,  // ←追加
   Upload,  // ←追加
+  Clock, // ←追加
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -92,7 +93,7 @@ export default function StoreUpdatePage() {
   const [femaleCount, setFemaleCount] = useState(0);  // ←変更: femaleRatio → femaleCount
 
   // 基本情報フォーム - 追加
-  const [businessHours, setBusinessHours] = useState<any>({});
+  const [businessHours, setBusinessHours] = useState('');
   const [regularHoliday, setRegularHoliday] = useState('');
   const [budgetMin, setBudgetMin] = useState<number>(0);
   const [budgetMax, setBudgetMax] = useState<number>(0);
@@ -157,7 +158,7 @@ export default function StoreUpdatePage() {
         setFemaleCount(storeData.female_ratio);  // ←変更: female_ratioを人数として使用
 
         // 新規フィールドの設定
-        setBusinessHours(storeData.business_hours || {});
+        setBusinessHours(storeData.business_hours as string || '');
         setRegularHoliday(storeData.regular_holiday || '');
         setBudgetMin(storeData.budget_min || 0);
         setBudgetMax(storeData.budget_max || 0);
@@ -797,64 +798,25 @@ export default function StoreUpdatePage() {
                       </p>
                     </div>
 
-                    {/* 営業時間 */}
+                    {/* 営業時間 - テキスト形式に変更 */}
                     <div className="space-y-2">
-                      <Label>営業時間</Label>
-                      <div className="space-y-3 border rounded-lg p-4">
-                        {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map((day) => {
-                          const dayLabels: any = {
-                            monday: '月曜日',
-                            tuesday: '火曜日',
-                            wednesday: '水曜日',
-                            thursday: '木曜日',
-                            friday: '金曜日',
-                            saturday: '土曜日',
-                            sunday: '日曜日'
-                          };
-                          
-                          return (
-                            <div key={day} className="grid grid-cols-4 gap-2 items-center">
-                              <Label className="text-sm">{dayLabels[day]}</Label>
-                              <Input
-                                type="time"
-                                placeholder="開店"
-                                value={businessHours[day]?.open || ''}
-                                onChange={(e) => setBusinessHours({
-                                  ...businessHours,
-                                  [day]: { ...businessHours[day], open: e.target.value }
-                                })}
-                                disabled={loading}
-                              />
-                              <Input
-                                type="time"
-                                placeholder="閉店"
-                                value={businessHours[day]?.close || ''}
-                                onChange={(e) => setBusinessHours({
-                                  ...businessHours,
-                                  [day]: { ...businessHours[day], close: e.target.value }
-                                })}
-                                disabled={loading}
-                              />
-                              <div className="flex items-center space-x-2">
-                                <Checkbox
-                                  id={`${day}-closed`}
-                                  checked={businessHours[day]?.closed || false}
-                                  onCheckedChange={(checked) => setBusinessHours({
-                                    ...businessHours,
-                                    [day]: { ...businessHours[day], closed: checked }
-                                  })}
-                                />
-                                <Label htmlFor={`${day}-closed`} className="text-xs">定休日</Label>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
+                      <Label htmlFor="businessHours">営業時間</Label>
+                      <Textarea
+                        id="businessHours"
+                        value={businessHours}
+                        onChange={(e) => setBusinessHours(e.target.value)}
+                        placeholder="例: 月〜金 18:00-24:00, 土日 17:00-25:00"
+                        rows={3}
+                        disabled={loading}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        営業時間を自由な形式で入力してください
+                      </p>
                     </div>
 
-                    {/* 定休日（補足情報） */}
+                    {/* 定休日 */}
                     <div className="space-y-2">
-                      <Label htmlFor="regularHoliday">定休日（補足）</Label>
+                      <Label htmlFor="regularHoliday">定休日</Label>
                       <Input
                         id="regularHoliday"
                         value={regularHoliday}
@@ -863,7 +825,7 @@ export default function StoreUpdatePage() {
                         disabled={loading}
                       />
                       <p className="text-xs text-muted-foreground">
-                        祝日や特別な休業日などを記載
+                        定休日や特別な休業日などを記載
                       </p>
                     </div>
 
