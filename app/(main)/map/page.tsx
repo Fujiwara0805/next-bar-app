@@ -103,7 +103,7 @@ export default function MapPage() {
       case 'full':
         return 'https://res.cloudinary.com/dz9trbwma/image/upload/v1761311529/%E6%BA%80%E5%B8%AD_gszsqi.png';
       case 'closed':
-        return 'https://res.cloudinary.com/dz9trbwma/image/upload/v1761312616/Closed_an6a8o.png';
+        return 'https://res.cloudinary.com/dz9trbwma/image/upload/v1761318837/icons8-%E9%96%89%E5%BA%97%E3%82%B5%E3%82%A4%E3%83%B3-100_fczegk.png';
       default:
         return '';
     }
@@ -166,7 +166,10 @@ export default function MapPage() {
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
             className="absolute bottom-0 left-0 right-0 z-20 p-4"
           >
-            <Card className="p-4 shadow-2xl">
+            <Card 
+              className="p-4 shadow-2xl cursor-pointer hover:shadow-3xl transition-shadow"
+              onClick={() => router.push(`/store/${selectedStore.id}`)}
+            >
               <div className="flex gap-3">
                 {/* 店舗画像 */}
                 {selectedStore.image_urls && selectedStore.image_urls.length > 0 && (
@@ -175,17 +178,13 @@ export default function MapPage() {
                     animate={{ opacity: 1, scale: 1 }}
                     src={selectedStore.image_urls[0]}
                     alt={selectedStore.name}
-                    className="w-24 h-24 object-cover rounded-lg cursor-pointer flex-shrink-0"
-                    onClick={() => router.push(`/store/${selectedStore.id}`)}
+                    className="w-24 h-24 object-cover rounded-lg flex-shrink-0"
                   />
                 )}
                 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2 mb-2">
-                    <div 
-                      className="flex-1 cursor-pointer"
-                      onClick={() => router.push(`/store/${selectedStore.id}`)}
-                    >
+                    <div className="flex-1">
                       <h3 className="text-lg font-bold mb-1">{selectedStore.name}</h3>
                       {/* Googleマップで開くリンク */}
                       <motion.button
@@ -247,30 +246,30 @@ export default function MapPage() {
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 z-10 bg-white/90 backdrop-blur-sm rounded-lg p-2 sm:p-3 shadow-lg"
+        className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 z-10 bg-white/90 backdrop-blur-sm rounded-lg p-3 sm:p-4 shadow-lg"
       >
-        <div className="flex gap-2 sm:gap-3 text-[10px] sm:text-xs">
-          <div className="flex items-center gap-1">
+        <div className="flex gap-3 sm:gap-4 text-xs sm:text-sm">
+          <div className="flex items-center gap-1.5">
             <img 
               src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761311529/%E7%A9%BA%E5%B8%AD%E3%81%82%E3%82%8A_rzejgw.png"
               alt="空席あり"
-              className="w-4 h-4 sm:w-5 sm:h-5 object-contain"
+              className="w-6 h-6 sm:w-7 sm:h-7 object-contain"
             />
             <span>空席あり</span>
           </div>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1.5">
             <img 
               src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761311676/%E3%82%84%E3%82%84%E6%B7%B7%E9%9B%91_qjfizb.png"
               alt="やや混雑"
-              className="w-4 h-4 sm:w-5 sm:h-5 object-contain"
+              className="w-6 h-6 sm:w-7 sm:h-7 object-contain"
             />
             <span>やや混雑</span>
           </div>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1.5">
             <img 
               src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761311529/%E6%BA%80%E5%B8%AD_gszsqi.png"
               alt="満席"
-              className="w-4 h-4 sm:w-5 sm:h-5 object-contain"
+              className="w-6 h-6 sm:w-7 sm:h-7 object-contain"
             />
             <span>満席</span>
           </div>
