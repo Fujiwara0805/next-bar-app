@@ -105,6 +105,7 @@ export function MapView({ stores, center, onStoreClick }: MapViewProps) {
     };
 
     initMap();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // 空の依存配列で初回のみ実行
 
   // centerが変更されたときにマップの中心を更新
@@ -183,19 +184,21 @@ export function MapView({ stores, center, onStoreClick }: MapViewProps) {
     });
     accuracyCircleRef.current = accuracyCircle;
 
-    // カスタム画像を使用した現在地マーカーを作成
+    // 現在地マーカーを作成（デフォルトスタイル）
     const userMarker = new google.maps.Marker({
       position: center,
       map: mapInstanceRef.current,
       icon: {
-        url: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1749098791/%E9%B3%A9_azif4f.png',
-        scaledSize: new google.maps.Size(48, 48),
-        anchor: new google.maps.Point(24, 24),
+        path: google.maps.SymbolPath.CIRCLE,
+        scale: 8,
+        fillColor: '#4285F4',
+        fillOpacity: 1,
+        strokeColor: '#ffffff',
+        strokeWeight: 2,
       },
       title: '現在地',
       zIndex: 1000,
       animation: google.maps.Animation.DROP,
-      optimized: false,
     });
 
     userMarkerRef.current = userMarker;
@@ -219,8 +222,10 @@ export function MapView({ stores, center, onStoreClick }: MapViewProps) {
         return '#4CAF50';
       case 'moderate':
         return '#FFC107';
-      case 'crowded':
+      case 'full':
         return '#F44336';
+      case 'closed':
+        return '#9E9E9E';
       default:
         return '#009688';
     }

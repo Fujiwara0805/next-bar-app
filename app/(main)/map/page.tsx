@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Users, X, Filter, ArrowLeft } from 'lucide-react';
+import { Users, X, List, ExternalLink } from 'lucide-react';
 import { MapView } from '@/components/map/map-view';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -23,6 +23,27 @@ export default function MapPage() {
   useEffect(() => {
     fetchStores();
     loadUserLocation();
+
+    // リアルタイム更新の設定
+    const channel = supabase
+      .channel('stores-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'stores'
+        },
+        (payload) => {
+          console.log('Store change detected:', payload);
+          fetchStores(); // 変更があったら再取得
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchStores = async () => {
@@ -64,8 +85,10 @@ export default function MapPage() {
         return '空席あり';
       case 'moderate':
         return 'やや混雑';
-      case 'crowded':
-        return '混雑';
+      case 'full':
+        return '満席';
+      case 'closed':
+        return '閉店中';
       default:
         return '不明';
     }
@@ -77,8 +100,10 @@ export default function MapPage() {
         return 'bg-green-500';
       case 'moderate':
         return 'bg-yellow-500';
-      case 'crowded':
+      case 'full':
         return 'bg-red-500';
+      case 'closed':
+        return 'bg-gray-500';
       default:
         return 'bg-gray-500';
     }
@@ -94,26 +119,16 @@ export default function MapPage() {
           className="w-full"
         >
           {/* ロゴと戻るボタン */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1 sm:gap-2 bg-white/95 backdrop-blur-sm px-3 sm:px-4 py-2 sm:py-2.5 rounded-full shadow-lg">
-              <Button
-                size="icon"
-                variant="ghost"
-                onClick={() => router.push('/landing')}
-                className="w-7 h-7 sm:w-8 sm:h-8 rounded-full hover:bg-primary/10"
-              >
-              <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
-              <span className="font-bold text-sm sm:text-base">MachiNow</span>
-              </Button>
-            </div>
+          <div className="flex items-center justify-end">
             
-            {/* フィルターボタン */}
+            {/* リストボタン */}
             <Button
               size="icon"
-              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full shadow-lg bg-white/95 backdrop-blur-sm hover:bg-white"
+              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full shadow-lg bg-white/95 backdrop-blur-sm hover:bg-white mt-4"
               variant="secondary"
+              onClick={() => router.push('/store-list')}
             >
-              <Filter className="w-4 h-4 sm:w-5 sm:h-5" />
+              <List className="w-4 h-4 sm:w-5 sm:h-5" />
             </Button>
           </div>
         </motion.div>
@@ -135,41 +150,72 @@ export default function MapPage() {
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
             className="absolute bottom-0 left-0 right-0 z-20 p-4"
-            onClick={() => router.push(`/store/${selectedStore.id}`)}
           >
-            <Card className="p-4 shadow-2xl cursor-pointer hover:shadow-3xl transition-shadow">
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <h3 className="text-lg font-bold">{selectedStore.name}</h3>
-                    <Badge
-                      variant="secondary"
-                      className={`${getVacancyColor(selectedStore.vacancy_status)} text-white text-xs`}
+            <Card className="p-4 shadow-2xl">
+              <div className="flex gap-3">
+                {/* 店舗画像 */}
+                {selectedStore.image_urls && selectedStore.image_urls.length > 0 && (
+                  <motion.img
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    src={selectedStore.image_urls[0]}
+                    alt={selectedStore.name}
+                    className="w-24 h-24 object-cover rounded-lg cursor-pointer flex-shrink-0"
+                    onClick={() => router.push(`/store/${selectedStore.id}`)}
+                  />
+                )}
+                
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <div 
+                      className="flex-1 cursor-pointer"
+                      onClick={() => router.push(`/store/${selectedStore.id}`)}
                     >
-                      {getVacancyLabel(selectedStore.vacancy_status)}
-                    </Badge>
+                      <h3 className="text-lg font-bold mb-1">{selectedStore.name}</h3>
+                      {/* Googleマップで開くリンク */}
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedStore.address || '')}`;
+                          window.open(mapsUrl, '_blank');
+                        }}
+                        className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 hover:underline mb-2"
+                      >
+                        <span>Googleマップで開く</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </motion.button>
+                      {/* 空席情報を大きく表示 */}
+                      <div className="mb-2">
+                        <Badge
+                          variant="secondary"
+                          className={`${getVacancyColor(selectedStore.vacancy_status)} text-white text-xl py-1 px-3`}
+                        >
+                          {getVacancyLabel(selectedStore.vacancy_status)}
+                        </Badge>
+                      </div>
+                    </div>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedStore(null);
+                      }}
+                      className="shrink-0"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
                   </div>
-                  <p className="text-xs text-muted-foreground mb-2">
-                    {selectedStore.address}
-                  </p>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <Users className="w-3 h-3" />
-                    <span>
-                      男性 {selectedStore.male_ratio}% / 女性 {selectedStore.female_ratio}%
-                    </span>
-                  </div>
+                  
+                  {/* 一言メッセージ */}
+                  {selectedStore.status_message && (
+                    <p className="text-sm text-foreground mb-2 line-clamp-2">
+                      {selectedStore.status_message}
+                    </p>
+                  )}
                 </div>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedStore(null);
-                  }}
-                  className="shrink-0"
-                >
-                  <X className="w-4 h-4" />
-                </Button>
               </div>
             </Card>
           </motion.div>
@@ -189,7 +235,7 @@ export default function MapPage() {
           </div>
           <div className="flex items-center gap-1">
             <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-red-500" />
-            <span>混雑</span>
+            <span>満席</span>
           </div>
         </div>
       </div>
