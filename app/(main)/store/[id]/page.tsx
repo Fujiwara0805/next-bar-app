@@ -14,6 +14,9 @@ import {
   Calendar,
   DollarSign,
   ExternalLink,
+  X,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -31,12 +34,40 @@ export default function StoreDetailPage() {
   const [loading, setLoading] = useState(true);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [distance, setDistance] = useState<number | null>(null);
 
   useEffect(() => {
     if (params.id) {
       fetchStore(params.id as string);
     }
+    loadUserLocation();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.id]);
+
+  const loadUserLocation = () => {
+    const savedLocation = localStorage.getItem('userLocation');
+    if (savedLocation) {
+      try {
+        const location = JSON.parse(savedLocation);
+        setUserLocation(location);
+      } catch (e) {
+        console.error('Failed to parse saved location');
+      }
+    }
+  };
+
+  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+    const R = 6371; // 地球の半径（km）
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  };
 
   const fetchStore = async (id: string) => {
     try {
@@ -51,6 +82,17 @@ export default function StoreDetailPage() {
         const storeData = data as Store;
         setStore(storeData);
         setImageUrls(storeData.image_urls || []);
+        
+        // 距離を計算
+        if (userLocation) {
+          const dist = calculateDistance(
+            userLocation.lat,
+            userLocation.lng,
+            Number(storeData.latitude),
+            Number(storeData.longitude)
+          );
+          setDistance(dist);
+        }
       }
     } catch (error) {
       console.error('Error fetching store:', error);
@@ -58,6 +100,18 @@ export default function StoreDetailPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (store && userLocation) {
+      const dist = calculateDistance(
+        userLocation.lat,
+        userLocation.lng,
+        Number(store.latitude),
+        Number(store.longitude)
+      );
+      setDistance(dist);
+    }
+  }, [store, userLocation]);
 
   const getVacancyLabel = (status: string) => {
     switch (status) {
@@ -144,18 +198,27 @@ export default function StoreDetailPage() {
     );
   }
 
+  const nextImage = () => {
+    setSelectedImageIndex((prev) => (prev + 1) % imageUrls.length);
+  };
+
+  const prevImage = () => {
+    setSelectedImageIndex((prev) => (prev - 1 + imageUrls.length) % imageUrls.length);
+  };
+
   return (
     <div className="min-h-screen bg-background pb-6">
       <header className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b">
-        <div className="flex items-center gap-3 p-4 safe-top">
+        <div className="flex items-center justify-center p-4 safe-top relative">
+          <h1 className="text-3xl font-bold">店舗情報</h1>
           <Button
             size="icon"
             variant="ghost"
-            onClick={() => router.back()}
+            onClick={() => router.push('/map')}
+            className="rounded-full absolute right-4"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <X className="w-5 h-5" />
           </Button>
-          <h1 className="text-lg font-bold">店舗詳細</h1>
         </div>
       </header>
 
@@ -165,14 +228,56 @@ export default function StoreDetailPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
         >
-          {/* 店舗画像カルーセル（今後実装） */}
-          {store.image_urls && store.image_urls.length > 0 && (
-            <div className="w-full h-64 mb-4 rounded-lg overflow-hidden">
-              <img
-                src={store.image_urls[0]}
-                alt={store.name}
+          {/* 店舗画像カルーセル */}
+          {imageUrls.length > 0 && (
+            <div className="relative w-full h-64 mb-4 rounded-lg overflow-hidden">
+              <motion.img
+                key={selectedImageIndex}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                src={imageUrls[selectedImageIndex]}
+                alt={`${store.name} - ${selectedImageIndex + 1}`}
                 className="w-full h-full object-cover"
               />
+              
+              {/* カルーセルコントロール */}
+              {imageUrls.length > 1 && (
+                <>
+                  <Button
+                    size="icon"
+                    variant="secondary"
+                    className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white"
+                    onClick={prevImage}
+                  >
+                    <ChevronLeft className="w-5 h-5" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="secondary"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white"
+                    onClick={nextImage}
+                  >
+                    <ChevronRight className="w-5 h-5" />
+                  </Button>
+                  
+                  {/* インジケーター */}
+                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+                    {imageUrls.map((_, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setSelectedImageIndex(index)}
+                        className={`w-2 h-2 rounded-full transition-all ${
+                          index === selectedImageIndex 
+                            ? 'bg-white w-6' 
+                            : 'bg-white/50'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
           )}
 
@@ -226,7 +331,26 @@ export default function StoreDetailPage() {
                 <MapPin className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
                 <div className="flex-1">
                   <p className="text-sm font-medium mb-1">住所</p>
-                  <p className="text-sm text-muted-foreground">{store.address}</p>
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground">{store.address}</p>
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => {
+                        const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.address || '')}`;
+                        window.open(mapsUrl, '_blank');
+                      }}
+                      className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 hover:underline"
+                    >
+                      <span>Googleマップで開く</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </motion.button>
+                    {distance !== null && (
+                      <p className="text-sm text-muted-foreground">
+                        現在地から約 {distance < 1 ? `${Math.round(distance * 1000)}m` : `${distance.toFixed(1)}km`}
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -278,28 +402,56 @@ export default function StoreDetailPage() {
                     <p className="text-sm font-medium mb-1">電話番号</p>
                     <a
                       href={`tel:${store.phone}`}
-                      className="text-sm text-primary hover:underline"
+                      className="text-sm text-primary hover:underline block mb-1"
                     >
                       {store.phone}
                     </a>
+                    <p className="text-xs text-muted-foreground italic">
+                      「２軒目を見ましたと言ってください」
+                    </p>
                   </div>
                 </div>
               )}
 
-              {/* ウェブサイト */}
+              {/* ウェブサイト・SNS */}
               {store.website_url && (
                 <div className="flex items-start gap-3">
                   <ExternalLink className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
                   <div className="flex-1">
-                    <p className="text-sm font-medium mb-1">ウェブサイト</p>
-                    <a
-                      href={store.website_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm text-primary hover:underline"
-                    >
-                      {store.website_url}
-                    </a>
+                    <p className="text-sm font-medium mb-2">ウェブサイト</p>
+                    <div className="flex gap-3">
+                      {store.website_url.includes('instagram.com') ? (
+                        <motion.a
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.95 }}
+                          href={store.website_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block"
+                        >
+                          <img 
+                            src="https://res.cloudinary.com/dz9trbwma/image/upload/v1759308496/icons8-%E3%82%A4%E3%83%B3%E3%82%B9%E3%82%BF%E3%82%AF%E3%82%99%E3%83%A9%E3%83%A0-100_idedfz.png"
+                            alt="Instagram"
+                            className="w-12 h-12 object-contain"
+                          />
+                        </motion.a>
+                      ) : (
+                        <motion.a
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.95 }}
+                          href={store.website_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block"
+                        >
+                          <img 
+                            src="https://res.cloudinary.com/dz9trbwma/image/upload/v1759366399/icons8-%E3%82%A6%E3%82%A7%E3%83%95%E3%82%99-100_a6uwwq.png"
+                            alt="Website"
+                            className="w-12 h-12 object-contain"
+                          />
+                        </motion.a>
+                      )}
+                    </div>
                   </div>
                 </div>
               )}
