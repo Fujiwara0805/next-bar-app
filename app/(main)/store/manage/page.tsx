@@ -2,12 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Store as StoreIcon, Edit, TrendingUp, Trash2, Loader2 } from 'lucide-react';
+import { Plus, Store as StoreIcon, Edit, Trash2, Loader2, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,7 +26,7 @@ type Store = Database['public']['Tables']['stores']['Row'];
 
 export default function StoreManagePage() {
   const router = useRouter();
-  const { user, profile, accountType, store } = useAuth();
+  const { user, profile, accountType, store, signOut } = useAuth();
   const [stores, setStores] = useState<Store[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -69,36 +68,6 @@ export default function StoreManagePage() {
     }
   };
 
-  const getVacancyLabel = (status: string) => {
-    switch (status) {
-      case 'vacant':
-        return '空席あり';
-      case 'moderate':
-        return 'やや混雑';
-      case 'full':
-        return '満席';
-      case 'closed':
-        return '閉店';
-      default:
-        return '不明';
-    }
-  };
-
-  const getVacancyColor = (status: string) => {
-    switch (status) {
-      case 'vacant':
-        return 'bg-green-500';
-      case 'moderate':
-        return 'bg-yellow-500';
-      case 'full':
-        return 'bg-red-500';
-      case 'closed':
-        return 'bg-gray-500';
-      default:
-        return 'bg-gray-500';
-    }
-  };
-
   const handleDeleteClick = (store: Store) => {
     setStoreToDelete(store);
     setDeleteDialogOpen(true);
@@ -121,6 +90,9 @@ export default function StoreManagePage() {
 
       toast.success('店舗を削除しました', {
         description: `${storeToDelete.name}の情報を削除しました`,
+        position: 'top-center',
+        duration: 2000,
+        className: 'bg-gray-100'
       });
 
       // リストから削除
@@ -129,9 +101,31 @@ export default function StoreManagePage() {
       setStoreToDelete(null);
     } catch (error) {
       console.error('Error deleting store:', error);
-      toast.error('店舗の削除に失敗しました');
+      toast.error('店舗の削除に失敗しました', {
+        position: 'top-center',
+        duration: 3000,
+        className: 'bg-gray-100'
+      });
     } finally {
       setDeleting(false);
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      toast.success('ログアウトしました', { 
+        position: 'top-center',
+        duration: 1000,
+        className: 'bg-gray-100'
+      });
+      router.push('/login');
+    } catch (error) {
+      toast.error('ログアウトに失敗しました', { 
+        position: 'top-center',
+        duration: 3000,
+        className: 'bg-gray-100'
+      });
     }
   };
 
@@ -250,32 +244,6 @@ export default function StoreManagePage() {
                             </Button>
                           </div>
                         </div>
-
-                        <div className="flex gap-2 mb-3">
-                          <Badge
-                            variant="secondary"
-                            className={`${getVacancyColor(store.vacancy_status)} text-white`}
-                          >
-                            {getVacancyLabel(store.vacancy_status)}
-                          </Badge>
-                          <Badge variant="outline">
-                            {store.is_open ? '営業中' : '閉店'}
-                          </Badge>
-                        </div>
-
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-card-foreground/70 font-bold">
-                            男性 {store.male_ratio}% / 女性 {store.female_ratio}%
-                          </span>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => router.push(`/store/manage/${store.id}/update`)}
-                          >
-                            <TrendingUp className="w-4 h-4 mr-1" />
-                            状況更新
-                          </Button>
-                        </div>
                       </div>
                     </Card>
                   </motion.div>
@@ -284,6 +252,24 @@ export default function StoreManagePage() {
             </div>
           </>
         )}
+
+        {/* ログアウトボタン */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="mt-6 max-w-md mx-auto"
+        >
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full text-destructive font-bold bg-white"
+            onClick={handleSignOut}
+          >
+            <LogOut className="w-4 h-4 mr-2" />
+            ログアウト
+          </Button>
+        </motion.div>
       </main>
 
       {/* 削除確認ダイアログ */}
