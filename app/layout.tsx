@@ -7,27 +7,27 @@ import { Toaster } from '@/components/ui/sonner';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'MachiNow – 2軒目がすぐ見つかるマップ',
-  description: '『いま入れるバー・スナック』が地図でひと目でわかる。二軒目難民にならない、空席をさっとチェックできるマップアプリ。ログイン不要。位置情報を許可して地図を開くだけ。',
+  title: 'NIKENME+ – いますぐ、行けるお店が見つかるマップ',
+  description: '『いま入れるバー・スナック』が地図でひと目でわかる。',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'MachiNow (2軒目マップ)',
+    title: 'NIKENME+ (マップ)',
   },
   formatDetection: {
     telephone: false,
   },
   openGraph: {
     type: 'website',
-    siteName: 'MachiNow',
-    title: 'MachiNow – 2軒目がすぐ見つかるマップ',
+    siteName: 'NIKENME+',
+    title: 'NIKENME+ – いますぐ、行けるお店が見つかるマップ',
     description: '『いま入れるバー・スナック』が地図でひと目。ログイン不要、位置情報を許可して地図を開くだけで空席チェック。',
     images: ['/og-cover.png'],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'MachiNow – 2軒目がすぐ見つかるマップ',
+    title: 'NIKENME+ – いますぐ、行けるお店が見つかるマップ',
     description: '二軒目にサクッと入れるお店が地図でわかる。ログイン不要、位置情報を許可して空席をチェック。',
   },
 };

@@ -40,18 +40,18 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
           className="mb-6"
         >
           <img 
-            src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%83%BC%E3%83%92%E3%82%99%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png"
-            alt="2軒目"
-            className="w-32 h-32 object-contain filter brightness-0 invert"
+src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%83%BC%E3%83%92%E3%82%99%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png"
+            alt="NIKENME+"
+            className="w-32 h-32 "
           />
         </motion.div>
         <motion.p
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.5, duration: 0.5 }}
-          className="text-white/90 mt-4 text-xl font-medium"
+          className="text-white/90 mt-4 text-xl  text-center font-bold"
         >
-          いますぐ、2軒目へ
+          いますぐ、行けるお店が見つかる
         </motion.p>
       </motion.div>
     </motion.div>
