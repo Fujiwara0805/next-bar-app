@@ -3,10 +3,9 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, X, List, ExternalLink, Building2 } from 'lucide-react';
+import { X, List, ExternalLink, Building2, RefreshCw } from 'lucide-react';
 import { MapView } from '@/components/map/map-view';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { supabase } from '@/lib/supabase/client';
 import type { Database } from '@/lib/supabase/types';
@@ -19,6 +18,7 @@ export default function MapPage() {
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     fetchStores();
@@ -77,6 +77,12 @@ export default function MapPage() {
 
     // 保存された位置情報がない場合、デフォルト位置を使用
     setUserLocation({ lat: 35.6812, lng: 139.7671 });
+  };
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    // ページをリロード
+    window.location.reload();
   };
 
   const getVacancyLabel = (status: string) => {
@@ -150,14 +156,32 @@ export default function MapPage() {
           {/* ロゴと戻るボタン */}
           <div className="flex items-center justify-end">
             
-            {/* リストボタン */}
-            <Button
-              size="icon"
-              onClick={() => router.push('/store-list')}
-              className="bg-gray-600 w-12 h-12 mt-12 border-2 border-gray-300"
-            >
-              <List className="w-7 h-7" />
-            </Button>
+            {/* ボタングループ */}
+            <div className="flex flex-col gap-2">
+              {/* リストボタン */}
+              <Button
+                size="icon"
+                onClick={() => router.push('/store-list')}
+                className="bg-gray-600 w-12 h-12 mt-12 border-2 border-gray-300"
+              >
+                <List className="w-7 h-7" />
+              </Button>
+
+              {/* 更新ボタン */}
+              <motion.div
+                whileTap={{ scale: 0.95 }}
+              >
+                <Button
+                  size="icon"
+                  onClick={handleRefresh}
+                  disabled={refreshing}
+                  className="bg-gray-600 w-12 h-12 border-2 border-gray-300"
+                  title="ページを更新"
+                >
+                  <RefreshCw className={`w-7 h-7 ${refreshing ? 'animate-spin' : ''}`} />
+                </Button>
+              </motion.div>
+            </div>
           </div>
         </motion.div>
       </header>
