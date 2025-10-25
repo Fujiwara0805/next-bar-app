@@ -99,16 +99,7 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="p-6 safe-top"
-      >
-        <div className="flex items-center gap-2 text-primary">
-          <MapPin className="w-8 h-8" />
-          <span className="text-2xl font-bold">MachiNow</span>
-        </div>
-      </motion.div>
+
 
       <div className="flex-1 flex items-center justify-center px-6 pb-8">
         <motion.div

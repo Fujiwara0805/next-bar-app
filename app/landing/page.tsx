@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, Users, TrendingUp, Store, Shield, Zap, ArrowRight, Navigation } from 'lucide-react';
+import { MapPin, Store, ArrowRight, Navigation } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -141,9 +141,12 @@ export default function LandingPage() {
       {/* ヘッダー - レスポンシブ対応 */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-b safe-top">
         <div className="container mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-primary">
-            <MapPin className="w-6 h-6 sm:w-8 sm:h-8" />
-            <span className="text-xl sm:text-2xl font-bold">MachiNow</span>
+          <div className="flex items-center">
+            <img 
+              src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%83%BC%E3%83%92%E3%82%99%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png"
+              alt="2軒目"
+              className="h-10 sm:h-12 w-auto object-contain"
+            />
           </div>
           <div className="flex items-center gap-2 sm:gap-4">
             <Link href="/login">
@@ -164,6 +167,18 @@ export default function LandingPage() {
             transition={{ duration: 0.6 }}
             className="text-center mb-12 sm:mb-16"
           >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="flex justify-center mb-6 sm:mb-8"
+            >
+              <img 
+                src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%83%BC%E3%83%92%E3%82%99%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png"
+                alt="2軒目"
+                className="h-24 sm:h-32 md:h-40 w-auto object-contain"
+              />
+            </motion.div>
             <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold mb-4 sm:mb-6 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent px-4">
               いますぐ、2軒目へ
             </h1>
@@ -337,12 +352,15 @@ export default function LandingPage() {
       <footer className="py-8 sm:py-12 px-4 border-t">
         <div className="container mx-auto max-w-6xl">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 sm:gap-6">
-            <div className="flex items-center gap-2 text-primary">
-              <MapPin className="w-6 h-6 sm:w-8 sm:h-8" />
-              <span className="text-xl sm:text-2xl font-bold">MachiNow</span>
+            <div className="flex items-center">
+              <img 
+                src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%83%BC%E3%83%92%E3%82%99%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png"
+                alt="2軒目"
+                className="h-10 sm:h-12 w-auto object-contain"
+              />
             </div>
             <p className="text-xs sm:text-sm text-muted-foreground text-center md:text-right">
-              © 2025 MachiNow. All rights reserved.
+              © 2025 2軒目. All rights reserved.
               <br />
               いますぐ、2軒目へ
             </p>

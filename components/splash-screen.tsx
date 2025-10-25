@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { MapPin } from 'lucide-react';
 
 interface SplashScreenProps {
   onComplete: () => void;
@@ -36,25 +35,21 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
         className="flex flex-col items-center"
       >
         <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-          className="mb-4"
+          animate={{ scale: [1, 1.1, 1] }}
+          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+          className="mb-6"
         >
-          <MapPin className="w-16 h-16 text-white" />
+          <img 
+            src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%83%BC%E3%83%92%E3%82%99%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png"
+            alt="2軒目"
+            className="w-32 h-32 object-contain filter brightness-0 invert"
+          />
         </motion.div>
-        <motion.h1
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.3, duration: 0.5 }}
-          className="text-3xl font-bold text-white"
-        >
-          MachiNow
-        </motion.h1>
         <motion.p
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.5, duration: 0.5 }}
-          className="text-white/80 mt-2"
+          className="text-white/90 mt-4 text-xl font-medium"
         >
           いますぐ、2軒目へ
         </motion.p>
