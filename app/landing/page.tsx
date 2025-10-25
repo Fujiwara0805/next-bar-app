@@ -17,33 +17,18 @@ export default function LandingPage() {
   const features = [
     {
       icon: MapPin,
-      title: 'リアルタイム位置情報',
-      description: '地図上で近くのお店の混雑状況を一目で確認できます。',
-    },
-    {
-      icon: Users,
-      title: '来客情報の可視化',
-      description: '男女比や混雑度を見て、最適なお店を選べます。',
-    },
-    {
-      icon: TrendingUp,
-      title: '最新の情報共有',
-      description: 'ユーザーが投稿する最新の店舗情報をチェック。',
+      title: '今すぐ入れるお店が見つかる',
+      description: '地図上で近くのバー・スナックの空席状況を一目で確認。待たずに入れるお店がすぐ分かります。',
     },
     {
       icon: Store,
-      title: '店舗管理機能',
-      description: '企業アカウントで店舗情報をリアルタイム更新。',
+      title: '加盟店のリアルタイム情報',
+      description: 'お店が更新する最新の空席情報をチェック。「今」入れるかどうかが分かるから、無駄足がありません。',
     },
     {
-      icon: Shield,
-      title: '安全なデータ管理',
-      description: 'Supabaseによる堅牢なセキュリティ。',
-    },
-    {
-      icon: Zap,
-      title: '高速なレスポンス',
-      description: '最新技術による快適な操作感。',
+      icon: Navigation,
+      title: 'お店までの距離が分かる',
+      description: '現在地からの距離を表示。歩いて行ける近くのお店を簡単に見つけられます。',
     },
   ];
 
@@ -163,12 +148,7 @@ export default function LandingPage() {
           <div className="flex items-center gap-2 sm:gap-4">
             <Link href="/login">
               <Button variant="ghost" size="sm" className="text-xs sm:text-sm">
-                ログイン
-              </Button>
-            </Link>
-            <Link href="/register">
-              <Button size="sm" className="text-xs sm:text-sm">
-                今すぐ始める
+                店舗ログイン
               </Button>
             </Link>
           </div>
@@ -188,24 +168,18 @@ export default function LandingPage() {
               いますぐ、2軒目へ
             </h1>
             <p className="text-base sm:text-xl md:text-2xl text-muted-foreground mb-6 sm:mb-8 max-w-3xl mx-auto px-4">
-              飲食店の混雑状況をリアルタイムで共有。
+              バー・スナックの空席情報をリアルタイムで確認。
               <br className="hidden sm:block" />
-              あなたの街の「今」を、みんなで作る。
+              「今、入れるお店」がマップ上でひと目で分かる。
             </p>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4">
-              <Link href="/register" className="w-full sm:w-auto">
-                <Button size="lg" className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8">
-                  無料で始める
-                  <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
-                </Button>
-              </Link>
               <Button 
                 size="lg" 
-                variant="outline" 
                 className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8"
                 onClick={handleMapClick}
               >
                 マップを見る
+                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
               </Button>
             </div>
           </motion.div>
@@ -238,13 +212,13 @@ export default function LandingPage() {
             transition={{ duration: 0.6 }}
             className="text-center mb-12 sm:mb-16"
           >
-            <h2 className="text-3xl sm:text-4xl font-bold mb-3 sm:mb-4">主な機能</h2>
+            <h2 className="text-3xl sm:text-4xl font-bold mb-3 sm:mb-4">こんな時に便利</h2>
             <p className="text-base sm:text-xl text-muted-foreground">
-              MachiNowが提供する充実の機能
+              2軒目のお店探しをもっとスマートに
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
             {features.map((feature, index) => {
               const Icon = feature.icon;
               return (
@@ -281,26 +255,23 @@ export default function LandingPage() {
           >
             <h2 className="text-3xl sm:text-4xl font-bold mb-3 sm:mb-4">使い方はとても簡単</h2>
             <p className="text-base sm:text-xl text-muted-foreground">
-              3つのステップで今すぐ始められます
+              ログイン不要で今すぐ使えます
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8 max-w-4xl mx-auto">
             {[
               {
                 step: '1',
-                title: 'アカウント登録',
-                description: 'メールアドレスで簡単に登録できます。',
+                title: '位置情報を許可',
+                description: '現在地周辺のバー・スナックを表示するために位置情報の使用を許可してください。',
+                icon: Navigation,
               },
               {
                 step: '2',
-                title: '地図を確認',
-                description: '近くのお店の混雑状況をチェック。',
-              },
-              {
-                step: '3',
-                title: '情報を共有',
-                description: 'あなたの体験を投稿して共有。',
+                title: 'マップで空席を確認',
+                description: '地図上のアイコンで空席状況を確認。緑色のアイコンは「空席あり」、赤色は「満席」を表示します。',
+                icon: MapPin,
               },
             ].map((item, index) => (
               <motion.div
@@ -309,13 +280,23 @@ export default function LandingPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
-                className="text-center"
               >
-                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-primary text-white text-xl sm:text-2xl font-bold flex items-center justify-center mx-auto mb-3 sm:mb-4">
-                  {item.step}
-                </div>
-                <h3 className="text-lg sm:text-xl font-bold mb-2">{item.title}</h3>
-                <p className="text-sm sm:text-base text-muted-foreground">{item.description}</p>
+                <Card className="p-6 sm:p-8 h-full">
+                  <div className="flex items-start gap-4 mb-4">
+                    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-primary text-white text-xl sm:text-2xl font-bold flex items-center justify-center shrink-0">
+                      {item.step}
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-lg sm:text-xl font-bold mb-2">{item.title}</h3>
+                      <p className="text-sm sm:text-base text-muted-foreground">{item.description}</p>
+                    </div>
+                  </div>
+                  
+                  {/* 視覚的な説明用のアイコン表示 */}
+                  <div className="mt-6 p-6 bg-muted/30 rounded-lg flex items-center justify-center">
+                    <item.icon className="w-16 h-16 sm:w-20 sm:h-20 text-primary/60" />
+                  </div>
+                </Card>
               </motion.div>
             ))}
           </div>
@@ -332,18 +313,21 @@ export default function LandingPage() {
             transition={{ duration: 0.6 }}
           >
             <h2 className="text-3xl sm:text-4xl font-bold mb-4 sm:mb-6">
-              今すぐMachiNowを始めましょう
+              2軒目のお店探しをもっと簡単に
             </h2>
             <p className="text-base sm:text-xl text-white/90 mb-6 sm:mb-8">
-              無料で登録して、あなたの街の「今」を共有しよう
+              ログイン不要、今すぐマップから空席情報を確認できます
             </p>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
-              <Link href="/register" className="w-full sm:w-auto">
-                <Button size="lg" variant="secondary" className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8">
-                  無料で始める
-                  <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
-                </Button>
-              </Link>
+              <Button 
+                size="lg" 
+                variant="secondary" 
+                className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8"
+                onClick={handleMapClick}
+              >
+                マップを見る
+                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
+              </Button>
             </div>
           </motion.div>
         </div>

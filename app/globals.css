@@ -6,34 +6,36 @@
 
 :root {
   --vh: 1vh;
-  --cool-teal: #009688;
-  --sunshine-yellow: #FFEB3B;
-  --light-gray: #F5F5F5;
-  --sale-red: #E53935;
-  --dark-charcoal: #212121;
+  /* 日本のバー・スナック文化のカラーテーマ */
+  --cool-teal: #2C5F6F;
+  --warm-gold: #D4A574;
+  --deep-navy: #1C1E26;
+  --soft-coral: #D98B8B;
+  --off-white: #F5F5F5;
 }
 
 @layer base {
   :root {
-    --background: 0 0% 96.1%;
-    --foreground: 0 0% 13%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 13%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 13%;
-    --primary: 174 100% 29%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 54 100% 62%;
-    --secondary-foreground: 0 0% 13%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 54 100% 62%;
-    --accent-foreground: 0 0% 13%;
-    --destructive: 4 90% 58%;
+    /* メインカラー: クールティール (#2C5F6F) */
+    --background: 220 15% 13%;  /* ディープネイビー #1C1E26 */
+    --foreground: 0 0% 96%;  /* オフホワイト #F5F5F5 */
+    --card: 0 0% 98%;  /* カード背景（白色系） */
+    --card-foreground: 196 43% 30%;  /* カードテキスト: クールティール #2C5F6F */
+    --popover: 0 0% 98%;  /* ポップオーバー背景（白色系） */
+    --popover-foreground: 196 43% 30%;  /* ポップオーバーテキスト: クールティール #2C5F6F */
+    --primary: 196 43% 30%;  /* クールティール #2C5F6F */
+    --primary-foreground: 0 0% 96%;
+    --secondary: 33 46% 65%;  /* ウォームゴールド #D4A574 */
+    --secondary-foreground: 196 43% 30%;  /* セカンダリーテキスト: クールティール */
+    --muted: 0 0% 95%;  /* ミュート背景（明るいグレー） */
+    --muted-foreground: 196 43% 30%;  /* ミュートテキスト: クールティール */
+    --accent: 0 36% 70%;  /* ソフトコーラル #D98B8B */
+    --accent-foreground: 196 43% 30%;  /* アクセントテキスト: クールティール */
+    --destructive: 0 62% 58%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 174 100% 29%;
+    --border: 0 0% 89%;  /* ボーダー（明るいグレー） */
+    --input: 0 0% 98%;  /* インプット背景（白色系） */
+    --ring: 196 43% 30%;
     --radius: 0.5rem;
   }
 }
