@@ -7,8 +7,8 @@ import { Toaster } from '@/components/ui/sonner';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'NIKENME+ – いますぐ、行けるお店が見つかるマップ',
-  description: '『いま入れるバー・スナック』が地図でひと目でわかる。',
+  title: 'NIKENME+',
+  description: '『いま入れるお店』が地図でひと目でわかる。',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
@@ -21,14 +21,14 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     siteName: 'NIKENME+',
-    title: 'NIKENME+ – いますぐ、行けるお店が見つかるマップ',
-    description: '『いま入れるバー・スナック』が地図でひと目。ログイン不要、位置情報を許可して地図を開くだけで空席チェック。',
+    title: 'NIKENME+',
+    description: '『いま入れるお店』が地図でひと目。ログイン不要、位置情報を許可して地図を開くだけで空席チェック。',
     images: ['/og-cover.png'],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'NIKENME+ – いますぐ、行けるお店が見つかるマップ',
-    description: '二軒目にサクッと入れるお店が地図でわかる。ログイン不要、位置情報を許可して空席をチェック。',
+    title: 'NIKENME+',
+    description: '2軒目にサクッと入れるお店が地図でわかる。ログイン不要、位置情報を許可して空席をチェック。',
   },
 };
 
