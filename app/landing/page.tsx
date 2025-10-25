@@ -150,7 +150,7 @@ export default function LandingPage() {
           </div>
           <div className="flex items-center gap-2 sm:gap-4">
             <Link href="/login">
-              <Button variant="ghost" size="sm" className="text-xs sm:text-sm">
+              <Button variant="outline" size="sm" className="text-xs sm:text-sm border-2">
                 店舗ログイン
               </Button>
             </Link>
@@ -174,7 +174,7 @@ export default function LandingPage() {
               className="flex justify-center mb-6 sm:mb-8"
             >
               <img 
-                src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%83%BC%E3%83%92%E3%82%99%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png"
+src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%83%BC%E3%83%92%E3%82%99%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png"
                 alt="2軒目"
                 className="h-24 sm:h-32 md:h-40 w-auto object-contain"
               />
@@ -182,7 +182,7 @@ export default function LandingPage() {
             <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold mb-4 sm:mb-6 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent px-4">
               いますぐ、2軒目へ
             </h1>
-            <p className="text-base sm:text-xl md:text-2xl text-muted-foreground mb-6 sm:mb-8 max-w-3xl mx-auto px-4">
+            <p className="text-base sm:text-xl md:text-2xl text-[#F5F5F5] mb-6 sm:mb-8 max-w-3xl mx-auto px-4">
               バー・スナックの空席情報をリアルタイムで確認。
               <br className="hidden sm:block" />
               「今、入れるお店」がマップ上でひと目で分かる。
@@ -207,10 +207,10 @@ export default function LandingPage() {
             className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl mb-12 sm:mb-20"
           >
             <div className="aspect-video bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
-              <div className="text-center text-white p-4 sm:p-8">
+              <div className="text-center text-[#F5F5F5] p-4 sm:p-8">
                 <MapPin className="w-16 h-16 sm:w-24 sm:h-24 mx-auto mb-2 sm:mb-4" />
                 <p className="text-lg sm:text-2xl font-bold">アプリのデモ画面</p>
-                <p className="text-sm sm:text-base text-white/80 mt-1 sm:mt-2">地図上で店舗情報を確認</p>
+                <p className="text-sm sm:text-base text-[#F5F5F5]/80 mt-1 sm:mt-2">地図上で店舗情報を確認</p>
               </div>
             </div>
           </motion.div>
@@ -218,7 +218,7 @@ export default function LandingPage() {
       </section>
 
       {/* 機能セクション - レスポンシブ対応 */}
-      <section className="py-12 sm:py-20 px-4 bg-muted/30">
+      <section className="py-12 sm:py-20 px-4 bg-background">
         <div className="container mx-auto max-w-6xl">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -227,8 +227,8 @@ export default function LandingPage() {
             transition={{ duration: 0.6 }}
             className="text-center mb-12 sm:mb-16"
           >
-            <h2 className="text-3xl sm:text-4xl font-bold mb-3 sm:mb-4">こんな時に便利</h2>
-            <p className="text-base sm:text-xl text-muted-foreground">
+            <h2 className="text-3xl sm:text-4xl font-bold mb-3 sm:mb-4 text-[#F5F5F5]">こんな時に便利</h2>
+            <p className="text-base sm:text-xl text-[#F5F5F5]/80">
               2軒目のお店探しをもっとスマートに
             </p>
           </motion.div>
@@ -244,12 +244,12 @@ export default function LandingPage() {
                   viewport={{ once: true }}
                   transition={{ duration: 0.6, delay: index * 0.1 }}
                 >
-                  <Card className="p-5 sm:p-6 h-full hover:shadow-lg transition-shadow">
+                  <Card className="p-5 sm:p-6 h-full hover:shadow-lg transition-shadow bg-card border-border">
                     <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3 sm:mb-4">
                       <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
                     </div>
-                    <h3 className="text-lg sm:text-xl font-bold mb-2">{feature.title}</h3>
-                    <p className="text-sm sm:text-base text-muted-foreground">{feature.description}</p>
+                    <h3 className="text-lg sm:text-xl font-bold mb-2 text-card-foreground">{feature.title}</h3>
+                    <p className="text-sm sm:text-base text-card-foreground/80">{feature.description}</p>
                   </Card>
                 </motion.div>
               );
@@ -259,7 +259,7 @@ export default function LandingPage() {
       </section>
 
       {/* 使い方セクション - レスポンシブ対応 */}
-      <section className="py-12 sm:py-20 px-4">
+      <section className="py-12 sm:py-20 px-4 bg-background">
         <div className="container mx-auto max-w-6xl">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -268,8 +268,8 @@ export default function LandingPage() {
             transition={{ duration: 0.6 }}
             className="text-center mb-12 sm:mb-16"
           >
-            <h2 className="text-3xl sm:text-4xl font-bold mb-3 sm:mb-4">使い方はとても簡単</h2>
-            <p className="text-base sm:text-xl text-muted-foreground">
+            <h2 className="text-3xl sm:text-4xl font-bold mb-3 sm:mb-4 text-[#F5F5F5]">使い方はとても簡単</h2>
+            <p className="text-base sm:text-xl text-[#F5F5F5]/80">
               ログイン不要で今すぐ使えます
             </p>
           </motion.div>
@@ -296,20 +296,20 @@ export default function LandingPage() {
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
               >
-                <Card className="p-6 sm:p-8 h-full">
+                <Card className="p-6 sm:p-8 h-full bg-card border-border">
                   <div className="flex items-start gap-4 mb-4">
-                    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-primary text-white text-xl sm:text-2xl font-bold flex items-center justify-center shrink-0">
+                    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-primary text-[#F5F5F5] text-xl sm:text-2xl font-bold flex items-center justify-center shrink-0">
                       {item.step}
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-lg sm:text-xl font-bold mb-2">{item.title}</h3>
-                      <p className="text-sm sm:text-base text-muted-foreground">{item.description}</p>
+                      <h3 className="text-lg sm:text-xl font-bold mb-2 text-card-foreground">{item.title}</h3>
+                      <p className="text-sm sm:text-base text-card-foreground/80">{item.description}</p>
                     </div>
                   </div>
                   
                   {/* 視覚的な説明用のアイコン表示 */}
-                  <div className="mt-6 p-6 bg-muted/30 rounded-lg flex items-center justify-center">
-                    <item.icon className="w-16 h-16 sm:w-20 sm:h-20 text-primary/60" />
+                  <div className="mt-6 p-6 bg-primary/10 rounded-lg flex items-center justify-center">
+                    <item.icon className="w-16 h-16 sm:w-20 sm:h-20 text-primary" />
                   </div>
                 </Card>
               </motion.div>
@@ -319,7 +319,7 @@ export default function LandingPage() {
       </section>
 
       {/* CTAセクション - レスポンシブ対応 */}
-      <section className="py-12 sm:py-20 px-4 bg-primary text-white">
+      <section className="py-12 sm:py-20 px-4 bg-primary text-[#F5F5F5]">
         <div className="container mx-auto max-w-4xl text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -330,7 +330,7 @@ export default function LandingPage() {
             <h2 className="text-3xl sm:text-4xl font-bold mb-4 sm:mb-6">
               2軒目のお店探しをもっと簡単に
             </h2>
-            <p className="text-base sm:text-xl text-white/90 mb-6 sm:mb-8">
+            <p className="text-base sm:text-xl text-[#F5F5F5]/90 mb-6 sm:mb-8">
               ログイン不要、今すぐマップから空席情報を確認できます
             </p>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
@@ -359,7 +359,7 @@ export default function LandingPage() {
                 className="h-10 sm:h-12 w-auto object-contain"
               />
             </div>
-            <p className="text-xs sm:text-sm text-muted-foreground text-center md:text-right">
+            <p className="text-xs sm:text-sm text-[#F5F5F5]/70 text-center md:text-right">
               © 2025 2軒目. All rights reserved.
               <br />
               いますぐ、2軒目へ
