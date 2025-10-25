@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import {
-  ArrowLeft,
   Save,
   Loader2,
   CircleDot,
@@ -14,9 +13,8 @@ import {
   Info,
   Image as ImageIcon,
   ExternalLink,
-  X,  // ←追加
-  Upload,  // ←追加
-  Clock, // ←追加
+  X,
+  Upload,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -76,7 +74,7 @@ export default function StoreUpdatePage() {
   const [fetchingStore, setFetchingStore] = useState(true);
   const [store, setStore] = useState<Store | null>(null);
   
-  const fileInputRef = useRef<HTMLInputElement>(null);  // ←追加
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // 基本情報フォーム
   const [name, setName] = useState('');
@@ -89,8 +87,8 @@ export default function StoreUpdatePage() {
   // 店舗状況フォーム
   const [vacancyStatus, setVacancyStatus] = useState<'vacant' | 'moderate' | 'full' | 'closed'>('closed');
   const [statusMessage, setStatusMessage] = useState('');
-  const [maleCount, setMaleCount] = useState(0);  // ←変更: maleRatio → maleCount
-  const [femaleCount, setFemaleCount] = useState(0);  // ←変更: femaleRatio → femaleCount
+  const [maleCount, setMaleCount] = useState(0);
+  const [femaleCount, setFemaleCount] = useState(0);
 
   // 基本情報フォーム - 追加
   const [businessHours, setBusinessHours] = useState('');
@@ -131,7 +129,7 @@ export default function StoreUpdatePage() {
       } else if (accountType === 'store') {
         // 店舗アカウントは自分の店舗のみアクセス可能
         if (params.id !== user.id) {
-          toast.error('アクセス権限がありません');
+          toast.error('アクセス権限がありません', { position: 'top-center' });
           router.push('/login');
           return;
         }
@@ -154,8 +152,8 @@ export default function StoreUpdatePage() {
         setEmail(storeData.email);
         setVacancyStatus(storeData.vacancy_status as 'vacant' | 'moderate' | 'full' | 'closed');
         setStatusMessage(storeData.status_message || '');
-        setMaleCount(storeData.male_ratio);  // ←変更: male_ratioを人数として使用
-        setFemaleCount(storeData.female_ratio);  // ←変更: female_ratioを人数として使用
+        setMaleCount(storeData.male_ratio);
+        setFemaleCount(storeData.female_ratio);
 
         // 新規フィールドの設定
         setBusinessHours(storeData.business_hours as string || '');
@@ -165,12 +163,12 @@ export default function StoreUpdatePage() {
         setPaymentMethods(storeData.payment_methods || []);
         setFacilities(storeData.facilities || []);
 
-        // 画像URLの設定 ←変更: image_url削除
+        // 画像URLの設定
         setImageUrls(storeData.image_urls || []);
       }
     } catch (error) {
       console.error('Error fetching store:', error);
-      toast.error('店舗情報の取得に失敗しました');
+      toast.error('店舗情報の取得に失敗しました', { position: 'top-center' });
       router.push('/store/manage');
     } finally {
       setFetchingStore(false);
@@ -181,7 +179,7 @@ export default function StoreUpdatePage() {
     e.preventDefault();
 
     if (!user || !params.id) {
-      toast.error('エラーが発生しました');
+      toast.error('エラーが発生しました', { position: 'top-center' });
       return;
     }
 
@@ -195,12 +193,12 @@ export default function StoreUpdatePage() {
           address: address.trim(),
           phone: phone.trim() || null,
           website_url: websiteUrl.trim() || null,
-          business_hours: businessHours,  // ←追加
-          regular_holiday: regularHoliday.trim() || null,  // ←追加
-          budget_min: budgetMin || null,  // ←追加
-          budget_max: budgetMax || null,  // ←追加
-          payment_methods: paymentMethods,  // ←追加
-          facilities: facilities,  // ←追加
+          business_hours: businessHours,
+          regular_holiday: regularHoliday.trim() || null,
+          budget_min: budgetMin || null,
+          budget_max: budgetMax || null,
+          payment_methods: paymentMethods,
+          facilities: facilities,
           updated_at: new Date().toISOString(),
         })
         .eq('id', params.id as string);
@@ -212,7 +210,7 @@ export default function StoreUpdatePage() {
       // 店舗アカウントの場合は自分のIDであることを確認
       else if (accountType === 'store') {
         if (params.id !== user.id) {
-          toast.error('アクセス権限がありません');
+          toast.error('アクセス権限がありません', { position: 'top-center' });
           return;
         }
       }
@@ -221,11 +219,11 @@ export default function StoreUpdatePage() {
 
       if (error) throw error;
 
-      toast.success('基本情報を更新しました');
+      toast.success('更新が完了しました', { position: 'top-center' });
       fetchStore();
     } catch (error) {
       console.error('Error:', error);
-      toast.error('更新に失敗しました');
+      toast.error('更新に失敗しました', { position: 'top-center' });
     } finally {
       setLoading(false);
     }
@@ -235,7 +233,7 @@ export default function StoreUpdatePage() {
     e.preventDefault();
 
     if (!user || !params.id) {
-      toast.error('エラーが発生しました');
+      toast.error('エラーが発生しました', { position: 'top-center' });
       return;
     }
 
@@ -247,8 +245,8 @@ export default function StoreUpdatePage() {
           vacancy_status: vacancyStatus,
           status_message: statusMessage.trim() || null,
           is_open: vacancyStatus !== 'closed',
-          male_ratio: maleCount,  // ←変更: 人数を保存
-          female_ratio: femaleCount,  // ←変更: 人数を保存
+          male_ratio: maleCount,
+          female_ratio: femaleCount,
           last_updated: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         })
@@ -261,7 +259,7 @@ export default function StoreUpdatePage() {
       // 店舗アカウントの場合は自分のIDであることを確認
       else if (accountType === 'store') {
         if (params.id !== user.id) {
-          toast.error('アクセス権限がありません');
+          toast.error('アクセス権限がありません', { position: 'top-center' });
           return;
         }
       }
@@ -270,7 +268,7 @@ export default function StoreUpdatePage() {
 
       if (error) throw error;
 
-      toast.success('店舗状況を更新しました');
+      toast.success('更新が完了しました', { position: 'top-center' });
       
       // アカウントタイプによってリダイレクト先を変更
       if (accountType === 'store') {
@@ -282,13 +280,11 @@ export default function StoreUpdatePage() {
       }
     } catch (error) {
       console.error('Error:', error);
-      toast.error('更新に失敗しました');
+      toast.error('更新に失敗しました', { position: 'top-center' });
     } finally {
       setLoading(false);
     }
   };
-
-  // handleMaleRatioChange関数を削除 ←削除
 
   // 支払い方法とチェックボックスのハンドラー
   const handlePaymentMethodToggle = (method: string) => {
@@ -307,14 +303,14 @@ export default function StoreUpdatePage() {
     );
   };
 
-  // 画像アップロード処理 ←追加
+  // 画像アップロード処理
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
     
     // 最大5枚まで
     if (imageUrls.length + files.length > 5) {
-      toast.error('画像は最大5枚までアップロードできます');
+      toast.error('画像は最大5枚までアップロードできます', { position: 'top-center' });
       return;
     }
 
@@ -328,7 +324,7 @@ export default function StoreUpdatePage() {
         
         // ファイルサイズチェック（5MB以下）
         if (file.size > 5 * 1024 * 1024) {
-          toast.error(`${file.name}は5MBを超えています`);
+          toast.error(`${file.name}は5MBを超えています`, { position: 'top-center' });
           continue;
         }
 
@@ -358,7 +354,7 @@ export default function StoreUpdatePage() {
       const newImageUrls = [...imageUrls, ...uploadedUrls];
       setImageUrls(newImageUrls);
 
-      // データベースを更新 ←変更: image_url削除
+      // データベースを更新
       let query = (supabase.from('stores') as any)
         .update({
           image_urls: newImageUrls,
@@ -373,11 +369,11 @@ export default function StoreUpdatePage() {
       const { error: updateError } = await query;
       if (updateError) throw updateError;
 
-      toast.success('画像をアップロードしました');
+      toast.success('画像をアップロードしました', { position: 'top-center' });
       fetchStore();
     } catch (error) {
       console.error('Error uploading image:', error);
-      toast.error('画像のアップロードに失敗しました');
+      toast.error('画像のアップロードに失敗しました', { position: 'top-center' });
     } finally {
       setUploadingImage(false);
       if (fileInputRef.current) {
@@ -386,7 +382,7 @@ export default function StoreUpdatePage() {
     }
   };
 
-  // 画像削除処理 ←変更: image_url削除
+  // 画像削除処理
   const handleImageDelete = async (urlToDelete: string, index: number) => {
     if (!confirm('この画像を削除しますか？')) return;
 
@@ -419,7 +415,7 @@ export default function StoreUpdatePage() {
         setMainImageIndex(mainImageIndex - 1);
       }
 
-      // データベースを更新 ←変更: image_url削除
+      // データベースを更新
       let query = (supabase.from('stores') as any)
         .update({
           image_urls: newImageUrls,
@@ -434,25 +430,23 @@ export default function StoreUpdatePage() {
       const { error: updateError } = await query;
       if (updateError) throw updateError;
 
-      toast.success('画像を削除しました');
+      toast.success('画像を削除しました', { position: 'top-center' });
       fetchStore();
     } catch (error) {
       console.error('Error deleting image:', error);
-      toast.error('画像の削除に失敗しました');
+      toast.error('画像の削除に失敗しました', { position: 'top-center' });
     } finally {
       setUploadingImage(false);
     }
   };
 
-  // メイン画像設定 ←削除（不要になったため）
-
   const handleSignOut = async () => {
     try {
       await signOut();
-      toast.success('ログアウトしました');
+      toast.success('ログアウトしました', { position: 'top-center' });
       router.push('/login');
     } catch (error) {
-      toast.error('ログアウトに失敗しました');
+      toast.error('ログアウトに失敗しました', { position: 'top-center' });
     }
   };
 
@@ -461,7 +455,7 @@ export default function StoreUpdatePage() {
       <div className="flex items-center justify-center h-screen">
         <div className="text-center">
           <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-          <p className="text-sm text-muted-foreground">読み込み中...</p>
+          <p className="text-sm text-muted-foreground font-bold">読み込み中...</p>
         </div>
       </div>
     );
@@ -473,24 +467,14 @@ export default function StoreUpdatePage() {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b safe-top">
-        <div className="flex items-center gap-3 p-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => router.back()}
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div className="flex-1">
-            <h1 className="text-xl font-bold">店舗ページ管理</h1>
-            <p className="text-sm text-muted-foreground">{store.name}</p>
-          </div>
+      <header className="sticky top-0 z-10 bg-background border-b safe-top">
+        <div className="flex items-center justify-center p-4">
+          <h1 className="text-xl font-bold">店舗管理画面</h1>
         </div>
       </header>
 
       <div className="max-w-4xl mx-auto p-4">
-        {/* 店舗カード ←変更 */}
+        {/* 店舗カード */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -510,7 +494,7 @@ export default function StoreUpdatePage() {
               )}
               <div className="flex-1">
                 <h2 className="text-2xl font-bold mb-1">{store.name}</h2>
-                <p className="text-sm text-muted-foreground mb-2">{store.address}</p>
+                <p className="text-sm text-muted-foreground font-bold mb-2">{store.address}</p>
                 {accountType === 'store' && (
                   <div className="flex gap-2">
                     <Button
@@ -520,7 +504,7 @@ export default function StoreUpdatePage() {
                       onClick={() => router.push(`/store/manage/${store.id}/change-password`)}
                     >
                       <Key className="w-4 h-4 mr-2" />
-                      パスワード変更
+                      <span className="font-bold">パスワード変更</span>
                     </Button>
                   </div>
                 )}
@@ -537,8 +521,8 @@ export default function StoreUpdatePage() {
         >
           <Tabs defaultValue="status" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="status">店舗状況</TabsTrigger>
-              <TabsTrigger value="basic">基本情報設定</TabsTrigger>
+              <TabsTrigger value="status" className="font-bold">店舗状況</TabsTrigger>
+              <TabsTrigger value="basic" className="font-bold">基本情報設定</TabsTrigger>
             </TabsList>
 
             {/* 店舗状況タブ */}
@@ -577,7 +561,7 @@ export default function StoreUpdatePage() {
                             <div className={`font-bold mb-1 ${option.color}`}>
                               {option.label}
                             </div>
-                            <div className="text-sm text-muted-foreground">
+                            <div className="text-sm text-muted-foreground font-bold">
                               {option.description}
                             </div>
                           </div>
@@ -593,7 +577,7 @@ export default function StoreUpdatePage() {
                     <div className="grid grid-cols-2 gap-4">
                       {/* 男性数入力 */}
                       <div className="space-y-2">
-                        <Label htmlFor="maleCount">男性数</Label>
+                        <Label htmlFor="maleCount" className="font-bold">男性数</Label>
                         <Input
                           id="maleCount"
                           type="number"
@@ -602,12 +586,13 @@ export default function StoreUpdatePage() {
                           onChange={(e) => setMaleCount(parseInt(e.target.value) || 0)}
                           placeholder="0"
                           disabled={loading}
+                          className="font-bold"
                         />
                       </div>
                       
                       {/* 女性数入力 */}
                       <div className="space-y-2">
-                        <Label htmlFor="femaleCount">女性数</Label>
+                        <Label htmlFor="femaleCount" className="font-bold">女性数</Label>
                         <Input
                           id="femaleCount"
                           type="number"
@@ -616,35 +601,16 @@ export default function StoreUpdatePage() {
                           onChange={(e) => setFemaleCount(parseInt(e.target.value) || 0)}
                           placeholder="0"
                           disabled={loading}
+                          className="font-bold"
                         />
                       </div>
                     </div>
                     
                     {/* 合計表示 */}
                     <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                      <span className="text-sm font-medium">合計人数</span>
+                      <span className="text-sm font-bold">合計人数</span>
                       <span className="text-lg font-bold">{maleCount + femaleCount}人</span>
                     </div>
-                    
-                    {/* ビジュアル表示 */}
-                    {(maleCount + femaleCount) > 0 && (
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-blue-600">男性: {maleCount}人 ({Math.round((maleCount / (maleCount + femaleCount)) * 100)}%)</span>
-                          <span className="text-pink-600">女性: {femaleCount}人 ({Math.round((femaleCount / (maleCount + femaleCount)) * 100)}%)</span>
-                        </div>
-                        <div className="flex gap-2 h-4">
-                          <div
-                            className="bg-blue-500 rounded transition-all"
-                            style={{ width: `${(maleCount / (maleCount + femaleCount)) * 100}%` }}
-                          />
-                          <div
-                            className="bg-pink-500 rounded transition-all"
-                            style={{ width: `${(femaleCount / (maleCount + femaleCount)) * 100}%` }}
-                          />
-                        </div>
-                      </div>
-                    )}
                   </div>
                 </Card>
 
@@ -655,7 +621,7 @@ export default function StoreUpdatePage() {
                   </h2>
 
                   <div className="space-y-2">
-                    <Label htmlFor="message">お客様へのメッセージ（任意）</Label>
+                    <Label htmlFor="message" className="font-bold">お客様へのメッセージ（任意）</Label>
                     <Textarea
                       id="message"
                       value={statusMessage}
@@ -663,8 +629,9 @@ export default function StoreUpdatePage() {
                       placeholder="例: 本日のおすすめは生ビール半額です！"
                       rows={4}
                       maxLength={200}
+                      className="font-bold"
                     />
-                    <p className="text-xs text-muted-foreground text-right">
+                    <p className="text-xs text-muted-foreground text-right font-bold">
                       {statusMessage.length} / 200文字
                     </p>
                   </div>
@@ -672,7 +639,7 @@ export default function StoreUpdatePage() {
 
                 <Button
                   type="submit"
-                  className="w-full"
+                  className="w-full font-bold"
                   disabled={loading}
                   size="lg"
                 >
@@ -703,7 +670,7 @@ export default function StoreUpdatePage() {
                   <div className="space-y-4">
                     {/* 店舗名 */}
                     <div className="space-y-2">
-                      <Label htmlFor="name">
+                      <Label htmlFor="name" className="font-bold">
                         店舗名 <span className="text-red-500">*</span>
                       </Label>
                       <Input
@@ -713,12 +680,13 @@ export default function StoreUpdatePage() {
                         placeholder="店舗名を入力"
                         required
                         disabled={loading}
+                        className="font-bold"
                       />
                     </div>
 
                     {/* 説明 */}
                     <div className="space-y-2">
-                      <Label htmlFor="description">店舗説明</Label>
+                      <Label htmlFor="description" className="font-bold">店舗説明</Label>
                       <Textarea
                         id="description"
                         value={description}
@@ -726,12 +694,13 @@ export default function StoreUpdatePage() {
                         placeholder="店舗の特徴や雰囲気を入力"
                         rows={3}
                         disabled={loading}
+                        className="font-bold"
                       />
                     </div>
 
                     {/* 住所 */}
                     <div className="space-y-2">
-                      <Label htmlFor="address">
+                      <Label htmlFor="address" className="font-bold">
                         住所 <span className="text-red-500">*</span>
                       </Label>
                       <Input
@@ -741,12 +710,13 @@ export default function StoreUpdatePage() {
                         placeholder="住所を入力"
                         required
                         disabled={loading}
+                        className="font-bold"
                       />
                     </div>
 
                     {/* 電話番号 */}
                     <div className="space-y-2">
-                      <Label htmlFor="phone">電話番号</Label>
+                      <Label htmlFor="phone" className="font-bold">電話番号</Label>
                       <Input
                         id="phone"
                         type="tel"
@@ -754,12 +724,13 @@ export default function StoreUpdatePage() {
                         onChange={(e) => setPhone(e.target.value)}
                         placeholder="03-1234-5678"
                         disabled={loading}
+                        className="font-bold"
                       />
                     </div>
 
                     {/* ウェブサイト */}
                     <div className="space-y-2">
-                      <Label htmlFor="website">ウェブサイトURL</Label>
+                      <Label htmlFor="website" className="font-bold">ウェブサイトURL</Label>
                       <div className="flex gap-2">
                         <Input
                           id="website"
@@ -768,7 +739,7 @@ export default function StoreUpdatePage() {
                           onChange={(e) => setWebsiteUrl(e.target.value)}
                           placeholder="https://example.com"
                           disabled={loading}
-                          className="flex-1"
+                          className="flex-1 font-bold"
                         />
                         {websiteUrl && (
                           <Button
@@ -785,22 +756,22 @@ export default function StoreUpdatePage() {
 
                     {/* メールアドレス（読み取り専用） */}
                     <div className="space-y-2">
-                      <Label htmlFor="email">ログイン用メールアドレス</Label>
+                      <Label htmlFor="email" className="font-bold">ログイン用メールアドレス</Label>
                       <Input
                         id="email"
                         type="email"
                         value={email}
                         disabled
-                        className="bg-muted"
+                        className="bg-muted font-bold"
                       />
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-xs text-muted-foreground font-bold">
                         ログイン用のメールアドレスは変更できません
                       </p>
                     </div>
 
-                    {/* 営業時間 - テキスト形式に変更 */}
+                    {/* 営業時間 - テキスト形式 */}
                     <div className="space-y-2">
-                      <Label htmlFor="businessHours">営業時間</Label>
+                      <Label htmlFor="businessHours" className="font-bold">営業時間</Label>
                       <Textarea
                         id="businessHours"
                         value={businessHours}
@@ -808,30 +779,32 @@ export default function StoreUpdatePage() {
                         placeholder="例: 月〜金 18:00-24:00, 土日 17:00-25:00"
                         rows={3}
                         disabled={loading}
+                        className="font-bold"
                       />
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-xs text-muted-foreground font-bold">
                         営業時間を自由な形式で入力してください
                       </p>
                     </div>
 
                     {/* 定休日 */}
                     <div className="space-y-2">
-                      <Label htmlFor="regularHoliday">定休日</Label>
+                      <Label htmlFor="regularHoliday" className="font-bold">定休日</Label>
                       <Input
                         id="regularHoliday"
                         value={regularHoliday}
                         onChange={(e) => setRegularHoliday(e.target.value)}
                         placeholder="例: 月曜日、年末年始"
                         disabled={loading}
+                        className="font-bold"
                       />
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-xs text-muted-foreground font-bold">
                         定休日や特別な休業日などを記載
                       </p>
                     </div>
 
                     {/* 予算 */}
                     <div className="space-y-2">
-                      <Label>予算（円）</Label>
+                      <Label className="font-bold">予算（円）</Label>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <Input
@@ -842,6 +815,7 @@ export default function StoreUpdatePage() {
                             value={budgetMin || ''}
                             onChange={(e) => setBudgetMin(parseInt(e.target.value) || 0)}
                             disabled={loading}
+                            className="font-bold"
                           />
                         </div>
                         <div>
@@ -853,11 +827,12 @@ export default function StoreUpdatePage() {
                             value={budgetMax || ''}
                             onChange={(e) => setBudgetMax(parseInt(e.target.value) || 0)}
                             disabled={loading}
+                            className="font-bold"
                           />
                         </div>
                       </div>
                       {budgetMin > 0 && budgetMax > 0 && (
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-sm text-muted-foreground font-bold">
                           予算目安: ¥{budgetMin.toLocaleString()} 〜 ¥{budgetMax.toLocaleString()}
                         </p>
                       )}
@@ -865,7 +840,7 @@ export default function StoreUpdatePage() {
 
                     {/* 支払い方法 */}
                     <div className="space-y-2">
-                      <Label>支払い方法</Label>
+                      <Label className="font-bold">支払い方法</Label>
                       <div className="grid grid-cols-2 gap-3">
                         {['現金', 'クレジットカード', '電子マネー', 'QRコード決済', 'デビットカード', '交通系IC'].map((method) => (
                           <div key={method} className="flex items-center space-x-2">
@@ -874,7 +849,7 @@ export default function StoreUpdatePage() {
                               checked={paymentMethods.includes(method)}
                               onCheckedChange={() => handlePaymentMethodToggle(method)}
                             />
-                            <Label htmlFor={`payment-${method}`} className="text-sm font-normal">
+                            <Label htmlFor={`payment-${method}`} className="text-sm font-bold">
                               {method}
                             </Label>
                           </div>
@@ -884,7 +859,7 @@ export default function StoreUpdatePage() {
 
                     {/* 設備 */}
                     <div className="space-y-2">
-                      <Label>設備・サービス</Label>
+                      <Label className="font-bold">設備・サービス</Label>
                       <div className="grid grid-cols-2 gap-3">
                         {['Wi-Fi', '喫煙可', '分煙', '禁煙', '駐車場', 'カウンター席', '個室', 'テラス席', 'ペット可', 'バリアフリー'].map((facility) => (
                           <div key={facility} className="flex items-center space-x-2">
@@ -893,7 +868,7 @@ export default function StoreUpdatePage() {
                               checked={facilities.includes(facility)}
                               onCheckedChange={() => handleFacilityToggle(facility)}
                             />
-                            <Label htmlFor={`facility-${facility}`} className="text-sm font-normal">
+                            <Label htmlFor={`facility-${facility}`} className="text-sm font-bold">
                               {facility}
                             </Label>
                           </div>
@@ -903,13 +878,13 @@ export default function StoreUpdatePage() {
                   </div>
                 </Card>
 
-                {/* 店舗画像カード ←更新 */}
+                {/* 店舗画像カード */}
                 <Card className="p-6">
                   <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
                     <ImageIcon className="w-5 h-5" />
                     店舗画像
                   </h2>
-                  <p className="text-sm text-muted-foreground mb-4">
+                  <p className="text-sm text-muted-foreground font-bold mb-4">
                     最大5枚まで画像をアップロードできます（1枚あたり最大5MB）
                   </p>
 
@@ -928,14 +903,14 @@ export default function StoreUpdatePage() {
                           className="w-full h-full object-cover"
                         />
                         
-                        {/* メイン画像バッジ ←変更 */}
+                        {/* メイン画像バッジ */}
                         {index === mainImageIndex && (
                           <div className="absolute top-2 left-2 bg-primary text-primary-foreground px-2 py-1 rounded text-xs font-bold">
                             メイン
                           </div>
                         )}
 
-                        {/* ホバー時のアクション ←変更 */}
+                        {/* ホバー時のアクション */}
                         <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
                           {index !== mainImageIndex && (
                             <Button
@@ -944,6 +919,7 @@ export default function StoreUpdatePage() {
                               variant="secondary"
                               onClick={() => setMainImageIndex(index)}
                               disabled={uploadingImage}
+                              className="font-bold"
                             >
                               メイン画像に設定
                             </Button>
@@ -954,6 +930,7 @@ export default function StoreUpdatePage() {
                             variant="destructive"
                             onClick={() => handleImageDelete(url, index)}
                             disabled={uploadingImage}
+                            className="font-bold"
                           >
                             <X className="w-4 h-4 mr-1" />
                             削除
@@ -977,7 +954,7 @@ export default function StoreUpdatePage() {
                           ) : (
                             <>
                               <Upload className="w-8 h-8 text-muted-foreground/50 mb-2" />
-                              <span className="text-xs text-muted-foreground">
+                              <span className="text-xs text-muted-foreground font-bold">
                                 画像を追加
                               </span>
                             </>
@@ -998,7 +975,7 @@ export default function StoreUpdatePage() {
                   </div>
 
                   {imageUrls.length === 0 && (
-                    <p className="text-center text-sm text-muted-foreground py-8">
+                    <p className="text-center text-sm text-muted-foreground font-bold py-8">
                       画像がアップロードされていません
                     </p>
                   )}
@@ -1006,7 +983,7 @@ export default function StoreUpdatePage() {
 
                 <Button
                   type="submit"
-                  className="w-full"
+                  className="w-full font-bold"
                   disabled={loading}
                   size="lg"
                 >
@@ -1038,7 +1015,7 @@ export default function StoreUpdatePage() {
             <Button
               type="button"
               variant="outline"
-              className="w-full text-destructive"
+              className="w-full text-destructive font-bold"
               onClick={handleSignOut}
             >
               <LogOut className="w-4 h-4 mr-2" />
