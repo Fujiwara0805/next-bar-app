@@ -20,11 +20,20 @@ export default function StoreListPage() {
   const [loading, setLoading] = useState(true);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
 
+  // 位置情報の読み込み
   useEffect(() => {
     loadUserLocation();
-    fetchStores();
+  }, []);
 
-    // リアルタイム更新の設定
+  // 位置情報が設定されたら店舗を取得
+  useEffect(() => {
+    if (userLocation) {
+      fetchStores();
+    }
+  }, [userLocation]);
+
+  // リアルタイム更新の設定
+  useEffect(() => {
     const channel = supabase
       .channel('stores-changes')
       .on(
@@ -44,7 +53,7 @@ export default function StoreListPage() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [userLocation]); // userLocationを依存配列に追加
 
   useEffect(() => {
     // 検索クエリでフィルタリング（店舗名のみ）
@@ -76,6 +85,10 @@ export default function StoreListPage() {
   };
 
   const fetchStores = async () => {
+    if (!userLocation) {
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .from('stores')
@@ -87,7 +100,7 @@ export default function StoreListPage() {
       const storeData: Store[] = data || [];
       
       // 現在地から近い順にソート
-      if (userLocation && storeData.length > 0) {
+      if (storeData.length > 0) {
         const sortedStores = [...storeData].sort((a, b) => {
           const distanceA = calculateDistance(
             userLocation.lat,
@@ -103,6 +116,7 @@ export default function StoreListPage() {
           );
           return distanceA - distanceB;
         });
+        
         setStores(sortedStores);
         setFilteredStores(sortedStores);
       } else {
@@ -194,7 +208,7 @@ export default function StoreListPage() {
           
           {/* 検索結果数 */}
           <p className="text-sm text-card-foreground/70 mt-2 font-bold">
-            {filteredStores.length}件の店舗
+            {filteredStores.length}件の店舗（距離順）
           </p>
         </div>
       </header>
