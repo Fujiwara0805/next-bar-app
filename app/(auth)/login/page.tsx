@@ -122,7 +122,7 @@ export default function LoginPage() {
                 />
               </div>
 
-              <div className="rounded-2xl border bg-card/70  p-6 sm:p-8">
+              <div className="rounded-2xl border bg-white p-6 sm:p-8 shadow-lg">
                 <div className="text-center mb-6 sm:mb-8">
                   <h2 className="text-2xl sm:text-3xl font-bold mb-2 text-card-foreground">おかえりなさい</h2>
                   <p className="text-card-foreground text-base font-semibold">

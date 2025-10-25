@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, MapIcon, X, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/lib/supabase/client';
@@ -19,8 +18,10 @@ export default function StoreListPage() {
   const [filteredStores, setFilteredStores] = useState<Store[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
 
   useEffect(() => {
+    loadUserLocation();
     fetchStores();
 
     // リアルタイム更新の設定
@@ -46,18 +47,33 @@ export default function StoreListPage() {
   }, []);
 
   useEffect(() => {
-    // 検索クエリでフィルタリング
+    // 検索クエリでフィルタリング（店舗名のみ）
     if (searchQuery.trim() === '') {
       setFilteredStores(stores);
     } else {
       const filtered = stores.filter(store => 
-        store.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        store.address.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        store.description?.toLowerCase().includes(searchQuery.toLowerCase())
+        store.name.toLowerCase().includes(searchQuery.toLowerCase())
       );
       setFilteredStores(filtered);
     }
   }, [searchQuery, stores]);
+
+  const loadUserLocation = () => {
+    // localStorageから位置情報を取得
+    const savedLocation = localStorage.getItem('userLocation');
+    if (savedLocation) {
+      try {
+        const location = JSON.parse(savedLocation);
+        setUserLocation(location);
+        return;
+      } catch (e) {
+        console.error('Failed to parse saved location');
+      }
+    }
+
+    // 保存された位置情報がない場合、デフォルト位置を使用
+    setUserLocation({ lat: 35.6812, lng: 139.7671 });
+  };
 
   const fetchStores = async () => {
     try {
@@ -67,13 +83,51 @@ export default function StoreListPage() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setStores(data || []);
-      setFilteredStores(data || []);
+      
+      const storeData: Store[] = data || [];
+      
+      // 現在地から近い順にソート
+      if (userLocation && storeData.length > 0) {
+        const sortedStores = [...storeData].sort((a, b) => {
+          const distanceA = calculateDistance(
+            userLocation.lat,
+            userLocation.lng,
+            Number(a.latitude),
+            Number(a.longitude)
+          );
+          const distanceB = calculateDistance(
+            userLocation.lat,
+            userLocation.lng,
+            Number(b.latitude),
+            Number(b.longitude)
+          );
+          return distanceA - distanceB;
+        });
+        setStores(sortedStores);
+        setFilteredStores(sortedStores);
+      } else {
+        setStores(storeData);
+        setFilteredStores(storeData);
+      }
     } catch (error) {
       console.error('Error fetching stores:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  // Haversine formula
+  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+    const R = 6371; // Radius of Earth in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distance = R * c; // Distance in km
+    return distance;
   };
 
   const getVacancyLabel = (status: string) => {
@@ -106,36 +160,13 @@ export default function StoreListPage() {
     }
   };
 
-  const getVacancyColor = (status: string) => {
-    switch (status) {
-      case 'vacant':
-        return 'bg-green-500';
-      case 'moderate':
-        return 'bg-yellow-500';
-      case 'full':
-        return 'bg-red-500';
-      case 'closed':
-        return 'bg-gray-500';
-      default:
-        return 'bg-gray-500';
-    }
-  };
-
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col" style={{ backgroundColor: '#1C1E26' }}>
       {/* ヘッダー */}
-      <header className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border-b border-gray-200">
+      <header className="sticky top-0 z-10 bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between gap-4 mb-4">
-            <h1 className="text-xl font-bold">加盟店リスト</h1>
-            <Button
-              size="icon"
-              variant="ghost"
-              onClick={() => router.push('/map')}
-              className="rounded-full"
-            >
-              <MapIcon className="w-5 h-5" />
-            </Button>
+          <div className="mb-4">
+            <h1 className="text-xl font-bold text-card-foreground text-center">店舗リスト</h1>
           </div>
           
           {/* 検索バー */}
@@ -143,10 +174,11 @@ export default function StoreListPage() {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
             <Input
               type="text"
-              placeholder="店舗名、住所、説明で検索..."
+              placeholder="店舗名で検索..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 pr-10"
+              className="pl-10 pr-10 bg-white border-gray-300 text-base font-bold"
+              style={{ fontSize: '16px', color: '#1C1E26' }}
             />
             {searchQuery && (
               <Button
@@ -161,24 +193,24 @@ export default function StoreListPage() {
           </div>
           
           {/* 検索結果数 */}
-          <p className="text-sm text-muted-foreground mt-2">
+          <p className="text-sm text-card-foreground/70 mt-2 font-bold">
             {filteredStores.length}件の店舗
           </p>
         </div>
       </header>
 
       {/* 店舗リスト */}
-      <main className="flex-1 max-w-7xl mx-auto w-full px-4 py-6">
+      <main className="flex-1 max-w-7xl mx-auto w-full px-4 py-6 relative">
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
               <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-              <p className="text-sm text-muted-foreground">読み込み中...</p>
+              <p className="text-sm text-white font-bold">読み込み中...</p>
             </div>
           </div>
         ) : filteredStores.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-muted-foreground">
+            <p className="text-white font-bold">
               {searchQuery ? '検索結果が見つかりませんでした' : '店舗がありません'}
             </p>
           </div>
@@ -194,7 +226,7 @@ export default function StoreListPage() {
                   transition={{ delay: index * 0.05 }}
                 >
                   <Card 
-                    className="p-4 cursor-pointer hover:shadow-lg transition-shadow h-full"
+                    className="p-4 cursor-pointer hover:shadow-lg transition-shadow h-full bg-white"
                     onClick={() => router.push(`/store/${store.id}`)}
                   >
                     <div className="flex gap-3 h-full">
@@ -209,8 +241,20 @@ export default function StoreListPage() {
                       )}
                       
                       <div className="flex-1 min-w-0 flex flex-col">
-                        <div className="flex-1">
-                          <h3 className="text-lg font-bold mb-1 truncate">{store.name}</h3>
+                        <div className="flex-1 space-y-1">
+                          <h3 className="text-lg font-bold text-card-foreground truncate">{store.name}</h3>
+                          
+                          {/* 距離表示 */}
+                          {userLocation && (
+                            <p className="text-sm text-card-foreground/70 font-bold">
+                              現在地から {calculateDistance(
+                                userLocation.lat,
+                                userLocation.lng,
+                                Number(store.latitude),
+                                Number(store.longitude)
+                              ).toFixed(1)}km
+                            </p>
+                          )}
                           
                           {/* Googleマップで開くリンク */}
                           <motion.button
@@ -218,10 +262,10 @@ export default function StoreListPage() {
                             whileTap={{ scale: 0.98 }}
                             onClick={(e) => {
                               e.stopPropagation();
-                              const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.address || '')}`;
+                              const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${store.latitude},${store.longitude}`;
                               window.open(mapsUrl, '_blank');
                             }}
-                            className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 hover:underline mb-2"
+                            className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 hover:underline font-bold"
                           >
                             <span>Googleマップで開く</span>
                             <ExternalLink className="w-3 h-3" />
@@ -229,23 +273,23 @@ export default function StoreListPage() {
                           
                           {/* 空席情報 */}
                           <motion.div 
-                            className="mb-2 flex items-center gap-2"
+                            className="flex items-center gap-2 pt-1"
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
                           >
                             <img 
                               src={getVacancyIcon(store.vacancy_status)}
                               alt={getVacancyLabel(store.vacancy_status)}
-                              className="w-8 h-8 object-contain"
+                              className="w-6 h-6 object-contain"
                             />
-                            <span className="text-xl font-bold">
+                            <span className="text-xl font-bold text-card-foreground">
                               {getVacancyLabel(store.vacancy_status)}
                             </span>
                           </motion.div>
                           
                           {/* 一言メッセージ */}
                           {store.status_message && (
-                            <p className="text-sm text-foreground line-clamp-2">
+                            <p className="text-sm text-card-foreground/80 font-bold line-clamp-2 pt-1">
                               {store.status_message}
                             </p>
                           )}
@@ -258,6 +302,21 @@ export default function StoreListPage() {
             </AnimatePresence>
           </div>
         )}
+
+        {/* マップボタン（画面右下） */}
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          className="fixed bottom-6 right-6 z-20"
+        >
+          <Button
+            size="icon"
+            onClick={() => router.push('/map')}
+            className="w-14 h-14 rounded-full shadow-lg bg-primary hover:bg-primary/90"
+          >
+            <MapIcon className="w-6 h-6" />
+          </Button>
+        </motion.div>
       </main>
     </div>
   );
