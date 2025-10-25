@@ -18,17 +18,17 @@ export default function LandingPage() {
     {
       icon: MapPin,
       title: '今すぐ入れるお店が見つかる',
-      description: '地図上で近くのバー・スナックの空席状況を一目で確認。待たずに入れるお店がすぐ分かります。',
+      description: '待たずに入れるお店がすぐ分かります。',
     },
     {
       icon: Store,
       title: '加盟店のリアルタイム情報',
-      description: 'お店が更新する最新の空席情報をチェック。「今」入れるかどうかが分かるから、無駄足がありません。',
+      description: 'お店が更新する最新の空席情報をチェック。',
     },
     {
       icon: Navigation,
       title: 'お店までの距離が分かる',
-      description: '現在地からの距離を表示。歩いて行ける近くのお店を簡単に見つけられます。',
+      description: '現在地からの距離を表示。',
     },
   ];
 
@@ -179,22 +179,22 @@ src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%
                 className="h-24 sm:h-32 md:h-40 w-auto object-contain"
               />
             </motion.div>
-            <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold mb-4 sm:mb-6 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent px-4">
-              いますぐ、2軒目へ
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 sm:mb-6 text-foreground">
+              あなたの酔いがさめるまえに
             </h1>
-            <p className="text-base sm:text-xl md:text-2xl text-[#F5F5F5] mb-6 sm:mb-8 max-w-3xl mx-auto px-4">
-              バー・スナックの空席情報をリアルタイムで確認。
-              <br className="hidden sm:block" />
-              「今、入れるお店」がマップ上でひと目で分かる。
+            <p className="text-lg sm:text-xl md:text-2xl text-foreground mb-6 sm:mb-8 max-w-3xl mx-auto px-4 font-bold">
+              「夜の続きは、ここから」
+              <br/>
+              今すぐ入れるお店をマップで探そう。
             </p>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4">
               <Button 
                 size="lg" 
-                className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8"
+                variant="secondary"
+                className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8 text-foreground"
                 onClick={handleMapClick}
               >
                 マップを見る
-                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
               </Button>
             </div>
           </motion.div>
@@ -210,7 +210,7 @@ src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%
               <div className="text-center text-[#F5F5F5] p-4 sm:p-8">
                 <MapPin className="w-16 h-16 sm:w-24 sm:h-24 mx-auto mb-2 sm:mb-4" />
                 <p className="text-lg sm:text-2xl font-bold">アプリのデモ画面</p>
-                <p className="text-sm sm:text-base text-[#F5F5F5]/80 mt-1 sm:mt-2">地図上で店舗情報を確認</p>
+                <p className="text-sm sm:text-base text-[#F5F5F5]/80 mt-1 sm:mt-2 font-bold">地図上で店舗情報を確認</p>
               </div>
             </div>
           </motion.div>
@@ -228,7 +228,7 @@ src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%
             className="text-center mb-12 sm:mb-16"
           >
             <h2 className="text-3xl sm:text-4xl font-bold mb-3 sm:mb-4 text-[#F5F5F5]">こんな時に便利</h2>
-            <p className="text-base sm:text-xl text-[#F5F5F5]/80">
+            <p className="text-base sm:text-xl text-[#F5F5F5]/80 font-bold">
               2軒目のお店探しをもっとスマートに
             </p>
           </motion.div>
@@ -245,11 +245,13 @@ src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%
                   transition={{ duration: 0.6, delay: index * 0.1 }}
                 >
                   <Card className="p-5 sm:p-6 h-full hover:shadow-lg transition-shadow bg-card border-border">
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3 sm:mb-4">
-                      <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+                    <div className="flex flex-col items-center text-center">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3 sm:mb-4">
+                        <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+                      </div>
+                      <h3 className="text-lg sm:text-xl font-bold mb-2 text-card-foreground">{feature.title}</h3>
+                      <p className="text-sm sm:text-base text-card-foreground/80 font-bold">{feature.description}</p>
                     </div>
-                    <h3 className="text-lg sm:text-xl font-bold mb-2 text-card-foreground">{feature.title}</h3>
-                    <p className="text-sm sm:text-base text-card-foreground/80">{feature.description}</p>
                   </Card>
                 </motion.div>
               );
@@ -269,7 +271,7 @@ src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%
             className="text-center mb-12 sm:mb-16"
           >
             <h2 className="text-3xl sm:text-4xl font-bold mb-3 sm:mb-4 text-[#F5F5F5]">使い方はとても簡単</h2>
-            <p className="text-base sm:text-xl text-[#F5F5F5]/80">
+            <p className="text-base sm:text-xl text-[#F5F5F5]/80 font-bold">
               ログイン不要で今すぐ使えます
             </p>
           </motion.div>
@@ -303,7 +305,7 @@ src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%
                     </div>
                     <div className="flex-1">
                       <h3 className="text-lg sm:text-xl font-bold mb-2 text-card-foreground">{item.title}</h3>
-                      <p className="text-sm sm:text-base text-card-foreground/80">{item.description}</p>
+                      <p className="text-sm sm:text-base text-card-foreground/80 font-bold">{item.description}</p>
                     </div>
                   </div>
                   
@@ -319,7 +321,7 @@ src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%
       </section>
 
       {/* CTAセクション - レスポンシブ対応 */}
-      <section className="py-12 sm:py-20 px-4 bg-primary text-[#F5F5F5]">
+      <section className="py-12 sm:py-20 px-4 bg-[#2C5F6F] text-[#F5F5F5]">
         <div className="container mx-auto max-w-4xl text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -327,21 +329,20 @@ src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4 sm:mb-6">
-              2軒目のお店探しをもっと簡単に
+            <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-foreground">
+              今すぐ入れるお店を探そう
             </h2>
-            <p className="text-base sm:text-xl text-[#F5F5F5]/90 mb-6 sm:mb-8">
-              ログイン不要、今すぐマップから空席情報を確認できます
+            <p className="text-base sm:text-xl text-[#F5F5F5]/90 mb-6 sm:mb-8 font-bold">
+              ログイン不要、今すぐマップ画面へ
             </p>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
               <Button 
                 size="lg" 
                 variant="secondary" 
-                className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8"
+                className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8 text-foreground"
                 onClick={handleMapClick}
               >
                 マップを見る
-                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
               </Button>
             </div>
           </motion.div>
@@ -349,17 +350,17 @@ src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%
       </section>
 
       {/* フッター - レスポンシブ対応 */}
-      <footer className="py-8 sm:py-12 px-4 border-t">
+      <footer className="py-8 sm:py-12 px-4 bg-[#2C5F6F]">
         <div className="container mx-auto max-w-6xl">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 sm:gap-6">
             <div className="flex items-center">
               <img 
                 src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%83%BC%E3%83%92%E3%82%99%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png"
                 alt="2軒目"
-                className="h-10 sm:h-12 w-auto object-contain"
+                className="h-10 sm:h-12 w-auto object-contain filter brightness-0 invert"
               />
             </div>
-            <p className="text-xs sm:text-sm text-[#F5F5F5]/70 text-center md:text-right">
+            <p className="text-xs sm:text-sm text-[#F5F5F5]/80 text-center md:text-right font-bold">
               © 2025 2軒目. All rights reserved.
               <br />
               いますぐ、2軒目へ
@@ -373,7 +374,7 @@ src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%
         isOpen={showLocationModal}
         onClose={() => setShowLocationModal(false)}
         title="位置情報の使用許可"
-        description="近くのお店を表示するために、位置情報の使用を許可してください。"
+        description="位置情報の使用を許可してください。"
         showCloseButton={false}
       >
         <div className="space-y-4">
@@ -388,23 +389,14 @@ src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%
               位置情報の取得に失敗しました。デフォルトの位置で地図を表示します。
             </div>
           )}
-          
-          <div className="text-xs sm:text-sm text-muted-foreground space-y-2">
-            <p>位置情報を許可すると：</p>
-            <ul className="list-disc list-inside space-y-1 pl-2">
-              <li>現在地周辺のお店が表示されます</li>
-              <li>より正確な距離情報が得られます</li>
-              <li>最適なルート案内が可能になります</li>
-            </ul>
-          </div>
-
+        
           <div className="flex flex-col gap-3 pt-4">
             <Button
               onClick={() => handleLocationPermission(true)}
               className="w-full"
               size="lg"
             >
-              位置情報を許可する
+              現在地から探す
             </Button>
             <Button
               onClick={() => handleLocationPermission(false)}

@@ -41,7 +41,7 @@ export function CustomModal({
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="bg-background rounded-2xl shadow-2xl max-w-md w-full p-6 relative"
+              className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 relative"
               onClick={(e) => e.stopPropagation()}
             >
               {/* 閉じるボタン */}
@@ -58,9 +58,9 @@ export function CustomModal({
 
               {/* ヘッダー */}
               <div className="mb-4">
-                <h2 className="text-2xl font-bold mb-2">{title}</h2>
+                <h2 className="text-2xl font-bold mb-2 text-card-foreground">{title}</h2>
                 {description && (
-                  <p className="text-muted-foreground text-sm">{description}</p>
+                  <p className="text-card-foreground/80 text-sm font-bold">{description}</p>
                 )}
               </div>
 
