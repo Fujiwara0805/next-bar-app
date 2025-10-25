@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Mail, Lock, Loader2 } from 'lucide-react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -187,6 +188,15 @@ export default function LoginPage() {
                       'ログイン'
                     )}
                   </Button>
+
+                  <div className="text-center text-sm">
+                    <Link 
+                      href="/landing" 
+                      className="text-primary hover:underline underline-offset-4 font-semibold"
+                    >
+                      ホーム画面に戻る
+                    </Link>
+                  </div>
                 </form>
               </div>
             </div>

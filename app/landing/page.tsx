@@ -281,13 +281,13 @@ src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%
               {
                 step: '1',
                 title: '位置情報を許可',
-                description: '現在地周辺のバー・スナックを表示するために位置情報の使用を許可してください。',
+                description: '現在地周辺のお店を表示するために位置情報の使用を許可してください。',
                 icon: Navigation,
               },
               {
                 step: '2',
                 title: 'マップで空席を確認',
-                description: '地図上のアイコンで空席状況を確認。緑色のアイコンは「空席あり」、赤色は「満席」を表示します。',
+                description: '地図上のアイコンで空席状況を確認できます。',
                 icon: MapPin,
               },
             ].map((item, index) => (

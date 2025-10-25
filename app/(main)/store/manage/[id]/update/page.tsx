@@ -15,6 +15,17 @@ import {
   ExternalLink,
   X,
   Upload,
+  Building2,
+  FileText,
+  MapPin,
+  Phone,
+  Globe,
+  Mail,
+  Clock,
+  Calendar,
+  DollarSign,
+  CreditCard,
+  Settings,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -61,8 +72,8 @@ const VACANCY_OPTIONS = [
     label: '閉店',
     description: '営業時間外または休業中',
     color: 'text-gray-600',
-    bgColor: 'bg-gray-50',
-    borderColor: 'border-gray-200',
+    bgColor: 'bg-purple-50',
+    borderColor: 'border-purple-200',
   },
 ] as const;
 
@@ -179,7 +190,11 @@ export default function StoreUpdatePage() {
     e.preventDefault();
 
     if (!user || !params.id) {
-      toast.error('エラーが発生しました', { position: 'top-center' });
+      toast.error('エラーが発生しました', { 
+        position: 'top-center',
+        duration: 3000,
+        className: 'bg-gray-100'
+      });
       return;
     }
 
@@ -210,7 +225,11 @@ export default function StoreUpdatePage() {
       // 店舗アカウントの場合は自分のIDであることを確認
       else if (accountType === 'store') {
         if (params.id !== user.id) {
-          toast.error('アクセス権限がありません', { position: 'top-center' });
+          toast.error('アクセス権限がありません', { 
+            position: 'top-center',
+            duration: 3000,
+            className: 'bg-gray-100'
+          });
           return;
         }
       }
@@ -219,11 +238,19 @@ export default function StoreUpdatePage() {
 
       if (error) throw error;
 
-      toast.success('更新が完了しました', { position: 'top-center' });
+      toast.success('更新が完了しました', { 
+        position: 'top-center',
+        duration: 1000,
+        className: 'bg-gray-100'
+      });
       fetchStore();
     } catch (error) {
       console.error('Error:', error);
-      toast.error('更新に失敗しました', { position: 'top-center' });
+      toast.error('更新に失敗しました', { 
+        position: 'top-center',
+        duration: 3000,
+        className: 'bg-gray-100'
+      });
     } finally {
       setLoading(false);
     }
@@ -233,7 +260,11 @@ export default function StoreUpdatePage() {
     e.preventDefault();
 
     if (!user || !params.id) {
-      toast.error('エラーが発生しました', { position: 'top-center' });
+      toast.error('エラーが発生しました', { 
+        position: 'top-center',
+        duration: 3000,
+        className: 'bg-gray-100'
+      });
       return;
     }
 
@@ -259,7 +290,11 @@ export default function StoreUpdatePage() {
       // 店舗アカウントの場合は自分のIDであることを確認
       else if (accountType === 'store') {
         if (params.id !== user.id) {
-          toast.error('アクセス権限がありません', { position: 'top-center' });
+          toast.error('アクセス権限がありません', { 
+            position: 'top-center',
+            duration: 3000,
+            className: 'bg-gray-100'
+          });
           return;
         }
       }
@@ -268,7 +303,11 @@ export default function StoreUpdatePage() {
 
       if (error) throw error;
 
-      toast.success('更新が完了しました', { position: 'top-center' });
+      toast.success('更新が完了しました', { 
+        position: 'top-center',
+        duration: 1000,
+        className: 'bg-gray-100'
+      });
       
       // アカウントタイプによってリダイレクト先を変更
       if (accountType === 'store') {
@@ -280,7 +319,11 @@ export default function StoreUpdatePage() {
       }
     } catch (error) {
       console.error('Error:', error);
-      toast.error('更新に失敗しました', { position: 'top-center' });
+      toast.error('更新に失敗しました', { 
+        position: 'top-center',
+        duration: 3000,
+        className: 'bg-gray-100'
+      });
     } finally {
       setLoading(false);
     }
@@ -310,7 +353,11 @@ export default function StoreUpdatePage() {
     
     // 最大5枚まで
     if (imageUrls.length + files.length > 5) {
-      toast.error('画像は最大5枚までアップロードできます', { position: 'top-center' });
+      toast.error('画像は最大5枚までアップロードできます', { 
+        position: 'top-center',
+        duration: 3000,
+        className: 'bg-gray-100'
+      });
       return;
     }
 
@@ -324,7 +371,11 @@ export default function StoreUpdatePage() {
         
         // ファイルサイズチェック（5MB以下）
         if (file.size > 5 * 1024 * 1024) {
-          toast.error(`${file.name}は5MBを超えています`, { position: 'top-center' });
+          toast.error(`${file.name}は5MBを超えています`, { 
+            position: 'top-center',
+            duration: 3000,
+            className: 'bg-gray-100'
+          });
           continue;
         }
 
@@ -369,11 +420,19 @@ export default function StoreUpdatePage() {
       const { error: updateError } = await query;
       if (updateError) throw updateError;
 
-      toast.success('画像をアップロードしました', { position: 'top-center' });
+      toast.success('画像をアップロードしました', { 
+        position: 'top-center',
+        duration: 1000,
+        className: 'bg-gray-100'
+      });
       fetchStore();
     } catch (error) {
       console.error('Error uploading image:', error);
-      toast.error('画像のアップロードに失敗しました', { position: 'top-center' });
+      toast.error('画像のアップロードに失敗しました', { 
+        position: 'top-center',
+        duration: 3000,
+        className: 'bg-gray-100'
+      });
     } finally {
       setUploadingImage(false);
       if (fileInputRef.current) {
@@ -384,8 +443,6 @@ export default function StoreUpdatePage() {
 
   // 画像削除処理
   const handleImageDelete = async (urlToDelete: string, index: number) => {
-    if (!confirm('この画像を削除しますか？')) return;
-
     setUploadingImage(true);
 
     try {
@@ -430,11 +487,19 @@ export default function StoreUpdatePage() {
       const { error: updateError } = await query;
       if (updateError) throw updateError;
 
-      toast.success('画像を削除しました', { position: 'top-center' });
+      toast.success('画像を削除しました', { 
+        position: 'top-center',
+        duration: 1000,
+        className: 'bg-gray-100'
+      });
       fetchStore();
     } catch (error) {
       console.error('Error deleting image:', error);
-      toast.error('画像の削除に失敗しました', { position: 'top-center' });
+      toast.error('画像の削除に失敗しました', { 
+        position: 'top-center',
+        duration: 3000,
+        className: 'bg-gray-100'
+      });
     } finally {
       setUploadingImage(false);
     }
@@ -443,10 +508,18 @@ export default function StoreUpdatePage() {
   const handleSignOut = async () => {
     try {
       await signOut();
-      toast.success('ログアウトしました', { position: 'top-center' });
+      toast.success('ログアウトしました', { 
+        position: 'top-center',
+        duration: 1000,
+        className: 'bg-gray-100'
+      });
       router.push('/login');
     } catch (error) {
-      toast.error('ログアウトに失敗しました', { position: 'top-center' });
+      toast.error('ログアウトに失敗しました', { 
+        position: 'top-center',
+        duration: 3000,
+        className: 'bg-gray-100'
+      });
     }
   };
 
@@ -499,9 +572,10 @@ export default function StoreUpdatePage() {
                   <div className="flex gap-2">
                     <Button
                       type="button"
-                      variant="outline"
+                      variant="ghost"
                       size="sm"
                       onClick={() => router.push(`/store/manage/${store.id}/change-password`)}
+                      className="bg-gray-100 border-2 border-gray-300"
                     >
                       <Key className="w-4 h-4 mr-2" />
                       <span className="font-bold">パスワード変更</span>
@@ -549,7 +623,7 @@ export default function StoreUpdatePage() {
                           className={`flex items-start gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all ${
                             vacancyStatus === option.value
                               ? `${option.bgColor} ${option.borderColor}`
-                              : 'bg-background border-border'
+                              : 'bg-gray-100 border-2 border-gray-300'
                           }`}
                         >
                           <RadioGroupItem
@@ -580,13 +654,13 @@ export default function StoreUpdatePage() {
                         <Label htmlFor="maleCount" className="font-bold">男性数</Label>
                         <Input
                           id="maleCount"
-                          type="number"
-                          min="0"
+                          type="text"
                           value={maleCount}
                           onChange={(e) => setMaleCount(parseInt(e.target.value) || 0)}
                           placeholder="0"
                           disabled={loading}
-                          className="font-bold"
+                          className="font-bold bg-white text-gray-700 border-2 border-gray-300"
+                          style={{ fontSize: '16px' }}
                         />
                       </div>
                       
@@ -595,13 +669,13 @@ export default function StoreUpdatePage() {
                         <Label htmlFor="femaleCount" className="font-bold">女性数</Label>
                         <Input
                           id="femaleCount"
-                          type="number"
-                          min="0"
+                          type="text"
                           value={femaleCount}
                           onChange={(e) => setFemaleCount(parseInt(e.target.value) || 0)}
                           placeholder="0"
                           disabled={loading}
-                          className="font-bold"
+                          className="font-bold bg-white text-gray-700 border-2 border-gray-300"
+                          style={{ fontSize: '16px' }}
                         />
                       </div>
                     </div>
@@ -629,7 +703,8 @@ export default function StoreUpdatePage() {
                       placeholder="例: 本日のおすすめは生ビール半額です！"
                       rows={4}
                       maxLength={200}
-                      className="font-bold"
+                      className="font-bold bg-white text-gray-700 border-2 border-gray-300"
+                      style={{ fontSize: '16px' }}
                     />
                     <p className="text-xs text-muted-foreground text-right font-bold">
                       {statusMessage.length} / 200文字
@@ -670,7 +745,8 @@ export default function StoreUpdatePage() {
                   <div className="space-y-4">
                     {/* 店舗名 */}
                     <div className="space-y-2">
-                      <Label htmlFor="name" className="font-bold">
+                      <Label htmlFor="name" className="font-bold flex items-center gap-2">
+                        <Building2 className="w-4 h-4" />
                         店舗名 <span className="text-red-500">*</span>
                       </Label>
                       <Input
@@ -680,13 +756,17 @@ export default function StoreUpdatePage() {
                         placeholder="店舗名を入力"
                         required
                         disabled={loading}
-                        className="font-bold"
+                        className="font-bold bg-white text-gray-700 border-2 border-gray-300"
+                        style={{ fontSize: '16px' }}
                       />
                     </div>
 
                     {/* 説明 */}
                     <div className="space-y-2">
-                      <Label htmlFor="description" className="font-bold">店舗説明</Label>
+                      <Label htmlFor="description" className="font-bold flex items-center gap-2">
+                        <FileText className="w-4 h-4" />
+                        店舗説明
+                      </Label>
                       <Textarea
                         id="description"
                         value={description}
@@ -694,13 +774,15 @@ export default function StoreUpdatePage() {
                         placeholder="店舗の特徴や雰囲気を入力"
                         rows={3}
                         disabled={loading}
-                        className="font-bold"
+                        className="font-bold bg-white text-gray-700 border-2 border-gray-300"
+                        style={{ fontSize: '16px' }}
                       />
                     </div>
 
                     {/* 住所 */}
                     <div className="space-y-2">
-                      <Label htmlFor="address" className="font-bold">
+                      <Label htmlFor="address" className="font-bold flex items-center gap-2">
+                        <MapPin className="w-4 h-4" />
                         住所 <span className="text-red-500">*</span>
                       </Label>
                       <Input
@@ -710,13 +792,17 @@ export default function StoreUpdatePage() {
                         placeholder="住所を入力"
                         required
                         disabled={loading}
-                        className="font-bold"
+                        className="font-bold bg-white text-gray-700 border-2 border-gray-300"
+                        style={{ fontSize: '16px' }}
                       />
                     </div>
 
                     {/* 電話番号 */}
                     <div className="space-y-2">
-                      <Label htmlFor="phone" className="font-bold">電話番号</Label>
+                      <Label htmlFor="phone" className="font-bold flex items-center gap-2">
+                        <Phone className="w-4 h-4" />
+                        電話番号
+                      </Label>
                       <Input
                         id="phone"
                         type="tel"
@@ -724,45 +810,42 @@ export default function StoreUpdatePage() {
                         onChange={(e) => setPhone(e.target.value)}
                         placeholder="03-1234-5678"
                         disabled={loading}
-                        className="font-bold"
+                        className="font-bold bg-white text-gray-700 border-2 border-gray-300"
+                        style={{ fontSize: '16px' }}
                       />
                     </div>
 
-                    {/* ウェブサイト */}
+                    {/* URL */}
                     <div className="space-y-2">
-                      <Label htmlFor="website" className="font-bold">ウェブサイトURL</Label>
-                      <div className="flex gap-2">
-                        <Input
-                          id="website"
-                          type="url"
-                          value={websiteUrl}
-                          onChange={(e) => setWebsiteUrl(e.target.value)}
-                          placeholder="https://example.com"
-                          disabled={loading}
-                          className="flex-1 font-bold"
-                        />
-                        {websiteUrl && (
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="icon"
-                            onClick={() => window.open(websiteUrl, '_blank')}
-                          >
-                            <ExternalLink className="w-4 h-4" />
-                          </Button>
-                        )}
-                      </div>
+                      <Label htmlFor="website" className="font-bold flex items-center gap-2">
+                        <Globe className="w-4 h-4" />
+                        URL
+                      </Label>
+                      <Input
+                        id="website"
+                        type="url"
+                        value={websiteUrl}
+                        onChange={(e) => setWebsiteUrl(e.target.value)}
+                        placeholder="https://example.com"
+                        disabled={loading}
+                        className="font-bold bg-white text-gray-700 border-2 border-gray-300"
+                        style={{ fontSize: '16px' }}
+                      />
                     </div>
 
                     {/* メールアドレス（読み取り専用） */}
                     <div className="space-y-2">
-                      <Label htmlFor="email" className="font-bold">ログイン用メールアドレス</Label>
+                      <Label htmlFor="email" className="font-bold flex items-center gap-2">
+                        <Mail className="w-4 h-4" />
+                        ログイン用メールアドレス
+                      </Label>
                       <Input
                         id="email"
                         type="email"
                         value={email}
                         disabled
-                        className="bg-muted font-bold"
+                        className="bg-muted font-bold border-2 border-gray-300"
+                        style={{ fontSize: '16px' }}
                       />
                       <p className="text-xs text-muted-foreground font-bold">
                         ログイン用のメールアドレスは変更できません
@@ -771,7 +854,10 @@ export default function StoreUpdatePage() {
 
                     {/* 営業時間 - テキスト形式 */}
                     <div className="space-y-2">
-                      <Label htmlFor="businessHours" className="font-bold">営業時間</Label>
+                      <Label htmlFor="businessHours" className="font-bold flex items-center gap-2">
+                        <Clock className="w-4 h-4" />
+                        営業時間
+                      </Label>
                       <Textarea
                         id="businessHours"
                         value={businessHours}
@@ -779,7 +865,8 @@ export default function StoreUpdatePage() {
                         placeholder="例: 月〜金 18:00-24:00, 土日 17:00-25:00"
                         rows={3}
                         disabled={loading}
-                        className="font-bold"
+                        className="font-bold bg-white text-gray-700 border-2 border-gray-300"
+                        style={{ fontSize: '16px' }}
                       />
                       <p className="text-xs text-muted-foreground font-bold">
                         営業時間を自由な形式で入力してください
@@ -788,14 +875,18 @@ export default function StoreUpdatePage() {
 
                     {/* 定休日 */}
                     <div className="space-y-2">
-                      <Label htmlFor="regularHoliday" className="font-bold">定休日</Label>
+                      <Label htmlFor="regularHoliday" className="font-bold flex items-center gap-2">
+                        <Calendar className="w-4 h-4" />
+                        定休日
+                      </Label>
                       <Input
                         id="regularHoliday"
                         value={regularHoliday}
                         onChange={(e) => setRegularHoliday(e.target.value)}
                         placeholder="例: 月曜日、年末年始"
                         disabled={loading}
-                        className="font-bold"
+                        className="font-bold bg-white text-gray-700 border-2 border-gray-300"
+                        style={{ fontSize: '16px' }}
                       />
                       <p className="text-xs text-muted-foreground font-bold">
                         定休日や特別な休業日などを記載
@@ -804,7 +895,10 @@ export default function StoreUpdatePage() {
 
                     {/* 予算 */}
                     <div className="space-y-2">
-                      <Label className="font-bold">予算（円）</Label>
+                      <Label className="font-bold flex items-center gap-2">
+                        <DollarSign className="w-4 h-4" />
+                        予算（円）
+                      </Label>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <Input
@@ -815,7 +909,8 @@ export default function StoreUpdatePage() {
                             value={budgetMin || ''}
                             onChange={(e) => setBudgetMin(parseInt(e.target.value) || 0)}
                             disabled={loading}
-                            className="font-bold"
+                            className="font-bold bg-white text-gray-700 border-2 border-gray-300"
+                            style={{ fontSize: '16px' }}
                           />
                         </div>
                         <div>
@@ -827,7 +922,8 @@ export default function StoreUpdatePage() {
                             value={budgetMax || ''}
                             onChange={(e) => setBudgetMax(parseInt(e.target.value) || 0)}
                             disabled={loading}
-                            className="font-bold"
+                            className="font-bold bg-white text-gray-700 border-2 border-gray-300"
+                            style={{ fontSize: '16px' }}
                           />
                         </div>
                       </div>
@@ -840,7 +936,10 @@ export default function StoreUpdatePage() {
 
                     {/* 支払い方法 */}
                     <div className="space-y-2">
-                      <Label className="font-bold">支払い方法</Label>
+                      <Label className="font-bold flex items-center gap-2">
+                        <CreditCard className="w-4 h-4" />
+                        支払い方法
+                      </Label>
                       <div className="grid grid-cols-2 gap-3">
                         {['現金', 'クレジットカード', '電子マネー', 'QRコード決済', 'デビットカード', '交通系IC'].map((method) => (
                           <div key={method} className="flex items-center space-x-2">
@@ -859,7 +958,10 @@ export default function StoreUpdatePage() {
 
                     {/* 設備 */}
                     <div className="space-y-2">
-                      <Label className="font-bold">設備・サービス</Label>
+                      <Label className="font-bold flex items-center gap-2">
+                        <Settings className="w-4 h-4" />
+                        設備・サービス
+                      </Label>
                       <div className="grid grid-cols-2 gap-3">
                         {['Wi-Fi', '喫煙可', '分煙', '禁煙', '駐車場', 'カウンター席', '個室', 'テラス席', 'ペット可', 'バリアフリー'].map((facility) => (
                           <div key={facility} className="flex items-center space-x-2">
@@ -921,14 +1023,18 @@ export default function StoreUpdatePage() {
                               disabled={uploadingImage}
                               className="font-bold"
                             >
-                              メイン画像に設定
+                              メイン
                             </Button>
                           )}
                           <Button
                             type="button"
                             size="sm"
                             variant="destructive"
-                            onClick={() => handleImageDelete(url, index)}
+                            onClick={() => {
+                              if (confirm('この画像を削除しますか？')) {
+                                handleImageDelete(url, index);
+                              }
+                            }}
                             disabled={uploadingImage}
                             className="font-bold"
                           >
@@ -1015,7 +1121,7 @@ export default function StoreUpdatePage() {
             <Button
               type="button"
               variant="outline"
-              className="w-full text-destructive font-bold"
+              className="w-full text-destructive font-bold bg-gray-100"
               onClick={handleSignOut}
             >
               <LogOut className="w-4 h-4 mr-2" />
