@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, X, List, ExternalLink } from 'lucide-react';
+import { Users, X, List, ExternalLink, Building2 } from 'lucide-react';
 import { MapView } from '@/components/map/map-view';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -105,7 +105,7 @@ export default function MapPage() {
       case 'closed':
         return 'https://res.cloudinary.com/dz9trbwma/image/upload/v1761318837/icons8-%E9%96%89%E5%BA%97%E3%82%B5%E3%82%A4%E3%83%B3-100_fczegk.png';
       default:
-        return '';
+        return 'https://res.cloudinary.com/dz9trbwma/image/upload/v1761311529/%E7%A9%BA%E5%B8%AD%E3%81%82%E3%82%8A_rzejgw.png';
     }
   };
 
@@ -124,6 +124,20 @@ export default function MapPage() {
     }
   };
 
+  // Haversine formula
+  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+    const R = 6371; // Radius of Earth in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distance = R * c; // Distance in km
+    return distance;
+  };
+
   return (
     <div className="relative h-screen flex flex-col">
       {/* ヘッダー - レスポンシブ対応 */}
@@ -139,11 +153,10 @@ export default function MapPage() {
             {/* リストボタン */}
             <Button
               size="icon"
-              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full shadow-lg bg-white/95 backdrop-blur-sm hover:bg-white mt-4"
-              variant="secondary"
               onClick={() => router.push('/store-list')}
+              className="bg-gray-600 w-12 h-12 mt-12 border-2 border-gray-300"
             >
-              <List className="w-4 h-4 sm:w-5 sm:h-5" />
+              <List className="w-7 h-7" />
             </Button>
           </div>
         </motion.div>
@@ -160,121 +173,135 @@ export default function MapPage() {
       <AnimatePresence>
         {selectedStore && (
           <motion.div
-            initial={{ y: '100%' }}
-            animate={{ y: 0 }}
-            exit={{ y: '100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="absolute bottom-0 left-0 right-0 z-20 p-4"
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 100, opacity: 0 }}
+            className="fixed bottom-0 left-0 right-0 z-30 bg-card shadow-lg border-t safe-bottom"
           >
             <Card 
-              className="p-4 shadow-2xl cursor-pointer hover:shadow-3xl transition-shadow"
+              className="rounded-t-3xl rounded-b-none border-0 cursor-pointer"
               onClick={() => router.push(`/store/${selectedStore.id}`)}
             >
-              <div className="flex gap-3">
-                {/* 店舗画像 */}
-                {selectedStore.image_urls && selectedStore.image_urls.length > 0 && (
-                  <motion.img
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    src={selectedStore.image_urls[0]}
-                    alt={selectedStore.name}
-                    className="w-24 h-24 object-cover rounded-lg flex-shrink-0"
-                  />
-                )}
-                
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <div className="flex-1">
-                      <h3 className="text-lg font-bold mb-1">{selectedStore.name}</h3>
-                      {/* Googleマップで開くリンク */}
-                      <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
+              <div className="p-4 space-y-3">
+                {/* 画像と基本情報 */}
+                <div className="flex gap-4">
+                  {selectedStore.image_urls && selectedStore.image_urls.length > 0 ? (
+                    <img
+                      src={selectedStore.image_urls[0]}
+                      alt={selectedStore.name}
+                      className="w-24 h-24 rounded-lg object-cover flex-shrink-0"
+                    />
+                  ) : (
+                    <div className="w-24 h-24 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+                      <Building2 className="w-12 h-12 text-muted-foreground" />
+                    </div>
+                  )}
+
+                  <div className="flex-1 min-w-0 space-y-1">
+                    <div className="flex items-start justify-between gap-2">
+                      <h3 className="font-bold text-lg line-clamp-1">{selectedStore.name}</h3>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="flex-shrink-0 -mt-1"
                         onClick={(e) => {
                           e.stopPropagation();
-                          const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedStore.address || '')}`;
-                          window.open(mapsUrl, '_blank');
+                          setSelectedStore(null);
                         }}
-                        className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 hover:underline mb-2"
                       >
-                        <span>Googleマップで開く</span>
-                        <ExternalLink className="w-3 h-3" />
-                      </motion.button>
-                      {/* 空席情報を大きく表示 */}
-                      <motion.div 
-                        className="mb-2 flex items-center gap-2"
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                      >
-                        <img 
-                          src={getVacancyIcon(selectedStore.vacancy_status)}
-                          alt={getVacancyLabel(selectedStore.vacancy_status)}
-                          className="w-8 h-8 object-contain"
-                        />
-                        <span className="text-xl font-bold">
-                          {getVacancyLabel(selectedStore.vacancy_status)}
-                        </span>
-                      </motion.div>
+                        <X className="w-5 h-5" />
+                      </Button>
                     </div>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedStore(null);
-                      }}
-                      className="shrink-0"
+
+                    {/* 距離表示 */}
+                    {userLocation && (
+                      <p className="text-sm text-muted-foreground font-bold">
+                        現在地から {calculateDistance(
+                          userLocation.lat,
+                          userLocation.lng,
+                          Number(selectedStore.latitude),
+                          Number(selectedStore.longitude)
+                        ).toFixed(1)}km
+                      </p>
+                    )}
+
+                    {/* Googleマップで開く */}
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${selectedStore.latitude},${selectedStore.longitude}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-sm text-primary hover:underline font-bold"
+                      onClick={(e) => e.stopPropagation()}
                     >
-                      <X className="w-4 h-4" />
-                    </Button>
+                      Googleマップで開く
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+
+                    {/* 空席情報 */}
+                    <div className="flex items-center gap-2 pt-1">
+                      <img
+                        src={getVacancyIcon(selectedStore.vacancy_status)}
+                        alt={getVacancyLabel(selectedStore.vacancy_status)}
+                        className="w-6 h-6"
+                      />
+                      <span className="text-xl font-bold">
+                        {getVacancyLabel(selectedStore.vacancy_status)}
+                      </span>
+                    </div>
                   </div>
-                  
-                  {/* 一言メッセージ */}
-                  {selectedStore.status_message && (
-                    <p className="text-sm text-foreground mb-2 line-clamp-2">
+                </div>
+
+                {/* 一言メッセージ */}
+                {selectedStore.status_message && (
+                  <div className="pt-2 border-t">
+                    <p className="text-sm text-muted-foreground font-bold line-clamp-2">
                       {selectedStore.status_message}
                     </p>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
             </Card>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* 混雑状況の凡例 - レスポンシブ対応 */}
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 z-10 bg-white/90 backdrop-blur-sm rounded-lg p-3 sm:p-4 shadow-lg"
-      >
-        <div className="flex gap-3 sm:gap-4 text-xs sm:text-sm">
-          <div className="flex items-center gap-1.5">
-            <img 
+      {/* 凡例（画面左下） */}
+      <div className="fixed bottom-24 left-4 z-20 bg-card/90 backdrop-blur-sm rounded-lg shadow-lg p-3 safe-bottom">
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <img
               src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761311529/%E7%A9%BA%E5%B8%AD%E3%81%82%E3%82%8A_rzejgw.png"
               alt="空席あり"
-              className="w-6 h-6 sm:w-7 sm:h-7 object-contain"
+              className="w-6 h-6"
             />
-            <span>空席あり</span>
+            <span className="text-sm font-bold" style={{ color: '#2a505f' }}>空席あり</span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <img 
+          <div className="flex items-center gap-2">
+            <img
               src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761311676/%E3%82%84%E3%82%84%E6%B7%B7%E9%9B%91_qjfizb.png"
               alt="やや混雑"
-              className="w-6 h-6 sm:w-7 sm:h-7 object-contain"
+              className="w-6 h-6"
             />
-            <span>やや混雑</span>
+            <span className="text-sm font-bold" style={{ color: '#2a505f' }}>やや混雑</span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <img 
+          <div className="flex items-center gap-2">
+            <img
               src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761311529/%E6%BA%80%E5%B8%AD_gszsqi.png"
               alt="満席"
-              className="w-6 h-6 sm:w-7 sm:h-7 object-contain"
+              className="w-6 h-6"
             />
-            <span>満席</span>
+            <span className="text-sm font-bold" style={{ color: '#2a505f' }}>満席</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <img
+              src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761318837/icons8-%E9%96%89%E5%BA%97%E3%82%B5%E3%82%A4%E3%83%B3-100_fczegk.png"
+              alt="閉店"
+              className="w-6 h-6"
+            />
+            <span className="text-sm font-bold" style={{ color: '#2a505f' }}>閉店</span>
           </div>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }
