@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Store as StoreIcon, Edit, Trash2, Loader2, LogOut } from 'lucide-react';
+import { Plus, Store as StoreIcon, Edit, Trash2, Loader2, LogOut, Mail } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { CustomModal } from '@/components/ui/custom-modal';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,6 +33,11 @@ export default function StoreManagePage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [storeToDelete, setStoreToDelete] = useState<Store | null>(null);
   const [deleting, setDeleting] = useState(false);
+  
+  // パスワードリセット用
+  const [resetPasswordModalOpen, setResetPasswordModalOpen] = useState(false);
+  const [storeToResetPassword, setStoreToResetPassword] = useState<Store | null>(null);
+  const [sendingResetEmail, setSendingResetEmail] = useState(false);
 
   useEffect(() => {
     // 店舗アカウントの場合は自分の更新画面にリダイレクト
@@ -108,6 +114,48 @@ export default function StoreManagePage() {
       });
     } finally {
       setDeleting(false);
+    }
+  };
+
+  const handlePasswordResetClick = (store: Store) => {
+    setStoreToResetPassword(store);
+    setResetPasswordModalOpen(true);
+  };
+
+  const handlePasswordResetConfirm = async () => {
+    if (!storeToResetPassword) return;
+
+    setSendingResetEmail(true);
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(
+        storeToResetPassword.email,
+        {
+          redirectTo: `${window.location.origin}/auth/reset-password`,
+        }
+      );
+
+      if (error) throw error;
+
+      toast.success('パスワードリセットメールを送信しました', {
+        description: `${storeToResetPassword.email} にメールを送信しました。店舗に確認を依頼してください。`,
+        position: 'top-center',
+        duration: 5000,
+        className: 'bg-gray-100'
+      });
+
+      setResetPasswordModalOpen(false);
+      setStoreToResetPassword(null);
+    } catch (error) {
+      console.error('Error sending reset email:', error);
+      toast.error('メールの送信に失敗しました', {
+        description: error instanceof Error ? error.message : '不明なエラーが発生しました',
+        position: 'top-center',
+        duration: 3000,
+        className: 'bg-gray-100'
+      });
+    } finally {
+      setSendingResetEmail(false);
     }
   };
 
@@ -223,6 +271,9 @@ export default function StoreManagePage() {
                             <p className="text-sm text-card-foreground/70 font-bold">
                               {store.address}
                             </p>
+                            <p className="text-xs text-card-foreground/60 font-bold mt-1">
+                              {store.email}
+                            </p>
                           </div>
                           <div className="flex gap-1">
                             <Button
@@ -232,6 +283,15 @@ export default function StoreManagePage() {
                               title="店舗情報を表示"
                             >
                               <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() => handlePasswordResetClick(store)}
+                              title="パスワードをリセット"
+                              className="text-blue-600 hover:text-blue-800"
+                            >
+                              <Mail className="w-4 h-4" />
                             </Button>
                             <Button
                               size="icon"
@@ -308,6 +368,54 @@ export default function StoreManagePage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* パスワードリセット確認モーダル */}
+      <CustomModal
+        isOpen={resetPasswordModalOpen}
+        onClose={() => setResetPasswordModalOpen(false)}
+        title="パスワードリセット"
+      >
+        {storeToResetPassword && (
+          <div className="space-y-4">
+            <div className="text-center py-4">
+              <p className="text-lg font-bold text-card-foreground mb-2">
+                {storeToResetPassword.name}
+              </p>
+              <p className="text-sm text-card-foreground/70 font-bold">
+                {storeToResetPassword.email}
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                className="flex-1 font-bold"
+                onClick={() => setResetPasswordModalOpen(false)}
+                disabled={sendingResetEmail}
+              >
+                キャンセル
+              </Button>
+              <Button
+                className="flex-1 font-bold bg-blue-600 hover:bg-blue-700"
+                onClick={handlePasswordResetConfirm}
+                disabled={sendingResetEmail}
+              >
+                {sendingResetEmail ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    送信中...
+                  </>
+                ) : (
+                  <>
+                    <Mail className="w-4 h-4 mr-2" />
+                    送信
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        )}
+      </CustomModal>
     </div>
   );
 }
