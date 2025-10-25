@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Store as StoreIcon, Edit, TrendingUp, Trash2, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -137,40 +137,40 @@ export default function StoreManagePage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex items-center justify-center h-screen" style={{ backgroundColor: '#1C1E26' }}>
         <div className="text-center">
           <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-          <p className="text-sm text-muted-foreground">読み込み中...</p>
+          <p className="text-sm text-white font-bold">読み込み中...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background pb-20">
-      <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b safe-top">
-        <div className="flex items-center justify-between p-4">
-          <h1 className="text-2xl font-bold">店舗管理</h1>
-          <Link href="/store/manage/new">
-            <Button size="icon" className="rounded-full">
-              <Plus className="w-5 h-5" />
-            </Button>
-          </Link>
+    <div className="min-h-screen flex flex-col" style={{ backgroundColor: '#1C1E26' }}>
+      {/* ヘッダー */}
+      <header className="sticky top-0 z-10 bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <h1 className="text-xl font-bold text-card-foreground text-center">管理者画面</h1>
+          <p className="text-sm text-card-foreground/70 mt-2 font-bold text-center">
+            {stores.length}件の店舗
+          </p>
         </div>
       </header>
 
-      <div className="max-w-4xl mx-auto p-4">
+      {/* 店舗リスト */}
+      <main className="flex-1 max-w-7xl mx-auto w-full px-4 py-6">
         {stores.length === 0 ? (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <Card className="p-12 text-center">
+            <Card className="p-12 text-center bg-white">
               <StoreIcon className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-              <h2 className="text-xl font-bold mb-2">
+              <h2 className="text-xl font-bold mb-2 text-card-foreground">
                 まだ店舗が登録されていません
               </h2>
-              <p className="text-muted-foreground mb-6">
+              <p className="text-card-foreground/70 mb-6 font-bold">
                 最初の店舗を登録して、情報を共有しましょう
               </p>
               <Link href="/store/manage/new">
@@ -182,87 +182,109 @@ export default function StoreManagePage() {
             </Card>
           </motion.div>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2">
-            {stores.map((store, index) => (
-              <motion.div
-                key={store.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-              >
-                <Card className="overflow-hidden">
-                  {store.image_urls && store.image_urls.length > 0 && (
-                    <div className="h-40 overflow-hidden">
-                      <img
-                        src={store.image_urls[0]}
-                        alt={store.name}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  )}
-                  <div className="p-4">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1">
-                        <h3 className="font-bold text-lg mb-1">
-                          {store.name}
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                          {store.address}
-                        </p>
-                      </div>
-                      <div className="flex gap-1">
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          onClick={() => router.push(`/store/manage/${store.id}/update`)}
-                          title="店舗情報を表示"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          onClick={() => handleDeleteClick(store)}
-                          className="text-destructive hover:text-destructive"
-                          title="店舗を削除"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
+          <>
+            {/* 新規追加ボタン */}
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-6"
+            >
+              <Link href="/store/manage/new">
+                <Button className="w-full sm:w-auto">
+                  <Plus className="w-4 h-4 mr-2" />
+                  新しい店舗を追加
+                </Button>
+              </Link>
+            </motion.div>
 
-                    <div className="flex gap-2 mb-3">
-                      <Badge
-                        variant="secondary"
-                        className={`${getVacancyColor(store.vacancy_status)} text-white`}
-                      >
-                        {getVacancyLabel(store.vacancy_status)}
-                      </Badge>
-                      <Badge variant="outline">
-                        {store.is_open ? '営業中' : '閉店'}
-                      </Badge>
-                    </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <AnimatePresence mode="popLayout">
+                {stores.map((store, index) => (
+                  <motion.div
+                    key={store.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ delay: index * 0.05 }}
+                  >
+                    <Card className="overflow-hidden bg-white">
+                      {store.image_urls && store.image_urls.length > 0 && (
+                        <motion.div 
+                          className="h-40 overflow-hidden"
+                          whileHover={{ scale: 1.05 }}
+                        >
+                          <img
+                            src={store.image_urls[0]}
+                            alt={store.name}
+                            className="w-full h-full object-cover"
+                          />
+                        </motion.div>
+                      )}
+                      <div className="p-4">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex-1">
+                            <h3 className="font-bold text-lg mb-1 text-card-foreground">
+                              {store.name}
+                            </h3>
+                            <p className="text-sm text-card-foreground/70 font-bold">
+                              {store.address}
+                            </p>
+                          </div>
+                          <div className="flex gap-1">
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() => router.push(`/store/manage/${store.id}/update`)}
+                              title="店舗情報を表示"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() => handleDeleteClick(store)}
+                              className="text-destructive hover:text-destructive"
+                              title="店舗を削除"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
 
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">
-                        男性 {store.male_ratio}% / 女性 {store.female_ratio}%
-                      </span>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => router.push(`/store/manage/${store.id}/update`)}
-                      >
-                        <TrendingUp className="w-4 h-4 mr-1" />
-                        状況更新
-                      </Button>
-                    </div>
-                  </div>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
+                        <div className="flex gap-2 mb-3">
+                          <Badge
+                            variant="secondary"
+                            className={`${getVacancyColor(store.vacancy_status)} text-white`}
+                          >
+                            {getVacancyLabel(store.vacancy_status)}
+                          </Badge>
+                          <Badge variant="outline">
+                            {store.is_open ? '営業中' : '閉店'}
+                          </Badge>
+                        </div>
+
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-card-foreground/70 font-bold">
+                            男性 {store.male_ratio}% / 女性 {store.female_ratio}%
+                          </span>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => router.push(`/store/manage/${store.id}/update`)}
+                          >
+                            <TrendingUp className="w-4 h-4 mr-1" />
+                            状況更新
+                          </Button>
+                        </div>
+                      </div>
+                    </Card>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </div>
+          </>
         )}
-      </div>
+      </main>
 
       {/* 削除確認ダイアログ */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

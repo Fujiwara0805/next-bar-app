@@ -7,14 +7,19 @@ import {
   MapPin, 
   Store as StoreIcon, 
   Phone, 
-  ArrowLeft,
   Loader2,
   Search,
   Mail,
   Link,
   Lock,
   Clock,
-  DollarSign
+  DollarSign,
+  Building2,
+  FileText,
+  Globe,
+  Calendar,
+  CreditCard,
+  Settings,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -100,7 +105,11 @@ export default function NewStorePage() {
     script.onload = () => initMaps();
     script.onerror = () => {
       console.error('Google Maps API スクリプトの読み込みに失敗しました');
-      toast.error('Google Mapsの読み込みに失敗しました');
+      toast.error('Google Mapsの読み込みに失敗しました', { 
+        position: 'top-center',
+        duration: 3000,
+        className: 'bg-gray-100'
+      });
     };
     document.head.appendChild(script);
   }, []);
@@ -167,9 +176,17 @@ export default function NewStorePage() {
           
           setSuggestions([]);
           setShowSuggestions(false);
-          toast.success('店舗情報を取得しました');
+          toast.success('店舗情報を取得しました', { 
+            position: 'top-center',
+            duration: 1000,
+            className: 'bg-gray-100'
+          });
         } else {
-          toast.error('店舗情報の取得に失敗しました');
+          toast.error('店舗情報の取得に失敗しました', { 
+            position: 'top-center',
+            duration: 3000,
+            className: 'bg-gray-100'
+          });
         }
       }
     );
@@ -178,7 +195,11 @@ export default function NewStorePage() {
   // 住所から位置情報を取得
   const handleGeocodeAddress = async (): Promise<boolean> => {
     if (!address.trim()) {
-      toast.error('住所を入力してください');
+      toast.error('住所を入力してください', { 
+        position: 'top-center',
+        duration: 3000,
+        className: 'bg-gray-100'
+      });
       return false;
     }
 
@@ -202,7 +223,11 @@ export default function NewStorePage() {
           const lng = typeof location.lng === 'function' ? location.lng() : (location as any).lng;
           setLatitude(String(lat));
           setLongitude(String(lng));
-          toast.success('位置情報を取得しました');
+          toast.success('位置情報を取得しました', { 
+            position: 'top-center',
+            duration: 1000,
+            className: 'bg-gray-100'
+          });
           setGeocoding(false);
           return true;
         }
@@ -221,7 +246,11 @@ export default function NewStorePage() {
         const loc = data.results[0].geometry.location;
         setLatitude(String(loc.lat));
         setLongitude(String(loc.lng));
-        toast.success('位置情報を取得しました');
+        toast.success('位置情報を取得しました', { 
+          position: 'top-center',
+          duration: 1000,
+          className: 'bg-gray-100'
+        });
         setGeocoding(false);
         return true;
       }
@@ -230,7 +259,11 @@ export default function NewStorePage() {
     }
 
     setGeocoding(false);
-    toast.error('位置情報を取得できませんでした');
+    toast.error('位置情報を取得できませんでした', { 
+      position: 'top-center',
+      duration: 3000,
+      className: 'bg-gray-100'
+    });
     return false;
   };
 
@@ -256,34 +289,58 @@ export default function NewStorePage() {
     e.preventDefault();
     
     if (!user) {
-      toast.error('ログインが必要です');
+      toast.error('ログインが必要です', { 
+        position: 'top-center',
+        duration: 3000,
+        className: 'bg-gray-100'
+      });
       return;
     }
 
     if (!name.trim()) {
-      toast.error('店舗名を入力してください');
+      toast.error('店舗名を入力してください', { 
+        position: 'top-center',
+        duration: 3000,
+        className: 'bg-gray-100'
+      });
       return;
     }
 
     if (!address.trim()) {
-      toast.error('住所を入力してください');
+      toast.error('住所を入力してください', { 
+        position: 'top-center',
+        duration: 3000,
+        className: 'bg-gray-100'
+      });
       return;
     }
 
     if (!email.trim()) {
-      toast.error('店舗用のメールアドレスを入力してください');
+      toast.error('店舗用のメールアドレスを入力してください', { 
+        position: 'top-center',
+        duration: 3000,
+        className: 'bg-gray-100'
+      });
       return;
     }
 
     if (!password || password.length < 6) {
-      toast.error('パスワードは6文字以上で入力してください');
+      toast.error('パスワードは6文字以上で入力してください', { 
+        position: 'top-center',
+        duration: 3000,
+        className: 'bg-gray-100'
+      });
       return;
     }
 
     if (!latitude || !longitude) {
       const ok = await handleGeocodeAddress();
       if (!ok) {
-        toast.error('位置情報を取得してください');
+        toast.error('位置情報を取得してください', { 
+          position: 'top-center',
+          duration: 3000,
+          className: 'bg-gray-100'
+        });
         return;
       }
     }
@@ -363,12 +420,19 @@ export default function NewStorePage() {
 
       toast.success('店舗を登録しました', {
         description: `ログイン用メールアドレス: ${email}`,
+        position: 'top-center',
+        duration: 2000,
+        className: 'bg-gray-100'
       });
       router.push('/store/manage');
     } catch (error) {
       console.error('Error:', error);
       const errorMsg = error instanceof Error ? error.message : '店舗の登録に失敗しました';
-      toast.error(errorMsg);
+      toast.error(errorMsg, { 
+        position: 'top-center',
+        duration: 3000,
+        className: 'bg-gray-100'
+      });
     } finally {
       setLoading(false);
     }
@@ -376,15 +440,9 @@ export default function NewStorePage() {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b safe-top">
-        <div className="flex items-center gap-3 p-4">
-          <Button size="icon" variant="ghost" onClick={() => router.back()}>
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div>
-            <h1 className="text-xl font-bold">新規店舗登録</h1>
-            <p className="text-xs text-muted-foreground">店舗情報を入力してください</p>
-          </div>
+      <header className="sticky top-0 z-10 bg-background border-b safe-top">
+        <div className="flex items-center justify-center p-4">
+          <h1 className="text-xl font-bold">新規店舗登録</h1>
         </div>
       </header>
 
@@ -394,8 +452,8 @@ export default function NewStorePage() {
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* 店舗名 */}
               <div className="space-y-2">
-                <Label htmlFor="name">
-                  <StoreIcon className="w-4 h-4 inline mr-2" />
+                <Label htmlFor="name" className="font-bold flex items-center gap-2">
+                  <Building2 className="w-4 h-4" />
                   店舗名 <span className="text-red-500">*</span>
                 </Label>
                 <div className="relative">
@@ -405,9 +463,10 @@ export default function NewStorePage() {
                     onChange={(e) => setName(e.target.value)}
                     onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
                     onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                    placeholder="店舗名を入力"
                     required
                     disabled={loading}
+                    className="font-bold bg-white text-gray-700 border-2 border-gray-300"
+                    style={{ fontSize: '16px' }}
                   />
                   {showSuggestions && suggestions.length > 0 && (
                     <div className="absolute z-50 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-64 overflow-auto">
@@ -421,10 +480,10 @@ export default function NewStorePage() {
                             handleSelectSuggestion(pred);
                           }}
                         >
-                          <div className="font-medium text-sm">
+                          <div className="font-bold text-sm">
                             {pred.structured_formatting?.main_text || pred.description}
                           </div>
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-gray-500 font-bold">
                             {pred.structured_formatting?.secondary_text || ''}
                           </div>
                         </button>
@@ -433,7 +492,7 @@ export default function NewStorePage() {
                   )}
                 </div>
                 {searchingName && (
-                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <p className="text-xs text-muted-foreground flex items-center gap-1 font-bold">
                     <Loader2 className="w-3 h-3 animate-spin" />
                     候補を検索中...
                   </p>
@@ -442,30 +501,35 @@ export default function NewStorePage() {
 
               {/* 説明 */}
               <div className="space-y-2">
-                <Label htmlFor="description">店舗説明</Label>
+                <Label htmlFor="description" className="font-bold flex items-center gap-2">
+                  <FileText className="w-4 h-4" />
+                  店舗説明
+                </Label>
                 <Textarea
                   id="description"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="店舗の特徴や雰囲気を入力"
                   rows={3}
                   disabled={loading}
+                  className="font-bold bg-white text-gray-700 border-2 border-gray-300"
+                  style={{ fontSize: '16px' }}
                 />
               </div>
 
               {/* 住所 */}
               <div className="space-y-2">
-                <Label htmlFor="address">
-                  <MapPin className="w-4 h-4 inline mr-2" />
+                <Label htmlFor="address" className="font-bold flex items-center gap-2">
+                  <MapPin className="w-4 h-4" />
                   住所 <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="address"
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
-                  placeholder="住所を入力"
                   required
                   disabled={loading}
+                  className="font-bold bg-white text-gray-700 border-2 border-gray-300"
+                  style={{ fontSize: '16px' }}
                 />
                 <Button
                   type="button"
@@ -473,7 +537,7 @@ export default function NewStorePage() {
                   size="sm"
                   onClick={async () => { await handleGeocodeAddress(); }}
                   disabled={loading || geocoding || !address.trim()}
-                  className="w-full"
+                  className="w-full font-bold"
                 >
                   {geocoding ? (
                     <>
@@ -492,7 +556,7 @@ export default function NewStorePage() {
               {/* 位置情報表示 */}
               {latitude && longitude && (
                 <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                  <p className="text-sm text-green-800">
+                  <p className="text-sm text-green-800 font-bold">
                     ✓ 位置情報取得済み: 緯度 {parseFloat(latitude).toFixed(6)}, 経度 {parseFloat(longitude).toFixed(6)}
                   </p>
                 </div>
@@ -500,8 +564,8 @@ export default function NewStorePage() {
 
               {/* 電話番号 */}
               <div className="space-y-2">
-                <Label htmlFor="phone">
-                  <Phone className="w-4 h-4 inline mr-2" />
+                <Label htmlFor="phone" className="font-bold flex items-center gap-2">
+                  <Phone className="w-4 h-4" />
                   電話番号
                 </Label>
                 <Input
@@ -509,15 +573,16 @@ export default function NewStorePage() {
                   type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  placeholder="03-1234-5678"
                   disabled={loading}
+                  className="font-bold bg-white text-gray-700 border-2 border-gray-300"
+                  style={{ fontSize: '16px' }}
                 />
               </div>
 
               {/* ウェブサイト */}
               <div className="space-y-2">
-                <Label htmlFor="website">
-                  <Link className="w-4 h-4 inline mr-2" />
+                <Label htmlFor="website" className="font-bold flex items-center gap-2">
+                  <Globe className="w-4 h-4" />
                   メディア情報（公式サイト、Instagram、Twitterなど）
                 </Label>
                 <Input
@@ -525,49 +590,55 @@ export default function NewStorePage() {
                   type="url"
                   value={websiteUrl}
                   onChange={(e) => setWebsiteUrl(e.target.value)}
-                  placeholder="https://example.com"
                   disabled={loading}
+                  className="font-bold bg-white text-gray-700 border-2 border-gray-300"
+                  style={{ fontSize: '16px' }}
                 />
               </div>
 
               {/* 営業時間 - テキスト形式に変更 */}
               <div className="space-y-2">
-                <Label htmlFor="businessHours">
-                  <Clock className="w-4 h-4 inline mr-2" />
+                <Label htmlFor="businessHours" className="font-bold flex items-center gap-2">
+                  <Clock className="w-4 h-4" />
                   営業時間
                 </Label>
                 <Textarea
                   id="businessHours"
                   value={businessHours}
                   onChange={(e) => setBusinessHours(e.target.value)}
-                  placeholder="例: 月〜金 18:00-24:00, 土日 17:00-25:00"
                   rows={3}
                   disabled={loading}
+                  className="font-bold bg-white text-gray-700 border-2 border-gray-300"
+                  style={{ fontSize: '16px' }}
                 />
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-muted-foreground font-bold">
                   営業時間を自由な形式で入力してください
                 </p>
               </div>
 
               {/* 定休日（補足） */}
               <div className="space-y-2">
-                <Label htmlFor="regularHoliday">定休日</Label>
+                <Label htmlFor="regularHoliday" className="font-bold flex items-center gap-2">
+                  <Calendar className="w-4 h-4" />
+                  定休日
+                </Label>
                 <Input
                   id="regularHoliday"
                   value={regularHoliday}
                   onChange={(e) => setRegularHoliday(e.target.value)}
-                  placeholder="例: 月曜日、年末年始"
                   disabled={loading}
+                  className="font-bold bg-white text-gray-700 border-2 border-gray-300"
+                  style={{ fontSize: '16px' }}
                 />
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-muted-foreground font-bold">
                   定休日や特別な休業日などを記載
                 </p>
               </div>
 
               {/* 予算 */}
               <div className="space-y-2">
-                <Label>
-                  <DollarSign className="w-4 h-4 inline mr-2" />
+                <Label className="font-bold flex items-center gap-2">
+                  <DollarSign className="w-4 h-4" />
                   予算（円）
                 </Label>
                 <div className="grid grid-cols-2 gap-4">
@@ -580,6 +651,8 @@ export default function NewStorePage() {
                       value={budgetMin || ''}
                       onChange={(e) => setBudgetMin(parseInt(e.target.value) || 0)}
                       disabled={loading}
+                      className="font-bold bg-white text-gray-700 border-2 border-gray-300"
+                      style={{ fontSize: '16px' }}
                     />
                   </div>
                   <div>
@@ -591,11 +664,13 @@ export default function NewStorePage() {
                       value={budgetMax || ''}
                       onChange={(e) => setBudgetMax(parseInt(e.target.value) || 0)}
                       disabled={loading}
+                      className="font-bold bg-white text-gray-700 border-2 border-gray-300"
+                      style={{ fontSize: '16px' }}
                     />
                   </div>
                 </div>
                 {budgetMin > 0 && budgetMax > 0 && (
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-muted-foreground font-bold">
                     予算目安: ¥{budgetMin.toLocaleString()} 〜 ¥{budgetMax.toLocaleString()}
                   </p>
                 )}
@@ -603,7 +678,10 @@ export default function NewStorePage() {
 
               {/* 支払い方法 */}
               <div className="space-y-2">
-                <Label>支払い方法</Label>
+                <Label className="font-bold flex items-center gap-2">
+                  <CreditCard className="w-4 h-4" />
+                  支払い方法
+                </Label>
                 <div className="grid grid-cols-2 gap-3">
                   {['現金', 'クレジットカード', '電子マネー', 'QRコード決済', 'デビットカード', '交通系IC'].map((method) => (
                     <div key={method} className="flex items-center space-x-2">
@@ -612,7 +690,7 @@ export default function NewStorePage() {
                         checked={paymentMethods.includes(method)}
                         onCheckedChange={() => handlePaymentMethodToggle(method)}
                       />
-                      <Label htmlFor={`payment-${method}`} className="text-sm font-normal">
+                      <Label htmlFor={`payment-${method}`} className="text-sm font-bold">
                         {method}
                       </Label>
                     </div>
@@ -622,7 +700,10 @@ export default function NewStorePage() {
 
               {/* 設備 */}
               <div className="space-y-2">
-                <Label>設備・サービス</Label>
+                <Label className="font-bold flex items-center gap-2">
+                  <Settings className="w-4 h-4" />
+                  設備・サービス
+                </Label>
                 <div className="grid grid-cols-2 gap-3">
                   {['Wi-Fi', '喫煙可', '分煙', '禁煙', '駐車場', 'カウンター席', '個室', 'テラス席', 'ペット可', 'バリアフリー'].map((facility) => (
                     <div key={facility} className="flex items-center space-x-2">
@@ -631,7 +712,7 @@ export default function NewStorePage() {
                         checked={facilities.includes(facility)}
                         onCheckedChange={() => handleFacilityToggle(facility)}
                       />
-                      <Label htmlFor={`facility-${facility}`} className="text-sm font-normal">
+                      <Label htmlFor={`facility-${facility}`} className="text-sm font-bold">
                         {facility}
                       </Label>
                     </div>
@@ -642,15 +723,15 @@ export default function NewStorePage() {
               {/* セパレーター */}
               <div className="border-t pt-6">
                 <h3 className="font-bold text-lg mb-2">店舗ログイン情報</h3>
-                <p className="text-sm text-muted-foreground mb-4">
+                <p className="text-sm text-muted-foreground mb-4 font-bold">
                   店舗側がログインして情報を更新するためのアカウントを作成します
                 </p>
               </div>
 
               {/* 店舗用メールアドレス */}
               <div className="space-y-2">
-                <Label htmlFor="email">
-                  <Mail className="w-4 h-4 inline mr-2" />
+                <Label htmlFor="email" className="font-bold flex items-center gap-2">
+                  <Mail className="w-4 h-4" />
                   店舗用メールアドレス <span className="text-red-500">*</span>
                 </Label>
                 <Input
@@ -658,31 +739,33 @@ export default function NewStorePage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="store@example.com"
                   required
                   disabled={loading}
+                  className="font-bold bg-white text-gray-700 border-2 border-gray-300"
+                  style={{ fontSize: '16px' }}
                 />
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-muted-foreground font-bold">
                   店舗側がログインする際に使用します
                 </p>
               </div>
 
               {/* 店舗用パスワード */}
               <div className="space-y-2">
-                <Label htmlFor="password">
-                  <Lock className="w-4 h-4 inline mr-2" />
+                <Label htmlFor="password" className="font-bold flex items-center gap-2">
+                  <Lock className="w-4 h-4" />
                   店舗用パスワード <span className="text-red-500">*</span>
                 </Label>
                 <PasswordInput
                   id="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="6文字以上"
                   required
                   minLength={6}
                   disabled={loading}
+                  className="font-bold bg-white text-gray-700 border-2 border-gray-300"
+                  style={{ fontSize: '16px' }}
                 />
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-muted-foreground font-bold">
                   最低6文字、数字と記号を含めることを推奨
                 </p>
               </div>
@@ -691,14 +774,13 @@ export default function NewStorePage() {
               <div className="flex gap-3">
                 <Button
                   type="button"
-                  variant="outline"
-                  className="flex-1"
+                  className="flex-1 font-bold"
                   onClick={() => router.back()}
                   disabled={loading}
                 >
                   キャンセル
                 </Button>
-                <Button type="submit" className="flex-1" disabled={loading || geocoding}>
+                <Button type="submit" className="flex-1 font-bold" disabled={loading || geocoding}>
                   {loading ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
