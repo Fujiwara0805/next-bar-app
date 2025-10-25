@@ -48,9 +48,9 @@ export default function RootLayout({
   return (
     <html lang="ja">
       <head>
-        {/* PWA用アイコン */}
-        <link rel="icon" href="/favicon.ico" />
-        <link rel="apple-touch-icon" href="/icon-192x192.png" />
+        {/* PWA用アイコン - Cloudinaryから直接読み込み */}
+        <link rel="icon" href="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%83%BC%E3%83%92%E3%82%99%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png" />
+        <link rel="apple-touch-icon" href="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%83%BC%E3%83%92%E3%82%99%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png" />
         <meta name="theme-color" content="#3b82f6" />
         <meta property="og:image" content="/og-cover.png" />
         <meta property="og:locale" content="ja_JP" />
