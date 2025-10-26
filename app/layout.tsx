@@ -7,27 +7,27 @@ import { Toaster } from '@/components/ui/sonner';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'NIKENME+',
+  title: 'NIKENME',
   description: '『いま入れるお店』が地図でひと目でわかる。',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'NIKENME+ (マップ)',
+    title: 'NIKENME (マップ)',
   },
   formatDetection: {
     telephone: false,
   },
   openGraph: {
     type: 'website',
-    siteName: 'NIKENME+',
-    title: 'NIKENME+',
+    siteName: 'NIKENME',
+    title: 'NIKENME',
     description: '『いま入れるお店』が地図でひと目。ログイン不要、位置情報を許可して地図を開くだけで空席チェック。',
     images: ['/og-cover.png'],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'NIKENME+',
+    title: 'NIKENME',
     description: '2軒目にサクッと入れるお店が地図でわかる。ログイン不要、位置情報を許可して空席をチェック。',
   },
 };
