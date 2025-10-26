@@ -1,27 +1,21 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Edit, LogOut, Building, Calendar, Settings as SettingsIcon, Info, Key } from 'lucide-react';
+import { Edit, LogOut, Building, Calendar, Key } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/lib/auth/context';
-import { supabase } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
-import type { Database } from '@/lib/supabase/types';
-
-type Store = Database['public']['Tables']['stores']['Row'];
 
 export default function ProfilePage() {
   const router = useRouter();
   const { user, profile, signOut, accountType, store: userStore } = useAuth();
-  const [store, setStore] = useState<Store | null>(null);
-  const [loadingStore, setLoadingStore] = useState(true);
 
   useEffect(() => {
     // 店舗アカウントの場合は更新画面にリダイレクト
@@ -35,50 +29,32 @@ export default function ProfilePage() {
       router.push('/login');
       return;
     }
-
-    if (profile?.is_business && user) {
-      fetchStore();
-    } else {
-      setLoadingStore(false);
-    }
-  }, [profile, user, accountType, userStore, router]);
-
-  const fetchStore = async () => {
-    if (!user) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('stores')
-        .select('*')
-        .eq('owner_id', user.id)
-        .maybeSingle();
-
-      if (error && error.code !== 'PGRST116') throw error;
-      setStore(data);
-    } catch (error) {
-      console.error('Error fetching store:', error);
-    } finally {
-      setLoadingStore(false);
-    }
-  };
+  }, [accountType, userStore, router]);
 
   const handleSignOut = async () => {
     try {
       await signOut();
-      toast.success('ログアウトしました');
+      toast.success('ログアウトしました', {
+        position: 'top-center',
+        duration: 1000,
+        className: 'bg-gray-100'
+      });
       router.push('/login');
     } catch (error) {
-      toast.error('ログアウトに失敗しました');
+      toast.error('ログアウトに失敗しました', {
+        position: 'top-center',
+        duration: 3000,
+        className: 'bg-gray-100'
+      });
     }
   };
 
   if (!user || !profile) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex items-center justify-center h-screen" style={{ backgroundColor: '#1C1E26' }}>
         <div className="text-center">
-          <p className="text-muted-foreground mb-4">
-            プロフィール情報を読み込んでいます...
-          </p>
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+          <p className="text-sm text-white font-bold">読み込み中...</p>
         </div>
       </div>
     );
@@ -108,7 +84,7 @@ export default function ProfilePage() {
                     {profile.display_name}
                   </h1>
                   <p className="text-sm text-muted-foreground mb-2">
-                    {profile.email}
+                    {user.email}
                   </p>
                   {profile.is_business && (
                     <Badge variant="secondary">
@@ -144,91 +120,6 @@ export default function ProfilePage() {
             </div>
           </Card>
 
-          {/* 企業アカウント向けの店舗管理セクション */}
-          {profile.is_business && !loadingStore && (
-            <>
-              {store ? (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1 }}
-                >
-                  <Card className="p-6 mt-4">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="font-bold text-lg">店舗管理</h3>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => router.push('/store/manage')}
-                      >
-                        詳細管理
-                      </Button>
-                    </div>
-
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <Info className="w-5 h-5 text-primary" />
-                          <div>
-                            <p className="font-medium">基本情報</p>
-                            <p className="text-xs text-muted-foreground">
-                              店舗名、住所、営業時間など
-                            </p>
-                          </div>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => router.push('/profile/edit')}
-                        >
-                          編集
-                        </Button>
-                      </div>
-
-                      <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <Building className="w-5 h-5 text-primary" />
-                          <div>
-                            <p className="font-medium">空席状況・メッセージ</p>
-                            <p className="text-xs text-muted-foreground">
-                              リアルタイムの店舗状況を更新
-                            </p>
-                          </div>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => router.push(`/store/manage/${store.id}/update`)}
-                        >
-                          更新
-                        </Button>
-                      </div>
-                    </div>
-                  </Card>
-                </motion.div>
-              ) : (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1 }}
-                >
-                  <Card className="p-6 mt-4">
-                    <div className="text-center">
-                      <Building className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
-                      <h3 className="font-medium mb-2">店舗未登録</h3>
-                      <p className="text-sm text-muted-foreground mb-4">
-                        まずは店舗の基本情報を登録しましょう
-                      </p>
-                      <Button onClick={() => router.push('/profile/edit')}>
-                        基本情報を登録
-                      </Button>
-                    </div>
-                  </Card>
-                </motion.div>
-              )}
-            </>
-          )}
-
           <div className="mt-6 space-y-2">
             <Button
               variant="outline"
@@ -237,14 +128,6 @@ export default function ProfilePage() {
             >
               <Key className="w-4 h-4 mr-2" />
               パスワード変更
-            </Button>
-            <Button
-              variant="outline"
-              className="w-full justify-start"
-              onClick={() => router.push('/settings')}
-            >
-              <SettingsIcon className="w-4 h-4 mr-2" />
-              設定
             </Button>
             <Button
               variant="outline"

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Store as StoreIcon, Edit, Trash2, Loader2, LogOut, Mail } from 'lucide-react';
+import { Plus, Store as StoreIcon, Edit, Trash2, Loader2, LogOut, Mail, User } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -231,12 +231,20 @@ export default function StoreManagePage() {
               animate={{ opacity: 1, y: 0 }}
               className="mb-6"
             >
-              <Link href="/store/manage/new">
-                <Button className="w-full sm:w-auto">
-                  <Plus className="w-4 h-4 mr-2" />
-                  新しい店舗を追加
-                </Button>
-              </Link>
+              <div className="flex gap-3">
+                <Link href="/store/manage/new">
+                  <Button className="w-full sm:w-auto">
+                    <Plus className="w-4 h-4 mr-2" />
+                    新しい店舗を追加
+                  </Button>
+                </Link>
+                <Link href="/profile">
+                  <Button variant="outline" className="w-full sm:w-auto">
+                    <User className="w-4 h-4 mr-2" />
+                    プロフィール
+                  </Button>
+                </Link>
+              </div>
             </motion.div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

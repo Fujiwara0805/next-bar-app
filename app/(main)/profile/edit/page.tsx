@@ -3,17 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import {
-  ArrowLeft,
-  Save,
-  Loader2,
-  User,
-  MapPin,
-  Phone,
-  Globe,
-  Clock,
-  Image as ImageIcon,
-} from 'lucide-react';
+import { ArrowLeft, Loader2, User, Mail, FileText, Image as ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -21,172 +11,122 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
 import { useAuth } from '@/lib/auth/context';
 import { supabase } from '@/lib/supabase/client';
+
 import { toast } from 'sonner';
-import type { Database } from '@/lib/supabase/types';
 
-type Store = Database['public']['Tables']['stores']['Row'];
-
-interface OpeningHours {
-  [key: string]: { open: string; close: string; closed: boolean };
-}
-
-const WEEKDAYS = ['月', '火', '水', '木', '金', '土', '日'];
-const DEFAULT_HOURS = { open: '11:00', close: '23:00', closed: false };
+type ProfileUpdate = {
+  display_name?: string | null;
+  avatar_url?: string | null;
+  bio?: string | null;
+  updated_at?: string;
+};
 
 export default function ProfileEditPage() {
   const router = useRouter();
   const { user, profile } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [store, setStore] = useState<Store | null>(null);
-  const [fetchingStore, setFetchingStore] = useState(true);
-
+  
   // フォームの状態
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [address, setAddress] = useState('');
-  const [phone, setPhone] = useState('');
-  const [websiteUrl, setWebsiteUrl] = useState('');
-  const [openingHours, setOpeningHours] = useState<OpeningHours>({
-    mon: DEFAULT_HOURS,
-    tue: DEFAULT_HOURS,
-    wed: DEFAULT_HOURS,
-    thu: DEFAULT_HOURS,
-    fri: DEFAULT_HOURS,
-    sat: DEFAULT_HOURS,
-    sun: DEFAULT_HOURS,
-  });
+  const [displayName, setDisplayName] = useState('');
+  const [email, setEmail] = useState('');
+  const [currentEmail, setCurrentEmail] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState('');
+  const [bio, setBio] = useState('');
 
   useEffect(() => {
-    if (!profile?.is_business) {
-      router.push('/profile');
+    if (!user || !profile) {
+      router.push('/login');
       return;
     }
 
-    fetchStore();
-  }, [profile, router]);
-
-  const fetchStore = async () => {
-    if (!user) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('stores')
-        .select('*')
-        .eq('owner_id', user.id)
-        .maybeSingle();
-
-      if (error && error.code !== 'PGRST116') throw error;
-
-      if (data) {
-        const storeData = data as Store;
-        setStore(storeData);
-        setName(storeData.name);
-        setDescription(storeData.description || '');
-        setAddress(storeData.address);
-        setPhone(storeData.phone || '');
-        setWebsiteUrl(storeData.website_url || '');
-        
-        if (storeData.opening_hours) {
-          setOpeningHours(storeData.opening_hours as OpeningHours);
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching store:', error);
-      toast.error('店舗情報の取得に失敗しました');
-    } finally {
-      setFetchingStore(false);
-    }
-  };
-
-  const handleHoursChange = (day: string, field: 'open' | 'close' | 'closed', value: string | boolean) => {
-    setOpeningHours((prev) => ({
-      ...prev,
-      [day]: {
-        ...prev[day],
-        [field]: value,
-      },
-    }));
-  };
+    setDisplayName(profile.display_name || '');
+    setEmail(user.email || '');
+    setCurrentEmail(user.email || '');
+    setAvatarUrl(profile.avatar_url || '');
+    setBio(profile.bio || '');
+  }, [user, profile, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!user) {
-      toast.error('ログインが必要です');
-      return;
-    }
+    if (!user || !profile) return;
 
-    if (!name.trim()) {
-      toast.error('店舗名を入力してください');
-      return;
-    }
-
-    if (!address.trim()) {
-      toast.error('住所を入力してください');
+    if (!displayName.trim()) {
+      toast.error('表示名を入力してください', {
+        position: 'top-center',
+        duration: 2000,
+        className: 'bg-gray-100'
+      });
       return;
     }
 
     setLoading(true);
 
     try {
-      const storeData: Database['public']['Tables']['stores']['Update'] = {
-        owner_id: user.id,
-        name: name.trim(),
-        description: description.trim() || null,
-        address: address.trim(),
-        phone: phone.trim() || null,
-        website_url: websiteUrl.trim() || null,
-        opening_hours: openingHours as any,
+      // メールアドレスが変更された場合
+      if (email !== currentEmail) {
+        const { error: authError } = await supabase.auth.updateUser({
+          email: email,
+        });
+
+        if (authError) throw authError;
+
+        toast.success('確認メールを送信しました', {
+          description: '新しいメールアドレスに送信された確認リンクをクリックしてください',
+          position: 'top-center',
+          duration: 5000,
+          className: 'bg-gray-100'
+        });
+      }
+
+      // profilesテーブルを更新（型安全）
+      const payload: ProfileUpdate = {
+        display_name: displayName.trim(),
+        avatar_url: avatarUrl.trim() || null,
+        bio: bio.trim() || null,
         updated_at: new Date().toISOString(),
       };
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update(payload as unknown as never)
+        .eq('id', user.id);
 
-      if (store) {
-        // 既存の店舗を更新
-        const { error } = await (supabase.from('stores') as any)
-          .update(storeData)
-          .eq('id', store.id);
+      if (profileError) throw profileError;
 
-        if (error) throw error;
-        toast.success('店舗情報を更新しました');
-      } else {
-        // 新規店舗を作成（座標は後で設定）
-        const { error } = await supabase
-          .from('stores')
-          .insert({
-            ...storeData,
-            latitude: 35.6812, // デフォルト値（東京）
-            longitude: 139.7671,
-            is_open: false,
-            vacancy_status: 'closed',
-          } as any);
-
-        if (error) throw error;
-        toast.success('店舗情報を登録しました');
-      }
+      toast.success('プロフィールを更新しました', {
+        position: 'top-center',
+        duration: 2000,
+        className: 'bg-gray-100'
+      });
 
       router.push('/profile');
     } catch (error) {
-      console.error('Error:', error);
-      toast.error('保存に失敗しました');
+      console.error('Error updating profile:', error);
+      toast.error('更新に失敗しました', {
+        description: error instanceof Error ? error.message : '不明なエラー',
+        position: 'top-center',
+        duration: 3000,
+        className: 'bg-gray-100'
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  if (fetchingStore) {
+  if (!user || !profile) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex items-center justify-center h-screen" style={{ backgroundColor: '#1C1E26' }}>
         <div className="text-center">
           <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-          <p className="text-sm text-muted-foreground">読み込み中...</p>
+          <p className="text-sm text-white font-bold">読み込み中...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background pb-20">
-      <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b safe-top">
+    <div className="min-h-screen" style={{ backgroundColor: '#1C1E26' }}>
+      <header className="sticky top-0 z-10 bg-white border-b border-gray-200">
         <div className="flex items-center gap-3 p-4">
           <Button
             variant="ghost"
@@ -195,7 +135,8 @@ export default function ProfileEditPage() {
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <h1 className="text-xl font-bold">基本情報設定</h1>
+          <h1 className="text-xl font-bold text-center flex-1">プロフィール編集</h1>
+          <div className="w-10" />
         </div>
       </header>
 
@@ -206,139 +147,114 @@ export default function ProfileEditPage() {
           onSubmit={handleSubmit}
           className="space-y-6"
         >
-          <Card className="p-6">
-            <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
-              <User className="w-5 h-5" />
-              基本情報
-            </h2>
-
+          <Card className="p-6 bg-white">
             <div className="space-y-4">
+              {/* 表示名 */}
               <div>
-                <Label htmlFor="name">店舗名 *</Label>
+                <Label htmlFor="displayName" className="font-bold flex items-center gap-2">
+                  <User className="w-4 h-4" />
+                  表示名
+                </Label>
                 <Input
-                  id="name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="例: 居酒屋 まちのわ"
+                  id="displayName"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  placeholder="例: 山田太郎"
                   required
+                  disabled={loading}
+                  className="font-bold bg-white text-gray-700 border-2 border-gray-300"
+                  style={{ fontSize: '16px' }}
                 />
               </div>
 
+              {/* メールアドレス */}
               <div>
-                <Label htmlFor="description">店舗説明</Label>
+                <Label htmlFor="email" className="font-bold flex items-center gap-2">
+                  <Mail className="w-4 h-4" />
+                  メールアドレス
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="example@email.com"
+                  required
+                  disabled={loading}
+                  className="font-bold bg-white text-gray-700 border-2 border-gray-300"
+                  style={{ fontSize: '16px' }}
+                />
+                {email !== currentEmail && (
+                  <p className="text-xs text-amber-600 font-bold mt-2">
+                    ⚠️ メールアドレス変更には確認が必要です。新しいメールアドレスに確認リンクが送信されます。
+                  </p>
+                )}
+              </div>
+
+              {/* アバターURL */}
+              <div>
+                <Label htmlFor="avatarUrl" className="font-bold flex items-center gap-2">
+                  <ImageIcon className="w-4 h-4" />
+                  アバター画像URL
+                </Label>
+                <Input
+                  id="avatarUrl"
+                  type="url"
+                  value={avatarUrl}
+                  onChange={(e) => setAvatarUrl(e.target.value)}
+                  placeholder="https://example.com/avatar.jpg"
+                  disabled={loading}
+                  className="font-bold bg-white text-gray-700 border-2 border-gray-300"
+                  style={{ fontSize: '16px' }}
+                />
+              </div>
+
+              {/* 自己紹介 */}
+              <div>
+                <Label htmlFor="bio" className="font-bold flex items-center gap-2">
+                  <FileText className="w-4 h-4" />
+                  自己紹介
+                </Label>
                 <Textarea
-                  id="description"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="店舗の特徴やおすすめポイントを入力"
+                  id="bio"
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value)}
+                  placeholder="自己紹介を入力してください"
                   rows={4}
+                  disabled={loading}
+                  className="font-bold bg-white text-gray-700 border-2 border-gray-300"
+                  style={{ fontSize: '16px' }}
                 />
-              </div>
-
-              <div>
-                <Label htmlFor="address">住所 *</Label>
-                <Input
-                  id="address"
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  placeholder="例: 東京都渋谷区..."
-                  required
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="phone">電話番号</Label>
-                <div className="flex gap-2">
-                  <Phone className="w-5 h-5 text-muted-foreground mt-2" />
-                  <Input
-                    id="phone"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="03-1234-5678"
-                    type="tel"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="websiteUrl">WebサイトURL</Label>
-                <div className="flex gap-2">
-                  <Globe className="w-5 h-5 text-muted-foreground mt-2" />
-                  <Input
-                    id="websiteUrl"
-                    value={websiteUrl}
-                    onChange={(e) => setWebsiteUrl(e.target.value)}
-                    placeholder="https://example.com"
-                    type="url"
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  公式サイト、Instagram、Twitterなどのリンク
-                </p>
               </div>
             </div>
           </Card>
 
-          <Card className="p-6">
-            <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
-              <Clock className="w-5 h-5" />
-              営業時間
-            </h2>
-
-            <div className="space-y-3">
-              {Object.entries(openingHours).map(([day, hours], index) => (
-                <div key={day} className="flex items-center gap-3">
-                  <span className="w-8 font-medium">
-                    {WEEKDAYS[index]}
-                  </span>
-                  <div className="flex-1 flex items-center gap-2">
-                    <Input
-                      type="time"
-                      value={hours.open}
-                      onChange={(e) => handleHoursChange(day, 'open', e.target.value)}
-                      disabled={hours.closed}
-                      className="flex-1"
-                    />
-                    <span>〜</span>
-                    <Input
-                      type="time"
-                      value={hours.close}
-                      onChange={(e) => handleHoursChange(day, 'close', e.target.value)}
-                      disabled={hours.closed}
-                      className="flex-1"
-                    />
-                  </div>
-                  <Button
-                    type="button"
-                    variant={hours.closed ? 'secondary' : 'outline'}
-                    size="sm"
-                    onClick={() => handleHoursChange(day, 'closed', !hours.closed)}
-                  >
-                    {hours.closed ? '定休日' : '営業'}
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </Card>
-
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={loading}
-            size="lg"
-          >
-            {loading ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                保存中...
-              </>
-            ) : (
-              <>
-                <Save className="w-4 h-4 mr-2" />
-                保存
-              </>
-            )}
-          </Button>
+          {/* ボタン */}
+          <div className="flex gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              className="flex-1 font-bold bg-white"
+              onClick={() => router.back()}
+              disabled={loading}
+            >
+              キャンセル
+            </Button>
+            <Button 
+              type="submit" 
+              className="flex-1 font-bold" 
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  更新中...
+                </>
+              ) : (
+                '更新'
+              )}
+            </Button>
+          </div>
         </motion.form>
       </div>
     </div>
