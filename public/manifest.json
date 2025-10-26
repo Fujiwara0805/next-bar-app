@@ -1,6 +1,6 @@
 {
-  "name": "NIKENME",
-  "short_name": "NIKENME",
+  "name": "NIKENME+",
+  "short_name": "NIKENME+",
   "description": "『いま入れるお店』が地図でひと目でわかる。",
   "start_url": "/landing",
   "display": "standalone",
