@@ -179,13 +179,14 @@ src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%
                 className="h-24 sm:h-32 md:h-40 w-auto object-contain"
               />
             </motion.div>
+            {/* タイトル部分に地域名を追加 */}
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 sm:mb-6 text-foreground">
-              あなたの酔いがさめるまえに
+              大分の二軒目探しは NIKENME+（ニケンメプラス）
             </h1>
             <p className="text-lg sm:text-xl md:text-2xl text-foreground mb-6 sm:mb-8 max-w-3xl mx-auto px-4 font-bold">
               「夜の続きは、ここから」
               <br/>
-              今すぐ入れるお店をマップで探そう。
+              大分市のバー・スナックの空席を今すぐマップで探そう
             </p>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4">
               <Button 

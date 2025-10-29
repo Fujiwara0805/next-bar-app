@@ -7,54 +7,51 @@ import { Toaster } from '@/components/ui/sonner';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'NIKENME+ | 二軒目探しに特化した空席情報マップ',
-  description: '『いま入れるお店』が地図でひと目でわかる。2軒目、バー、スナック、居酒屋の空席情報をリアルタイムで確認。はしご酒・飲み歩きに最適。',
+  title: 'NIKENME+(ニケンメプラス) | 大分の2軒目探しに特化した空席情報マップ',
+  description: '大分で『いま入れるお店』が地図でひと目でわかる。2軒目、バー、スナック、居酒屋の空席情報をリアルタイムで確認。はしご酒・飲み歩きに最適。ログイン不要で今すぐ使える。',
   manifest: '/manifest.json',
   keywords: [
-    // コアキーワード
-    '二軒目',
+    // ブランド名（優先度：高）
     'NIKENME+',
-    'NIKENME',
-    'ニケンメ',
     'ニケンメプラス',
-    'にけんめ',
+    'ニケンメ',
     'にけんめプラス',
-    '2軒目',
+    'にけんめ',
+    'nikenme',
     
-    // 地域キーワード
+    // コアキーワード（優先度：高）
     '大分 二軒目',
-    '大分市 バー',
-    '大分 スナック',
-    '大分 居酒屋',
-    '大分 飲み屋',
+    '大分 2軒目',
+    '大分市 二軒目',
+    '二軒目 大分',
+    '2軒目 大分',
+    
+    // ロングテールキーワード（優先度：中〜高）
+    '大分 今入れる店',
+    '大分 空席 バー',
+    '大分 空席情報',
+    '大分 はしご酒',
+    '大分 飲み歩き',
+    '大分市 バー 空席',
+    '大分市 スナック',
+    '大分 二軒目 マップ',
+    '大分 居酒屋 空席',
     
     // 用途キーワード
-    'はしご酒',
-    '飲み歩き',
-    '空席情報',
-    '空席',
-    '空席マップ',
-    '店舗地図',
-    'リアルタイム空席',
-    '近くの店',
-    '深夜営業',
     '今入れる店',
-    '待たずに入れる',
-    
-    // 店舗種別
-    'バー 空席',
+    '待たずに入れる店',
+    '空席 リアルタイム',
+    'バー 空席情報',
     'スナック 空席',
-    '居酒屋 空席',
-    'ラウンジ',
+    '深夜 営業 大分',
     
     // 機能キーワード
     '空席マップ',
     '店舗地図',
-    'リアルタイム空席',
+    '飲食店 空席',
     '近くの店',
-    '深夜営業',
   ].join(', '),
-  authors: [{ name: 'NIKENME+' }],
+  authors: [{ name: 'NIKENME+ (ニケンメプラス)' }],
   creator: 'NIKENME+',
   publisher: 'NIKENME+',
   robots: {
@@ -69,7 +66,7 @@ export const metadata: Metadata = {
     },
   },
   alternates: {
-    canonical: 'https://nikenme.jp', // 実際のドメインに変更
+    canonical: 'https://nikenme.jp',
   },
   appleWebApp: {
     capable: true,
@@ -82,28 +79,28 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     siteName: 'NIKENME+ (ニケンメプラス)',
-    title: 'NIKENME+ | 2軒目探しに特化した空席情報マップ',
+    title: 'NIKENME+ | 大分の2軒目探しに特化した空席情報マップ',
     description: 'ログイン不要、位置情報を許可して地図を開くだけで大分の二軒目・バー・スナックの空席をチェック。はしご酒・飲み歩きに最適。',
-    url: 'https://nikenme.com',
+    url: 'https://nikenme.jp',
     images: [
       {
-        url: '/og-cover.png',
+        url: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%83%BC%E3%83%92%E3%82%99%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png',
         width: 1200,
         height: 630,
-        alt: 'NIKENME+ - 2軒目探しの決定版',
+        alt: 'NIKENME+ (ニケンメプラス) - 大分の2軒目探しの決定版',
       },
     ],
     locale: 'ja_JP',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'NIKENME+ | 2軒目探しに特化した空席情報マップ',
+    title: 'NIKENME+ | 大分の2軒目探しに特化した空席情報マップ',
     description: '大分の2軒目・バー・スナックの空席をリアルタイムでチェック。ログイン不要で今すぐ使える。',
-    images: ['/og-cover.png'],
-    creator: '@nikenme', // Twitterアカウントがあれば設定
+    images: ['https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%83%BC%E3%83%92%E3%82%99%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png'],
+    creator: '@nikenme',
   },
   verification: {
-    // Google Search Console認証用（取得後に設定）
+    // Google Search Console認証用（後で追加）
     // google: 'your-google-verification-code',
   },
 };
@@ -136,9 +133,11 @@ export default function RootLayout({
             __html: JSON.stringify({
               '@context': 'https://schema.org',
               '@type': 'WebApplication',
-              name: 'NIKENME+',
+              name: 'NIKENME+ (ニケンメプラス)',
+              alternateName: ['NIKENME', 'ニケンメ', 'にけんめ'],
               applicationCategory: 'LifestyleApplication',
               operatingSystem: 'Any',
+              browserRequirements: 'Requires JavaScript. Requires HTML5.',
               offers: {
                 '@type': 'Offer',
                 price: '0',
@@ -149,10 +148,40 @@ export default function RootLayout({
                 ratingValue: '4.8',
                 ratingCount: '100',
               },
-              description: '二軒目探しに特化した空席情報マップ。大分のバー・スナック・居酒屋の空席をリアルタイムで確認できます。',
+              description: '大分の二軒目・2軒目探しに特化した空席情報マップ。バー・スナック・居酒屋の空席をリアルタイムで確認できます。ログイン不要、今すぐ使えるはしご酒アプリ。',
               url: 'https://nikenme.jp',
               image: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%83%BC%E3%83%92%E3%82%99%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png',
               inLanguage: 'ja',
+              areaServed: {
+                '@type': 'City',
+                name: '大分市',
+                containedIn: {
+                  '@type': 'AdministrativeArea',
+                  name: '大分県',
+                },
+              },
+              availableLanguage: {
+                '@type': 'Language',
+                name: '日本語',
+              },
+            }),
+          }}
+        />
+
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'Organization',
+              name: 'NIKENME+ (ニケンメプラス)',
+              url: 'https://nikenme.jp',
+              logo: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%83%BC%E3%83%92%E3%82%99%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png',
+              sameAs: [
+                // SNSアカウントがあれば追加
+                // 'https://twitter.com/nikenme',
+                // 'https://www.instagram.com/nikenme',
+              ],
             }),
           }}
         />
