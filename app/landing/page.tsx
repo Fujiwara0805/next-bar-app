@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { MapPin, Store, ArrowRight, Navigation } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { MapPin, Store, ArrowRight, Navigation, Menu, X, FileText, Shield, HelpCircle, Globe } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,7 @@ import { CustomModal } from '@/components/ui/custom-modal';
 export default function LandingPage() {
   const router = useRouter();
   const [showLocationModal, setShowLocationModal] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
   const [locationPermission, setLocationPermission] = useState<'granted' | 'denied' | 'prompt'>('prompt');
 
   const features = [
@@ -29,6 +30,38 @@ export default function LandingPage() {
       icon: Navigation,
       title: 'お店までの距離が分かる',
       description: '現在地からの距離を表示。',
+    },
+  ];
+
+  const menuItems = [
+    {
+      icon: FileText,
+      label: '利用規約',
+      href: '/terms',
+    },
+    {
+      icon: Shield,
+      label: 'プライバシーポリシー',
+      href: '/privacy',
+    },
+    {
+      icon: HelpCircle,
+      label: 'よくある質問 (FAQ)',
+      href: '/faq',
+    },
+    {
+      icon: FileText,
+      label: 'リリースノート',
+      href: '/release-notes',
+    },
+    {
+      icon: Globe,
+      label: '言語設定',
+      href: '#',
+      action: () => {
+        // 将来的な多言語対応用
+        alert('現在は日本語のみ対応しています');
+      },
     },
   ];
 
@@ -141,13 +174,30 @@ export default function LandingPage() {
       {/* ヘッダー - レスポンシブ対応 */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-b safe-top">
         <div className="container mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between">
-          <div className="flex items-center">
+          {/* ハンバーガーメニューボタン */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setShowMenu(!showMenu)}
+            className="relative z-50"
+          >
+            {showMenu ? (
+              <X className="w-6 h-6" />
+            ) : (
+              <Menu className="w-6 h-6" />
+            )}
+          </Button>
+
+          {/* 中央のロゴ */}
+          <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center">
             <img 
               src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%83%BC%E3%83%92%E3%82%99%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png"
-              alt="2軒目"
+              alt="NIKENME+"
               className="h-10 sm:h-12 w-auto object-contain"
             />
           </div>
+
+          {/* 店舗ログインボタン */}
           <div className="flex items-center gap-2 sm:gap-4">
             <Link href="/login">
               <Button variant="outline" size="sm" className="text-xs sm:text-sm border-2">
@@ -157,6 +207,86 @@ export default function LandingPage() {
           </div>
         </div>
       </header>
+
+      {/* サイドメニュー */}
+      <AnimatePresence>
+        {showMenu && (
+          <>
+            {/* オーバーレイ */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="fixed inset-0 bg-black/50 z-40"
+              onClick={() => setShowMenu(false)}
+            />
+
+            {/* メニューパネル */}
+            <motion.div
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ duration: 0.3, ease: 'easeInOut' }}
+              className="fixed left-0 top-0 bottom-0 w-80 bg-card border-r z-40 overflow-y-auto safe-top"
+            >
+              <div className="p-6 pt-20">
+                {/* メニューヘッダー */}
+                <div className="mb-8">
+                  <h2 className="text-2xl font-bold text-card-foreground mb-2">メニュー</h2>
+                  <p className="text-sm text-muted-foreground">NIKENME+の詳細情報</p>
+                </div>
+
+                {/* メニューアイテム */}
+                <nav className="space-y-2">
+                  {menuItems.map((item, index) => {
+                    const Icon = item.icon;
+                    return (
+                      <motion.div
+                        key={index}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.3, delay: index * 0.05 }}
+                      >
+                        {item.action ? (
+                          <button
+                            onClick={() => {
+                              item.action();
+                              setShowMenu(false);
+                            }}
+                            className="w-full flex items-center gap-3 p-4 rounded-lg hover:bg-accent transition-colors text-left"
+                          >
+                            <Icon className="w-5 h-5 text-primary" />
+                            <span className="font-medium text-card-foreground">{item.label}</span>
+                          </button>
+                        ) : (
+                          <Link
+                            href={item.href}
+                            onClick={() => setShowMenu(false)}
+                            className="flex items-center gap-3 p-4 rounded-lg hover:bg-accent transition-colors"
+                          >
+                            <Icon className="w-5 h-5 text-primary" />
+                            <span className="font-medium text-card-foreground">{item.label}</span>
+                          </Link>
+                        )}
+                      </motion.div>
+                    );
+                  })}
+                </nav>
+
+                {/* フッター情報 */}
+                <div className="mt-12 pt-6 border-t">
+                  <p className="text-xs text-muted-foreground text-center">
+                    © 2025 NIKENME+
+                    <br />
+                    Version 1.0.0
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       {/* ヒーローセクション - レスポンシブ対応 */}
       <section className="relative pt-20 sm:pt-32 pb-12 sm:pb-20 px-4 overflow-hidden">
