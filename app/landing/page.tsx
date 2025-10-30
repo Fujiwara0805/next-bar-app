@@ -159,8 +159,18 @@ export default function LandingPage() {
       </header>
 
       {/* ヒーローセクション - レスポンシブ対応 */}
-      <section className="pt-20 sm:pt-32 pb-12 sm:pb-20 px-4">
-        <div className="container mx-auto max-w-6xl">
+      <section className="relative pt-20 sm:pt-32 pb-12 sm:pb-20 px-4 overflow-hidden">
+        {/* 背景画像 */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761799700/12_hotel_bar_t3ti2i.jpg"
+            alt="Background"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-black/60" />
+        </div>
+
+        <div className="container mx-auto max-w-6xl relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -180,10 +190,10 @@ src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%
               />
             </motion.div>
             {/* タイトル部分に地域名を追加 */}
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 sm:mb-6 text-foreground">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 sm:mb-6 text-white">
               大分の二軒目探しは<br/> NIKENME+（ニケンメプラス）
             </h1>
-            <p className="text-lg sm:text-xl md:text-2xl text-foreground mb-6 sm:mb-8 max-w-3xl mx-auto px-4 font-bold">
+            <p className="text-lg sm:text-xl md:text-2xl text-white mb-6 sm:mb-8 max-w-3xl mx-auto px-4 font-bold">
               「夜の続きは、ここから」
               <br/>
               次のお店を今すぐマップで探そう
@@ -207,11 +217,17 @@ src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%
             transition={{ duration: 0.6, delay: 0.2 }}
             className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl mb-12 sm:mb-20"
           >
-            <div className="aspect-video bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
-              <div className="text-center text-[#F5F5F5] p-4 sm:p-8">
-                <MapPin className="w-16 h-16 sm:w-24 sm:h-24 mx-auto mb-2 sm:mb-4" />
-                <p className="text-lg sm:text-2xl font-bold">アプリのデモ画面</p>
-                <p className="text-sm sm:text-base text-[#F5F5F5]/80 mt-1 sm:mt-2 font-bold">地図上で店舗情報を確認</p>
+            <div className="relative aspect-video">
+              <img
+                src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761800365/79FA3ECA-EEF6-4627-808B-E157EA37FBF4_1_201_a_atzbik.jpg"
+                alt="アプリのデモ画面"
+                className="w-full h-full object-cover"
+              />
+              {/* テキストオーバーレイ */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex justify-center items-end pb-8">
+                <p className="text-white text-xl sm:text-3xl font-bold text-center px-4">
+                  地図上で空席状況を確認
+                </p>
               </div>
             </div>
           </motion.div>
@@ -219,8 +235,18 @@ src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%
       </section>
 
       {/* 機能セクション - レスポンシブ対応 */}
-      <section className="py-12 sm:py-20 px-4 bg-background">
-        <div className="container mx-auto max-w-6xl">
+      <section className="relative py-12 sm:py-20 px-4 overflow-hidden">
+        {/* 背景画像 */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761799700/08_night_view_lounge_vdhksc.jpg"
+            alt="Background"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-black/70" />
+        </div>
+
+        <div className="container mx-auto max-w-6xl relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -228,8 +254,8 @@ src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%
             transition={{ duration: 0.6 }}
             className="text-center mb-12 sm:mb-16"
           >
-            <h2 className="text-3xl sm:text-4xl font-bold mb-3 sm:mb-4 text-[#F5F5F5]">こんな時に便利</h2>
-            <p className="text-base sm:text-xl text-[#F5F5F5]/80 font-bold">
+            <h2 className="text-3xl sm:text-4xl font-bold mb-3 sm:mb-4 text-white">こんな時に便利</h2>
+            <p className="text-base sm:text-xl text-white/90 font-bold">
               2軒目のお店探しをもっとスマートに
             </p>
           </motion.div>
@@ -245,7 +271,7 @@ src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%
                   viewport={{ once: true }}
                   transition={{ duration: 0.6, delay: index * 0.1 }}
                 >
-                  <Card className="p-5 sm:p-6 h-full hover:shadow-lg transition-shadow bg-card border-border">
+                  <Card className="p-5 sm:p-6 h-full hover:shadow-lg transition-shadow bg-card/90 backdrop-blur-sm border-border">
                     <div className="flex flex-col items-center text-center">
                       <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3 sm:mb-4">
                         <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
@@ -262,8 +288,18 @@ src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%
       </section>
 
       {/* 使い方セクション - レスポンシブ対応 */}
-      <section className="py-12 sm:py-20 px-4 bg-background">
-        <div className="container mx-auto max-w-6xl">
+      <section className="relative py-12 sm:py-20 px-4 overflow-hidden">
+        {/* 背景画像 */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761799700/01_dark_bar_counter_tfsqjd.jpg"
+            alt="Background"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-black/70" />
+        </div>
+
+        <div className="container mx-auto max-w-6xl relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -271,8 +307,8 @@ src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%
             transition={{ duration: 0.6 }}
             className="text-center mb-12 sm:mb-16"
           >
-            <h2 className="text-3xl sm:text-4xl font-bold mb-3 sm:mb-4 text-[#F5F5F5]">使い方はとても簡単</h2>
-            <p className="text-base sm:text-xl text-[#F5F5F5]/80 font-bold">
+            <h2 className="text-3xl sm:text-4xl font-bold mb-3 sm:mb-4 text-white">使い方はとても簡単</h2>
+            <p className="text-base sm:text-xl text-white/90 font-bold">
               ログイン不要で今すぐ使えます
             </p>
           </motion.div>
@@ -281,15 +317,15 @@ src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%
             {[
               {
                 step: '1',
-                title: '位置情報を許可',
-                description: '現在地周辺のお店を表示するために位置情報の使用を許可してください。',
-                icon: Navigation,
+                title: 'マップで空席を確認',
+                description: '地図上のアイコンで空席状況を確認できます。',
+                image: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1761800378/27F4F4F4-749D-4141-BEDC-5B93091BA278_1_102_o_juxfgv.jpg',
               },
               {
                 step: '2',
-                title: 'マップで空席を確認',
-                description: '地図上のアイコンで空席状況を確認できます。',
-                icon: MapPin,
+                title: '店舗の詳細を確認',
+                description: '店舗カードをクリックすると、詳細情報が表示されます。',
+                image: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1761802358/%E5%90%8D%E7%A7%B0%E6%9C%AA%E8%A8%AD%E5%AE%9A%E3%81%AE%E3%83%86%E3%82%99%E3%82%B5%E3%82%99%E3%82%A4%E3%83%B3_ekfjbe.png',
               },
             ].map((item, index) => (
               <motion.div
@@ -299,7 +335,7 @@ src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
               >
-                <Card className="p-6 sm:p-8 h-full bg-card border-border">
+                <Card className="p-6 sm:p-8 h-full bg-card/90 backdrop-blur-sm border-border">
                   <div className="flex items-start gap-4 mb-4">
                     <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-primary text-[#F5F5F5] text-xl sm:text-2xl font-bold flex items-center justify-center shrink-0">
                       {item.step}
@@ -310,9 +346,13 @@ src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%
                     </div>
                   </div>
                   
-                  {/* 視覚的な説明用のアイコン表示 */}
-                  <div className="mt-6 p-6 bg-primary/10 rounded-lg flex items-center justify-center">
-                    <item.icon className="w-16 h-16 sm:w-20 sm:h-20 text-primary" />
+                  {/* スクリーンショット画像表示 - サイズを小さく */}
+                  <div className="mt-6 rounded-lg overflow-hidden shadow-lg max-w-[200px] mx-auto">
+                    <img
+                      src={item.image}
+                      alt={item.title}
+                      className="w-full h-auto object-cover"
+                    />
                   </div>
                 </Card>
               </motion.div>
@@ -322,18 +362,28 @@ src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%
       </section>
 
       {/* CTAセクション - レスポンシブ対応 */}
-      <section className="py-12 sm:py-20 px-4 bg-[#2C5F6F] text-[#F5F5F5]">
-        <div className="container mx-auto max-w-4xl text-center">
+      <section className="relative py-12 sm:py-20 px-4 overflow-hidden">
+        {/* 背景画像 */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761799700/15_turquoise_bar_rk1rtx.jpg"
+            alt="Background"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-black/60" />
+        </div>
+
+        <div className="container mx-auto max-w-4xl text-center relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-foreground">
+            <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-white">
               今すぐ入れるお店を探そう
             </h2>
-            <p className="text-base sm:text-xl text-[#F5F5F5]/90 mb-6 sm:mb-8 font-bold">
+            <p className="text-base sm:text-xl text-white/90 mb-6 sm:mb-8 font-bold">
               ログイン不要、今すぐマップ画面へ
             </p>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
