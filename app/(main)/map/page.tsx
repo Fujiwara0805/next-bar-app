@@ -9,11 +9,13 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { supabase } from '@/lib/supabase/client';
 import type { Database } from '@/lib/supabase/types';
+import { useLanguage } from '@/lib/i18n/context';
 
 type Store = Database['public']['Tables']['stores']['Row'];
 
 export default function MapPage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [stores, setStores] = useState<Store[]>([]);
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -63,40 +65,81 @@ export default function MapPage() {
   };
 
   const loadUserLocation = () => {
-    // localStorageから位置情報を取得
-    const savedLocation = localStorage.getItem('userLocation');
-    if (savedLocation) {
-      try {
-        const location = JSON.parse(savedLocation);
-        setUserLocation(location);
-        return;
-      } catch (e) {
-        console.error('Failed to parse saved location');
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const location = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          };
+          setUserLocation(location);
+          localStorage.setItem('userLocation', JSON.stringify(location));
+        },
+        (error) => {
+          console.error('Error getting location:', error);
+          // エラーの場合は保存された位置情報を使用
+          const savedLocation = localStorage.getItem('userLocation');
+          if (savedLocation) {
+            try {
+              const location = JSON.parse(savedLocation);
+              setUserLocation(location);
+              return;
+            } catch (e) {
+              console.error('Failed to parse saved location');
+            }
+          }
+          // デフォルト位置（大分駅周辺）
+          setUserLocation({ lat: 33.2382, lng: 131.6126 });
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0,
+        }
+      );
+    } else {
+      // Geolocation APIが利用できない場合
+      const savedLocation = localStorage.getItem('userLocation');
+      if (savedLocation) {
+        try {
+          const location = JSON.parse(savedLocation);
+          setUserLocation(location);
+          return;
+        } catch (e) {
+          console.error('Failed to parse saved location');
+        }
       }
+      // デフォルト位置（大分駅周辺）
+      setUserLocation({ lat: 33.2382, lng: 131.6126 });
     }
-
-    // 保存された位置情報がない場合、デフォルト位置を使用
-    setUserLocation({ lat: 35.6812, lng: 139.7671 });
   };
 
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     setRefreshing(true);
-    // ページをリロード
-    window.location.reload();
+    try {
+      // 店舗情報の再取得
+      await fetchStores();
+      // 位置情報の再取得
+      loadUserLocation();
+    } finally {
+      setTimeout(() => {
+        setRefreshing(false);
+      }, 500);
+    }
   };
 
   const getVacancyLabel = (status: string) => {
     switch (status) {
       case 'vacant':
-        return '空席あり';
+        return t('map.vacant');
       case 'moderate':
-        return 'やや混雑';
+        return t('map.moderate');
       case 'full':
-        return '満席';
+        return t('map.full');
       case 'closed':
-        return '閉店中';
+        return t('map.closed');
       default:
-        return '不明';
+        return t('map.unknown');
     }
   };
 
@@ -168,12 +211,12 @@ export default function MapPage() {
                   size="icon"
                   onClick={() => router.push('/landing')}
                   className="bg-gray-600 w-12 h-12 mt-12 border-2 border-gray-300"
-                  title="ホームに戻る"
+                  title={t('map.home')}
                 >
                   <Home className="w-7 h-7" />
                 </Button>
                 <span className="text-xs font-bold mt-1 text-gray-700 dark:text-gray-300">
-                  ホーム
+                  {t('map.home')}
                 </span>
               </motion.div>
 
@@ -187,12 +230,12 @@ export default function MapPage() {
                   size="icon"
                   onClick={() => router.push('/store-list')}
                   className="bg-gray-600 w-12 h-12 border-2 border-gray-300"
-                  title="店舗一覧"
+                  title={t('map.store_list')}
                 >
                   <List className="w-7 h-7" />
                 </Button>
                 <span className="text-xs font-bold mt-1 text-gray-700 dark:text-gray-300">
-                  店舗一覧
+                  {t('map.store_list')}
                 </span>
               </motion.div>
 
@@ -207,12 +250,12 @@ export default function MapPage() {
                   onClick={handleRefresh}
                   disabled={refreshing}
                   className="bg-gray-600 w-12 h-12 border-2 border-gray-300"
-                  title="ページを更新"
+                  title={t('map.refresh')}
                 >
                   <RefreshCw className={`w-7 h-7 ${refreshing ? 'animate-spin' : ''}`} />
                 </Button>
                 <span className="text-xs font-bold mt-1 text-gray-700 dark:text-gray-300">
-                  更新
+                  {t('map.refresh')}
                 </span>
               </motion.div>
             </div>
@@ -274,7 +317,7 @@ export default function MapPage() {
                     {/* 距離表示 */}
                     {userLocation && (
                       <p className="text-sm text-muted-foreground font-bold">
-                        現在地から {calculateDistance(
+                        {t('map.distance_from_current')} {calculateDistance(
                           userLocation.lat,
                           userLocation.lng,
                           Number(selectedStore.latitude),
@@ -291,7 +334,7 @@ export default function MapPage() {
                       className="inline-flex items-center gap-1 text-sm text-primary hover:underline font-bold"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      Googleマップで開く
+                      {t('map.open_in_google_maps')}
                       <ExternalLink className="w-3 h-3" />
                     </a>
 
@@ -329,34 +372,34 @@ export default function MapPage() {
           <div className="flex items-center gap-2">
             <img
               src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761311529/%E7%A9%BA%E5%B8%AD%E3%81%82%E3%82%8A_rzejgw.png"
-              alt="空席あり"
+              alt={t('map.vacant')}
               className="w-6 h-6"
             />
-            <span className="text-sm font-bold" style={{ color: '#2a505f' }}>空席あり</span>
+            <span className="text-sm font-bold" style={{ color: '#2a505f' }}>{t('map.vacant')}</span>
           </div>
           <div className="flex items-center gap-2">
             <img
               src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761311676/%E3%82%84%E3%82%84%E6%B7%B7%E9%9B%91_qjfizb.png"
-              alt="やや混雑"
+              alt={t('map.moderate')}
               className="w-6 h-6"
             />
-            <span className="text-sm font-bold" style={{ color: '#2a505f' }}>やや混雑</span>
+            <span className="text-sm font-bold" style={{ color: '#2a505f' }}>{t('map.moderate')}</span>
           </div>
           <div className="flex items-center gap-2">
             <img
               src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761311529/%E6%BA%80%E5%B8%AD_gszsqi.png"
-              alt="満席"
+              alt={t('map.full')}
               className="w-6 h-6"
             />
-            <span className="text-sm font-bold" style={{ color: '#2a505f' }}>満席</span>
+            <span className="text-sm font-bold" style={{ color: '#2a505f' }}>{t('map.full')}</span>
           </div>
           <div className="flex items-center gap-2">
             <img
               src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761318837/icons8-%E9%96%89%E5%BA%97%E3%82%B5%E3%82%A4%E3%83%B3-100_fczegk.png"
-              alt="閉店"
+              alt={t('map.closed')}
               className="w-6 h-6"
             />
-            <span className="text-sm font-bold" style={{ color: '#2a505f' }}>閉店</span>
+            <span className="text-sm font-bold" style={{ color: '#2a505f' }}>{t('map.closed')}</span>
           </div>
         </div>
       </div>

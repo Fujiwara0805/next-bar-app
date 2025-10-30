@@ -66,6 +66,19 @@ export const translations = {
       location_unavailable: '位置情報が利用できません。',
       location_timeout: '位置情報の取得がタイムアウトしました。',
     },
+    // Add this new section
+    map: {
+      home: 'ホーム',
+      store_list: '店舗一覧',
+      refresh: '更新',
+      vacant: '空席あり',
+      moderate: 'やや混雑',
+      full: '満席',
+      closed: '閉店',
+      unknown: '不明',
+      open_in_google_maps: 'Googleマップで開く',
+      distance_from_current: '現在地から',
+    },
   },
   en: {
     // Header
@@ -133,6 +146,19 @@ export const translations = {
       location_permission_denied: 'Location access was denied.',
       location_unavailable: 'Location information unavailable.',
       location_timeout: 'Location request timed out.',
+    },
+    // Add this new section
+    map: {
+      home: 'Home',
+      store_list: 'Store List',
+      refresh: 'Refresh',
+      vacant: 'Available',
+      moderate: 'Moderately Busy',
+      full: 'Full',
+      closed: 'Closed',
+      unknown: 'Unknown',
+      open_in_google_maps: 'Open in Google Maps',
+      distance_from_current: 'Distance',
     },
   },
 };
