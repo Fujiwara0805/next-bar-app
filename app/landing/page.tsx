@@ -181,12 +181,12 @@ src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%
             </motion.div>
             {/* タイトル部分に地域名を追加 */}
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 sm:mb-6 text-foreground">
-              大分の二軒目探しは NIKENME+（ニケンメプラス）
+              大分の二軒目探しは<br/> NIKENME+（ニケンメプラス）
             </h1>
             <p className="text-lg sm:text-xl md:text-2xl text-foreground mb-6 sm:mb-8 max-w-3xl mx-auto px-4 font-bold">
               「夜の続きは、ここから」
               <br/>
-              大分市のバー・スナックの空席を今すぐマップで探そう
+              次のお店を今すぐマップで探そう
             </p>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4">
               <Button 
@@ -379,12 +379,6 @@ src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%
         showCloseButton={false}
       >
         <div className="space-y-4">
-          <div className="flex items-center justify-center py-4 sm:py-6">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-primary/10 flex items-center justify-center">
-              <Navigation className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
-            </div>
-          </div>
-          
           {locationPermission === 'denied' && (
             <div className="p-3 bg-red-50 text-red-600 rounded-lg text-xs sm:text-sm">
               位置情報の取得に失敗しました。デフォルトの位置で地図を表示します。

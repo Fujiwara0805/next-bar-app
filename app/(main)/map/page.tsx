@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, List, ExternalLink, Building2, RefreshCw } from 'lucide-react';
+import { X, List, ExternalLink, Building2, RefreshCw, Home } from 'lucide-react';
 import { MapView } from '@/components/map/map-view';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -157,19 +157,50 @@ export default function MapPage() {
           <div className="flex items-center justify-end">
             
             {/* ボタングループ */}
-            <div className="flex flex-col gap-2">
-              {/* リストボタン */}
-              <Button
-                size="icon"
-                onClick={() => router.push('/store-list')}
-                className="bg-gray-600 w-12 h-12 mt-12 border-2 border-gray-300"
+            <div className="flex flex-col gap-3">
+              {/* ホームボタン */}
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="flex flex-col items-center"
               >
-                <List className="w-7 h-7" />
-              </Button>
+                <Button
+                  size="icon"
+                  onClick={() => router.push('/landing')}
+                  className="bg-gray-600 w-12 h-12 mt-12 border-2 border-gray-300"
+                  title="ホームに戻る"
+                >
+                  <Home className="w-7 h-7" />
+                </Button>
+                <span className="text-xs font-bold mt-1 text-gray-700 dark:text-gray-300">
+                  ホーム
+                </span>
+              </motion.div>
+
+              {/* リストボタン */}
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="flex flex-col items-center"
+              >
+                <Button
+                  size="icon"
+                  onClick={() => router.push('/store-list')}
+                  className="bg-gray-600 w-12 h-12 border-2 border-gray-300"
+                  title="店舗一覧"
+                >
+                  <List className="w-7 h-7" />
+                </Button>
+                <span className="text-xs font-bold mt-1 text-gray-700 dark:text-gray-300">
+                  店舗一覧
+                </span>
+              </motion.div>
 
               {/* 更新ボタン */}
               <motion.div
+                whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
+                className="flex flex-col items-center"
               >
                 <Button
                   size="icon"
@@ -180,6 +211,9 @@ export default function MapPage() {
                 >
                   <RefreshCw className={`w-7 h-7 ${refreshing ? 'animate-spin' : ''}`} />
                 </Button>
+                <span className="text-xs font-bold mt-1 text-gray-700 dark:text-gray-300">
+                  更新
+                </span>
               </motion.div>
             </div>
           </div>
@@ -277,7 +311,7 @@ export default function MapPage() {
 
                 {/* 一言メッセージ */}
                 {selectedStore.status_message && (
-                  <div className="pt-2 border-t">
+                  <div className="pt-2 border-t border-gray-800">
                     <p className="text-sm text-muted-foreground font-bold line-clamp-2">
                       {selectedStore.status_message}
                     </p>
