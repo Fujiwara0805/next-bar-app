@@ -8,9 +8,11 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { CustomModal } from '@/components/ui/custom-modal';
+import { useLanguage } from '@/lib/i18n/context';
 
 export default function LandingPage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [locationPermission, setLocationPermission] = useState<'granted' | 'denied' | 'prompt'>('prompt');
@@ -18,50 +20,46 @@ export default function LandingPage() {
   const features = [
     {
       icon: MapPin,
-      title: '今すぐ入れるお店が見つかる',
-      description: '待たずに入れるお店がすぐ分かります。',
+      title: t('features.feature1_title'),
+      description: t('features.feature1_desc'),
     },
     {
       icon: Store,
-      title: '加盟店のリアルタイム情報',
-      description: 'お店が更新する最新の空席情報をチェック。',
+      title: t('features.feature2_title'),
+      description: t('features.feature2_desc'),
     },
     {
       icon: Navigation,
-      title: 'お店までの距離が分かる',
-      description: '現在地からの距離を表示。',
+      title: t('features.feature3_title'),
+      description: t('features.feature3_desc'),
     },
   ];
 
   const menuItems = [
     {
       icon: FileText,
-      label: '利用規約',
+      label: t('menu.terms'),
       href: '/terms',
     },
     {
       icon: Shield,
-      label: 'プライバシーポリシー',
+      label: t('menu.privacy'),
       href: '/privacy',
     },
     {
       icon: HelpCircle,
-      label: 'よくある質問 (FAQ)',
+      label: t('menu.faq'),
       href: '/faq',
     },
     {
       icon: FileText,
-      label: 'リリースノート',
+      label: t('menu.release_notes'),
       href: '/release-notes',
     },
     {
       icon: Globe,
-      label: '言語設定',
-      href: '#',
-      action: () => {
-        // 将来的な多言語対応用
-        alert('現在は日本語のみ対応しています');
-      },
+      label: t('menu.language'),
+      href: '/language-settings',
     },
   ];
 
@@ -104,16 +102,16 @@ export default function LandingPage() {
             setLocationPermission('denied');
             
             // エラーメッセージを表示
-            let errorMessage = '位置情報の取得に失敗しました。';
+            let errorMessage = t('modal.location_error');
             switch(error.code) {
               case error.PERMISSION_DENIED:
-                errorMessage = '位置情報の使用が拒否されました。';
+                errorMessage = t('modal.location_permission_denied');
                 break;
               case error.POSITION_UNAVAILABLE:
-                errorMessage = '位置情報が利用できません。';
+                errorMessage = t('modal.location_unavailable');
                 break;
               case error.TIMEOUT:
-                errorMessage = '位置情報の取得がタイムアウトしました。';
+                errorMessage = t('modal.location_timeout');
                 break;
             }
             
@@ -201,7 +199,7 @@ export default function LandingPage() {
           <div className="flex items-center gap-2 sm:gap-4">
             <Link href="/login">
               <Button variant="outline" size="sm" className="text-xs sm:text-sm border-2">
-                店舗ログイン
+                {t('header.store_login')}
               </Button>
             </Link>
           </div>
@@ -233,8 +231,8 @@ export default function LandingPage() {
               <div className="p-6 pt-20">
                 {/* メニューヘッダー */}
                 <div className="mb-8">
-                  <h2 className="text-2xl font-bold text-card-foreground mb-2">メニュー</h2>
-                  <p className="text-sm text-muted-foreground">NIKENME+の詳細情報</p>
+                  <h2 className="text-2xl font-bold text-card-foreground mb-2">{t('menu.title')}</h2>
+                  <p className="text-sm text-muted-foreground">{t('menu.subtitle')}</p>
                 </div>
 
                 {/* メニューアイテム */}
@@ -248,27 +246,14 @@ export default function LandingPage() {
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.3, delay: index * 0.05 }}
                       >
-                        {item.action ? (
-                          <button
-                            onClick={() => {
-                              item.action();
-                              setShowMenu(false);
-                            }}
-                            className="w-full flex items-center gap-3 p-4 rounded-lg hover:bg-accent transition-colors text-left"
-                          >
-                            <Icon className="w-5 h-5 text-primary" />
-                            <span className="font-medium text-card-foreground">{item.label}</span>
-                          </button>
-                        ) : (
-                          <Link
-                            href={item.href}
-                            onClick={() => setShowMenu(false)}
-                            className="flex items-center gap-3 p-4 rounded-lg hover:bg-accent transition-colors"
-                          >
-                            <Icon className="w-5 h-5 text-primary" />
-                            <span className="font-medium text-card-foreground">{item.label}</span>
-                          </Link>
-                        )}
+                        <Link
+                          href={item.href}
+                          onClick={() => setShowMenu(false)}
+                          className="flex items-center gap-3 p-4 rounded-lg hover:bg-accent transition-colors"
+                        >
+                          <Icon className="w-5 h-5 text-primary" />
+                          <span className="font-medium text-card-foreground">{item.label}</span>
+                        </Link>
                       </motion.div>
                     );
                   })}
@@ -279,7 +264,7 @@ export default function LandingPage() {
                   <p className="text-xs text-muted-foreground text-center">
                     © 2025 NIKENME+
                     <br />
-                    Version 1.0.0
+                    {t('menu.version')}
                   </p>
                 </div>
               </div>
@@ -321,12 +306,12 @@ src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%
             </motion.div>
             {/* タイトル部分に地域名を追加 */}
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 sm:mb-6 text-white">
-              大分の二軒目探しは<br/> NIKENME+（ニケンメプラス）
+              {t('hero.title')}<br/> {t('hero.title_app')}
             </h1>
             <p className="text-lg sm:text-xl md:text-2xl text-white mb-6 sm:mb-8 max-w-3xl mx-auto px-4 font-bold">
-              「夜の続きは、ここから」
+              {t('hero.subtitle')}
               <br/>
-              次のお店を今すぐマップで探そう
+              {t('hero.subtitle2')}
             </p>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4">
               <Button 
@@ -335,7 +320,7 @@ src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%
                 className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8 text-foreground"
                 onClick={handleMapClick}
               >
-                マップを見る
+                {t('hero.cta')}
               </Button>
             </div>
           </motion.div>
@@ -356,7 +341,7 @@ src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%
               {/* テキストオーバーレイ */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex justify-center items-end pb-8">
                 <p className="text-white text-xl sm:text-3xl font-bold text-center px-4">
-                  地図上で空席状況を確認
+                  {t('hero.demo_text')}
                 </p>
               </div>
             </div>
@@ -384,9 +369,9 @@ src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%
             transition={{ duration: 0.6 }}
             className="text-center mb-12 sm:mb-16"
           >
-            <h2 className="text-3xl sm:text-4xl font-bold mb-3 sm:mb-4 text-white">こんな時に便利</h2>
+            <h2 className="text-3xl sm:text-4xl font-bold mb-3 sm:mb-4 text-white">{t('features.title')}</h2>
             <p className="text-base sm:text-xl text-white/90 font-bold">
-              2軒目のお店探しをもっとスマートに
+              {t('features.subtitle')}
             </p>
           </motion.div>
 
@@ -437,9 +422,9 @@ src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%
             transition={{ duration: 0.6 }}
             className="text-center mb-12 sm:mb-16"
           >
-            <h2 className="text-3xl sm:text-4xl font-bold mb-3 sm:mb-4 text-white">使い方はとても簡単</h2>
+            <h2 className="text-3xl sm:text-4xl font-bold mb-3 sm:mb-4 text-white">{t('how_to.title')}</h2>
             <p className="text-base sm:text-xl text-white/90 font-bold">
-              ログイン不要で今すぐ使えます
+              {t('how_to.subtitle')}
             </p>
           </motion.div>
 
@@ -447,14 +432,14 @@ src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%
             {[
               {
                 step: '1',
-                title: 'マップで空席を確認',
-                description: '地図上のアイコンで空席状況を確認できます。',
+                title: t('how_to.step1_title'),
+                description: t('how_to.step1_desc'),
                 image: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1761800378/27F4F4F4-749D-4141-BEDC-5B93091BA278_1_102_o_juxfgv.jpg',
               },
               {
                 step: '2',
-                title: '店舗の詳細を確認',
-                description: '店舗カードをクリックすると、詳細情報が表示されます。',
+                title: t('how_to.step2_title'),
+                description: t('how_to.step2_desc'),
                 image: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1761802358/%E5%90%8D%E7%A7%B0%E6%9C%AA%E8%A8%AD%E5%AE%9A%E3%81%AE%E3%83%86%E3%82%99%E3%82%B5%E3%82%99%E3%82%A4%E3%83%B3_ekfjbe.png',
               },
             ].map((item, index) => (
@@ -511,10 +496,10 @@ src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%
             transition={{ duration: 0.6 }}
           >
             <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-white">
-              今すぐ入れるお店を探そう
+              {t('cta.title')}
             </h2>
             <p className="text-base sm:text-xl text-white/90 mb-6 sm:mb-8 font-bold">
-              ログイン不要、今すぐマップ画面へ
+              {t('cta.subtitle')}
             </p>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
               <Button 
@@ -523,7 +508,7 @@ src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%
                 className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8 text-foreground"
                 onClick={handleMapClick}
               >
-                マップを見る
+                {t('cta.button')}
               </Button>
             </div>
           </motion.div>
@@ -542,9 +527,9 @@ src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%
               />
             </div>
             <p className="text-xs sm:text-sm text-[#F5F5F5]/80 text-center md:text-right font-bold">
-              © 2025 2軒目. All rights reserved.
+              {t('footer.copyright')}
               <br />
-              いますぐ、2軒目へ
+              {t('footer.slogan')}
             </p>
           </div>
         </div>
@@ -554,14 +539,14 @@ src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%
       <CustomModal
         isOpen={showLocationModal}
         onClose={() => setShowLocationModal(false)}
-        title="位置情報の使用許可"
-        description="位置情報の使用を許可してください。"
+        title={t('modal.location_title')}
+        description={t('modal.location_desc')}
         showCloseButton={false}
       >
         <div className="space-y-4">
           {locationPermission === 'denied' && (
             <div className="p-3 bg-red-50 text-red-600 rounded-lg text-xs sm:text-sm">
-              位置情報の取得に失敗しました。デフォルトの位置で地図を表示します。
+              {t('modal.location_error')}
             </div>
           )}
         
@@ -571,7 +556,7 @@ src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%
               className="w-full"
               size="lg"
             >
-              現在地から探す
+              {t('modal.location_allow')}
             </Button>
             <Button
               onClick={() => handleLocationPermission(false)}
@@ -579,7 +564,7 @@ src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%
               className="w-full"
               size="lg"
             >
-              許可しない
+              {t('modal.location_deny')}
             </Button>
           </div>
         </div>
