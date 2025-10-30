@@ -22,12 +22,14 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/lib/supabase/client';
 import type { Database } from '@/lib/supabase/types';
+import { useLanguage } from '@/lib/i18n/context';
 
 type Store = Database['public']['Tables']['stores']['Row'];
 
 export default function StoreDetailPage() {
   const router = useRouter();
   const params = useParams();
+  const { t } = useLanguage();
   const [store, setStore] = useState<Store | null>(null);
   const [loading, setLoading] = useState(true);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
@@ -114,15 +116,15 @@ export default function StoreDetailPage() {
   const getVacancyLabel = (status: string) => {
     switch (status) {
       case 'vacant':
-        return '空席あり';
+        return t('map.vacant');
       case 'moderate':
-        return 'やや混雑';
+        return t('map.moderate');
       case 'full':
-        return '満席';
+        return t('map.full');
       case 'closed':
-        return '閉店中';
+        return t('map.closed');
       default:
-        return '不明';
+        return t('map.unknown');
     }
   };
 
@@ -158,7 +160,7 @@ export default function StoreDetailPage() {
 
   // 営業時間の表示用関数
   const formatBusinessHours = (hours: any) => {
-    if (!hours) return '情報なし';
+    if (!hours) return t('store_detail.no_info');
     
     // 文字列の場合はそのまま返す
     if (typeof hours === 'string') {
@@ -180,7 +182,7 @@ export default function StoreDetailPage() {
       if (time.closed) return `${dayLabels[day]}: 定休日`;
       if (time.open && time.close) return `${dayLabels[day]}: ${time.open} - ${time.close}`;
       return null;
-    }).filter(Boolean).join(', ') || '情報なし';
+    }).filter(Boolean).join(', ') || t('store_detail.no_info');
   };
 
   if (loading) {
@@ -194,9 +196,9 @@ export default function StoreDetailPage() {
   if (!store) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-6">
-        <p className="text-lg text-muted-foreground font-bold mb-4">店舗が見つかりませんでした</p>
+        <p className="text-lg text-muted-foreground font-bold mb-4">{t('store_detail.not_found')}</p>
         <Button onClick={() => router.back()} className="font-bold">
-          戻る
+          {t('store_detail.back')}
         </Button>
       </div>
     );
@@ -214,7 +216,7 @@ export default function StoreDetailPage() {
     <div className="min-h-screen bg-background pb-6">
       <header className="sticky top-0 z-10 bg-background border-b safe-top">
         <div className="flex items-center justify-center p-4 relative">
-          <h1 className="text-xl font-bold">店舗詳細画面</h1>
+          <h1 className="text-xl font-bold">{t('store_detail.title')}</h1>
           <Button
             size="icon"
             variant="ghost"
@@ -331,7 +333,7 @@ export default function StoreDetailPage() {
               <div className="flex items-start gap-3">
                 <MapPin className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
                 <div className="flex-1">
-                  <p className="text-sm font-bold mb-1">住所</p>
+                  <p className="text-sm font-bold mb-1">{t('store_detail.address')}</p>
                   <div className="space-y-2">
                     <p className="text-sm text-muted-foreground font-bold">{store.address}</p>
                     <motion.button
@@ -343,12 +345,12 @@ export default function StoreDetailPage() {
                       }}
                       className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 hover:underline font-bold"
                     >
-                      <span>Googleマップで開く</span>
+                      <span>{t('store_detail.open_in_google_maps')}</span>
                       <ExternalLink className="w-3 h-3" />
                     </motion.button>
                     {distance !== null && (
                       <p className="text-sm text-muted-foreground font-bold">
-                        現在地から約 {distance < 1 ? `${Math.round(distance * 1000)}m` : `${distance.toFixed(1)}km`}
+                        {t('store_detail.distance_from_current')} {distance < 1 ? `${Math.round(distance * 1000)}m` : `${distance.toFixed(1)}km`}
                       </p>
                     )}
                   </div>
@@ -359,7 +361,7 @@ export default function StoreDetailPage() {
               <div className="flex items-start gap-3">
                 <Clock className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
                 <div className="flex-1">
-                  <p className="text-sm font-bold mb-1">営業時間</p>
+                  <p className="text-sm font-bold mb-1">{t('store_detail.business_hours')}</p>
                   <p className="text-sm text-muted-foreground font-bold">
                     {formatBusinessHours(store.business_hours)}
                   </p>
@@ -376,7 +378,7 @@ export default function StoreDetailPage() {
                 <div className="flex items-start gap-3">
                   <DollarSign className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
                   <div className="flex-1">
-                    <p className="text-sm font-bold mb-1">予算</p>
+                    <p className="text-sm font-bold mb-1">{t('store_detail.budget')}</p>
                     <p className="text-sm text-muted-foreground font-bold">
                       ¥{store.budget_min.toLocaleString()} 〜 ¥{store.budget_max.toLocaleString()}
                     </p>
@@ -388,9 +390,9 @@ export default function StoreDetailPage() {
               <div className="flex items-start gap-3">
                 <Users className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
                 <div className="flex-1">
-                  <p className="text-sm font-bold mb-1">現在の来客層</p>
+                  <p className="text-sm font-bold mb-1">{t('store_detail.customer_demographics')}</p>
                   <p className="text-sm text-muted-foreground font-bold">
-                    男性 {store.male_ratio}人 / 女性 {store.female_ratio}人
+                    {t('store_detail.male')} {store.male_ratio}{t('store_detail.people')} / {t('store_detail.female')} {store.female_ratio}{t('store_detail.people')}
                   </p>
                 </div>
               </div>
@@ -400,7 +402,7 @@ export default function StoreDetailPage() {
                 <div className="flex items-start gap-3">
                   <Phone className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
                   <div className="flex-1">
-                    <p className="text-sm font-bold mb-1">電話番号</p>
+                    <p className="text-sm font-bold mb-1">{t('store_detail.phone')}</p>
                     <a
                       href={`tel:${store.phone}`}
                       className="text-sm text-primary hover:underline block mb-1 font-bold"
@@ -408,7 +410,7 @@ export default function StoreDetailPage() {
                       {store.phone}
                     </a>
                     <p className="text-xs text-muted-foreground italic font-bold">
-                      「２軒目を見ましたと言ってください」
+                      {t('store_detail.phone_note')}
                     </p>
                   </div>
                 </div>
@@ -419,7 +421,7 @@ export default function StoreDetailPage() {
                 <div className="flex items-start gap-3">
                   <ExternalLink className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
                   <div className="flex-1">
-                    <p className="text-sm font-bold mb-2">ウェブサイト</p>
+                    <p className="text-sm font-bold mb-2">{t('store_detail.website')}</p>
                     <div className="flex gap-3">
                       {store.website_url.includes('instagram.com') ? (
                         <motion.a
@@ -462,7 +464,7 @@ export default function StoreDetailPage() {
                 <div className="flex items-start gap-3">
                   <CreditCard className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
                   <div className="flex-1">
-                    <p className="text-sm font-bold mb-1">支払い方法</p>
+                    <p className="text-sm font-bold mb-1">{t('store_detail.payment_methods')}</p>
                     <div className="flex flex-wrap gap-2 mt-2">
                       {store.payment_methods.map((method) => (
                         <Badge key={method} variant="secondary" className="font-bold">
@@ -479,7 +481,7 @@ export default function StoreDetailPage() {
                 <div className="flex items-start gap-3">
                   <Wifi className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
                   <div className="flex-1">
-                    <p className="text-sm font-bold mb-1">設備・サービス</p>
+                    <p className="text-sm font-bold mb-1">{t('store_detail.facilities')}</p>
                     <div className="flex flex-wrap gap-2 mt-2">
                       {store.facilities.map((facility) => (
                         <Badge key={facility} variant="secondary" className="font-bold">

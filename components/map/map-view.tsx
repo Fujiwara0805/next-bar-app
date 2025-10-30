@@ -86,7 +86,7 @@ export function MapView({ stores, center, onStoreClick }: MapViewProps) {
 
       const map = new google.maps.Map(mapRef.current, {
         center: defaultCenter,
-        zoom: 15,
+        zoom: 14,
         disableDefaultUI: false,
         zoomControl: true,
         mapTypeControl: false,

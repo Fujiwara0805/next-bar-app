@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Store, ArrowRight, Navigation, Menu, X, FileText, Shield, HelpCircle, Globe } from 'lucide-react';
+import { MapPin, Store, ArrowRight, Navigation, Menu, X, FileText, Shield, HelpCircle, Globe, Languages } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -12,7 +12,7 @@ import { useLanguage } from '@/lib/i18n/context';
 
 export default function LandingPage() {
   const router = useRouter();
-  const { t } = useLanguage();
+  const { t, language, setLanguage } = useLanguage();
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [locationPermission, setLocationPermission] = useState<'granted' | 'denied' | 'prompt'>('prompt');
@@ -167,6 +167,13 @@ export default function LandingPage() {
     }
   };
 
+  const handleLanguageToggle = () => {
+    const newLanguage = language === 'ja' ? 'en' : 'ja';
+    setLanguage(newLanguage);
+    // ページをリロード
+    window.location.reload();
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* ヘッダー - レスポンシブ対応 */}
@@ -196,6 +203,33 @@ export default function LandingPage() {
           </div>
         </div>
       </header>
+
+      {/* 言語切り替えボタン（固定・右下） */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.5 }}
+        className="fixed bottom-6 right-6 z-50"
+      >
+        <motion.div
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+        >
+          <Button
+            size="lg"
+            onClick={handleLanguageToggle}
+            className="rounded-full w-14 h-14 shadow-lg bg-primary hover:bg-primary/90 text-primary-foreground"
+            title={language === 'ja' ? 'Switch to English' : '日本語に切り替え'}
+          >
+            <Languages className="w-6 h-6" />
+          </Button>
+        </motion.div>
+        <div className="text-center mt-2">
+          <span className="text-xs font-bold bg-background/80 backdrop-blur-sm px-2 py-1 rounded">
+            {language === 'ja' ? 'EN' : 'JA'}
+          </span>
+        </div>
+      </motion.div>
 
       {/* サイドメニュー */}
       <AnimatePresence>
