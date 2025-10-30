@@ -186,15 +186,6 @@ export default function LandingPage() {
             )}
           </Button>
 
-          {/* 中央のロゴ */}
-          <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center">
-            <img 
-              src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%83%BC%E3%83%92%E3%82%99%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png"
-              alt="NIKENME+"
-              className="h-10 sm:h-12 w-auto object-contain"
-            />
-          </div>
-
           {/* 店舗ログインボタン */}
           <div className="flex items-center gap-2 sm:gap-4">
             <Link href="/login">
