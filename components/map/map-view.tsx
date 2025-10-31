@@ -92,6 +92,9 @@ export function MapView({ stores, center, onStoreClick }: MapViewProps) {
         mapTypeControl: false,
         streetViewControl: false,
         fullscreenControl: false,
+        // タッチ操作の最適化
+        gestureHandling: 'greedy', // スクロールとピンチ操作を優先
+        clickableIcons: false, // デフォルトのPOIアイコンを無効化
       });
 
       mapInstanceRef.current = map;
@@ -132,16 +135,43 @@ export function MapView({ stores, center, onStoreClick }: MapViewProps) {
         title: store.name,
         icon: {
           url: getMarkerIcon(store.vacancy_status),
-          scaledSize: new google.maps.Size(40, 40),
-          anchor: new google.maps.Point(20, 20),
+          scaledSize: new google.maps.Size(48, 48), // サイズを大きく（40→48）
+          anchor: new google.maps.Point(24, 24), // アンカーも調整
         },
-        optimized: false,
+        optimized: true, // パフォーマンス改善のためtrueに変更
         zIndex: 100,
-        cursor: 'pointer', // カーソルをポインターに設定
+        cursor: 'pointer',
+        // タップ領域を拡大
+        clickable: true,
       });
 
+      // タッチデバイス用の追加設定
       marker.addListener('click', () => {
+        console.log('Store clicked:', store.name);
         if (onStoreClick) {
+          // マーカークリック時にフィードバックを追加
+          marker.setAnimation(google.maps.Animation.BOUNCE);
+          setTimeout(() => marker.setAnimation(null), 700);
+          onStoreClick(store);
+        }
+      });
+
+      // タップ領域をさらに広げるために、見えない円形エリアを追加
+      const touchArea = new google.maps.Circle({
+        map: mapInstanceRef.current!,
+        center: { lat: Number(store.latitude), lng: Number(store.longitude) },
+        radius: 10, // 10m半径のタップ可能エリア
+        fillOpacity: 0,
+        strokeOpacity: 0,
+        clickable: true,
+        zIndex: 99,
+      });
+
+      touchArea.addListener('click', () => {
+        console.log('Touch area clicked:', store.name);
+        if (onStoreClick) {
+          marker.setAnimation(google.maps.Animation.BOUNCE);
+          setTimeout(() => marker.setAnimation(null), 700);
           onStoreClick(store);
         }
       });

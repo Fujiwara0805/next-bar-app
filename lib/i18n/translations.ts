@@ -79,6 +79,21 @@ export const translations = {
       open_in_google_maps: 'Googleマップで開く',
       distance_from_current: '現在地から',
     },
+    store_list: {
+      title: '店舗一覧',
+      search_placeholder: '店舗名で検索...',
+      results_count: '件の店舗',
+      loading: '読み込み中...',
+      no_results: '検索結果が見つかりませんでした',
+      no_stores: '店舗が見つかりませんでした',
+      vacant: '空席あり',
+      moderate: 'やや混雑',
+      full: '満席',
+      closed: '閉店',
+      unknown: '不明',
+      distance_from_current: '現在地から',
+      open_in_google_maps: 'Googleマップで開く',
+    },
     // 店舗詳細画面用の翻訳を追加
     store_detail: {
       title: '店舗詳細画面',
@@ -180,6 +195,21 @@ export const translations = {
       unknown: 'Unknown',
       open_in_google_maps: 'Open in Google Maps',
       distance_from_current: 'Distance',
+    },
+    store_list: {
+      title: 'Store List',
+      search_placeholder: 'Search by store name...',
+      results_count: ' stores',
+      loading: 'Loading...',
+      no_results: 'No search results found',
+      no_stores: 'No stores found',
+      vacant: 'Available',
+      moderate: 'Moderately Busy',
+      full: 'Full',
+      closed: 'Closed',
+      unknown: 'Unknown',
+      distance_from_current: 'Distance',
+      open_in_google_maps: 'Open in Google Maps',
     },
     // 店舗詳細画面用の翻訳を追加
     store_detail: {

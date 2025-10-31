@@ -137,6 +137,34 @@
   .safe-right {
     padding-right: env(safe-area-inset-right);
   }
+
+  /* タッチ操作の最適化 */
+  .touch-manipulation {
+    touch-action: manipulation;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* ボタンのアクティブ状態 */
+  button:active,
+  .cursor-pointer:active {
+    transform: scale(0.97);
+    transition: transform 0.1s ease;
+  }
+
+  /* タップ領域の拡大 */
+  .tap-target {
+    position: relative;
+  }
+
+  .tap-target::before {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    right: -10px;
+    bottom: -10px;
+  }
 }
 
 /* PWA対応 - セーフエリアサポート */
@@ -175,4 +203,21 @@ a {
 /* スクロールの最適化 */
 * {
   -webkit-overflow-scrolling: touch;
+}
+
+/* タッチ操作のフィードバック強化 */
+button,
+a,
+.cursor-pointer {
+  -webkit-tap-highlight-color: rgba(44, 95, 111, 0.1);
+  -webkit-touch-callout: none;
+}
+
+/* ポインターイベントの最適化 */
+.pointer-events-none {
+  pointer-events: none;
+}
+
+.pointer-events-auto {
+  pointer-events: auto;
 }

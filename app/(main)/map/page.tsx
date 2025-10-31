@@ -188,9 +188,9 @@ export default function MapPage() {
   };
 
   return (
-    <div className="relative h-screen flex flex-col">
+    <div className="relative h-screen flex flex-col touch-manipulation">
       {/* ヘッダー - レスポンシブ対応 */}
-      <header className="absolute top-0 left-0 right-0 z-10 pt-4 sm:pt-6 px-3 sm:px-4 safe-top">
+      <header className="absolute top-0 left-0 right-0 z-10 pt-4 sm:pt-6 px-3 sm:px-4 safe-top pointer-events-none">
         <motion.div
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -200,7 +200,7 @@ export default function MapPage() {
           <div className="flex items-center justify-end">
             
             {/* ボタングループ */}
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3 pointer-events-auto">
               {/* ホームボタン */}
               <motion.div
                 whileHover={{ scale: 1.05 }}
@@ -210,7 +210,7 @@ export default function MapPage() {
                 <Button
                   size="icon"
                   onClick={() => router.push('/landing')}
-                  className="bg-gray-600 w-12 h-12 mt-12 border-2 border-gray-300"
+                  className="bg-gray-600 w-14 h-14 mt-12 border-2 border-gray-300 touch-manipulation active:scale-95"
                   title={t('map.home')}
                 >
                   <Home className="w-7 h-7" />
@@ -229,7 +229,7 @@ export default function MapPage() {
                 <Button
                   size="icon"
                   onClick={() => router.push('/store-list')}
-                  className="bg-gray-600 w-12 h-12 border-2 border-gray-300"
+                  className="bg-gray-600 w-14 h-14 border-2 border-gray-300 touch-manipulation active:scale-95"
                   title={t('map.store_list')}
                 >
                   <List className="w-7 h-7" />
@@ -249,7 +249,7 @@ export default function MapPage() {
                   size="icon"
                   onClick={handleRefresh}
                   disabled={refreshing}
-                  className="bg-gray-600 w-12 h-12 border-2 border-gray-300"
+                  className="bg-gray-600 w-14 h-14 border-2 border-gray-300 touch-manipulation active:scale-95"
                   title={t('map.refresh')}
                 >
                   <RefreshCw className={`w-7 h-7 ${refreshing ? 'animate-spin' : ''}`} />
@@ -277,10 +277,11 @@ export default function MapPage() {
             initial={{ y: 100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 100, opacity: 0 }}
-            className="fixed bottom-0 left-0 right-0 z-30 bg-card shadow-lg border-t safe-bottom"
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className="fixed bottom-0 left-0 right-0 z-30 bg-card shadow-lg border-t safe-bottom touch-manipulation"
           >
             <Card 
-              className="rounded-t-3xl rounded-b-none border-0 cursor-pointer"
+              className="rounded-t-3xl rounded-b-none border-0 cursor-pointer active:bg-muted/50 transition-colors"
               onClick={() => router.push(`/store/${selectedStore.id}`)}
             >
               <div className="p-4 space-y-3">
@@ -367,7 +368,7 @@ export default function MapPage() {
       </AnimatePresence>
 
       {/* 凡例（画面左下） */}
-      <div className="fixed bottom-24 left-4 z-20 bg-card/90 backdrop-blur-sm rounded-lg shadow-lg p-3 safe-bottom">
+      <div className="fixed bottom-24 left-4 z-20 bg-card/90 backdrop-blur-sm rounded-lg shadow-lg p-3 safe-bottom pointer-events-auto">
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <img
