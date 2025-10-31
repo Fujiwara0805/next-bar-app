@@ -136,6 +136,8 @@ export function MapView({ stores, center, onStoreClick }: MapViewProps) {
           anchor: new google.maps.Point(20, 20),
         },
         optimized: false,
+        zIndex: 100,
+        cursor: 'pointer', // カーソルをポインターに設定
       });
 
       marker.addListener('click', () => {

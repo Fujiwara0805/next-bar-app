@@ -204,7 +204,7 @@ export default function LandingPage() {
         </div>
       </header>
 
-      {/* 言語切り替えボタン（固定・右下） */}
+      {/* 言語切り替えボタン（固定・右下）- テキスト表示に変更 */}
       <motion.div
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -212,23 +212,25 @@ export default function LandingPage() {
         className="fixed bottom-6 right-6 z-50"
       >
         <motion.div
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
         >
           <Button
             size="lg"
             onClick={handleLanguageToggle}
-            className="rounded-full w-14 h-14 shadow-lg bg-primary hover:bg-primary/90 text-primary-foreground"
+            className="rounded-lg px-4 py-2 shadow-lg bg-white hover:bg-gray-100 border-2 border-gray-300"
             title={language === 'ja' ? 'Switch to English' : '日本語に切り替え'}
           >
-            <Languages className="w-6 h-6" />
+            <div className="flex flex-col items-center gap-1">
+              <span className="text-base font-bold text-gray-700">
+                {language === 'ja' ? '日本語' : 'English'}
+              </span>
+              <span className="text-xs font-normal text-gray-500">
+                {language === 'ja' ? '言語設定' : 'Language'}
+              </span>
+            </div>
           </Button>
         </motion.div>
-        <div className="text-center mt-2">
-          <span className="text-xs font-bold bg-background/80 backdrop-blur-sm px-2 py-1 rounded">
-            {language === 'ja' ? 'EN' : 'JA'}
-          </span>
-        </div>
       </motion.div>
 
       {/* サイドメニュー */}

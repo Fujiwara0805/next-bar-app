@@ -9,11 +9,13 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/lib/supabase/client';
 import type { Database } from '@/lib/supabase/types';
+import { useLanguage } from '@/lib/i18n/context';
 
 type Store = Database['public']['Tables']['stores']['Row'];
 
 export default function StoreListPage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [stores, setStores] = useState<Store[]>([]);
   const [filteredStores, setFilteredStores] = useState<Store[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -147,15 +149,15 @@ export default function StoreListPage() {
   const getVacancyLabel = (status: string) => {
     switch (status) {
       case 'vacant':
-        return '空席あり';
+        return t('store_list.vacant');
       case 'moderate':
-        return 'やや混雑';
+        return t('store_list.moderate');
       case 'full':
-        return '満席';
+        return t('store_list.full');
       case 'closed':
-        return '閉店中';
+        return t('store_list.closed');
       default:
-        return '不明';
+        return t('store_list.unknown');
     }
   };
 
@@ -180,7 +182,7 @@ export default function StoreListPage() {
       <header className="sticky top-0 z-10 bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="mb-4">
-            <h1 className="text-xl font-bold text-card-foreground text-center">店舗リスト</h1>
+            <h1 className="text-xl font-bold text-card-foreground text-center">{t('store_list.title')}</h1>
           </div>
           
           {/* 検索バー */}
@@ -188,7 +190,7 @@ export default function StoreListPage() {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
             <Input
               type="text"
-              placeholder="店舗名で検索..."
+              placeholder={t('store_list.search_placeholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10 pr-10 bg-white border-gray-300 text-base font-bold"
@@ -208,7 +210,7 @@ export default function StoreListPage() {
           
           {/* 検索結果数 */}
           <p className="text-sm text-card-foreground/70 mt-2 font-bold">
-            {filteredStores.length}件の店舗（距離順）
+            {filteredStores.length}{t('store_list.results_count')}
           </p>
         </div>
       </header>
@@ -219,13 +221,13 @@ export default function StoreListPage() {
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
               <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-              <p className="text-sm text-white font-bold">読み込み中...</p>
+              <p className="text-sm text-white font-bold">{t('store_list.loading')}</p>
             </div>
           </div>
         ) : filteredStores.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-white font-bold">
-              {searchQuery ? '検索結果が見つかりませんでした' : '店舗がありません'}
+              {searchQuery ? t('store_list.no_results') : t('store_list.no_stores')}
             </p>
           </div>
         ) : (
@@ -261,7 +263,7 @@ export default function StoreListPage() {
                           {/* 距離表示 */}
                           {userLocation && (
                             <p className="text-sm text-card-foreground/70 font-bold">
-                              現在地から {calculateDistance(
+                              {t('store_list.distance_from_current')} {calculateDistance(
                                 userLocation.lat,
                                 userLocation.lng,
                                 Number(store.latitude),
@@ -281,7 +283,7 @@ export default function StoreListPage() {
                             }}
                             className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 hover:underline font-bold"
                           >
-                            <span>Googleマップで開く</span>
+                            <span>{t('store_list.open_in_google_maps')}</span>
                             <ExternalLink className="w-3 h-3" />
                           </motion.button>
                           
