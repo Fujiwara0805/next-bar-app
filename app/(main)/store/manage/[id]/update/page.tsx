@@ -596,7 +596,7 @@ export default function StoreUpdatePage() {
           <Tabs defaultValue="status" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="status" className="font-bold">店舗状況</TabsTrigger>
-              <TabsTrigger value="basic" className="font-bold">基本情報設定</TabsTrigger>
+              <TabsTrigger value="basic" className="font-bold">基本情報</TabsTrigger>
             </TabsList>
 
             {/* 店舗状況タブ */}
@@ -733,7 +733,7 @@ export default function StoreUpdatePage() {
               </form>
             </TabsContent>
 
-            {/* 基本情報設定タブ */}
+            {/* 基本情報ブロック */}
             <TabsContent value="basic">
               <form onSubmit={handleBasicInfoSubmit} className="space-y-6">
                 <Card className="p-6">

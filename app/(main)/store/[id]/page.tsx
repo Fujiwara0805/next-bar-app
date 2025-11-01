@@ -367,7 +367,7 @@ export default function StoreDetailPage() {
                   </p>
                   {store.regular_holiday && (
                     <p className="text-sm text-muted-foreground font-bold mt-1">
-                      {store.regular_holiday}
+                      {t('store_detail.regular_holiday')}: {store.regular_holiday}
                     </p>
                   )}
                 </div>
@@ -487,7 +487,7 @@ export default function StoreDetailPage() {
                     {store.facilities.some(f => ['一人客歓迎', 'おひとり様大歓迎', '初めての方歓迎'].includes(f)) && (
                       <div className="mb-3 p-2 bg-blue-50 rounded-lg border border-blue-200">
                         <p className="text-xs text-blue-700 font-bold mb-1 flex items-center gap-1">
-                          ✨ 新規・一人客も安心
+                          ✨ {t('store_detail.facilities_newcomer')}
                         </p>
                         <div className="flex flex-wrap gap-1">
                           {store.facilities
@@ -505,7 +505,7 @@ export default function StoreDetailPage() {
                     {store.facilities.some(f => ['女性客多め', '女性一人でも安心', '女性スタッフ在籍', 'レディースデー有'].includes(f)) && (
                       <div className="mb-3 p-2 bg-pink-50 rounded-lg border border-pink-200">
                         <p className="text-xs text-pink-700 font-bold mb-1 flex items-center gap-1">
-                          💕 女性のお客様歓迎
+                          💕 {t('store_detail.facilities_women')}
                         </p>
                         <div className="flex flex-wrap gap-1">
                           {store.facilities
@@ -523,7 +523,7 @@ export default function StoreDetailPage() {
                     {store.facilities.some(f => ['チャージなし', '席料なし', 'お通しなし', '明朗会計', '価格表示あり'].includes(f)) && (
                       <div className="mb-3 p-2 bg-green-50 rounded-lg border border-green-200">
                         <p className="text-xs text-green-700 font-bold mb-1 flex items-center gap-1">
-                          💰 安心の料金システム
+                          💰 {t('store_detail.facilities_pricing')}
                         </p>
                         <div className="flex flex-wrap gap-1">
                           {store.facilities

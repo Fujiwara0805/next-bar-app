@@ -409,8 +409,8 @@ export default function NewStorePage() {
           facilities: facilities,
           is_open: false,
           vacancy_status: 'vacant',
-          male_ratio: 50,
-          female_ratio: 50,
+          male_ratio: 0,
+          female_ratio: 0,
         } as any);
 
       if (storeError) {
