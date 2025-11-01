@@ -12,18 +12,26 @@ export const metadata: Metadata = {
   description: '大分で『いま入れるお店』が地図でひと目でわかる。2軒目、バー、スナック、居酒屋の空席情報をリアルタイムで確認。はしご酒・飲み歩きに最適。ログイン不要で今すぐ使える。',
   
   // AI検索エンジン向けの詳細な説明を追加
-  abstract: 'NIKENME+（ニケンメプラス）は、大分県大分市で2軒目・バー・スナック・居酒屋を探すユーザー向けの空席情報マップサービスです。リアルタイムで店舗の空席状況を確認でき、ログイン不要で即座に利用できます。はしご酒や飲み歩きをする際に、待たずに入れるお店を地図上で簡単に見つけられます。',
+  abstract: 'NIKENME+（ニケンメプラス）は、大分県内全域で2軒目・バー・スナック・居酒屋を探すユーザー向けの空席情報マップサービスです。リアルタイムで店舗の空席状況を確認でき、ログイン不要で即座に利用できます。はしご酒や飲み歩きをする際に、待たずに入れるお店を地図上で簡単に見つけられます。',
   
   manifest: '/manifest.json',
   
-  // アイコン設定を追加（Googleの検索結果に表示されるように）
+  // アイコン設定を最適化（Googleの検索結果に表示されるように）
   icons: {
     icon: [
-      { url: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%83%BC%E3%83%92%E3%82%99%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png', sizes: '32x32', type: 'image/png' },
-      { url: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%83%BC%E3%83%92%E3%82%99%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png', sizes: '192x192', type: 'image/png' },
+      { url: 'https://res.cloudinary.com/dz9trbwma/image/upload/c_scale,w_16/v1761355092/%E3%82%B5%E3%83%BC%E3%83%92%E3%82%99%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png', sizes: '16x16', type: 'image/png' },
+      { url: 'https://res.cloudinary.com/dz9trbwma/image/upload/c_scale,w_32/v1761355092/%E3%82%B5%E3%83%BC%E3%83%92%E3%82%99%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png', sizes: '32x32', type: 'image/png' },
+      { url: 'https://res.cloudinary.com/dz9trbwma/image/upload/c_scale,w_48/v1761355092/%E3%82%B5%E3%83%BC%E3%83%92%E3%82%99%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png', sizes: '48x48', type: 'image/png' },
+      { url: 'https://res.cloudinary.com/dz9trbwma/image/upload/c_scale,w_192/v1761355092/%E3%82%B5%E3%83%BC%E3%83%92%E3%82%99%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png', sizes: '192x192', type: 'image/png' },
     ],
     apple: [
-      { url: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%83%BC%E3%83%92%E3%82%99%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png', sizes: '180x180', type: 'image/png' },
+      { url: 'https://res.cloudinary.com/dz9trbwma/image/upload/c_scale,w_180/v1761355092/%E3%82%B5%E3%83%BC%E3%83%92%E3%82%99%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png', sizes: '180x180', type: 'image/png' },
+    ],
+    other: [
+      {
+        rel: 'mask-icon',
+        url: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%83%BC%E3%83%92%E3%82%99%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png',
+      },
     ],
   },
   
@@ -156,10 +164,12 @@ export default function RootLayout({
   return (
     <html lang="ja">
       <head>
-        {/* ファビコン - 複数サイズを提供 */}
-        <link rel="icon" type="image/png" sizes="32x32" href="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%83%BC%E3%83%92%E3%82%99%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png" />
-        <link rel="icon" type="image/png" sizes="16x16" href="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%83%BC%E3%83%92%E3%82%99%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png" />
-        <link rel="apple-touch-icon" sizes="180x180" href="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%83%BC%E3%83%92%E3%82%99%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png" />
+        {/* ファビコン - 複数サイズを提供（Google検索結果表示用に最適化） */}
+        <link rel="icon" type="image/png" sizes="16x16" href="https://res.cloudinary.com/dz9trbwma/image/upload/c_scale,w_16/v1761355092/%E3%82%B5%E3%83%BC%E3%83%92%E3%82%99%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png" />
+        <link rel="icon" type="image/png" sizes="32x32" href="https://res.cloudinary.com/dz9trbwma/image/upload/c_scale,w_32/v1761355092/%E3%82%B5%E3%83%BC%E3%83%92%E3%82%99%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png" />
+        <link rel="icon" type="image/png" sizes="48x48" href="https://res.cloudinary.com/dz9trbwma/image/upload/c_scale,w_48/v1761355092/%E3%82%B5%E3%83%BC%E3%83%92%E3%82%99%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="https://res.cloudinary.com/dz9trbwma/image/upload/c_scale,w_180/v1761355092/%E3%82%B5%E3%83%BC%E3%83%92%E3%82%99%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png" />
+        <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#3b82f6" />
         
         {/* 構造化データ (JSON-LD) - より詳細な情報を追加 */}
