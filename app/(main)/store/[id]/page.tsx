@@ -482,12 +482,74 @@ export default function StoreDetailPage() {
                   <Wifi className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
                   <div className="flex-1">
                     <p className="text-sm font-bold mb-1">{t('store_detail.facilities')}</p>
+                    
+                    {/* 新規客・一人客向けを強調表示 */}
+                    {store.facilities.some(f => ['一人客歓迎', 'おひとり様大歓迎', '初めての方歓迎'].includes(f)) && (
+                      <div className="mb-3 p-2 bg-blue-50 rounded-lg border border-blue-200">
+                        <p className="text-xs text-blue-700 font-bold mb-1 flex items-center gap-1">
+                          ✨ 新規・一人客も安心
+                        </p>
+                        <div className="flex flex-wrap gap-1">
+                          {store.facilities
+                            .filter(f => ['一人客歓迎', 'おひとり様大歓迎', '初めての方歓迎', 'カウンター充実', '常連さんが優しい'].includes(f))
+                            .map((facility) => (
+                              <Badge key={facility} variant="secondary" className="font-bold bg-blue-100 text-blue-800 border-blue-300">
+                                {facility}
+                              </Badge>
+                            ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 女性客向けを強調表示 */}
+                    {store.facilities.some(f => ['女性客多め', '女性一人でも安心', '女性スタッフ在籍', 'レディースデー有'].includes(f)) && (
+                      <div className="mb-3 p-2 bg-pink-50 rounded-lg border border-pink-200">
+                        <p className="text-xs text-pink-700 font-bold mb-1 flex items-center gap-1">
+                          💕 女性のお客様歓迎
+                        </p>
+                        <div className="flex flex-wrap gap-1">
+                          {store.facilities
+                            .filter(f => ['女性客多め', '女性一人でも安心', '女性バーテンダー在籍', '女性スタッフ在籍', 'レディースデー有'].includes(f))
+                            .map((facility) => (
+                              <Badge key={facility} variant="secondary" className="font-bold bg-pink-100 text-pink-800 border-pink-300">
+                                {facility}
+                              </Badge>
+                            ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 料金関連を強調表示 */}
+                    {store.facilities.some(f => ['チャージなし', '席料なし', 'お通しなし', '明朗会計', '価格表示あり'].includes(f)) && (
+                      <div className="mb-3 p-2 bg-green-50 rounded-lg border border-green-200">
+                        <p className="text-xs text-green-700 font-bold mb-1 flex items-center gap-1">
+                          💰 安心の料金システム
+                        </p>
+                        <div className="flex flex-wrap gap-1">
+                          {store.facilities
+                            .filter(f => ['チャージなし', '席料なし', 'お通しなし', '明朗会計', '価格表示あり', '予算相談OK'].includes(f))
+                            .map((facility) => (
+                              <Badge key={facility} variant="secondary" className="font-bold bg-green-100 text-green-800 border-green-300">
+                                {facility}
+                              </Badge>
+                            ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* その他の設備・サービス */}
                     <div className="flex flex-wrap gap-2 mt-2">
-                      {store.facilities.map((facility) => (
-                        <Badge key={facility} variant="secondary" className="font-bold">
-                          {facility}
-                        </Badge>
-                      ))}
+                      {store.facilities
+                        .filter(f => ![
+                          '一人客歓迎', 'おひとり様大歓迎', '初めての方歓迎', 'カウンター充実', '常連さんが優しい',
+                          '女性客多め', '女性一人でも安心', '女性バーテンダー在籍', '女性スタッフ在籍', 'レディースデー有',
+                          'チャージなし', '席料なし', 'お通しなし', '明朗会計', '価格表示あり', '予算相談OK'
+                        ].includes(f))
+                        .map((facility) => (
+                          <Badge key={facility} variant="secondary" className="font-bold">
+                            {facility}
+                          </Badge>
+                        ))}
                     </div>
                   </div>
                 </div>
