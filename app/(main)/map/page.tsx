@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, List, ExternalLink, Building2, RefreshCw, Home } from 'lucide-react';
 import { MapView } from '@/components/map/map-view';
@@ -15,6 +15,7 @@ type Store = Database['public']['Tables']['stores']['Row'];
 
 export default function MapPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { t } = useLanguage();
   const [stores, setStores] = useState<Store[]>([]);
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);
@@ -23,8 +24,16 @@ export default function MapPage() {
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
+    // 初回ロードまたはrefreshパラメータがある場合に実行
+    const shouldRefresh = searchParams?.get('refresh') === 'true';
+    
     fetchStores();
     loadUserLocation();
+
+    // refreshパラメータがあった場合は削除（履歴を汚さない）
+    if (shouldRefresh) {
+      router.replace('/map', { scroll: false });
+    }
 
     // リアルタイム更新の設定
     const channel = supabase
@@ -46,7 +55,7 @@ export default function MapPage() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [searchParams, router]);
 
   const fetchStores = async () => {
     try {

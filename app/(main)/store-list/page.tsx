@@ -327,7 +327,7 @@ export default function StoreListPage() {
         >
           <Button
             size="icon"
-            onClick={() => router.push('/map')}
+            onClick={() => router.push('/map?refresh=true')}
             className="w-14 h-14 rounded-full shadow-lg bg-primary hover:bg-primary/90"
           >
             <MapIcon className="w-6 h-6" />

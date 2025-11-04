@@ -220,7 +220,7 @@ export default function StoreDetailPage() {
           <Button
             size="icon"
             variant="ghost"
-            onClick={() => router.push('/map')}
+            onClick={() => router.push('/map?refresh=true')}
             className="rounded-full absolute right-4"
           >
             <X className="w-5 h-5" />
