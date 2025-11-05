@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, List, ExternalLink, Building2, RefreshCw, Home } from 'lucide-react';
@@ -13,7 +13,8 @@ import { useLanguage } from '@/lib/i18n/context';
 
 type Store = Database['public']['Tables']['stores']['Row'];
 
-export default function MapPage() {
+// useSearchParams()を使用する内部コンポーネント
+function MapPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t } = useLanguage();
@@ -414,5 +415,21 @@ export default function MapPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Suspenseでラップしたエクスポートコンポーネント
+export default function MapPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center h-screen bg-gray-50">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-muted-foreground">地図を読み込んでいます...</p>
+        </div>
+      </div>
+    }>
+      <MapPageContent />
+    </Suspense>
   );
 }
