@@ -74,7 +74,7 @@ export default function ProfileEditPage() {
         toast.success('確認メールを送信しました', {
           description: '新しいメールアドレスに送信された確認リンクをクリックしてください',
           position: 'top-center',
-          duration: 5000,
+          duration: 1000,
           className: 'bg-gray-100'
         });
       }
@@ -95,7 +95,7 @@ export default function ProfileEditPage() {
 
       toast.success('プロフィールを更新しました', {
         position: 'top-center',
-        duration: 2000,
+        duration: 1000,
         className: 'bg-gray-100'
       });
 

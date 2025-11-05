@@ -81,6 +81,9 @@ export default function RegisterPage() {
       console.log('Sign up successful');
       toast.success('アカウントを作成しました', {
         description: '店舗情報を登録できます',
+        position: 'top-center',
+        duration: 1000,
+        className: 'bg-gray-100'
       });
       
       // 成功後、店舗管理画面または店舗登録画面へ

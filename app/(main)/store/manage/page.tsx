@@ -97,7 +97,7 @@ export default function StoreManagePage() {
       toast.success('店舗を削除しました', {
         description: `${storeToDelete.name}の情報を削除しました`,
         position: 'top-center',
-        duration: 2000,
+        duration: 1000,
         className: 'bg-gray-100'
       });
 
@@ -140,7 +140,7 @@ export default function StoreManagePage() {
       toast.success('パスワードリセットメールを送信しました', {
         description: `${storeToResetPassword.email} にメールを送信しました。店舗に確認を依頼してください。`,
         position: 'top-center',
-        duration: 5000,
+        duration: 1000,
         className: 'bg-gray-100'
       });
 

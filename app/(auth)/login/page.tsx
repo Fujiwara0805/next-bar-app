@@ -33,7 +33,11 @@ export default function LoginPage() {
         return;
       }
 
-      toast.success('ログインしました');
+      toast.success('ログインしました', {
+        position: 'top-center',
+        duration: 1000,
+        className: 'bg-gray-100'
+      });
 
       // アカウントタイプによってリダイレクト先を変更
       if (accountType === 'platform') {

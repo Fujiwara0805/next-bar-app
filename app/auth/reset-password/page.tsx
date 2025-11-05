@@ -38,7 +38,11 @@ export default function ResetPasswordPage() {
 
       if (error) throw error;
 
-      toast.success('パスワードを変更しました');
+      toast.success('パスワードを変更しました', {
+        position: 'top-center',
+        duration: 1000,
+        className: 'bg-gray-100'
+      });
       router.push('/login');
     } catch (error) {
       console.error('Error:', error);

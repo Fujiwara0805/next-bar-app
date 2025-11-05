@@ -73,6 +73,9 @@ export default function ProfileChangePasswordPage() {
 
       toast.success('パスワードを変更しました', {
         description: '次回から新しいパスワードでログインしてください',
+        position: 'top-center',
+        duration: 1000,
+        className: 'bg-gray-100'
       });
 
       // フォームをクリア

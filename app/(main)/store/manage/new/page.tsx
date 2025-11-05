@@ -421,7 +421,7 @@ export default function NewStorePage() {
       toast.success('店舗を登録しました', {
         description: `ログイン用メールアドレス: ${email}`,
         position: 'top-center',
-        duration: 2000,
+        duration: 1000,
         className: 'bg-gray-100'
       });
       router.push('/store/manage');
