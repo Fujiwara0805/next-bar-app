@@ -129,8 +129,29 @@ export function MapView({ stores, center, onStoreClick }: MapViewProps) {
     markersRef.current = [];
 
     stores.forEach((store) => {
+      // 同じ位置のマーカー数をカウントしてオフセットを計算
+      const positionKey = `${store.latitude},${store.longitude}`;
+      const samePositionStores = stores.filter(s => 
+        `${s.latitude},${s.longitude}` === positionKey
+      );
+      const indexAtPosition = samePositionStores.findIndex(s => s.id === store.id);
+
+      // 同じ位置に複数店舗がある場合、円形にオフセットを追加
+      let latOffset = 0;
+      let lngOffset = 0;
+      
+      if (samePositionStores.length > 1) {
+        const offsetDistance = 0.00008; // 約9m（マーカーが重ならない程度）
+        const angle = (indexAtPosition * (360 / samePositionStores.length)) * (Math.PI / 180);
+        latOffset = Math.cos(angle) * offsetDistance;
+        lngOffset = Math.sin(angle) * offsetDistance;
+      }
+
       const marker = new google.maps.Marker({
-        position: { lat: Number(store.latitude), lng: Number(store.longitude) },
+        position: { 
+          lat: Number(store.latitude) + latOffset, 
+          lng: Number(store.longitude) + lngOffset 
+        },
         map: mapInstanceRef.current!,
         title: store.name,
         icon: {
@@ -159,7 +180,10 @@ export function MapView({ stores, center, onStoreClick }: MapViewProps) {
       // タップ領域をさらに広げるために、見えない円形エリアを追加
       const touchArea = new google.maps.Circle({
         map: mapInstanceRef.current!,
-        center: { lat: Number(store.latitude), lng: Number(store.longitude) },
+        center: { 
+          lat: Number(store.latitude) + latOffset, 
+          lng: Number(store.longitude) + lngOffset 
+        },
         radius: 10, // 10m半径のタップ可能エリア
         fillOpacity: 0,
         strokeOpacity: 0,
