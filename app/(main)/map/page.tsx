@@ -365,11 +365,7 @@ function MapPageContent() {
 
                     {/* Googleマップで開く */}
                     <a
-                      href={
-                        selectedStore.google_place_id
-                          ? `https://www.google.com/maps/place/?q=place_id:${selectedStore.google_place_id}`
-                          : `https://www.google.com/maps/search/?api=1&query=${selectedStore.latitude},${selectedStore.longitude}`
-                      }
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedStore.name)}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 text-sm text-primary hover:underline font-bold"

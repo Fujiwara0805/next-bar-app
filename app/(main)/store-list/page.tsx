@@ -304,7 +304,7 @@ export default function StoreListPage() {
                             whileTap={{ scale: 0.98 }}
                             onClick={(e) => {
                               e.stopPropagation();
-                              const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${store.latitude},${store.longitude}`;
+                              const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.name || '')}`;
                               window.open(mapsUrl, '_blank');
                             }}
                             className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 hover:underline font-bold"

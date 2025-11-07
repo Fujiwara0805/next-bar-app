@@ -327,11 +327,7 @@ export default function StoreDetailPage() {
                   
                   {/* 口コミを見るリンク */}
                   <a
-                    href={
-                      store.google_place_id
-                        ? `https://www.google.com/maps/place/?q=place_id:${store.google_place_id}`
-                        : `https://www.google.com/maps/search/?api=1&query=${store.latitude},${store.longitude}`
-                    }
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.name)}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1 text-xs text-primary hover:underline font-bold ml-auto"
@@ -391,7 +387,7 @@ export default function StoreDetailPage() {
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => {
-                        const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.address || '')}`;
+                        const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.name || '')}`;
                         window.open(mapsUrl, '_blank');
                       }}
                       className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 hover:underline font-bold"
