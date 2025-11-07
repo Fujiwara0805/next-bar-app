@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, MapIcon, X, ExternalLink } from 'lucide-react';
+import { Search, MapIcon, X, ExternalLink, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -257,8 +257,34 @@ export default function StoreListPage() {
                       )}
                       
                       <div className="flex-1 min-w-0 flex flex-col">
-                        <div className="flex-1 space-y-1">
+                        <div className="flex-1">
                           <h3 className="text-lg font-bold text-card-foreground truncate">{store.name}</h3>
+                          
+                          {/* Google評価表示 */}
+                          {store.google_rating && (
+                            <div className="flex items-center gap-2 -mt-1 mb-1">
+                              <div className="flex items-center gap-0.5">
+                                {[1, 2, 3, 4, 5].map((star) => (
+                                  <Star
+                                    key={star}
+                                    className={`w-4 h-4 ${
+                                      star <= Math.round(store.google_rating!)
+                                        ? 'fill-yellow-400 text-yellow-400'
+                                        : 'fill-gray-300 text-gray-300'
+                                    }`}
+                                  />
+                                ))}
+                              </div>
+                              <span className="text-sm font-bold text-card-foreground">
+                                {store.google_rating.toFixed(1)}
+                              </span>
+                              {store.google_reviews_count && (
+                                <span className="text-xs text-card-foreground/70">
+                                  ({store.google_reviews_count})
+                                </span>
+                              )}
+                            </div>
+                          )}
                           
                           {/* 距離表示 */}
                           {userLocation && (
