@@ -3,7 +3,7 @@
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, List, ExternalLink, Building2, RefreshCw, Home } from 'lucide-react';
+import { X, List, ExternalLink, Building2, RefreshCw, Home, Star } from 'lucide-react';
 import { MapView } from '@/components/map/map-view';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -309,7 +309,7 @@ function MapPageContent() {
                     </div>
                   )}
 
-                  <div className="flex-1 min-w-0 space-y-1">
+                  <div className="flex-1 min-w-0 ">
                     <div className="flex items-start justify-between gap-2">
                       <h3 className="font-bold text-lg line-clamp-1">{selectedStore.name}</h3>
                       <Button
@@ -325,6 +325,32 @@ function MapPageContent() {
                       </Button>
                     </div>
 
+                    {/* Google評価表示 */}
+                    {selectedStore.google_rating && (
+                      <div className="flex items-center gap-2 -mt-2">
+                        <div className="flex items-center gap-0.5">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <Star
+                              key={star}
+                              className={`w-4 h-4 ${
+                                star <= Math.round(selectedStore.google_rating!)
+                                  ? 'fill-yellow-400 text-yellow-400'
+                                  : 'fill-gray-300 text-gray-300'
+                              }`}
+                            />
+                          ))}
+                        </div>
+                        <span className="text-sm font-bold">
+                          {selectedStore.google_rating.toFixed(1)}
+                        </span>
+                        {selectedStore.google_reviews_count && (
+                          <span className="text-xs text-muted-foreground">
+                            ({selectedStore.google_reviews_count})
+                          </span>
+                        )}
+                      </div>
+                    )}
+
                     {/* 距離表示 */}
                     {userLocation && (
                       <p className="text-sm text-muted-foreground font-bold">
@@ -339,7 +365,11 @@ function MapPageContent() {
 
                     {/* Googleマップで開く */}
                     <a
-                      href={`https://www.google.com/maps/search/?api=1&query=${selectedStore.latitude},${selectedStore.longitude}`}
+                      href={
+                        selectedStore.google_place_id
+                          ? `https://www.google.com/maps/place/?q=place_id:${selectedStore.google_place_id}`
+                          : `https://www.google.com/maps/search/?api=1&query=${selectedStore.latitude},${selectedStore.longitude}`
+                      }
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 text-sm text-primary hover:underline font-bold"

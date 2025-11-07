@@ -65,6 +65,11 @@ export default function NewStorePage() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [searchingName, setSearchingName] = useState(false);
 
+  // Google評価データ
+  const [googlePlaceId, setGooglePlaceId] = useState<string | null>(null);
+  const [googleRating, setGoogleRating] = useState<number | null>(null);
+  const [googleReviewsCount, setGoogleReviewsCount] = useState<number | null>(null);
+
   const autocompleteServiceRef = useRef<google.maps.places.AutocompleteService | null>(null);
   const placesServiceRef = useRef<google.maps.places.PlacesService | null>(null);
   const geocoderRef = useRef<google.maps.Geocoder | null>(null);
@@ -152,7 +157,15 @@ export default function NewStorePage() {
     placesServiceRef.current.getDetails(
       {
         placeId: prediction.place_id!,
-        fields: ['name', 'formatted_address', 'geometry', 'formatted_phone_number'],
+        fields: [
+          'name',
+          'formatted_address',
+          'geometry',
+          'formatted_phone_number',
+          'place_id',
+          'rating',
+          'user_ratings_total',
+        ],
       } as any,
       (place: any, status: any) => {
         setGeocoding(false);
@@ -173,12 +186,19 @@ export default function NewStorePage() {
             setLatitude(String(lat));
             setLongitude(String(lng));
           }
+
+          // Google評価データを保存
+          setGooglePlaceId(place.place_id || null);
+          setGoogleRating(place.rating || null);
+          setGoogleReviewsCount(place.user_ratings_total || null);
           
           setSuggestions([]);
           setShowSuggestions(false);
-          toast.success('店舗情報を取得しました', { 
+          
+          const ratingText = place.rating ? ` (Google評価: ⭐${place.rating})` : '';
+          toast.success(`店舗情報を取得しました${ratingText}`, { 
             position: 'top-center',
-            duration: 1000,
+            duration: 2000,
             className: 'bg-gray-100'
           });
         } else {
@@ -411,6 +431,9 @@ export default function NewStorePage() {
           vacancy_status: 'vacant',
           male_ratio: 0,
           female_ratio: 0,
+          google_place_id: googlePlaceId,
+          google_rating: googleRating,
+          google_reviews_count: googleReviewsCount,
         } as any);
 
       if (storeError) {

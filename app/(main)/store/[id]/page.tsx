@@ -15,6 +15,7 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
+  Star,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -289,7 +290,57 @@ export default function StoreDetailPage() {
 
           <Card className="p-6">
             <div className="mb-4">
-              <h2 className="text-2xl font-bold mb-3">{store.name}</h2>
+              <h2 className="text-2xl font-bold ">{store.name}</h2>
+              
+              {/* Google評価 */}
+              {store.google_rating && (
+                <div className="flex items-center gap-3 mb-3">
+                  {/* 星アイコン表示 */}
+                  <div className="flex items-center gap-1">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <motion.div
+                        key={star}
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ delay: star * 0.05 }}
+                      >
+                        <Star
+                          className={`w-4 h-4 ${
+                            star <= Math.round(store.google_rating!)
+                              ? 'fill-yellow-400 text-yellow-400'
+                              : 'fill-gray-300 text-gray-300'
+                          }`}
+                        />
+                      </motion.div>
+                    ))}
+                  </div>
+                  
+                  {/* 評価スコア */}
+                  <span className="text-sm font-bold">{store.google_rating.toFixed(1)}</span>
+                  
+                  {/* 口コミ件数 */}
+                  {store.google_reviews_count && (
+                    <span className="text-xs text-muted-foreground">
+                      ({store.google_reviews_count.toLocaleString()}件)
+                    </span>
+                  )}
+                  
+                  {/* 口コミを見るリンク */}
+                  <a
+                    href={
+                      store.google_place_id
+                        ? `https://www.google.com/maps/place/?q=place_id:${store.google_place_id}`
+                        : `https://www.google.com/maps/search/?api=1&query=${store.latitude},${store.longitude}`
+                    }
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-xs text-primary hover:underline font-bold ml-auto"
+                  >
+                    <ExternalLink className="w-3 h-3" />
+                    口コミを見る
+                  </a>
+                </div>
+              )}
               <div className="flex gap-2 mb-3 items-center flex-wrap">
                 {/* 空席情報アイコン */}
                 <motion.div 

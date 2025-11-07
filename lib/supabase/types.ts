@@ -60,7 +60,7 @@ export interface Database {
           budget_max: number | null
           payment_methods: string[] | null
           facilities: string[] | null
-          image_urls: string[] | null  // ←これのみ残す
+          image_urls: string[] | null
           is_open: boolean
           vacancy_status: 'vacant' | 'moderate' | 'full' | 'closed'
           status_message: string | null
@@ -69,6 +69,9 @@ export interface Database {
           last_updated: string
           created_at: string
           updated_at: string
+          google_place_id: string | null
+          google_rating: number | null
+          google_reviews_count: number | null
         }
         Insert: {
           id?: string
@@ -88,7 +91,7 @@ export interface Database {
           budget_max?: number | null
           payment_methods?: string[] | null
           facilities?: string[] | null
-          image_urls?: string[] | null  // ←これのみ残す
+          image_urls?: string[] | null
           is_open?: boolean
           vacancy_status?: 'vacant' | 'moderate' | 'full' | 'closed'
           status_message?: string | null
@@ -97,6 +100,9 @@ export interface Database {
           last_updated?: string
           created_at?: string
           updated_at?: string
+          google_place_id?: string | null
+          google_rating?: number | null
+          google_reviews_count?: number | null
         }
         Update: {
           id?: string
@@ -116,7 +122,7 @@ export interface Database {
           budget_max?: number | null
           payment_methods?: string[] | null
           facilities?: string[] | null
-          image_urls?: string[] | null  // ←これのみ残す
+          image_urls?: string[] | null
           is_open?: boolean
           vacancy_status?: 'vacant' | 'moderate' | 'full' | 'closed'
           status_message?: string | null
@@ -125,6 +131,9 @@ export interface Database {
           last_updated?: string
           created_at?: string
           updated_at?: string
+          google_place_id?: string | null
+          google_rating?: number | null
+          google_reviews_count?: number | null
         }
       }
     }
