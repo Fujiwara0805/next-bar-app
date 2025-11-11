@@ -24,6 +24,7 @@ import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/lib/supabase/client';
 import type { Database } from '@/lib/supabase/types';
 import { useLanguage } from '@/lib/i18n/context';
+import { InstantReservationButton } from '@/components/instant-reservation-button';
 
 type Store = Database['public']['Tables']['stores']['Row'];
 
@@ -337,7 +338,7 @@ export default function StoreDetailPage() {
                   </a>
                 </div>
               )}
-              <div className="flex gap-2 mb-3 items-center flex-wrap">
+              <div className="flex gap-2 mb-3 items-center flex-wrap justify-between">
                 {/* 空席情報アイコン */}
                 <motion.div 
                   className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2"
@@ -353,6 +354,12 @@ export default function StoreDetailPage() {
                     {getVacancyLabel(store.vacancy_status)}
                   </span>
                 </motion.div>
+
+                {/* 10分後来店予約ボタン */}
+                <InstantReservationButton
+                  storeId={store.id}
+                  storeName={store.name}
+                />
               </div>
             </div>
 

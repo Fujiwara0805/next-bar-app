@@ -16,6 +16,7 @@ export interface Database {
           display_name: string
           avatar_url: string | null
           bio: string | null
+          phone: string | null
           is_business: boolean
           created_at: string
           updated_at: string
@@ -26,6 +27,7 @@ export interface Database {
           display_name: string
           avatar_url?: string | null
           bio?: string | null
+          phone?: string | null
           is_business?: boolean
           created_at?: string
           updated_at?: string
@@ -36,6 +38,7 @@ export interface Database {
           display_name?: string
           avatar_url?: string | null
           bio?: string | null
+          phone?: string | null
           is_business?: boolean
           created_at?: string
           updated_at?: string
@@ -134,6 +137,59 @@ export interface Database {
           google_place_id?: string | null
           google_rating?: number | null
           google_reviews_count?: number | null
+        }
+      }
+      quick_reservations: {
+        Row: {
+          id: string
+          store_id: string
+          user_id: string | null
+          caller_name: string | null
+          caller_phone: string
+          party_size: number
+          arrival_time: string
+          status: 'pending' | 'confirmed' | 'rejected' | 'cancelled' | 'expired'
+          call_sid: string | null
+          confirmed_at: string | null
+          rejection_reason: string | null
+          notes: string | null
+          expires_at: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          store_id: string
+          user_id?: string | null
+          caller_name?: string | null
+          caller_phone: string
+          party_size: number
+          arrival_time: string
+          status?: 'pending' | 'confirmed' | 'rejected' | 'cancelled' | 'expired'
+          call_sid?: string | null
+          confirmed_at?: string | null
+          rejection_reason?: string | null
+          notes?: string | null
+          expires_at: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          store_id?: string
+          user_id?: string | null
+          caller_name?: string | null
+          caller_phone?: string
+          party_size?: number
+          arrival_time?: string
+          status?: 'pending' | 'confirmed' | 'rejected' | 'cancelled' | 'expired'
+          call_sid?: string | null
+          confirmed_at?: string | null
+          rejection_reason?: string | null
+          notes?: string | null
+          expires_at?: string
+          created_at?: string
+          updated_at?: string
         }
       }
     }
