@@ -97,7 +97,7 @@ export function InstantReservationButton({
 
       // 成功メッセージ
       toast.success('📞 予約リクエストを送信しました！', {
-        description: '店舗からのSMSをお待ちください（数分以内）',
+        description: '40秒間、画面を開いたままにしてください',
         duration: 5000,
         position: 'top-center',
         className: 'bg-gray-100'
@@ -209,9 +209,6 @@ export function InstantReservationButton({
               className="font-bold bg-white border-[#2c5c6e]"
               style={{ fontSize: '16px' }}
             />
-            <p className="text-xs text-muted-foreground mt-1">
-              予約の可否をSMSでお知らせします
-            </p>
           </motion.div>
 
           {/* 予約の流れ */}
@@ -227,7 +224,7 @@ export function InstantReservationButton({
             <ol className="text-xs text-blue-800 space-y-1 list-decimal list-inside">
               <li>店舗に自動音声電話で通知</li>
               <li>店舗が電話ボタンで承認/拒否</li>
-              <li>結果をSMSでお知らせ（数分以内）</li>
+              <li>40秒間、画面を開いたままにしてください</li>
             </ol>
           </motion.div>
 

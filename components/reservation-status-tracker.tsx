@@ -124,11 +124,11 @@ export function ReservationStatusTracker({
           minute: '2-digit',
           hour12: false
         });
-        return `${status.storeName}に${arrivalTime}頃のご来店をお待ちしております！\nSMSでも確認メッセージをお送りしました。`;
+        return `${status.storeName}に${arrivalTime}頃のご来店をお待ちしております！`;
       case 'rejected':
         return status.rejectionReason || '現在満席のため、ご予約をお受けできません。またのご利用をお待ちしております。';
       case 'pending':
-        return '店舗に自動音声で確認中です。数分以内にSMSで結果をお知らせします。';
+        return '店舗に自動音声で確認中です。40秒間、画面を開いたままにしてください。';
       case 'cancelled':
         return '店舗との通話ができませんでした。直接お電話でご確認ください。';
       default:
