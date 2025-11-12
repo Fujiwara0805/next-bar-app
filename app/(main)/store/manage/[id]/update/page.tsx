@@ -162,6 +162,13 @@ export default function StoreUpdatePage() {
 
         // 画像URLの設定
         setImageUrls(storeData.image_urls || []);
+
+        // sessionStorageに保存（店舗編集画面で使用）
+        try {
+          sessionStorage.setItem(`store_${params.id}`, JSON.stringify(storeData));
+        } catch (e) {
+          console.error('Failed to save store data to sessionStorage:', e);
+        }
       }
     } catch (error) {
       console.error('Error fetching store:', error);
@@ -558,79 +565,59 @@ export default function StoreUpdatePage() {
                           <Card className="p-6">
                             <div className="space-y-3">
                               {/* ステータスバッジ */}
-                              <div className="flex items-center justify-between">
+                              <div className="flex items-center">
                                 <div className={`flex items-center gap-2 px-3 py-1 rounded-full border ${statusInfo.color}`}>
                                   {statusInfo.icon}
                                   <span className="text-sm font-bold">{statusInfo.label}</span>
                                 </div>
-                                <span className="text-xs text-muted-foreground font-bold">
-                                  {createdAt.toLocaleString('ja-JP', {
-                                    year: 'numeric',
-                                    month: '2-digit',
-                                    day: '2-digit',
-                                    hour: '2-digit',
-                                    minute: '2-digit',
-                                  })}
-                                </span>
                               </div>
 
                               {/* 予約情報 */}
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                  <div className="flex items-center gap-2">
-                                    <User className="w-4 h-4 text-muted-foreground" />
-                                    <span className="text-sm font-bold text-muted-foreground">名前</span>
+                              <div className="space-y-3">
+                                {/* 1行目: 名前、電話番号 */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div className="space-y-2">
+                                    <div className="flex items-center gap-2">
+                                      <User className="w-4 h-4 text-muted-foreground" />
+                                      <span className="text-sm font-bold text-muted-foreground">名前</span>
+                                    </div>
+                                    <p className="text-base font-bold">{reservation.caller_name || '未入力'}</p>
                                   </div>
-                                  <p className="text-base font-bold">{reservation.caller_name || '未入力'}</p>
+
+                                  <div className="space-y-2">
+                                    <div className="flex items-center gap-2">
+                                      <Phone className="w-4 h-4 text-muted-foreground" />
+                                      <span className="text-sm font-bold text-muted-foreground">電話番号</span>
+                                    </div>
+                                    <p className="text-base font-bold">{reservation.caller_phone}</p>
+                                  </div>
                                 </div>
 
-                                <div className="space-y-2">
-                                  <div className="flex items-center gap-2">
-                                    <Phone className="w-4 h-4 text-muted-foreground" />
-                                    <span className="text-sm font-bold text-muted-foreground">電話番号</span>
+                                {/* 2行目: 人数、到着予定時刻 */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div className="space-y-2">
+                                    <div className="flex items-center gap-2">
+                                      <Users className="w-4 h-4 text-muted-foreground" />
+                                      <span className="text-sm font-bold text-muted-foreground">人数</span>
+                                    </div>
+                                    <p className="text-base font-bold">{reservation.party_size}名</p>
                                   </div>
-                                  <p className="text-base font-bold">{reservation.caller_phone}</p>
-                                </div>
 
-                                <div className="space-y-2">
-                                  <div className="flex items-center gap-2">
-                                    <Users className="w-4 h-4 text-muted-foreground" />
-                                    <span className="text-sm font-bold text-muted-foreground">人数</span>
+                                  <div className="space-y-2">
+                                    <div className="flex items-center gap-2">
+                                      <Clock className="w-4 h-4 text-muted-foreground" />
+                                      <span className="text-sm font-bold text-muted-foreground">到着予定時刻</span>
+                                    </div>
+                                    <p className="text-base font-bold">
+                                      {arrivalTime.toLocaleString('ja-JP', {
+                                        month: '2-digit',
+                                        day: '2-digit',
+                                        hour: '2-digit',
+                                        minute: '2-digit',
+                                      })}
+                                    </p>
                                   </div>
-                                  <p className="text-base font-bold">{reservation.party_size}名</p>
                                 </div>
-
-                                <div className="space-y-2">
-                                  <div className="flex items-center gap-2">
-                                    <Clock className="w-4 h-4 text-muted-foreground" />
-                                    <span className="text-sm font-bold text-muted-foreground">到着予定時刻</span>
-                                  </div>
-                                  <p className="text-base font-bold">
-                                    {arrivalTime.toLocaleString('ja-JP', {
-                                      month: '2-digit',
-                                      day: '2-digit',
-                                      hour: '2-digit',
-                                      minute: '2-digit',
-                                    })}
-                                  </p>
-                                </div>
-                              </div>
-
-                              {/* 電話があった時間 */}
-                              <div className="pt-2 border-t">
-                                <div className="flex items-center gap-2">
-                                  <Phone className="w-4 h-4 text-muted-foreground" />
-                                  <span className="text-sm font-bold text-muted-foreground">電話があった時間</span>
-                                </div>
-                                <p className="text-sm font-bold mt-1">
-                                  {createdAt.toLocaleString('ja-JP', {
-                                    year: 'numeric',
-                                    month: '2-digit',
-                                    day: '2-digit',
-                                    hour: '2-digit',
-                                    minute: '2-digit',
-                                  })}
-                                </p>
                               </div>
 
                               {/* 拒否理由 */}
@@ -638,22 +625,6 @@ export default function StoreUpdatePage() {
                                 <div className="pt-2 border-t">
                                   <p className="text-sm text-muted-foreground font-bold">拒否理由</p>
                                   <p className="text-sm font-bold mt-1">{reservation.rejection_reason}</p>
-                                </div>
-                              )}
-
-                              {/* 承認時刻 */}
-                              {reservation.status === 'confirmed' && reservation.confirmed_at && (
-                                <div className="pt-2 border-t">
-                                  <p className="text-sm text-muted-foreground font-bold">承認時刻</p>
-                                  <p className="text-sm font-bold mt-1">
-                                    {new Date(reservation.confirmed_at).toLocaleString('ja-JP', {
-                                      year: 'numeric',
-                                      month: '2-digit',
-                                      day: '2-digit',
-                                      hour: '2-digit',
-                                      minute: '2-digit',
-                                    })}
-                                  </p>
                                 </div>
                               )}
                             </div>

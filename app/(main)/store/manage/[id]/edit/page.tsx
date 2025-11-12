@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { 
@@ -67,36 +67,7 @@ export default function StoreEditPage() {
   const geocoderRef = useRef<google.maps.Geocoder | null>(null);
   const [mapsLoaded, setMapsLoaded] = useState(false);
 
-  useEffect(() => {
-    if (!accountType || (accountType !== 'platform' && accountType !== 'store')) {
-      router.push('/login');
-      return;
-    }
-
-    if (GOOGLE_MAPS_API_KEY) {
-      const initMaps = () => {
-        if (window.google?.maps) {
-          geocoderRef.current = new google.maps.Geocoder();
-          setMapsLoaded(true);
-          return true;
-        }
-        return false;
-      };
-
-      if (initMaps()) return;
-
-      const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places&language=ja`;
-      script.async = true;
-      script.defer = true;
-      script.onload = () => initMaps();
-      document.head.appendChild(script);
-    }
-
-    fetchStore();
-  }, [accountType, router, params.id]);
-
-  const fetchStore = async () => {
+  const fetchStore = useCallback(async () => {
     if (!user || !params.id) return;
 
     try {
@@ -144,7 +115,65 @@ export default function StoreEditPage() {
     } finally {
       setFetchingStore(false);
     }
-  };
+  }, [user, params.id, accountType, router]);
+
+  useEffect(() => {
+    if (!accountType || (accountType !== 'platform' && accountType !== 'store')) {
+      router.push('/login');
+      return;
+    }
+
+    // sessionStorageからデータを読み込む（高速化のため）
+    try {
+      const cachedStore = sessionStorage.getItem(`store_${params.id}`);
+      if (cachedStore) {
+        const storeData = JSON.parse(cachedStore) as Store;
+        setName(storeData.name);
+        setDescription(storeData.description || '');
+        setAddress(storeData.address);
+        setPhone(storeData.phone || '');
+        setWebsiteUrl(storeData.website_url || '');
+        setEmail(storeData.email);
+        setBusinessHours(storeData.business_hours as string || '');
+        setRegularHoliday(storeData.regular_holiday || '');
+        setBudgetMin(storeData.budget_min || 0);
+        setBudgetMax(storeData.budget_max || 0);
+        setPaymentMethods(storeData.payment_methods || []);
+        setFacilities(storeData.facilities || []);
+        setImageUrls(storeData.image_urls || []);
+        setLatitude(String(storeData.latitude || ''));
+        setLongitude(String(storeData.longitude || ''));
+        setFetchingStore(false);
+      }
+    } catch (e) {
+      console.error('Failed to load store data from sessionStorage:', e);
+    }
+
+    if (GOOGLE_MAPS_API_KEY) {
+      const initMaps = () => {
+        if (window.google?.maps) {
+          geocoderRef.current = new google.maps.Geocoder();
+          setMapsLoaded(true);
+          return true;
+        }
+        return false;
+      };
+
+      if (initMaps()) return;
+
+      const script = document.createElement('script');
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places&language=ja`;
+      script.async = true;
+      script.defer = true;
+      script.onload = () => initMaps();
+      document.head.appendChild(script);
+    }
+
+    // sessionStorageにデータがない場合のみfetchStoreを実行
+    if (!sessionStorage.getItem(`store_${params.id}`)) {
+      fetchStore();
+    }
+  }, [accountType, router, params.id, fetchStore]);
 
   const handleGeocodeAddress = async (): Promise<boolean> => {
     if (!address.trim()) {
@@ -401,6 +430,21 @@ export default function StoreEditPage() {
       const { error } = await query;
 
       if (error) throw error;
+
+      // 更新後のデータを取得してsessionStorageを更新
+      const { data: updatedData } = await supabase
+        .from('stores')
+        .select('*')
+        .eq('id', params.id as string)
+        .single();
+
+      if (updatedData) {
+        try {
+          sessionStorage.setItem(`store_${params.id}`, JSON.stringify(updatedData));
+        } catch (e) {
+          console.error('Failed to update store data in sessionStorage:', e);
+        }
+      }
 
       toast.success('更新が完了しました', { 
         position: 'top-center',
