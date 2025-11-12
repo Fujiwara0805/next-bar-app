@@ -463,9 +463,6 @@ export default function StoreDetailPage() {
                         storeName={store.name}
                       />
                     </div>
-                    <p className="text-xs text-muted-foreground italic font-bold">
-                      {t('store_detail.phone_note')}
-                    </p>
                   </div>
                 </div>
               )}
