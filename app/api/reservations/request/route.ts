@@ -83,8 +83,11 @@ export async function POST(request: NextRequest) {
     
     // 店舗に自動音声電話をかける
     try {
+      // 店舗の電話番号を国際形式に変換
+      const storePhoneInternational = convertToInternational(store.phone);
+      
       const call = await twilioClient.calls.create({
-        to: store.phone,
+        to: storePhoneInternational,
         from: process.env.TWILIO_PHONE_NUMBER!,
         url: `${process.env.NEXT_PUBLIC_APP_URL}/api/twilio/ivr?reservationId=${reservation.id}`,
         statusCallback: `${process.env.NEXT_PUBLIC_APP_URL}/api/twilio/call-status`,
@@ -128,4 +131,22 @@ export async function POST(request: NextRequest) {
   }
 }
 
+// 電話番号を国際形式に変換
+function convertToInternational(phone: string): string {
+  // 090-1234-5678 → +819012345678
+  const cleaned = phone.replace(/[-\s]/g, '');
+  
+  // 既に+81で始まっている場合はそのまま返す
+  if (cleaned.startsWith('+81')) {
+    return cleaned;
+  }
+  
+  // 0で始まる日本の電話番号の場合
+  if (cleaned.startsWith('0')) {
+    return `+81${cleaned.substring(1)}`;
+  }
+  
+  // その他の形式の場合は+81を付加
+  return `+81${cleaned}`;
+}
 
