@@ -69,14 +69,6 @@ export async function POST(request: NextRequest) {
       timeout: 10,
     });
     
-    // 到着予定時刻をフォーマット
-    const arrivalTime = new Date(reservation.arrival_time);
-    const timeStr = arrivalTime.toLocaleTimeString('ja-JP', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false
-    });
-    
     // 電話番号を音声で読み上げやすい形式に変換
     const phoneForSpeech = formatPhoneForSpeech(reservation.caller_phone);
     
@@ -92,8 +84,7 @@ export async function POST(request: NextRequest) {
        
        お名前は、${reservation.caller_name || '不明'} 様、
        電話番号は、${phoneForSpeech}、
-       ${reservation.party_size}名様、
-       来店予定時刻は、${timeStr}頃です。
+       ${reservation.party_size}名様です。
        
        予約を受け入れる場合は、1を、
        お断りする場合は、2を押してください。
