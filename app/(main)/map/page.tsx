@@ -397,6 +397,20 @@ function MapPageContent() {
                     </p>
                   </div>
                 )}
+
+                {/* 詳細を見るボタン */}
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    router.push(`/store/${selectedStore.id}`);
+                  }}
+                  className="w-full py-3 px-4 rounded-lg font-bold text-white transition-colors touch-manipulation"
+                  style={{ backgroundColor: '#2c5f6f' }}
+                >
+                  詳細を見る
+                </motion.button>
               </div>
             </Card>
           </motion.div>
