@@ -128,9 +128,9 @@ export function ReservationStatusTracker({
       case 'rejected':
         return status.rejectionReason || '現在満席のため、ご予約をお受けできません。またのご利用をお待ちしております。';
       case 'pending':
-        return '店舗に自動音声で確認中です。40秒間、画面を開いたままにしてください。';
+        return '店舗に自動音声で確認中です。画面を開いたままにしてください。';
       case 'cancelled':
-        return '店舗との通話ができませんでした。直接お電話でご確認ください。';
+        return '店舗との通話ができませんでした。時間を空けて再度ご確認ください。';
       default:
         return '';
     }

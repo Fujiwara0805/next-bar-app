@@ -224,7 +224,7 @@ export function InstantReservationButton({
             <ol className="text-xs text-blue-800 space-y-1 list-decimal list-inside">
               <li>店舗に自動音声電話で通知</li>
               <li>店舗が電話ボタンで承認/拒否</li>
-              <li>40秒間、画面を開いたままにしてください</li>
+              <li>画面を開いたままお待ちください</li>
             </ol>
           </motion.div>
 

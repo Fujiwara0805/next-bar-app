@@ -457,12 +457,12 @@ export default function StoreDetailPage() {
                   <Phone className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
                   <div className="flex-1">
                     <p className="text-sm font-bold mb-1">{t('store_detail.phone')}</p>
-                    <a
-                      href={`tel:${store.phone}`}
-                      className="text-sm text-primary hover:underline block mb-1 font-bold"
-                    >
-                      {store.phone}
-                    </a>
+                    <div className="mb-1">
+                      <InstantReservationButton
+                        storeId={store.id}
+                        storeName={store.name}
+                      />
+                    </div>
                     <p className="text-xs text-muted-foreground italic font-bold">
                       {t('store_detail.phone_note')}
                     </p>
