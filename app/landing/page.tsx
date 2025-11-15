@@ -471,8 +471,8 @@ src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%
               },
               {
                 step: '3',
-                title: '自動音声があなたの代わりに予約を行います。',
-                description: '10分後の来店まで席をキープすることができます。お店側は予約の受入を、自動音声の質問にボタンを1つ押すだけで受入回答できます。',
+                title: t('how_to.step3_title'),
+                description: t('how_to.step3_desc'),
                 image: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1763190430/%E3%82%B9%E3%82%AF%E3%83%AA%E3%83%BC%E3%83%B3%E3%82%B7%E3%83%A7%E3%83%83%E3%83%88_2025-11-13_10.15.46_-_%E7%B7%A8%E9%9B%86%E6%B8%88%E3%81%BF_c3h5xu.png',
               },
             ].map((item, index) => (
