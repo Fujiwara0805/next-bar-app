@@ -457,12 +457,17 @@ export default function StoreDetailPage() {
                   <Phone className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
                   <div className="flex-1">
                     <p className="text-sm font-bold mb-1">{t('store_detail.phone')}</p>
-                    <div className="mb-1">
-                      <InstantReservationButton
-                        storeId={store.id}
-                        storeName={store.name}
-                      />
-                    </div>
+                    <motion.a
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      href={`tel:${store.phone}`}
+                      className="text-base font-bold text-primary hover:underline block mb-2"
+                    >
+                      {store.phone}
+                    </motion.a>
+                    <p className="text-xs text-muted-foreground font-bold">
+                      「ニケンメプラスを見ました」というとスムーズです。
+                    </p>
                   </div>
                 </div>
               )}
@@ -608,8 +613,6 @@ export default function StoreDetailPage() {
             </div>
           </Card>
         </motion.div>
-
-
       </div>
     </div>
   );

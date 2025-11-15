@@ -455,7 +455,7 @@ src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto">
             {[
               {
                 step: '1',
@@ -468,6 +468,12 @@ src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%
                 title: t('how_to.step2_title'),
                 description: t('how_to.step2_desc'),
                 image: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1761802358/%E5%90%8D%E7%A7%B0%E6%9C%AA%E8%A8%AD%E5%AE%9A%E3%81%AE%E3%83%86%E3%82%99%E3%82%B5%E3%82%99%E3%82%A4%E3%83%B3_ekfjbe.png',
+              },
+              {
+                step: '3',
+                title: '自動音声があなたの代わりに予約を行います。',
+                description: '10分後の来店まで席をキープすることができます。お店側は予約の受入を、自動音声の質問にボタンを1つ押すだけで受入回答できます。',
+                image: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1763190430/%E3%82%B9%E3%82%AF%E3%83%AA%E3%83%BC%E3%83%B3%E3%82%B7%E3%83%A7%E3%83%83%E3%83%88_2025-11-13_10.15.46_-_%E7%B7%A8%E9%9B%86%E6%B8%88%E3%81%BF_c3h5xu.png',
               },
             ].map((item, index) => (
               <motion.div
