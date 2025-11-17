@@ -80,6 +80,7 @@ export const translations = {
       unknown: '不明',
       open_in_google_maps: 'Googleマップで開く',
       distance_from_current: '現在地から',
+      view_details: '詳細を見る',
     },
     store_list: {
       title: '店舗一覧',
@@ -120,6 +121,7 @@ export const translations = {
       distance_from_current: '現在地から約',
       no_info: '情報なし',
       open_in_google_maps: 'Googleマップで開く',
+      reservation_button: '10分後に来店予約',
     },
   },
   en: {
@@ -203,6 +205,7 @@ export const translations = {
       unknown: 'Unknown',
       open_in_google_maps: 'Open in Google Maps',
       distance_from_current: 'Distance',
+      view_details: 'View Details',
     },
     store_list: {
       title: 'Store List',
@@ -243,6 +246,7 @@ export const translations = {
       distance_from_current: 'Distance',
       no_info: 'No information',
       open_in_google_maps: 'Open in Google Maps',
+      reservation_button: 'Reserve for 10 minutes later',
     },
   },
 };

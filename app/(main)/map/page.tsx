@@ -409,7 +409,7 @@ function MapPageContent() {
                   className="w-full py-3 px-4 rounded-lg font-bold text-white transition-colors touch-manipulation"
                   style={{ backgroundColor: '#2c5f6f' }}
                 >
-                  詳細を見る
+                  {t('map.view_details')}
                 </motion.button>
               </div>
             </Card>

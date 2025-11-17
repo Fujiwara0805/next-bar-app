@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { ReservationStatusTracker } from '@/components/reservation-status-tracker';
+import { useLanguage } from '@/lib/i18n/context';
 
 interface InstantReservationButtonProps {
   storeId: string;
@@ -26,6 +27,7 @@ export function InstantReservationButton({
   storeId,
   storeName,
 }: InstantReservationButtonProps) {
+  const { t } = useLanguage();
   const [showDialog, setShowDialog] = useState(false);
   const [partySize, setPartySize] = useState('2');
   const [guestName, setGuestName] = useState('');
@@ -133,7 +135,7 @@ export function InstantReservationButton({
           size="default"
         >
           <Clock className="w-3 h-3 mr-2" />
-          10分後に来店予約
+          {t('store_detail.reservation_button')}
         </Button>
       </motion.div>
 
