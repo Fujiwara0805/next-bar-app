@@ -466,7 +466,7 @@ export default function StoreDetailPage() {
                       {store.phone}
                     </motion.a>
                     <p className="text-xs text-muted-foreground font-bold">
-                      「ニケンメプラスを見ました」というとスムーズです。
+                      {t('store_detail.phone_note')}
                     </p>
                   </div>
                 </div>
