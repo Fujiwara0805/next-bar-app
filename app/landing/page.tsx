@@ -372,6 +372,21 @@ export default function LandingPage() {
               >
                 {t('hero.cta')}
               </Button>
+               {/* 加盟店募集中ボタン（同じ大きさ・縦に並ぶ） */}
+  <a
+    href="https://forms.gle/18LmBfyJAJ1txmF56"
+    target="_blank"
+    rel="noopener noreferrer"
+    className="w-full sm:w-auto"
+  >
+    <Button
+      size="lg"
+      variant="outline"
+      className="w-full sm:w-auto text-base sm:text-lg px-7 sm:px-9 font-bold flex items-center justify-center gap-2"
+    >
+      加盟店募集中
+    </Button>
+  </a>
             </div>
           </motion.div>
 
@@ -388,7 +403,7 @@ export default function LandingPage() {
                 alt="アプリのデモ画面"
                 className="w-full h-full object-cover"
               />
-              <div className="absolute inset-x-0 bottom-0 bg-black/65 flex justify-center items-end pb-7 pt-10">
+              <div className="absolute inset-x-0 bottom-0 bg-black/65 flex justify中心 items-end pb-7 pt-10">
                 <p className="text-white text-lg sm:text-2xl md:text-3xl font-bold text-center px-4">
                   {t('hero.demo_text')}
                 </p>
@@ -575,7 +590,10 @@ export default function LandingPage() {
             <p className="text-sm sm:text-lg text-white/85 mb-6 sm:mb-8 font-semibold">
               {t('cta.subtitle')}
             </p>
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
+
+            {/* 縦並びのCTAボタン群 */}
+            <div className="flex flex-col gap-3 sm:gap-4 justify-center items-center">
+              {/* マップを見るボタン */}
               <Button
                 size="lg"
                 variant="secondary"
@@ -584,6 +602,22 @@ export default function LandingPage() {
               >
                 {t('cta.button')}
               </Button>
+
+              {/* 加盟店募集中ボタン（同サイズ・縦に並ぶ） */}
+              <a
+                href="https://forms.gle/18LmBfyJAJ1txmF56"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full sm:w-auto"
+              >
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="w-full sm:w-auto text-base sm:text-lg px-7 sm:px-9 font-bold flex items-center justify-center gap-2"
+                >
+                  加盟店募集中
+                </Button>
+              </a>
             </div>
           </motion.div>
         </div>
