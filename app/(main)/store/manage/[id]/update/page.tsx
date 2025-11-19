@@ -290,8 +290,8 @@ export default function StoreUpdatePage() {
     });
   };
 
-  // 当月の予約データをPDFで出力
-  const handleExportPDF = async () => {
+  // 当月の予約データをCSVで出力
+  const handleExportCSV = async () => {
     if (!params.id || !store) return;
 
     try {
@@ -316,31 +316,27 @@ export default function StoreUpdatePage() {
       // 型を明示的に指定
       const reservations: Database['public']['Tables']['quick_reservations']['Row'][] = monthlyReservations || [];
 
-      // jspdfを動的インポート
-      const { jsPDF } = await import('jspdf');
-      const doc = new jsPDF();
+      // CSVデータの準備
+      const statusLabels: Record<string, string> = {
+        pending: '保留中',
+        confirmed: '承認',
+        rejected: '拒否',
+        cancelled: 'キャンセル',
+        expired: '期限切れ',
+      };
 
-      // タイトル
-      doc.setFontSize(18);
-      doc.text(`${store.name} - 予約データ`, 14, 20);
-      doc.setFontSize(12);
-      doc.text(`${year}年${month + 1}月分`, 14, 30);
-
-      // テーブルデータの準備
-      const tableData = reservations.map((reservation, index) => {
+      // CSVヘッダー
+      const headers = ['No', '受付時刻', '名前', '電話番号', '人数', '到着予定', 'ステータス'];
+      
+      // CSVデータ行
+      const csvRows = reservations.map((reservation, index) => {
         const createdAt = new Date(reservation.created_at);
         const arrivalTime = new Date(reservation.arrival_time);
-        const statusLabels: Record<string, string> = {
-          pending: '保留中',
-          confirmed: '承認',
-          rejected: '拒否',
-          cancelled: 'キャンセル',
-          expired: '期限切れ',
-        };
-
+        
         return [
           (index + 1).toString(),
           createdAt.toLocaleString('ja-JP', {
+            year: 'numeric',
             month: '2-digit',
             day: '2-digit',
             hour: '2-digit',
@@ -350,6 +346,7 @@ export default function StoreUpdatePage() {
           reservation.caller_phone,
           `${reservation.party_size}名`,
           arrivalTime.toLocaleString('ja-JP', {
+            year: 'numeric',
             month: '2-digit',
             day: '2-digit',
             hour: '2-digit',
@@ -359,77 +356,40 @@ export default function StoreUpdatePage() {
         ];
       });
 
-      // テーブルヘッダー
-      const headers = ['No', '受付時刻', '名前', '電話番号', '人数', '到着予定', 'ステータス'];
-
-      // テーブルを描画（シンプルな実装）
-      let yPos = 40;
-      const rowHeight = 7;
-      const colWidths = [10, 30, 30, 35, 15, 30, 25];
-      let xPos = 14;
-
-      // ヘッダー
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'bold');
-      headers.forEach((header, i) => {
-        doc.text(header, xPos, yPos);
-        xPos += colWidths[i];
-      });
-
-      yPos += rowHeight;
-      doc.setDrawColor(200);
-      doc.line(14, yPos, 200, yPos);
-
-      // データ行
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(8);
-      tableData.forEach((row) => {
-        yPos += rowHeight;
-        if (yPos > 280) {
-          doc.addPage();
-          yPos = 20;
+      // CSV形式に変換（値にカンマや改行が含まれる場合はダブルクォートで囲む）
+      const escapeCSV = (value: string): string => {
+        if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+          return `"${value.replace(/"/g, '""')}"`;
         }
-        xPos = 14;
-        row.forEach((cell, i) => {
-          const cellText = String(cell).substring(0, 15); // 長いテキストを切り詰め
-          doc.text(cellText, xPos, yPos);
-          xPos += colWidths[i];
-        });
-      });
+        return value;
+      };
 
-      // 統計情報
-      yPos += rowHeight * 2;
-      if (yPos > 280) {
-        doc.addPage();
-        yPos = 20;
-      }
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'bold');
-      doc.text('統計情報', 14, yPos);
-      yPos += rowHeight;
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
-      const total = reservations.length;
-      const confirmed = reservations.filter(r => r.status === 'confirmed').length;
-      const rejected = reservations.filter(r => r.status === 'rejected').length;
-      doc.text(`総予約数: ${total}件`, 14, yPos);
-      yPos += rowHeight;
-      doc.text(`承認: ${confirmed}件`, 14, yPos);
-      yPos += rowHeight;
-      doc.text(`拒否: ${rejected}件`, 14, yPos);
+      // CSVコンテンツを生成
+      const csvContent = [
+        headers.map(escapeCSV).join(','),
+        ...csvRows.map(row => row.map(escapeCSV).join(','))
+      ].join('\n');
 
-      // PDFをダウンロード
-      const fileName = `${store.name}_${year}年${month + 1}月_予約データ.pdf`;
-      doc.save(fileName);
+      // BOMを追加してExcelで正しく開けるようにする
+      const BOM = '\uFEFF';
+      const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${store.name}_${year}年${month + 1}月_予約データ.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
 
-      toast.success('PDFファイルを出力しました', {
+      toast.success('CSVファイルを出力しました', {
         position: 'top-center',
         duration: 2000,
         className: 'bg-gray-100'
       });
     } catch (error) {
-      console.error('Error exporting PDF:', error);
-      toast.error('PDF出力に失敗しました', {
+      console.error('Error exporting CSV:', error);
+      toast.error('CSV出力に失敗しました', {
         position: 'top-center',
         duration: 3000,
         className: 'bg-gray-100'
@@ -826,12 +786,12 @@ export default function StoreUpdatePage() {
           >
             <Button
               type="button"
-              variant="outline"
-              className="w-full font-bold bg-gray-100 hover:bg-gray-200"
-              onClick={handleExportPDF}
+              className="w-full font-bold text-white hover:opacity-90"
+              style={{ backgroundColor: '#2c5c6e' }}
+              onClick={handleExportCSV}
             >
               <Download className="w-4 h-4 mr-2" />
-              データ出力（PDF）
+              データ出力（CSV）
             </Button>
             <Button
               type="button"
