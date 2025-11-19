@@ -72,6 +72,14 @@ export async function POST(request: NextRequest) {
     // 電話番号を音声で読み上げやすい形式に変換
     const phoneForSpeech = formatPhoneForSpeech(reservation.caller_phone);
     
+    // 到着時間から現在時刻までの分数を計算
+    const arrivalTime = new Date(reservation.arrival_time);
+    const now = new Date();
+    const minutesUntilArrival = Math.round((arrivalTime.getTime() - now.getTime()) / (1000 * 60));
+    
+    // 分数を音声で読み上げやすい形式に変換
+    const minutesForSpeech = formatMinutesForSpeech(minutesUntilArrival);
+    
     // 音声ガイダンス
     gather.say(
       { 
@@ -80,7 +88,7 @@ export async function POST(request: NextRequest) {
         loop: 1
       },
       `こちらは、ニケンメプラスの予約システムです。
-       お客様から、10分後の来店予約リクエストがあります。
+       お客様から、${minutesForSpeech}の来店予約リクエストがあります。
        
        お名前は、${reservation.caller_name || '不明'} 様、
        電話番号は、${phoneForSpeech}、
@@ -144,6 +152,24 @@ function formatPhoneForSpeech(phone: string): string {
   }
   
   return cleaned.split('').join('、');
+}
+
+// 分数を音声で読み上げやすい形式に変換
+function formatMinutesForSpeech(minutes: number): string {
+  // 10分、20分、30分などの場合
+  if (minutes === 10) {
+    return '10分後';
+  } else if (minutes === 20) {
+    return '20分後';
+  } else if (minutes === 30) {
+    return '30分後';
+  } else if (minutes > 0) {
+    // その他の場合は「〇〇分後」として読み上げ
+    return `${minutes}分後`;
+  } else {
+    // 過去の場合は「すぐに」など
+    return 'すぐに';
+  }
 }
 
 
