@@ -384,7 +384,7 @@ export default function LandingPage() {
       variant="outline"
       className="w-full sm:w-auto text-base sm:text-lg px-7 sm:px-9 font-bold flex items-center justify-center gap-2"
     >
-      加盟店募集中
+      {t('cta.recruiting_stores')}
     </Button>
   </a>
             </div>
@@ -527,7 +527,7 @@ export default function LandingPage() {
                 title: t('how_to.step3_title'),
                 description: t('how_to.step3_desc'),
                 image:
-                  'https://res.cloudinary.com/dz9trbwma/image/upload/v1763190430/%E3%82%B9%E3%82%AF%E3%83%AA%E3%83%BC%E3%83%B3%E3%82%B7%E3%83%A7%E3%83%83%E3%83%88_2025-11-13_10.15.46_-_%E7%B7%A8%E9%9B%86%E6%B8%88%E3%81%BF_c3h5xu.png',
+                  'https://res.cloudinary.com/dz9trbwma/image/upload/v1763549853/%E3%82%B9%E3%82%AF%E3%83%AA%E3%83%BC%E3%83%B3%E3%82%B7%E3%83%A7%E3%83%83%E3%83%88_2025-11-19_19.56.23_slrq2t.png',
               },
             ].map((item, index) => (
               <motion.div

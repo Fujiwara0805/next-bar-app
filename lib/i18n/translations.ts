@@ -51,6 +51,7 @@ export const translations = {
       title: '今すぐ入れるお店を探そう',
       subtitle: 'ログイン不要、今すぐマップ画面へ',
       button: 'マップを見る',
+      recruiting_stores: '加盟店募集中',
     },
     // Footer
     footer: {
@@ -176,6 +177,7 @@ export const translations = {
       title: 'Find Your Next Spot Now',
       subtitle: 'No login required, access the map instantly',
       button: 'View Map',
+      recruiting_stores: 'Recruiting Partner Stores',
     },
     // Footer
     footer: {
