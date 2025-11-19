@@ -48,14 +48,43 @@ export default function StoreDetailPage() {
   }, [params.id]);
 
   const loadUserLocation = () => {
+    // まずlocalStorageから位置情報を取得
     const savedLocation = localStorage.getItem('userLocation');
     if (savedLocation) {
       try {
         const location = JSON.parse(savedLocation);
         setUserLocation(location);
+        return;
       } catch (e) {
         console.error('Failed to parse saved location');
       }
+    }
+
+    // localStorageに位置情報がない場合、Geolocation APIを使用
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const location = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          };
+          setUserLocation(location);
+          localStorage.setItem('userLocation', JSON.stringify(location));
+        },
+        (error) => {
+          console.error('Error getting location:', error);
+          // エラーの場合はデフォルト位置を使用（大分駅周辺）
+          setUserLocation({ lat: 33.2382, lng: 131.6126 });
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0,
+        }
+      );
+    } else {
+      // Geolocation APIが利用できない場合、デフォルト位置を使用
+      setUserLocation({ lat: 33.2382, lng: 131.6126 });
     }
   };
 
@@ -69,6 +98,13 @@ export default function StoreDetailPage() {
       Math.sin(dLon / 2) * Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
+  };
+
+  // 距離から徒歩時間を計算（徒歩速度: 4km/h = 約67m/分）
+  const calculateWalkingTime = (distanceKm: number): number => {
+    const walkingSpeedKmPerHour = 4; // 徒歩速度 4km/h
+    const walkingTimeMinutes = (distanceKm / walkingSpeedKmPerHour) * 60;
+    return Math.round(walkingTimeMinutes);
   };
 
   const fetchStore = async (id: string) => {
@@ -404,7 +440,7 @@ export default function StoreDetailPage() {
                     </motion.button>
                     {distance !== null && (
                       <p className="text-sm text-muted-foreground font-bold">
-                        {t('store_detail.distance_from_current')} {distance < 1 ? `${Math.round(distance * 1000)}m` : `${distance.toFixed(1)}km`}
+                        徒歩およそ{calculateWalkingTime(distance)}分
                       </p>
                     )}
                   </div>

@@ -70,7 +70,7 @@ export default function StoreListPage() {
   }, [searchQuery, stores]);
 
   const loadUserLocation = () => {
-    // localStorageから位置情報を取得
+    // まずlocalStorageから位置情報を取得
     const savedLocation = localStorage.getItem('userLocation');
     if (savedLocation) {
       try {
@@ -82,8 +82,32 @@ export default function StoreListPage() {
       }
     }
 
-    // 保存された位置情報がない場合、デフォルト位置を使用
-    setUserLocation({ lat: 35.6812, lng: 139.7671 });
+    // localStorageに位置情報がない場合、Geolocation APIを使用
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const location = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          };
+          setUserLocation(location);
+          localStorage.setItem('userLocation', JSON.stringify(location));
+        },
+        (error) => {
+          console.error('Error getting location:', error);
+          // エラーの場合はデフォルト位置を使用（大分駅周辺）
+          setUserLocation({ lat: 33.2382, lng: 131.6126 });
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0,
+        }
+      );
+    } else {
+      // Geolocation APIが利用できない場合、デフォルト位置を使用（大分駅周辺）
+      setUserLocation({ lat: 33.2382, lng: 131.6126 });
+    }
   };
 
   const fetchStores = async () => {
@@ -144,6 +168,13 @@ export default function StoreListPage() {
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     const distance = R * c; // Distance in km
     return distance;
+  };
+
+  // 距離から徒歩時間を計算（徒歩速度: 4km/h = 約67m/分）
+  const calculateWalkingTime = (distanceKm: number): number => {
+    const walkingSpeedKmPerHour = 4; // 徒歩速度 4km/h
+    const walkingTimeMinutes = (distanceKm / walkingSpeedKmPerHour) * 60;
+    return Math.round(walkingTimeMinutes);
   };
 
   const getVacancyLabel = (status: string) => {
@@ -289,12 +320,12 @@ export default function StoreListPage() {
                           {/* 距離表示 */}
                           {userLocation && (
                             <p className="text-sm text-card-foreground/70 font-bold">
-                              {t('store_list.distance_from_current')} {calculateDistance(
+                              徒歩およそ{calculateWalkingTime(calculateDistance(
                                 userLocation.lat,
                                 userLocation.lng,
                                 Number(store.latitude),
                                 Number(store.longitude)
-                              ).toFixed(1)}km
+                              ))}分
                             </p>
                           )}
                           
@@ -351,13 +382,23 @@ export default function StoreListPage() {
           animate={{ scale: 1 }}
           className="fixed bottom-6 right-6 z-20"
         >
-          <Button
-            size="icon"
-            onClick={() => router.push('/map?refresh=true')}
-            className="w-14 h-14 rounded-full shadow-lg bg-primary hover:bg-primary/90"
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="flex flex-col items-center"
           >
-            <MapIcon className="w-6 h-6" />
-          </Button>
+            <Button
+              size="icon"
+              onClick={() => router.push('/map?refresh=true')}
+              className="bg-gray-600 w-14 h-14 border-2 border-gray-300 touch-manipulation active:scale-95"
+              title="Map"
+            >
+              <MapIcon className="w-7 h-7" />
+            </Button>
+            <span className="text-xs font-bold mt-1 text-gray-700 dark:text-gray-300">
+              Map
+            </span>
+          </motion.div>
         </motion.div>
       </main>
     </div>

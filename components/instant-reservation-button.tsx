@@ -30,6 +30,7 @@ export function InstantReservationButton({
   const { t } = useLanguage();
   const [showDialog, setShowDialog] = useState(false);
   const [partySize, setPartySize] = useState('2');
+  const [arrivalMinutes, setArrivalMinutes] = useState('10');
   const [guestName, setGuestName] = useState('');
   const [guestPhone, setGuestPhone] = useState('');
   const [requesting, setRequesting] = useState(false);
@@ -76,6 +77,7 @@ export function InstantReservationButton({
           userName: guestName.trim(),
           userPhone: guestPhone.replace(/\s/g, ''),
           partySize: parseInt(partySize),
+          arrivalMinutes: parseInt(arrivalMinutes),
         }),
       });
 
@@ -96,6 +98,7 @@ export function InstantReservationButton({
       setGuestName('');
       setGuestPhone('');
       setPartySize('2');
+      setArrivalMinutes('10');
 
       // 成功メッセージ
       toast.success('📞 予約リクエストを送信しました！', {
@@ -122,6 +125,7 @@ export function InstantReservationButton({
   const handleCancel = () => {
     setShowDialog(false);
     setPartySize('2');
+    setArrivalMinutes('10');
     setGuestName('');
     setGuestPhone('');
   };
@@ -142,8 +146,8 @@ export function InstantReservationButton({
       <CustomModal
         isOpen={showDialog}
         onClose={handleCancel}
-        title="⏰ 10分後に来店"
-        description={`${storeName}に10分後の来店予約をリクエスト。`}
+        title="⏰ 来店予約"
+        description={`${storeName}に来店予約をリクエスト。`}
       >
         <motion.div 
           className="space-y-4"
@@ -151,6 +155,26 @@ export function InstantReservationButton({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
         >
+          {/* 来店までの時間選択 */}
+          <div>
+            <Label className="text-sm font-bold flex items-center gap-2 mb-2" style={{ color: '#2c5c6e' }}>
+              <Clock className="w-4 h-4" />
+              来店までの時間
+            </Label>
+            <Select value={arrivalMinutes} onValueChange={setArrivalMinutes}>
+              <SelectTrigger className="bg-white border-[#2c5c6e]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-white">
+                {[10, 20, 30].map(minutes => (
+                  <SelectItem key={minutes} value={minutes.toString()} className="text-base">
+                    <span className="text-base">{minutes}分後</span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           {/* 人数選択 */}
           <div>
             <Label className="text-sm font-bold flex items-center gap-2 mb-2" style={{ color: '#2c5c6e' }}>

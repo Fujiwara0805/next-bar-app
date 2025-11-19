@@ -23,12 +23,21 @@ const twilioClient = twilio(twilioAccountSid, twilioAuthToken);
 export async function POST(request: NextRequest) {
   try {
     // userIdはオプショナルに変更
-    const { storeId, userId, userName, userPhone, partySize } = await request.json();
+    const { storeId, userId, userName, userPhone, partySize, arrivalMinutes } = await request.json();
     
     // 入力検証（userIdは不要、userNameは必須）
     if (!storeId || !userName || !userPhone || !partySize) {
       return NextResponse.json(
         { error: 'Missing required fields' },
+        { status: 400 }
+      );
+    }
+    
+    // 到着時間の検証（デフォルトは10分）
+    const minutes = arrivalMinutes ? parseInt(arrivalMinutes) : 10;
+    if (![10, 20, 30].includes(minutes)) {
+      return NextResponse.json(
+        { error: 'Invalid arrival minutes. Must be 10, 20, or 30' },
         { status: 400 }
       );
     }
@@ -54,8 +63,8 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // 到着予定時刻（10分後）
-    const arrivalTime = new Date(Date.now() + 10 * 60 * 1000);
+    // 到着予定時刻（選択された分数後）
+    const arrivalTime = new Date(Date.now() + minutes * 60 * 1000);
     
     // 予約リクエストをデータベースに記録
     const { data: reservation, error: reservationError } = await supabase

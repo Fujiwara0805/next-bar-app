@@ -121,7 +121,7 @@ export const translations = {
       distance_from_current: '現在地から約',
       no_info: '情報なし',
       open_in_google_maps: 'Googleマップで開く',
-      reservation_button: '10分後に来店予約',
+      reservation_button: '自動来店予約',
     },
   },
   en: {

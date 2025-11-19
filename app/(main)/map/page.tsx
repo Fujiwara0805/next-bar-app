@@ -197,6 +197,13 @@ function MapPageContent() {
     return distance;
   };
 
+  // 距離から徒歩時間を計算（徒歩速度: 4km/h = 約67m/分）
+  const calculateWalkingTime = (distanceKm: number): number => {
+    const walkingSpeedKmPerHour = 4; // 徒歩速度 4km/h
+    const walkingTimeMinutes = (distanceKm / walkingSpeedKmPerHour) * 60;
+    return Math.round(walkingTimeMinutes);
+  };
+
   return (
     <div className="relative h-screen flex flex-col touch-manipulation">
       {/* ヘッダー - レスポンシブ対応 */}
@@ -354,12 +361,12 @@ function MapPageContent() {
                     {/* 距離表示 */}
                     {userLocation && (
                       <p className="text-sm text-muted-foreground font-bold">
-                        {t('map.distance_from_current')} {calculateDistance(
+                        徒歩およそ{calculateWalkingTime(calculateDistance(
                           userLocation.lat,
                           userLocation.lng,
                           Number(selectedStore.latitude),
                           Number(selectedStore.longitude)
-                        ).toFixed(1)}km
+                        ))}分
                       </p>
                     )}
 
