@@ -111,6 +111,7 @@ export default function StoreUpdatePage() {
   // 予約管理関連のstate
   const [reservations, setReservations] = useState<Database['public']['Tables']['quick_reservations']['Row'][]>([]);
   const [loadingReservations, setLoadingReservations] = useState(false);
+  const [activeTab, setActiveTab] = useState('status');
   
   // 男女数トグルのstate
   const [isGenderCountOpen, setIsGenderCountOpen] = useState(false);
@@ -495,7 +496,7 @@ export default function StoreUpdatePage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
         >
-          <Tabs defaultValue="status" className="w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="status" className="font-bold">店舗状況</TabsTrigger>
               <TabsTrigger value="reservations" className="font-bold">予約管理</TabsTrigger>
@@ -784,15 +785,18 @@ export default function StoreUpdatePage() {
             transition={{ delay: 0.2 }}
             className="mt-6 space-y-3"
           >
-            <Button
-              type="button"
-              className="w-full font-bold text-white hover:opacity-90"
-              style={{ backgroundColor: '#2c5c6e' }}
-              onClick={handleExportCSV}
-            >
-              <Download className="w-4 h-4 mr-2" />
-              データ出力（CSV）
-            </Button>
+            {/* データ出力ボタンは予約管理タブが開いているときのみ表示 */}
+            {activeTab === 'reservations' && (
+              <Button
+                type="button"
+                className="w-full font-bold text-white hover:opacity-90"
+                style={{ backgroundColor: '#2c5c6e' }}
+                onClick={handleExportCSV}
+              >
+                <Download className="w-4 h-4 mr-2" />
+                データ出力（CSV）
+              </Button>
+            )}
             <Button
               type="button"
               variant="outline"
