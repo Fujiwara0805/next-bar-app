@@ -34,6 +34,7 @@ import {
   Users,
   CheckCircle2,
   XCircle,
+  Download,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -287,6 +288,153 @@ export default function StoreUpdatePage() {
       duration: 2000,
       className: 'bg-gray-100'
     });
+  };
+
+  // 当月の予約データをPDFで出力
+  const handleExportPDF = async () => {
+    if (!params.id || !store) return;
+
+    try {
+      // 当月の開始日と終了日を計算
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth();
+      const startDate = new Date(year, month, 1);
+      const endDate = new Date(year, month + 1, 0, 23, 59, 59);
+
+      // quick_reservationsテーブルから当月の予約データを取得
+      const { data: monthlyReservations, error } = await supabase
+        .from('quick_reservations')
+        .select('*')
+        .eq('store_id', params.id as string)
+        .gte('created_at', startDate.toISOString())
+        .lte('created_at', endDate.toISOString())
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      // 型を明示的に指定
+      const reservations: Database['public']['Tables']['quick_reservations']['Row'][] = monthlyReservations || [];
+
+      // jspdfを動的インポート
+      const { jsPDF } = await import('jspdf');
+      const doc = new jsPDF();
+
+      // タイトル
+      doc.setFontSize(18);
+      doc.text(`${store.name} - 予約データ`, 14, 20);
+      doc.setFontSize(12);
+      doc.text(`${year}年${month + 1}月分`, 14, 30);
+
+      // テーブルデータの準備
+      const tableData = reservations.map((reservation, index) => {
+        const createdAt = new Date(reservation.created_at);
+        const arrivalTime = new Date(reservation.arrival_time);
+        const statusLabels: Record<string, string> = {
+          pending: '保留中',
+          confirmed: '承認',
+          rejected: '拒否',
+          cancelled: 'キャンセル',
+          expired: '期限切れ',
+        };
+
+        return [
+          (index + 1).toString(),
+          createdAt.toLocaleString('ja-JP', {
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+          }),
+          reservation.caller_name || '未入力',
+          reservation.caller_phone,
+          `${reservation.party_size}名`,
+          arrivalTime.toLocaleString('ja-JP', {
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+          }),
+          statusLabels[reservation.status] || reservation.status,
+        ];
+      });
+
+      // テーブルヘッダー
+      const headers = ['No', '受付時刻', '名前', '電話番号', '人数', '到着予定', 'ステータス'];
+
+      // テーブルを描画（シンプルな実装）
+      let yPos = 40;
+      const rowHeight = 7;
+      const colWidths = [10, 30, 30, 35, 15, 30, 25];
+      let xPos = 14;
+
+      // ヘッダー
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      headers.forEach((header, i) => {
+        doc.text(header, xPos, yPos);
+        xPos += colWidths[i];
+      });
+
+      yPos += rowHeight;
+      doc.setDrawColor(200);
+      doc.line(14, yPos, 200, yPos);
+
+      // データ行
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      tableData.forEach((row) => {
+        yPos += rowHeight;
+        if (yPos > 280) {
+          doc.addPage();
+          yPos = 20;
+        }
+        xPos = 14;
+        row.forEach((cell, i) => {
+          const cellText = String(cell).substring(0, 15); // 長いテキストを切り詰め
+          doc.text(cellText, xPos, yPos);
+          xPos += colWidths[i];
+        });
+      });
+
+      // 統計情報
+      yPos += rowHeight * 2;
+      if (yPos > 280) {
+        doc.addPage();
+        yPos = 20;
+      }
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.text('統計情報', 14, yPos);
+      yPos += rowHeight;
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      const total = reservations.length;
+      const confirmed = reservations.filter(r => r.status === 'confirmed').length;
+      const rejected = reservations.filter(r => r.status === 'rejected').length;
+      doc.text(`総予約数: ${total}件`, 14, yPos);
+      yPos += rowHeight;
+      doc.text(`承認: ${confirmed}件`, 14, yPos);
+      yPos += rowHeight;
+      doc.text(`拒否: ${rejected}件`, 14, yPos);
+
+      // PDFをダウンロード
+      const fileName = `${store.name}_${year}年${month + 1}月_予約データ.pdf`;
+      doc.save(fileName);
+
+      toast.success('PDFファイルを出力しました', {
+        position: 'top-center',
+        duration: 2000,
+        className: 'bg-gray-100'
+      });
+    } catch (error) {
+      console.error('Error exporting PDF:', error);
+      toast.error('PDF出力に失敗しました', {
+        position: 'top-center',
+        duration: 3000,
+        className: 'bg-gray-100'
+      });
+    }
   };
 
   const handleSignOut = async () => {
@@ -578,7 +726,7 @@ export default function StoreUpdatePage() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="absolute top-4 right-4 text-muted-foreground hover:text-destructive"
+                              className="absolute top-4 right-4 text-red-600 hover:text-red-700"
                               onClick={() => handleDeleteReservation(reservation.id)}
                               title="削除"
                             >
@@ -668,14 +816,23 @@ export default function StoreUpdatePage() {
           </Tabs>
         </motion.div>
 
-        {/* 店舗アカウント用のログアウトボタン */}
+        {/* 店舗アカウント用のボタン */}
         {accountType === 'store' && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="mt-6"
+            className="mt-6 space-y-3"
           >
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full font-bold bg-gray-100 hover:bg-gray-200"
+              onClick={handleExportPDF}
+            >
+              <Download className="w-4 h-4 mr-2" />
+              データ出力（PDF）
+            </Button>
             <Button
               type="button"
               variant="outline"
