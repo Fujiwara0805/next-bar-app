@@ -90,6 +90,8 @@ export function ReservationStatusTracker({
         return <XCircle className="w-12 h-12 text-red-500" />;
       case 'pending':
         return <Phone className="w-12 h-12 text-blue-500 animate-pulse" />;
+      case 'expired':
+        return <Clock className="w-12 h-12 text-orange-500" />;
       default:
         return <Clock className="w-12 h-12 text-gray-400" />;
     }
@@ -131,6 +133,9 @@ export function ReservationStatusTracker({
         return '店舗に自動音声で確認中です。画面を開いたままにしてください。';
       case 'cancelled':
         return '店舗との通話ができませんでした。時間を空けて再度ご確認ください。';
+      case 'expired':
+        // 電話を切ってしまった場合（pendingのまま期限切れになった場合）のメッセージ
+        return '店舗からの応答がありませんでした。\n時間をあけて再度お試しください。';
       default:
         return '';
     }
