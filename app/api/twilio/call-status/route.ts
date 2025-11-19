@@ -49,6 +49,24 @@ export async function POST(request: NextRequest) {
       console.log(`Reservation ${reservation.id} cancelled due to call status: ${callStatus}`);
     }
     
+    // 通話が完了したが、予約がまだpendingの場合は電話を切られた扱い
+    // （店舗が電話に出たが、承認/拒否のボタンを押さずに電話を切った場合）
+    if (
+      callStatus === 'completed' &&
+      reservation.status === 'pending'
+    ) {
+      // 期限切れ時刻を少し延長して、ユーザーにメッセージを表示する時間を与える
+      const newExpiresAt = new Date(Date.now() + 30 * 1000).toISOString(); // 30秒後に期限切れ
+      await supabase
+        .from('quick_reservations')
+        .update({
+          expires_at: newExpiresAt,
+        })
+        .eq('id', reservation.id);
+      
+      console.log(`Reservation ${reservation.id} call completed but no response - will expire soon`);
+    }
+    
     return NextResponse.json({ received: true });
     
   } catch (error) {

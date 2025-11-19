@@ -54,8 +54,8 @@ export function ReservationStatusTracker({
           setStatus(data);
           setLoading(false);
           
-          // 確定または拒否されたらポーリングを停止
-          if (data.status === 'confirmed' || data.status === 'rejected' || data.status === 'cancelled') {
+          // 確定、拒否、キャンセル、または期限切れになったらポーリングを停止
+          if (data.status === 'confirmed' || data.status === 'rejected' || data.status === 'cancelled' || data.status === 'expired') {
             clearInterval(intervalId);
           }
         }
@@ -110,7 +110,7 @@ export function ReservationStatusTracker({
       case 'pending':
         return '📞 店舗に確認中...';
       case 'expired':
-        return '予約リクエストが期限切れになりました';
+        return '店舗からの応答がありませんでした';
       default:
         return '不明なステータス';
     }
@@ -132,9 +132,10 @@ export function ReservationStatusTracker({
       case 'pending':
         return '店舗に自動音声で確認中です。画面を開いたままにしてください。';
       case 'cancelled':
-        return '店舗との通話ができませんでした。時間を空けて再度ご確認ください。';
+        // 電話に出なかった場合（no-answer, busy, failed, canceled）
+        return '店舗との通話ができませんでした。\n時間を空けて再度お試しください。';
       case 'expired':
-        // 電話を切ってしまった場合（pendingのまま期限切れになった場合）のメッセージ
+        // 電話を切ってしまった場合（電話に出たが、承認/拒否のボタンを押さずに電話を切った場合）
         return '店舗からの応答がありませんでした。\n時間をあけて再度お試しください。';
       default:
         return '';

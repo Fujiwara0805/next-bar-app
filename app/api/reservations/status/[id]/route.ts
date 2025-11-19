@@ -38,9 +38,24 @@ export async function GET(
       );
     }
     
+    // 期限切れをチェック（pendingのまま期限切れになった場合）
+    let finalStatus = reservation.status;
+    if (reservation.status === 'pending' && reservation.expires_at) {
+      const expiresAt = new Date(reservation.expires_at);
+      const now = new Date();
+      if (now > expiresAt) {
+        // 期限切れになったので、expiredに更新
+        finalStatus = 'expired';
+        await supabase
+          .from('quick_reservations')
+          .update({ status: 'expired' })
+          .eq('id', reservation.id);
+      }
+    }
+    
     return NextResponse.json({
       id: reservation.id,
-      status: reservation.status,
+      status: finalStatus,
       storeName: reservation.stores?.name,
       storeAddress: reservation.stores?.address,
       callerName: reservation.caller_name,
