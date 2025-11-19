@@ -28,6 +28,7 @@ import {
   Settings,
   Edit,
   ChevronDown,
+  Trash2,
   ChevronUp,
   User,
   Users,
@@ -276,6 +277,16 @@ export default function StoreUpdatePage() {
     } finally {
       setLoadingReservations(false);
     }
+  };
+
+  // 予約を画面上から削除（データベースには影響しない）
+  const handleDeleteReservation = (reservationId: string) => {
+    setReservations(prev => prev.filter(r => r.id !== reservationId));
+    toast.success('予約カードを削除しました', { 
+      position: 'top-center',
+      duration: 2000,
+      className: 'bg-gray-100'
+    });
   };
 
   const handleSignOut = async () => {
@@ -562,10 +573,20 @@ export default function StoreUpdatePage() {
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
                         >
-                          <Card className="p-6">
+                          <Card className="p-6 relative">
+                            {/* 削除ボタン */}
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="absolute top-4 right-4 text-muted-foreground hover:text-destructive"
+                              onClick={() => handleDeleteReservation(reservation.id)}
+                              title="削除"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
                             <div className="space-y-3">
                               {/* 1行目: ステータスバッジ + 電話がかかってきた時間 */}
-                              <div className="flex items-center justify-between">
+                              <div className="flex items-center justify-between pr-10">
                                 <div className={`flex items-center gap-2 px-3 py-1 rounded-full border ${statusInfo.color}`}>
                                   {statusInfo.icon}
                                   <span className="text-sm font-bold">{statusInfo.label}</span>

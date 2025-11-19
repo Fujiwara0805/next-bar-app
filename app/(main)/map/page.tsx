@@ -58,6 +58,23 @@ function MapPageContent() {
     };
   }, [searchParams, router]);
 
+  // マップ画面に戻ってきたときに位置情報と空席情報を再取得
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      // ページが表示されたとき（他の画面から戻ってきたとき）に位置情報と空席情報を再取得
+      if (document.visibilityState === 'visible') {
+        loadUserLocation();
+        fetchStores();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
+
   const fetchStores = async () => {
     try {
       const { data, error } = await supabase
