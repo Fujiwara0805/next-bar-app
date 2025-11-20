@@ -569,7 +569,7 @@ export default function StoreEditPage() {
               {latitude && longitude && (
                 <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
                   <p className="text-sm text-green-800 font-bold">
-                    ✓ 位置情報取得済み: 緯度 {parseFloat(latitude).toFixed(6)}, 経度 {parseFloat(longitude).toFixed(6)}
+                    ✓ 位置情報取得済み
                   </p>
                 </div>
               )}
