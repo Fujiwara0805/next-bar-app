@@ -44,7 +44,7 @@ export const translations = {
       step2_title: '店舗の詳細を確認',
       step2_desc: '店舗カードをクリックすると、詳細情報が表示されます。',
       step3_title: '自動音声があなたの代わりに予約を行います。',
-      step3_desc: '来店までの時間（10分、20分、30分）を選択できます。お店側は予約の受入を、自動音声の質問にボタンを1つ押すだけで受入回答できます。',
+      step3_desc: '来店までの時間（10分・20分・30分の中から選択）そのお店の席をキープすることができます。お店側は予約の受入を、自動音声の質問にボタンを1つ押すだけで受入回答できます。',
     },
     // CTA Section
     cta: {
@@ -170,7 +170,7 @@ export const translations = {
       step2_title: 'View Store Details',
       step2_desc: 'Click on store cards to see detailed information.',
       step3_title: 'Automated voice makes reservations for you.',
-      step3_desc: 'You can select arrival time (10, 20, or 30 minutes). Store owners can accept reservations by simply pressing one button in response to the automated voice questions.',
+      step3_desc: 'You can select arrival time (choose from 10, 20, or 30 minutes) to reserve a seat at that store. Store owners can accept reservations by simply pressing one button in response to the automated voice questions.',
     },
     // CTA Section
     cta: {
