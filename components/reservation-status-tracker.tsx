@@ -42,7 +42,19 @@ export function ReservationStatusTracker({
 
     const fetchStatus = async () => {
       try {
-        const response = await fetch(`/api/reservations/status/${reservationId}`);
+        // キャッシュバスター：タイムスタンプをクエリパラメータに追加
+        const cacheBuster = Date.now();
+        const response = await fetch(
+          `/api/reservations/status/${reservationId}?t=${cacheBuster}`,
+          {
+            method: 'GET',
+            headers: {
+              'Cache-Control': 'no-cache, no-store, must-revalidate',
+              'Pragma': 'no-cache',
+            },
+            cache: 'no-store',
+          }
+        );
         
         if (!response.ok) {
           throw new Error('Failed to fetch status');
@@ -55,7 +67,12 @@ export function ReservationStatusTracker({
           setLoading(false);
           
           // 確定、拒否、キャンセル、または期限切れになったらポーリングを停止
-          if (data.status === 'confirmed' || data.status === 'rejected' || data.status === 'cancelled' || data.status === 'expired') {
+          if (
+            data.status === 'confirmed' ||
+            data.status === 'rejected' ||
+            data.status === 'cancelled' ||
+            data.status === 'expired'
+          ) {
             clearInterval(intervalId);
           }
         }
@@ -238,4 +255,3 @@ export function ReservationStatusTracker({
     </CustomModal>
   );
 }
-

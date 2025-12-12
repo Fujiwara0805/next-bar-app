@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
+// キャッシュ無効化（Route Segment Config）
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+export const fetchCache = 'force-no-store';
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -53,19 +58,32 @@ export async function GET(
       }
     }
     
-    return NextResponse.json({
-      id: reservation.id,
-      status: finalStatus,
-      storeName: reservation.stores?.name,
-      storeAddress: reservation.stores?.address,
-      callerName: reservation.caller_name,
-      partySize: reservation.party_size,
-      arrivalTime: reservation.arrival_time,
-      confirmedAt: reservation.confirmed_at,
-      rejectionReason: reservation.rejection_reason,
-      createdAt: reservation.created_at,
-      expiresAt: reservation.expires_at,
-    });
+    // レスポンスヘッダーでキャッシュを明示的に無効化
+    return NextResponse.json(
+      {
+        id: reservation.id,
+        status: finalStatus,
+        storeName: reservation.stores?.name,
+        storeAddress: reservation.stores?.address,
+        callerName: reservation.caller_name,
+        partySize: reservation.party_size,
+        arrivalTime: reservation.arrival_time,
+        confirmedAt: reservation.confirmed_at,
+        rejectionReason: reservation.rejection_reason,
+        createdAt: reservation.created_at,
+        expiresAt: reservation.expires_at,
+      },
+      {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+          'Surrogate-Control': 'no-store',
+          'CDN-Cache-Control': 'no-store',
+          'Vercel-CDN-Cache-Control': 'no-store',
+        },
+      }
+    );
     
   } catch (error) {
     console.error('Error fetching reservation status:', error);
@@ -75,4 +93,3 @@ export async function GET(
     );
   }
 }
-
