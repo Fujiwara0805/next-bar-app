@@ -615,7 +615,7 @@ export default function LandingPage() {
                   variant="outline"
                   className="w-full sm:w-auto text-base sm:text-lg px-7 sm:px-9 font-bold flex items-center justify-center gap-2"
                 >
-                  加盟店募集中
+                  {t('cta.recruiting_stores')}
                 </Button>
               </a>
             </div>
