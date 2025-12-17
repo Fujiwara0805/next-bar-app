@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Database } from '@/lib/supabase/types';
 
 type Store = Database['public']['Tables']['stores']['Row'];
@@ -11,48 +11,6 @@ interface MapViewProps {
   onStoreClick?: (store: Store) => void;
 }
 
-// 🔥 方角付き現在地マーカーアイコンを作成
-const createDirectionalLocationIcon = (heading: number | null): google.maps.Icon => {
-  const size = 40;
-  const centerX = size / 2;
-  const centerY = size / 2;
-  const outerRadius = 16;
-  const innerRadius = 8;
-  const angle = heading !== null ? heading : 0;
-  const angleRad = (angle - 90) * Math.PI / 180;
-  const tipX = centerX + Math.cos(angleRad) * outerRadius;
-  const tipY = centerY + Math.sin(angleRad) * outerRadius;
-  const baseAngle1 = angleRad + Math.PI * 0.75;
-  const baseAngle2 = angleRad - Math.PI * 0.75;
-  const baseRadius = innerRadius + 3;
-  const base1X = centerX + Math.cos(baseAngle1) * baseRadius;
-  const base1Y = centerY + Math.sin(baseAngle1) * baseRadius;
-  const base2X = centerX + Math.cos(baseAngle2) * baseRadius;
-  const base2Y = centerY + Math.sin(baseAngle2) * baseRadius;
-  
-  // 方角がある場合は矢印を表示
-  const directionIndicator = heading !== null 
-    ? `<polygon points="${tipX},${tipY} ${base1X},${base1Y} ${base2X},${base2Y}" fill="#4285F4" fill-opacity="0.5"/>`
-    : '';
-  
-  const svgIcon = `<svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
-        <feDropShadow dx="0" dy="1" stdDeviation="1" flood-opacity="0.3"/>
-      </filter>
-    </defs>
-    ${directionIndicator}
-    <circle cx="${centerX}" cy="${centerY}" r="${innerRadius}" fill="white" filter="url(#shadow)"/>
-    <circle cx="${centerX}" cy="${centerY}" r="${innerRadius - 2.5}" fill="#4285F4"/>
-  </svg>`;
-  
-  return {
-    url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svgIcon),
-    scaledSize: new window.google.maps.Size(size, size),
-    anchor: new window.google.maps.Point(size / 2, size / 2),
-  };
-};
-
 export function MapView({ stores, center, onStoreClick }: MapViewProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
@@ -61,63 +19,6 @@ export function MapView({ stores, center, onStoreClick }: MapViewProps) {
   const accuracyCircleRef = useRef<google.maps.Circle | null>(null);
   const [loading, setLoading] = useState(true);
   const [mapReady, setMapReady] = useState(false);
-  const [deviceHeading, setDeviceHeading] = useState<number | null>(null);
-  const [needsOrientationPermission, setNeedsOrientationPermission] = useState(false);
-  const lastHeadingRef = useRef<number | null>(null);
-
-  // 🔥 デバイスの向きハンドラー
-  const handleDeviceOrientation = useCallback((event: DeviceOrientationEvent) => {
-    let heading: number | null = null;
-    
-    // iOS: webkitCompassHeading
-    if ('webkitCompassHeading' in event && typeof (event as any).webkitCompassHeading === 'number') {
-      heading = (event as any).webkitCompassHeading;
-    } 
-    // Android: alpha
-    else if (event.alpha !== null) {
-      heading = 360 - event.alpha;
-    }
-    
-    if (heading !== null) {
-      // 🔥 5度以上変化した場合のみ更新（チカチカ防止）
-      if (lastHeadingRef.current === null || Math.abs(heading - lastHeadingRef.current) > 5) {
-        lastHeadingRef.current = heading;
-        setDeviceHeading(heading);
-      }
-    }
-  }, []);
-
-  // 🔥 デバイスの向きを取得（SSR対策済み）
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    // iOS 13+ では明示的な許可が必要
-    if (typeof (DeviceOrientationEvent as any).requestPermission === 'function') {
-      setNeedsOrientationPermission(true);
-    } else {
-      // Android や古いブラウザは許可不要
-      window.addEventListener('deviceorientation', handleDeviceOrientation, true);
-    }
-    
-    return () => {
-      window.removeEventListener('deviceorientation', handleDeviceOrientation, true);
-    };
-  }, [handleDeviceOrientation]);
-
-  // 🔥 方角の許可をリクエスト（iOSボタン用）
-  const handleRequestOrientationPermission = async () => {
-    if (typeof window === 'undefined') return;
-    
-    try {
-      const permission = await (DeviceOrientationEvent as any).requestPermission();
-      if (permission === 'granted') {
-        setNeedsOrientationPermission(false);
-        window.addEventListener('deviceorientation', handleDeviceOrientation, true);
-      }
-    } catch (error) {
-      console.error('DeviceOrientation permission denied:', error);
-    }
-  };
 
   // Google Maps初期化（初回のみ）
   useEffect(() => {
@@ -130,6 +31,7 @@ export function MapView({ stores, center, onStoreClick }: MapViewProps) {
           return;
         }
 
+        // 既にスクリプトが読み込まれているかチェック
         if (window.google && window.google.maps) {
           console.log('Google Maps already loaded');
           if (!mapInstanceRef.current) {
@@ -138,6 +40,7 @@ export function MapView({ stores, center, onStoreClick }: MapViewProps) {
           return;
         }
 
+        // 既にスクリプトタグが存在するかチェック
         const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
         if (existingScript) {
           console.log('Google Maps script tag already exists, waiting for load...');
@@ -189,13 +92,15 @@ export function MapView({ stores, center, onStoreClick }: MapViewProps) {
         mapTypeControl: false,
         streetViewControl: false,
         fullscreenControl: false,
-        gestureHandling: 'greedy',
-        clickableIcons: false,
+        // タッチ操作の最適化
+        gestureHandling: 'greedy', // スクロールとピンチ操作を優先
+        clickableIcons: false, // デフォルトのPOIアイコンを無効化
       });
 
       mapInstanceRef.current = map;
       setLoading(false);
       
+      // マップが完全に初期化されたらフラグを立てる
       google.maps.event.addListenerOnce(map, 'idle', () => {
         console.log('Map is ready');
         setMapReady(true);
@@ -204,7 +109,7 @@ export function MapView({ stores, center, onStoreClick }: MapViewProps) {
 
     initMap();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, []); // 空の依存配列で初回のみ実行
 
   // centerが変更されたときにマップの中心を更新
   useEffect(() => {
@@ -224,17 +129,19 @@ export function MapView({ stores, center, onStoreClick }: MapViewProps) {
     markersRef.current = [];
 
     stores.forEach((store) => {
+      // 同じ位置のマーカー数をカウントしてオフセットを計算
       const positionKey = `${store.latitude},${store.longitude}`;
       const samePositionStores = stores.filter(s => 
         `${s.latitude},${s.longitude}` === positionKey
       );
       const indexAtPosition = samePositionStores.findIndex(s => s.id === store.id);
 
+      // 同じ位置に複数店舗がある場合、円形にオフセットを追加
       let latOffset = 0;
       let lngOffset = 0;
       
       if (samePositionStores.length > 1) {
-        const offsetDistance = 0.00008;
+        const offsetDistance = 0.00008; // 約9m（マーカーが重ならない程度）
         const angle = (indexAtPosition * (360 / samePositionStores.length)) * (Math.PI / 180);
         latOffset = Math.cos(angle) * offsetDistance;
         lngOffset = Math.sin(angle) * offsetDistance;
@@ -249,31 +156,35 @@ export function MapView({ stores, center, onStoreClick }: MapViewProps) {
         title: store.name,
         icon: {
           url: getMarkerIcon(store.vacancy_status),
-          scaledSize: new google.maps.Size(48, 48),
-          anchor: new google.maps.Point(24, 24),
+          scaledSize: new google.maps.Size(48, 48), // サイズを大きく（40→48）
+          anchor: new google.maps.Point(24, 24), // アンカーも調整
         },
-        optimized: true,
+        optimized: true, // パフォーマンス改善のためtrueに変更
         zIndex: 100,
         cursor: 'pointer',
+        // タップ領域を拡大
         clickable: true,
       });
 
+      // タッチデバイス用の追加設定
       marker.addListener('click', () => {
         console.log('Store clicked:', store.name);
         if (onStoreClick) {
+          // マーカークリック時にフィードバックを追加
           marker.setAnimation(google.maps.Animation.BOUNCE);
           setTimeout(() => marker.setAnimation(null), 700);
           onStoreClick(store);
         }
       });
 
+      // タップ領域をさらに広げるために、見えない円形エリアを追加
       const touchArea = new google.maps.Circle({
         map: mapInstanceRef.current!,
         center: { 
           lat: Number(store.latitude) + latOffset, 
           lng: Number(store.longitude) + lngOffset 
         },
-        radius: 10,
+        radius: 10, // 10m半径のタップ可能エリア
         fillOpacity: 0,
         strokeOpacity: 0,
         clickable: true,
@@ -293,68 +204,71 @@ export function MapView({ stores, center, onStoreClick }: MapViewProps) {
     });
   }, [stores, onStoreClick, mapReady]);
 
-  // 🔥 現在地マーカーの初期作成（centerが変わった時のみ）
+  // 現在地マーカーの表示
   useEffect(() => {
     if (!mapInstanceRef.current || !mapReady || !center) {
+      console.log('Cannot create user marker:', {
+        hasMap: !!mapInstanceRef.current,
+        mapReady,
+        hasCenter: !!center
+      });
       return;
     }
 
-    // 🔥 精度範囲の円は一度だけ作成または位置更新
-    if (!accuracyCircleRef.current) {
-      const accuracyCircle = new google.maps.Circle({
-        map: mapInstanceRef.current,
-        center: center,
-        radius: 30,
+    console.log('Creating user marker at:', center);
+
+    // 既存の現在地マーカーと円を削除
+    if (userMarkerRef.current) {
+      userMarkerRef.current.setMap(null);
+    }
+    if (accuracyCircleRef.current) {
+      accuracyCircleRef.current.setMap(null);
+    }
+
+    // 現在地の周りに円（精度範囲）を表示
+    const accuracyCircle = new google.maps.Circle({
+      map: mapInstanceRef.current,
+      center: center,
+      radius: 30,
+      fillColor: '#4285F4',
+      fillOpacity: 0.15,
+      strokeColor: '#4285F4',
+      strokeOpacity: 0.4,
+      strokeWeight: 2,
+    });
+    accuracyCircleRef.current = accuracyCircle;
+
+    // 現在地マーカーを作成（デフォルトスタイル）
+    const userMarker = new google.maps.Marker({
+      position: center,
+      map: mapInstanceRef.current,
+      icon: {
+        path: google.maps.SymbolPath.CIRCLE,
+        scale: 8,
         fillColor: '#4285F4',
-        fillOpacity: 0.1,
-        strokeColor: '#4285F4',
-        strokeOpacity: 0.3,
-        strokeWeight: 1,
-      });
-      accuracyCircleRef.current = accuracyCircle;
-    } else {
-      accuracyCircleRef.current.setCenter(center);
-    }
+        fillOpacity: 1,
+        strokeColor: '#ffffff',
+        strokeWeight: 2,
+      },
+      title: '現在地',
+      zIndex: 1000,
+      animation: google.maps.Animation.DROP,
+    });
 
-    // 🔥 マーカーは一度だけ作成または位置更新
-    if (!userMarkerRef.current) {
-      const directionalIcon = createDirectionalLocationIcon(deviceHeading);
-      const userMarker = new google.maps.Marker({
-        position: center,
-        map: mapInstanceRef.current,
-        icon: directionalIcon,
-        title: '現在地',
-        zIndex: 9999,
-      });
-      userMarkerRef.current = userMarker;
-    } else {
-      userMarkerRef.current.setPosition(center);
-    }
+    userMarkerRef.current = userMarker;
 
-    console.log('User marker position updated:', center);
-  }, [center, mapReady]);
+    console.log('User marker created successfully');
 
-  // 🔥 方角が変わった時はアイコンのみ更新（チカチカ防止）
-  useEffect(() => {
-    if (!userMarkerRef.current || !window.google?.maps) return;
-    
-    const directionalIcon = createDirectionalLocationIcon(deviceHeading);
-    userMarkerRef.current.setIcon(directionalIcon);
-  }, [deviceHeading]);
-
-  // 🔥 クリーンアップ
-  useEffect(() => {
+    // クリーンアップ関数
     return () => {
       if (userMarkerRef.current) {
         userMarkerRef.current.setMap(null);
-        userMarkerRef.current = null;
       }
       if (accuracyCircleRef.current) {
         accuracyCircleRef.current.setMap(null);
-        accuracyCircleRef.current = null;
       }
     };
-  }, []);
+  }, [center, mapReady]);
 
   const getMarkerIcon = (status: string) => {
     switch (status) {
@@ -374,7 +288,6 @@ export function MapView({ stores, center, onStoreClick }: MapViewProps) {
   return (
     <div className="relative w-full h-full">
       <div ref={mapRef} className="w-full h-full" />
-      
       {loading && (
         <div className="absolute inset-0 flex items-center justify-center bg-background/80">
           <div className="text-center">
@@ -383,28 +296,12 @@ export function MapView({ stores, center, onStoreClick }: MapViewProps) {
           </div>
         </div>
       )}
-
-      {/* 🔥 方角許可リクエストボタン（iOSの場合のみ・左下に配置） */}
-      {needsOrientationPermission && (
-        <button
-          onClick={handleRequestOrientationPermission}
-          className="absolute bottom-4 left-4 z-50 bg-white shadow-lg rounded-full p-3 flex items-center gap-2 text-sm font-medium text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors border border-gray-200"
-        >
-          <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-          </svg>
-          方角を有効化
-        </button>
-      )}
-
       {/* デバッグ情報 */}
       {process.env.NODE_ENV === 'development' && (
         <div className="absolute top-20 left-4 bg-black/70 text-white text-xs p-2 rounded z-50">
           <div>Map Ready: {mapReady ? '✓' : '✗'}</div>
           <div>Center: {center ? `${center.lat.toFixed(4)}, ${center.lng.toFixed(4)}` : 'None'}</div>
           <div>User Marker: {userMarkerRef.current ? '✓' : '✗'}</div>
-          <div>Heading: {deviceHeading !== null ? `${deviceHeading.toFixed(0)}°` : 'N/A'}</div>
-          <div>Needs Permission: {needsOrientationPermission ? 'Yes' : 'No'}</div>
         </div>
       )}
     </div>
