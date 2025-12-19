@@ -1,3 +1,12 @@
+/**
+ * ============================================
+ * ファイルパス: app/(main)/map/page.tsx
+ * 
+ * 機能: マップページ
+ *       画面表示時にis_open更新APIを呼び出す
+ * ============================================
+ */
+
 'use client';
 
 import { useEffect, useState, Suspense } from 'react';
@@ -84,6 +93,22 @@ function MapPageContent() {
 
       if (error) throw error;
       setStores(data || []);
+
+      // ★★★ バックグラウンドでis_openを更新（全店舗） ★★★
+      fetch('/api/stores/update-is-open', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+        .then((res) => res.json())
+        .then((result) => {
+          console.log('is_open update result:', result);
+        })
+        .catch((err) => {
+          console.warn('Failed to update is_open:', err);
+        });
+
     } catch (error) {
       console.error('Error fetching stores:', error);
     } finally {

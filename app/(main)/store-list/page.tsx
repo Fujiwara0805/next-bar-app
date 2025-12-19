@@ -1,3 +1,12 @@
+/**
+ * ============================================
+ * ファイルパス: app/(main)/store-list/page.tsx
+ * 
+ * 機能: 店舗一覧ページ
+ *       画面表示時にis_open更新APIを呼び出す
+ * ============================================
+ */
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -145,6 +154,22 @@ export default function StoreListPage() {
         
         setStores(sortedStores);
         setFilteredStores(sortedStores);
+
+        // ★★★ バックグラウンドでis_openを更新（全店舗） ★★★
+        fetch('/api/stores/update-is-open', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        })
+          .then((res) => res.json())
+          .then((result) => {
+            console.log('is_open update result:', result);
+          })
+          .catch((err) => {
+            console.warn('Failed to update is_open:', err);
+          });
+
       } else {
         setStores(storeData);
         setFilteredStores(storeData);
@@ -404,4 +429,3 @@ export default function StoreListPage() {
     </div>
   );
 }
-

@@ -1,3 +1,12 @@
+/**
+ * ============================================
+ * ファイルパス: app/(main)/store/[id]/page.tsx
+ * 
+ * 機能: 店舗詳細ページ
+ *       画面表示時に該当店舗のis_open更新APIを呼び出す
+ * ============================================
+ */
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -130,6 +139,20 @@ export default function StoreDetailPage() {
             Number(storeData.longitude)
           );
           setDistance(dist);
+        }
+
+        // ★★★ バックグラウンドでis_openを更新（該当店舗のみ） ★★★
+        if (storeData.google_place_id) {
+          fetch(`/api/stores/update-is-open?storeId=${id}`, {
+            method: 'GET',
+          })
+            .then((res) => res.json())
+            .then((result) => {
+              console.log('is_open update result:', result);
+            })
+            .catch((err) => {
+              console.warn('Failed to update is_open:', err);
+            });
         }
       }
     } catch (error) {
