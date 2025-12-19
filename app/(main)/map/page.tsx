@@ -267,16 +267,23 @@ function MapPageContent() {
                 className="flex flex-col items-center"
               >
                 <Button
-                  size="icon"
                   onClick={() => router.push('/landing')}
-                  className="bg-gray-600 w-14 h-14 mt-12 border-2 border-gray-300 touch-manipulation active:scale-95"
+                  className="flex flex-col items-center justify-center gap-1 px-3 py-2 mt-12 touch-manipulation active:scale-95 rounded-lg"
+                  style={{
+                    background: 'rgba(5,5,5,0.7)',
+                    backdropFilter: 'blur(20px)',
+                    border: '1px solid rgba(245,158,11,0.3)',
+                    boxShadow: '0 0 20px rgba(245,158,11,0.2)',
+                    minWidth: '56px',
+                    minHeight: '56px',
+                  }}
                   title={t('map.home')}
                 >
-                  <Home className="w-7 h-7" />
+                  <Home className="w-5 h-5" style={{ color: '#F59E0B' }} />
+                  <span className="text-[10px] font-bold" style={{ color: '#F59E0B' }}>
+                    {t('map.home')}
+                  </span>
                 </Button>
-                <span className="text-xs font-bold mt-1 text-gray-700 dark:text-gray-300">
-                  {t('map.home')}
-                </span>
               </motion.div>
 
               {/* リストボタン */}
@@ -286,16 +293,23 @@ function MapPageContent() {
                 className="flex flex-col items-center"
               >
                 <Button
-                  size="icon"
                   onClick={() => router.push('/store-list')}
-                  className="bg-gray-600 w-14 h-14 border-2 border-gray-300 touch-manipulation active:scale-95"
+                  className="flex flex-col items-center justify-center gap-1 px-3 py-2 touch-manipulation active:scale-95 rounded-lg"
+                  style={{
+                    background: 'rgba(5,5,5,0.7)',
+                    backdropFilter: 'blur(20px)',
+                    border: '1px solid rgba(245,158,11,0.3)',
+                    boxShadow: '0 0 20px rgba(245,158,11,0.2)',
+                    minWidth: '56px',
+                    minHeight: '56px',
+                  }}
                   title={t('map.store_list')}
                 >
-                  <List className="w-7 h-7" />
+                  <List className="w-5 h-5" style={{ color: '#F59E0B' }} />
+                  <span className="text-[10px] font-bold" style={{ color: '#F59E0B' }}>
+                    {t('map.store_list')}
+                  </span>
                 </Button>
-                <span className="text-xs font-bold mt-1 text-gray-700 dark:text-gray-300">
-                  {t('map.store_list')}
-                </span>
               </motion.div>
 
               {/* 更新ボタン */}
@@ -305,17 +319,28 @@ function MapPageContent() {
                 className="flex flex-col items-center"
               >
                 <Button
-                  size="icon"
                   onClick={handleRefresh}
                   disabled={refreshing}
-                  className="bg-gray-600 w-14 h-14 border-2 border-gray-300 touch-manipulation active:scale-95"
+                  className="flex flex-col items-center justify-center gap-1 px-3 py-2 touch-manipulation active:scale-95 rounded-lg"
+                  style={{
+                    background: 'rgba(5,5,5,0.7)',
+                    backdropFilter: 'blur(20px)',
+                    border: '1px solid rgba(245,158,11,0.3)',
+                    boxShadow: '0 0 20px rgba(245,158,11,0.2)',
+                    minWidth: '56px',
+                    minHeight: '56px',
+                    opacity: refreshing ? 0.6 : 1,
+                  }}
                   title={t('map.refresh')}
                 >
-                  <RefreshCw className={`w-7 h-7 ${refreshing ? 'animate-spin' : ''}`} />
+                  <RefreshCw 
+                    className={`w-5 h-5 ${refreshing ? 'animate-spin' : ''}`}
+                    style={{ color: '#F59E0B' }}
+                  />
+                  <span className="text-[10px] font-bold" style={{ color: '#F59E0B' }}>
+                    {t('map.refresh')}
+                  </span>
                 </Button>
-                <span className="text-xs font-bold mt-1 text-gray-700 dark:text-gray-300">
-                  {t('map.refresh')}
-                </span>
               </motion.div>
             </div>
           </div>
