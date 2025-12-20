@@ -427,7 +427,7 @@ export default function StoreListPage() {
             >
               <MapIcon className="w-5 h-5" style={{ color: '#F59E0B' }} />
               <span className="text-[10px] font-bold" style={{ color: '#F59E0B' }}>
-                {t('map.store_list') === '店舗一覧' ? 'マップ' : 'Map'}
+                {t('map.store_list') === '店舗一覧' ? 'Map' : 'Map'}
               </span>
             </Button>
           </motion.div>
