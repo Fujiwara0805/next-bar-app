@@ -33,6 +33,56 @@ interface DeviceOrientationState {
 }
 
 // ============================================================================
+// localStorage ヘルパー（コンパス許可状態の保存・取得）
+// ============================================================================
+
+const COMPASS_STORAGE_KEY = 'nikenme_compass_permission';
+const COMPASS_EXPIRY_MS = 30 * 60 * 1000; // 30分
+
+interface CompassStorageData {
+  granted: boolean;
+  enabled: boolean;
+  timestamp: number;
+}
+
+function getCompassStorage(): CompassStorageData | null {
+  if (typeof window === 'undefined') return null;
+  
+  try {
+    const data = localStorage.getItem(COMPASS_STORAGE_KEY);
+    if (!data) return null;
+    
+    const parsed: CompassStorageData = JSON.parse(data);
+    const now = Date.now();
+    
+    // 30分経過していたら無効
+    if (now - parsed.timestamp > COMPASS_EXPIRY_MS) {
+      localStorage.removeItem(COMPASS_STORAGE_KEY);
+      return null;
+    }
+    
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function setCompassStorage(granted: boolean, enabled: boolean): void {
+  if (typeof window === 'undefined') return;
+  
+  try {
+    const data: CompassStorageData = {
+      granted,
+      enabled,
+      timestamp: Date.now(),
+    };
+    localStorage.setItem(COMPASS_STORAGE_KEY, JSON.stringify(data));
+  } catch {
+    // localStorage が使えない場合は無視
+  }
+}
+
+// ============================================================================
 // カスタムフック: useGeolocation
 // ============================================================================
 
@@ -188,8 +238,15 @@ function useDeviceOrientation(enabled: boolean = true) {
       }
       return false;
     }
+    // 権限が不要な環境（Android等）
     setOrientation((prev) => ({ ...prev, permissionGranted: true }));
     return true;
+  }, []);
+
+  // 外部から許可済みフラグを設定
+  const setPermissionGranted = useCallback((granted: boolean) => {
+    setOrientation((prev) => ({ ...prev, permissionGranted: granted }));
+    setNeedsPermission(false);
   }, []);
 
   useEffect(() => {
@@ -225,11 +282,11 @@ function useDeviceOrientation(enabled: boolean = true) {
     }
   }, [orientation.permissionGranted, enabled, handleOrientation]);
 
-  return { orientation, needsPermission, requestPermission };
+  return { orientation, needsPermission, requestPermission, setPermissionGranted };
 }
 
 // ============================================================================
-// 現在地マーカー（Google Mapsデフォルト風のシンプルな扇形ビーム）
+// 現在地マーカー（シンプルな扇形ビーム）
 // ============================================================================
 
 interface UserLocationMarkerProps {
@@ -251,7 +308,6 @@ function createUserLocationMarker({
   accuracyCircle: google.maps.Circle;
   beam: google.maps.Polygon | null;
 } {
-  // 精度円（Google Maps風の薄い青→アンバーに変更）
   const accuracyCircle = new google.maps.Circle({
     map,
     center: position,
@@ -264,7 +320,6 @@ function createUserLocationMarker({
     zIndex: 998,
   });
 
-  // 方向ビーム（シンプルな扇形）
   let beam: google.maps.Polygon | null = null;
   if (showDirectionBeam) {
     const beamPoints = calculateSimpleBeamPoints(position, heading);
@@ -279,7 +334,6 @@ function createUserLocationMarker({
     });
   }
 
-  // 中心のマーカー（シンプルな円形ドット）
   const marker = new google.maps.Marker({
     position,
     map,
@@ -297,28 +351,23 @@ function createUserLocationMarker({
   return { marker, accuracyCircle, beam };
 }
 
-// シンプルな扇形ビームの頂点計算
 function calculateSimpleBeamPoints(
   center: { lat: number; lng: number },
   heading: number
 ): google.maps.LatLngLiteral[] {
-  const beamLength = 0.0004; // 約40m
-  const spreadAngle = 40; // 40度の広がり（左右20度ずつ）
+  const beamLength = 0.0004;
+  const spreadAngle = 40;
 
-  const headingRad = (heading * Math.PI) / 180;
   const leftAngleRad = ((heading - spreadAngle / 2) * Math.PI) / 180;
   const rightAngleRad = ((heading + spreadAngle / 2) * Math.PI) / 180;
 
-  // 中心点
   const centerPoint = { lat: center.lat, lng: center.lng };
 
-  // 左端点
   const leftPoint = {
     lat: center.lat + Math.cos(leftAngleRad) * beamLength,
     lng: center.lng + Math.sin(leftAngleRad) * beamLength,
   };
 
-  // 右端点
   const rightPoint = {
     lat: center.lat + Math.cos(rightAngleRad) * beamLength,
     lng: center.lng + Math.sin(rightAngleRad) * beamLength,
@@ -384,7 +433,6 @@ function MapLoadingScreen() {
 
       {/* メインコンテンツ */}
       <div className="absolute inset-0 flex flex-col items-center justify-center px-8">
-        
         {/* カクテルグラスアイコン */}
         <motion.div
           className="relative mb-10"
@@ -392,17 +440,10 @@ function MapLoadingScreen() {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.1, type: 'spring', stiffness: 200 }}
         >
-          {/* グロー */}
           <motion.div
             className="absolute inset-0 flex items-center justify-center pointer-events-none"
-            animate={{
-              opacity: [0.3, 0.6, 0.3],
-            }}
-            transition={{
-              duration: 2.5,
-              repeat: Infinity,
-              ease: 'easeInOut',
-            }}
+            animate={{ opacity: [0.3, 0.6, 0.3] }}
+            transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
           >
             <div
               className="w-32 h-32 rounded-full"
@@ -413,20 +454,13 @@ function MapLoadingScreen() {
             />
           </motion.div>
 
-          {/* マティーニグラス */}
           <motion.svg
             width="100"
             height="100"
             viewBox="0 0 80 80"
             className="relative z-10"
-            animate={{
-              rotate: [-2, 2, -2],
-            }}
-            transition={{
-              duration: 4,
-              repeat: Infinity,
-              ease: 'easeInOut',
-            }}
+            animate={{ rotate: [-2, 2, -2] }}
+            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
           >
             <defs>
               <linearGradient id="glassStroke" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -446,7 +480,6 @@ function MapLoadingScreen() {
               </filter>
             </defs>
 
-            {/* グラスの三角形部分 */}
             <path
               d="M15 18 L65 18 L40 50 Z"
               fill="none"
@@ -456,33 +489,21 @@ function MapLoadingScreen() {
               filter="url(#glowFilter)"
             />
 
-            {/* 液体 */}
             <motion.path
               d="M22 24 L58 24 L40 46 Z"
               fill="url(#liquidFill)"
-              animate={{
-                opacity: [0.7, 0.9, 0.7],
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                ease: 'easeInOut',
-              }}
+              animate={{ opacity: [0.7, 0.9, 0.7] }}
+              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
             />
 
-            {/* ステム（脚） */}
             <line
-              x1="40"
-              y1="50"
-              x2="40"
-              y2="65"
+              x1="40" y1="50" x2="40" y2="65"
               stroke="url(#glassStroke)"
               strokeWidth="2"
               strokeLinecap="round"
               filter="url(#glowFilter)"
             />
 
-            {/* ベース */}
             <path
               d="M30 65 L50 65"
               stroke="url(#glassStroke)"
@@ -491,33 +512,21 @@ function MapLoadingScreen() {
               filter="url(#glowFilter)"
             />
 
-            {/* オリーブ */}
             <motion.g
               animate={{ y: [-1, 1, -1] }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                ease: 'easeInOut',
-              }}
+              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
             >
               <circle cx="40" cy="32" r="5" fill="#84CC16" opacity="0.9" />
               <circle cx="40" cy="32" r="2" fill="#DC2626" opacity="0.8" />
             </motion.g>
 
-            {/* ハイライト */}
             <motion.path
               d="M25 22 L35 22"
               stroke="rgba(255,255,255,0.4)"
               strokeWidth="1"
               strokeLinecap="round"
-              animate={{
-                opacity: [0.2, 0.5, 0.2],
-              }}
-              transition={{
-                duration: 1.5,
-                repeat: Infinity,
-                ease: 'easeInOut',
-              }}
+              animate={{ opacity: [0.2, 0.5, 0.2] }}
+              transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
             />
           </motion.svg>
         </motion.div>
@@ -529,7 +538,6 @@ function MapLoadingScreen() {
           transition={{ delay: 0.3 }}
           className="text-center"
         >
-          {/* ネオン風ロゴ */}
           <motion.h1
             className="text-3xl font-bold tracking-widest mb-3"
             style={{
@@ -540,7 +548,6 @@ function MapLoadingScreen() {
                 0 0 20px rgba(251,191,36,0.3),
                 0 0 40px rgba(251,191,36,0.2)
               `,
-              fontFamily: 'system-ui, -apple-system, sans-serif',
             }}
             animate={{
               textShadow: [
@@ -549,11 +556,7 @@ function MapLoadingScreen() {
                 `0 0 5px rgba(251,191,36,0.5), 0 0 10px rgba(251,191,36,0.4), 0 0 20px rgba(251,191,36,0.3)`,
               ],
             }}
-            transition={{
-              duration: 3,
-              repeat: Infinity,
-              ease: 'easeInOut',
-            }}
+            transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
           >
             NIKENME+
           </motion.h1>
@@ -561,14 +564,8 @@ function MapLoadingScreen() {
           <motion.p
             className="text-sm tracking-wider"
             style={{ color: 'rgba(255,255,255,0.5)' }}
-            animate={{
-              opacity: [0.4, 0.7, 0.4],
-            }}
-            transition={{
-              duration: 2.5,
-              repeat: Infinity,
-              ease: 'easeInOut',
-            }}
+            animate={{ opacity: [0.4, 0.7, 0.4] }}
+            transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
           >
             近くのお店を探しています...
           </motion.p>
@@ -580,34 +577,23 @@ function MapLoadingScreen() {
           animate={{ opacity: 1, scaleX: 1 }}
           transition={{ delay: 0.5 }}
           className="mt-10 w-48 h-0.5 rounded-full overflow-hidden"
-          style={{
-            background: 'rgba(255,255,255,0.08)',
-          }}
+          style={{ background: 'rgba(255,255,255,0.08)' }}
         >
           <motion.div
             className="h-full rounded-full"
             style={{
               background: 'linear-gradient(90deg, transparent, #FBBF24, transparent)',
             }}
-            animate={{
-              x: ['-100%', '200%'],
-            }}
-            transition={{
-              duration: 1.8,
-              repeat: Infinity,
-              ease: 'easeInOut',
-            }}
+            animate={{ x: ['-100%', '200%'] }}
+            transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
           />
         </motion.div>
       </div>
 
-      {/* 下部のグラデーション */}
       <div className="absolute bottom-0 left-0 right-0 h-20 pointer-events-none">
         <div
           className="absolute inset-0"
-          style={{
-            background: 'linear-gradient(to top, rgba(0,0,0,0.6), transparent)',
-          }}
+          style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.6), transparent)' }}
         />
       </div>
     </motion.div>
@@ -615,7 +601,7 @@ function MapLoadingScreen() {
 }
 
 // ============================================================================
-// 方向表示許可ダイアログ
+// 方向表示許可ダイアログ（z-index を高くして店舗カードより上に表示）
 // ============================================================================
 
 interface DirectionPermissionDialogProps {
@@ -633,7 +619,8 @@ function DirectionPermissionDialog({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 30 }}
       transition={{ type: 'spring', damping: 30, stiffness: 400 }}
-      className="absolute bottom-28 left-4 right-4 z-20"
+      className="absolute bottom-28 left-4 right-4"
+      style={{ zIndex: 9999 }} // 店舗カードより上に表示
     >
       <div
         className="relative overflow-hidden rounded-2xl"
@@ -644,7 +631,6 @@ function DirectionPermissionDialog({
           boxShadow: '0 20px 50px rgba(0,0,0,0.5), 0 0 30px rgba(245,158,11,0.08)',
         }}
       >
-        {/* 上部のアクセントライン */}
         <div
           className="absolute top-0 left-8 right-8 h-px"
           style={{
@@ -654,32 +640,19 @@ function DirectionPermissionDialog({
 
         <div className="p-5">
           <div className="flex items-center gap-4 mb-4">
-            {/* スマホ + 方向アイコン */}
             <motion.div
               className="relative flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center"
               style={{
                 background: 'linear-gradient(135deg, rgba(251,191,36,0.15) 0%, rgba(217,119,6,0.08) 100%)',
               }}
             >
-              {/* 方向を示すビーム */}
               <motion.div
                 className="absolute -top-3 left-1/2 -translate-x-1/2"
-                animate={{
-                  y: [-2, 2, -2],
-                  opacity: [0.6, 1, 0.6],
-                }}
-                transition={{
-                  duration: 1.5,
-                  repeat: Infinity,
-                  ease: 'easeInOut',
-                }}
+                animate={{ y: [-2, 2, -2], opacity: [0.6, 1, 0.6] }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
               >
                 <svg width="20" height="16" viewBox="0 0 20 16" fill="none">
-                  <path
-                    d="M10 0 L0 14 L10 10 L20 14 Z"
-                    fill="url(#beamGrad)"
-                    opacity="0.8"
-                  />
+                  <path d="M10 0 L0 14 L10 10 L20 14 Z" fill="url(#beamGrad)" opacity="0.8" />
                   <defs>
                     <linearGradient id="beamGrad" x1="10" y1="0" x2="10" y2="14" gradientUnits="userSpaceOnUse">
                       <stop stopColor="#FBBF24" />
@@ -689,17 +662,8 @@ function DirectionPermissionDialog({
                 </svg>
               </motion.div>
               
-              {/* スマホアイコン */}
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <rect
-                  x="7"
-                  y="4"
-                  width="10"
-                  height="16"
-                  rx="1.5"
-                  stroke="#FBBF24"
-                  strokeWidth="1.5"
-                />
+                <rect x="7" y="4" width="10" height="16" rx="1.5" stroke="#FBBF24" strokeWidth="1.5" />
                 <circle cx="12" cy="17" r="1" fill="#FBBF24" />
               </svg>
             </motion.div>
@@ -718,9 +682,7 @@ function DirectionPermissionDialog({
             <button
               onClick={onDismiss}
               className="flex-1 py-3 rounded-xl text-sm font-medium text-gray-500 transition-all active:scale-[0.98]"
-              style={{
-                background: 'rgba(255,255,255,0.04)',
-              }}
+              style={{ background: 'rgba(255,255,255,0.04)' }}
             >
               スキップ
             </button>
@@ -826,9 +788,12 @@ export function MapView({
   const [loading, setLoading] = useState(true);
   const [mapReady, setMapReady] = useState(false);
   const [showDirectionDialog, setShowDirectionDialog] = useState(false);
+  
+  // コンパス表示のON/OFF状態
+  const [compassEnabled, setCompassEnabled] = useState(false);
 
   const { location: geoLocation } = useGeolocation(enableLocationTracking);
-  const { orientation, needsPermission, requestPermission } =
+  const { orientation, needsPermission, requestPermission, setPermissionGranted } =
     useDeviceOrientation(enableCompass);
 
   const currentPosition = useMemo(() => {
@@ -838,6 +803,20 @@ export function MapView({
     }
     return { lat: 33.2382, lng: 131.6126 };
   }, [center, geoLocation]);
+
+  // ============================================================================
+  // 初期化時にlocalStorageから状態を復元
+  // ============================================================================
+
+  useEffect(() => {
+    const stored = getCompassStorage();
+    if (stored) {
+      setCompassEnabled(stored.enabled);
+      if (stored.granted) {
+        setPermissionGranted(true);
+      }
+    }
+  }, [setPermissionGranted]);
 
   // ============================================================================
   // Google Maps初期化
@@ -926,21 +905,35 @@ export function MapView({
   }, []);
 
   // ============================================================================
-  // 方向許可ダイアログ表示
+  // コンパスボタンのハンドラー
   // ============================================================================
 
-  useEffect(() => {
-    if (mapReady && needsPermission && enableCompass) {
-      const timer = setTimeout(() => {
+  const handleCompassToggle = useCallback(async () => {
+    if (compassEnabled) {
+      // OFF にする
+      setCompassEnabled(false);
+      setCompassStorage(orientation.permissionGranted, false);
+    } else {
+      // ON にする
+      if (needsPermission && !orientation.permissionGranted) {
+        // iOS で許可が必要な場合はダイアログを表示
         setShowDirectionDialog(true);
-      }, 1200);
-      return () => clearTimeout(timer);
+      } else {
+        // 許可不要 or 既に許可済みの場合はそのまま ON
+        setCompassEnabled(true);
+        setCompassStorage(true, true);
+      }
     }
-  }, [mapReady, needsPermission, enableCompass]);
+  }, [compassEnabled, needsPermission, orientation.permissionGranted]);
 
   const handleRequestPermission = useCallback(async () => {
-    await requestPermission();
+    const granted = await requestPermission();
     setShowDirectionDialog(false);
+    
+    if (granted) {
+      setCompassEnabled(true);
+      setCompassStorage(true, true);
+    }
   }, [requestPermission]);
 
   const handleDismissDialog = useCallback(() => {
@@ -1041,7 +1034,7 @@ export function MapView({
   }, [stores, onStoreClick, mapReady]);
 
   // ============================================================================
-  // 現在地マーカー（シンプルなビーム）の更新
+  // 現在地マーカー（ビーム）の更新
   // ============================================================================
 
   useEffect(() => {
@@ -1049,7 +1042,8 @@ export function MapView({
 
     const heading = orientation.permissionGranted ? orientation.alpha : 0;
     const accuracy = geoLocation?.accuracy || 30;
-    const showBeam = orientation.permissionGranted;
+    // コンパスが ON かつ 許可済みの場合のみビームを表示
+    const showBeam = compassEnabled && orientation.permissionGranted;
 
     // 既存をクリア
     if (userMarkerRef.current) userMarkerRef.current.setMap(null);
@@ -1074,7 +1068,7 @@ export function MapView({
       if (userBeamRef.current) userBeamRef.current.setMap(null);
       if (accuracyCircleRef.current) accuracyCircleRef.current.setMap(null);
     };
-  }, [currentPosition, orientation.permissionGranted, geoLocation?.accuracy, mapReady]);
+  }, [currentPosition, orientation.permissionGranted, geoLocation?.accuracy, mapReady, compassEnabled]);
 
   // ============================================================================
   // ビームのリアルタイム更新
@@ -1084,13 +1078,14 @@ export function MapView({
     if (
       !userBeamRef.current ||
       !currentPosition ||
-      !orientation.permissionGranted
+      !orientation.permissionGranted ||
+      !compassEnabled
     )
       return;
 
     const newBeamPoints = calculateSimpleBeamPoints(currentPosition, orientation.alpha);
     userBeamRef.current.setPath(newBeamPoints);
-  }, [orientation.alpha, currentPosition, orientation.permissionGranted]);
+  }, [orientation.alpha, currentPosition, orientation.permissionGranted, compassEnabled]);
 
   // ============================================================================
   // ズームハンドラー
@@ -1140,25 +1135,54 @@ export function MapView({
 
       {/* コントロールボタン */}
       <div className="absolute bottom-32 right-4 z-10 flex flex-col gap-2.5">
-        {/* 現在地ボタン */}
+        {/* コンパスON/OFFボタン */}
         <motion.button
           whileTap={{ scale: 0.92 }}
-          onClick={handleCenterOnUser}
+          onClick={handleCompassToggle}
           className="w-11 h-11 rounded-full flex items-center justify-center"
           style={{
-            background: 'linear-gradient(145deg, rgba(28,28,35,0.95) 0%, rgba(18,18,24,0.95) 100%)',
+            background: compassEnabled
+              ? 'linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%)'
+              : 'linear-gradient(145deg, rgba(28,28,35,0.95) 0%, rgba(18,18,24,0.95) 100%)',
             backdropFilter: 'blur(12px)',
-            border: '1px solid rgba(251,191,36,0.25)',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
+            border: compassEnabled
+              ? '1px solid rgba(251,191,36,0.5)'
+              : '1px solid rgba(255,255,255,0.08)',
+            boxShadow: compassEnabled
+              ? '0 4px 20px rgba(251,191,36,0.4)'
+              : '0 4px 20px rgba(0,0,0,0.4)',
           }}
-          aria-label="現在地に移動"
+          aria-label={compassEnabled ? '方向表示をオフ' : '方向表示をオン'}
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="12" r="3" fill="#FBBF24" />
-            <circle cx="12" cy="12" r="7" stroke="#FBBF24" strokeWidth="1.5" fill="none" opacity="0.5" />
-            <path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke="#FBBF24" strokeWidth="1.5" strokeLinecap="round" />
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            style={{ color: compassEnabled ? '#000' : '#FBBF24' }}
+          >
+            {/* コンパスアイコン */}
+            <circle
+              cx="12"
+              cy="12"
+              r="9"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              fill="none"
+            />
+            <path
+              d="M12 2v2M12 20v2M2 12h2M20 12h2"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+            />
+            <path
+              d="M16.24 7.76l-2.12 6.36-6.36 2.12 2.12-6.36 6.36-2.12z"
+              fill="currentColor"
+            />
           </svg>
         </motion.button>
+
 
         {/* ズームイン */}
         <motion.button
