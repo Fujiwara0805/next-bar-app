@@ -3,16 +3,17 @@
  * ファイルパス: app/(main)/store-list/page.tsx
  * 
  * 機能: 店舗一覧ページ
- *       画面表示時にis_open更新APIを呼び出す
+ *       【最適化】初回ロード時のみis_open更新APIを呼び出す
+ *       【追加】空席ありフィルター機能
  * ============================================
  */
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, MapIcon, X, ExternalLink, Star } from 'lucide-react';
+import { Search, MapIcon, X, ExternalLink, Star, Filter, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -30,16 +31,50 @@ export default function StoreListPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  
+  // フィルター状態
+  const [vacantOnly, setVacantOnly] = useState(false);
+  const [showFilterMenu, setShowFilterMenu] = useState(false);
+
+  // 初回ロード完了フラグ（is_open更新の重複防止）
+  const isOpenUpdatedRef = useRef(false);
 
   // 位置情報の読み込み
   useEffect(() => {
     loadUserLocation();
   }, []);
 
+  // 初回マウント時のみis_open更新APIを呼び出す
+  useEffect(() => {
+    const updateIsOpenOnce = async () => {
+      if (isOpenUpdatedRef.current) return;
+      isOpenUpdatedRef.current = true;
+
+      try {
+        const res = await fetch('/api/stores/update-is-open', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({}),
+        });
+        const result = await res.json();
+        console.log('is_open update result:', result);
+
+        // 更新があった場合は店舗データを再取得
+        if (result.updated > 0 && userLocation) {
+          fetchStoresOnly();
+        }
+      } catch (err) {
+        console.warn('Failed to update is_open:', err);
+      }
+    };
+
+    updateIsOpenOnce();
+  }, []);
+
   // 位置情報が設定されたら店舗を取得
   useEffect(() => {
     if (userLocation) {
-      fetchStores();
+      fetchStoresOnly();
     }
   }, [userLocation]);
 
@@ -56,7 +91,8 @@ export default function StoreListPage() {
         },
         (payload) => {
           console.log('Store change detected:', payload);
-          fetchStores();
+          // is_open更新APIは呼ばず、店舗データのみ再取得
+          fetchStoresOnly();
         }
       )
       .subscribe();
@@ -64,22 +100,29 @@ export default function StoreListPage() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [userLocation]); // userLocationを依存配列に追加
+  }, [userLocation]);
 
+  // 検索クエリ + 空席フィルターでフィルタリング
   useEffect(() => {
+    let result = [...stores];
+
     // 検索クエリでフィルタリング（店舗名のみ）
-    if (searchQuery.trim() === '') {
-      setFilteredStores(stores);
-    } else {
-      const filtered = stores.filter(store => 
+    if (searchQuery.trim() !== '') {
+      result = result.filter(store => 
         store.name.toLowerCase().includes(searchQuery.toLowerCase())
       );
-      setFilteredStores(filtered);
     }
-  }, [searchQuery, stores]);
+
+    // 空席ありフィルター
+    if (vacantOnly) {
+      result = result.filter(store => store.vacancy_status === 'vacant');
+    }
+
+    // 距離順は既にstoresでソート済みなので維持される
+    setFilteredStores(result);
+  }, [searchQuery, stores, vacantOnly]);
 
   const loadUserLocation = () => {
-    // まずlocalStorageから位置情報を取得
     const savedLocation = localStorage.getItem('userLocation');
     if (savedLocation) {
       try {
@@ -91,7 +134,6 @@ export default function StoreListPage() {
       }
     }
 
-    // localStorageに位置情報がない場合、Geolocation APIを使用
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -104,7 +146,6 @@ export default function StoreListPage() {
         },
         (error) => {
           console.error('Error getting location:', error);
-          // エラーの場合はデフォルト位置を使用（大分駅周辺）
           setUserLocation({ lat: 33.2382, lng: 131.6126 });
         },
         {
@@ -114,12 +155,12 @@ export default function StoreListPage() {
         }
       );
     } else {
-      // Geolocation APIが利用できない場合、デフォルト位置を使用（大分駅周辺）
       setUserLocation({ lat: 33.2382, lng: 131.6126 });
     }
   };
 
-  const fetchStores = async () => {
+  // 店舗データのみ取得（is_open更新APIは呼ばない）
+  const fetchStoresOnly = async () => {
     if (!userLocation) {
       return;
     }
@@ -153,26 +194,8 @@ export default function StoreListPage() {
         });
         
         setStores(sortedStores);
-        setFilteredStores(sortedStores);
-
-        // ★★★ バックグラウンドでis_openを更新（全店舗） ★★★
-        fetch('/api/stores/update-is-open', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        })
-          .then((res) => res.json())
-          .then((result) => {
-            console.log('is_open update result:', result);
-          })
-          .catch((err) => {
-            console.warn('Failed to update is_open:', err);
-          });
-
       } else {
         setStores(storeData);
-        setFilteredStores(storeData);
       }
     } catch (error) {
       console.error('Error fetching stores:', error);
@@ -183,7 +206,7 @@ export default function StoreListPage() {
 
   // Haversine formula
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-    const R = 6371; // Radius of Earth in km
+    const R = 6371;
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
     const a =
@@ -191,13 +214,11 @@ export default function StoreListPage() {
       Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
       Math.sin(dLon / 2) * Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const distance = R * c; // Distance in km
-    return distance;
+    return R * c;
   };
 
-  // 距離から徒歩時間を計算（徒歩速度: 4km/h = 約67m/分）
   const calculateWalkingTime = (distanceKm: number): number => {
-    const walkingSpeedKmPerHour = 4; // 徒歩速度 4km/h
+    const walkingSpeedKmPerHour = 4;
     const walkingTimeMinutes = (distanceKm / walkingSpeedKmPerHour) * 60;
     return Math.round(walkingTimeMinutes);
   };
@@ -232,6 +253,24 @@ export default function StoreListPage() {
     }
   };
 
+  // フィルターメニューの外側クリックで閉じる
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('.filter-menu-container')) {
+        setShowFilterMenu(false);
+      }
+    };
+
+    if (showFilterMenu) {
+      document.addEventListener('click', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [showFilterMenu]);
+
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: '#1C1E26' }}>
       {/* ヘッダー */}
@@ -264,10 +303,25 @@ export default function StoreListPage() {
             )}
           </div>
           
-          {/* 検索結果数 */}
-          <p className="text-sm text-card-foreground/70 mt-2 font-bold">
-            {filteredStores.length}{t('store_list.results_count')}
-          </p>
+          {/* 検索結果数 + フィルター状態表示 */}
+          <div className="flex items-center justify-between mt-2">
+            <p className="text-sm text-card-foreground/70 font-bold">
+              {filteredStores.length}{t('store_list.results_count')}
+              {vacantOnly && (
+                <span className="ml-2 text-green-600">（空席ありのみ）</span>
+              )}
+            </p>
+            
+            {/* フィルタークリアボタン（フィルター適用時のみ表示） */}
+            {vacantOnly && (
+              <button
+                onClick={() => setVacantOnly(false)}
+                className="text-sm text-blue-600 hover:underline font-bold"
+              >
+                フィルター解除
+              </button>
+            )}
+          </div>
         </div>
       </header>
 
@@ -283,8 +337,21 @@ export default function StoreListPage() {
         ) : filteredStores.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-white font-bold">
-              {searchQuery ? t('store_list.no_results') : t('store_list.no_stores')}
+              {vacantOnly 
+                ? '空席ありの店舗が見つかりませんでした'
+                : searchQuery 
+                  ? t('store_list.no_results') 
+                  : t('store_list.no_stores')
+              }
             </p>
+            {vacantOnly && (
+              <button
+                onClick={() => setVacantOnly(false)}
+                className="mt-4 text-amber-500 hover:underline font-bold"
+              >
+                すべての店舗を表示
+              </button>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -401,37 +468,163 @@ export default function StoreListPage() {
           </div>
         )}
 
-        {/* マップボタン（画面右下） */}
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          className="fixed bottom-6 right-6 z-20"
-        >
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="flex flex-col items-center"
-          >
-            <Button
-              onClick={() => router.push('/map?refresh=true')}
-              className="flex flex-col items-center justify-center gap-1 px-3 py-2 touch-manipulation active:scale-95 rounded-lg"
-              style={{
-                background: 'rgba(5,5,5,0.7)',
-                backdropFilter: 'blur(20px)',
-                border: '1px solid rgba(245,158,11,0.3)',
-                boxShadow: '0 0 20px rgba(245,158,11,0.2)',
-                minWidth: '56px',
-                minHeight: '56px',
-              }}
-              title="Map"
+        {/* フローティングボタン群（画面右下） */}
+        <div className="fixed bottom-6 right-6 z-20 flex flex-col gap-3 items-end">
+          {/* フィルターボタン */}
+          <div className="relative filter-menu-container">
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.1 }}
             >
-              <MapIcon className="w-5 h-5" style={{ color: '#F59E0B' }} />
-              <span className="text-[10px] font-bold" style={{ color: '#F59E0B' }}>
-                {t('map.store_list') === '店舗一覧' ? 'Map' : 'Map'}
-              </span>
-            </Button>
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowFilterMenu(!showFilterMenu);
+                  }}
+                  className="flex flex-col items-center justify-center gap-1 px-3 py-2 touch-manipulation active:scale-95 rounded-lg relative"
+                  style={{
+                    background: vacantOnly ? '#F59E0B' : 'rgba(5,5,5,0.7)',
+                    backdropFilter: 'blur(20px)',
+                    border: vacantOnly ? '1px solid #F59E0B' : '1px solid rgba(245,158,11,0.3)',
+                    boxShadow: '0 0 20px rgba(245,158,11,0.2)',
+                    minWidth: '56px',
+                    minHeight: '56px',
+                  }}
+                  title="フィルター"
+                >
+                  <Filter 
+                    className="w-5 h-5" 
+                    style={{ color: vacantOnly ? '#000' : '#F59E0B' }} 
+                  />
+                  <span 
+                    className="text-[10px] font-bold" 
+                    style={{ color: vacantOnly ? '#000' : '#F59E0B' }}
+                  >
+                    絞込
+                  </span>
+                  {/* フィルター適用中のバッジ */}
+                  {vacantOnly && (
+                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                      <Check className="w-3 h-3 text-white" />
+                    </span>
+                  )}
+                </Button>
+              </motion.div>
+            </motion.div>
+
+            {/* フィルターメニュー */}
+            <AnimatePresence>
+              {showFilterMenu && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute bottom-full right-0 mb-2 w-48"
+                >
+                  <div
+                    className="rounded-xl overflow-hidden"
+                    style={{
+                      background: 'rgba(30, 30, 30, 0.95)',
+                      backdropFilter: 'blur(12px)',
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
+                    }}
+                  >
+                    <div className="p-2">
+                      <p className="text-xs text-gray-400 px-3 py-2 font-bold">
+                        空席状況で絞り込み
+                      </p>
+                      
+                      {/* 空席ありフィルター */}
+                      <button
+                        onClick={() => {
+                          setVacantOnly(!vacantOnly);
+                          setShowFilterMenu(false);
+                        }}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
+                          vacantOnly 
+                            ? 'bg-green-500/20 text-green-400' 
+                            : 'hover:bg-white/10 text-white'
+                        }`}
+                      >
+                        <img
+                          src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761311529/%E7%A9%BA%E5%B8%AD%E3%81%82%E3%82%8A_rzejgw.png"
+                          alt="空席あり"
+                          className="w-5 h-5"
+                        />
+                        <span className="font-bold text-sm flex-1 text-left">
+                          空席あり
+                        </span>
+                        {vacantOnly && (
+                          <Check className="w-4 h-4 text-green-400" />
+                        )}
+                      </button>
+
+                      {/* すべて表示 */}
+                      <button
+                        onClick={() => {
+                          setVacantOnly(false);
+                          setShowFilterMenu(false);
+                        }}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
+                          !vacantOnly 
+                            ? 'bg-amber-500/20 text-amber-400' 
+                            : 'hover:bg-white/10 text-white'
+                        }`}
+                      >
+                        <span className="w-5 h-5 flex items-center justify-center text-lg">
+                          🍺
+                        </span>
+                        <span className="font-bold text-sm flex-1 text-left">
+                          すべて表示
+                        </span>
+                        {!vacantOnly && (
+                          <Check className="w-4 h-4 text-amber-400" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* マップボタン */}
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+          >
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Button
+                onClick={() => router.push('/map?refresh=true')}
+                className="flex flex-col items-center justify-center gap-1 px-3 py-2 touch-manipulation active:scale-95 rounded-lg"
+                style={{
+                  background: 'rgba(5,5,5,0.7)',
+                  backdropFilter: 'blur(20px)',
+                  border: '1px solid rgba(245,158,11,0.3)',
+                  boxShadow: '0 0 20px rgba(245,158,11,0.2)',
+                  minWidth: '56px',
+                  minHeight: '56px',
+                }}
+                title="Map"
+              >
+                <MapIcon className="w-5 h-5" style={{ color: '#F59E0B' }} />
+                <span className="text-[10px] font-bold" style={{ color: '#F59E0B' }}>
+                  Map
+                </span>
+              </Button>
+            </motion.div>
           </motion.div>
-        </motion.div>
+        </div>
       </main>
     </div>
   );
