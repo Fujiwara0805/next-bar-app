@@ -5,6 +5,10 @@
  * 
  * 機能: Google Maps APIから営業時間を取得し、
  *       is_openとvacancy_statusを更新する
+ * 
+ * 【最適化】
+ * - キャッシュ機構を導入し、一定期間内はAPI呼び出しをスキップ
+ * - Place Details APIの消費量を大幅に削減
  * ============================================
  */
 
@@ -19,49 +23,131 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables');
 }
 
-// Anonymous Keyを使用してアクセス
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 /**
+ * キャッシュ有効期間（ミリ秒）
+ * 30分 = 1800000ms
+ * 営業時間は頻繁に変わらないため、30分キャッシュで十分
+ */
+const CACHE_TTL_MS = 30 * 60 * 1000;
+
+/**
+ * キャッシュが有効かどうかを判定
+ */
+function isCacheValid(lastCheckAt: string | null): boolean {
+  if (!lastCheckAt) return false;
+  
+  const lastCheck = new Date(lastCheckAt).getTime();
+  const now = Date.now();
+  
+  return (now - lastCheck) < CACHE_TTL_MS;
+}
+
+/**
  * is_openの値に基づいてvacancy_statusを決定
- * @param isOpen 営業中かどうか
- * @param currentVacancyStatus 現在のvacancy_status
- * @returns 新しいvacancy_status
  */
 function determineVacancyStatus(
   isOpen: boolean,
   currentVacancyStatus: string | null
 ): string {
   if (!isOpen) {
-    // 営業時間外の場合は必ずclosedに設定
     return 'closed';
   }
 
-  // 営業中の場合
   if (currentVacancyStatus === 'closed' || !currentVacancyStatus) {
-    // 現在closedまたは未設定の場合はvacantをデフォルトに設定
     return 'vacant';
   }
 
-  // それ以外（vacant, moderate, full）はお店側の設定を維持
   return currentVacancyStatus;
 }
 
 /**
- * 全店舗または特定の店舗のis_openとvacancy_statusを更新
+ * 単一店舗のis_openを更新（キャッシュ考慮）
+ */
+async function updateSingleStore(
+  store: { 
+    id: string; 
+    google_place_id: string; 
+    vacancy_status: string | null;
+    last_is_open_check_at: string | null;
+    is_open: boolean | null;
+  },
+  forceUpdate: boolean = false
+): Promise<{
+  storeId: string;
+  isOpen: boolean;
+  vacancyStatus: string;
+  fromCache: boolean;
+} | null> {
+  
+  // キャッシュが有効かつ強制更新でない場合はスキップ
+  if (!forceUpdate && isCacheValid(store.last_is_open_check_at)) {
+    return {
+      storeId: store.id,
+      isOpen: store.is_open ?? false,
+      vacancyStatus: store.vacancy_status ?? 'closed',
+      fromCache: true,
+    };
+  }
+
+  try {
+    // Google Maps APIを呼び出し
+    const isOpen = await checkIsOpenFromGooglePlaceId(store.google_place_id);
+
+    if (isOpen === null) {
+      console.warn(`Failed to get opening hours for store ${store.id}`);
+      return null;
+    }
+
+    const newVacancyStatus = determineVacancyStatus(isOpen, store.vacancy_status);
+    const now = new Date().toISOString();
+
+    // DBを更新（キャッシュタイムスタンプも更新）
+    const { error } = await supabase
+      .from('stores')
+      .update({
+        is_open: isOpen,
+        vacancy_status: newVacancyStatus,
+        last_is_open_check_at: now,
+        updated_at: now,
+      })
+      .eq('id', store.id);
+
+    if (error) {
+      console.error(`Error updating store ${store.id}:`, error);
+      return null;
+    }
+
+    return {
+      storeId: store.id,
+      isOpen,
+      vacancyStatus: newVacancyStatus,
+      fromCache: false,
+    };
+  } catch (error) {
+    console.error(`Error processing store ${store.id}:`, error);
+    return null;
+  }
+}
+
+/**
  * POST /api/stores/update-is-open
- * Body: { storeId?: string } (storeIdが指定されない場合は全店舗を更新)
+ * Body: { 
+ *   storeId?: string,      // 特定店舗のみ更新
+ *   forceUpdate?: boolean  // キャッシュを無視して強制更新
+ * }
  */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json().catch(() => ({}));
-    const { storeId } = body;
+    const { storeId, forceUpdate = false } = body;
 
     // 特定の店舗を更新する場合
     if (storeId) {
       const { data: store, error: fetchError } = await supabase
         .from('stores')
-        .select('id, google_place_id, vacancy_status')
+        .select('id, google_place_id, vacancy_status, last_is_open_check_at, is_open')
         .eq('id', storeId)
         .single();
 
@@ -79,49 +165,26 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // Google Maps APIから営業時間を取得してis_openを判定
-      const isOpen = await checkIsOpenFromGooglePlaceId(store.google_place_id);
+      const result = await updateSingleStore(store, forceUpdate);
 
-      if (isOpen === null) {
+      if (!result) {
         return NextResponse.json(
-          { error: 'Failed to get opening hours from Google Maps API' },
-          { status: 500 }
-        );
-      }
-
-      // vacancy_statusを決定
-      const newVacancyStatus = determineVacancyStatus(isOpen, store.vacancy_status);
-
-      // is_openとvacancy_statusを更新
-      const { error: updateError } = await supabase
-        .from('stores')
-        .update({
-          is_open: isOpen,
-          vacancy_status: newVacancyStatus,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', storeId);
-
-      if (updateError) {
-        console.error('Error updating is_open:', updateError);
-        return NextResponse.json(
-          { error: 'Failed to update is_open' },
+          { error: 'Failed to update store' },
           { status: 500 }
         );
       }
 
       return NextResponse.json({
         success: true,
-        storeId: storeId,
-        isOpen: isOpen,
-        vacancyStatus: newVacancyStatus,
+        ...result,
+        cacheTTL: CACHE_TTL_MS,
       });
     }
 
     // 全店舗を更新する場合
     const { data: stores, error: fetchError } = await supabase
       .from('stores')
-      .select('id, google_place_id, vacancy_status')
+      .select('id, google_place_id, vacancy_status, last_is_open_check_at, is_open')
       .not('google_place_id', 'is', null);
 
     if (fetchError) {
@@ -136,55 +199,28 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: true,
         updated: 0,
+        fromCache: 0,
         message: 'No stores with google_place_id found',
       });
     }
 
-    // 各店舗のis_openとvacancy_statusを更新
-    const updatePromises = stores.map(async (store) => {
-      if (!store.google_place_id) {
-        return null;
-      }
-
-      try {
-        const isOpen = await checkIsOpenFromGooglePlaceId(store.google_place_id);
-
-        if (isOpen === null) {
-          console.warn(`Failed to get opening hours for store ${store.id}`);
-          return null;
-        }
-
-        // vacancy_statusを決定
-        const newVacancyStatus = determineVacancyStatus(isOpen, store.vacancy_status);
-
-        const { error } = await supabase
-          .from('stores')
-          .update({
-            is_open: isOpen,
-            vacancy_status: newVacancyStatus,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', store.id);
-
-        if (error) {
-          console.error(`Error updating store ${store.id}:`, error);
-          return null;
-        }
-
-        return { storeId: store.id, isOpen, vacancyStatus: newVacancyStatus };
-      } catch (error) {
-        console.error(`Error processing store ${store.id}:`, error);
-        return null;
-      }
-    });
+    // 各店舗を並列で更新
+    const updatePromises = stores.map((store) => 
+      updateSingleStore(store, forceUpdate)
+    );
 
     const results = await Promise.all(updatePromises);
     const successful = results.filter((r) => r !== null);
+    const fromCache = successful.filter((r) => r?.fromCache).length;
+    const apiCalls = successful.filter((r) => !r?.fromCache).length;
 
     return NextResponse.json({
       success: true,
-      updated: successful.length,
       total: stores.length,
+      updated: apiCalls,
+      fromCache: fromCache,
+      failed: stores.length - successful.length,
+      cacheTTL: CACHE_TTL_MS,
       results: successful,
     });
   } catch (error) {
@@ -197,13 +233,13 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * GET /api/stores/update-is-open?storeId=xxx
- * 特定の店舗のis_openとvacancy_statusを更新（GETでも対応）
+ * GET /api/stores/update-is-open?storeId=xxx&forceUpdate=true
  */
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const storeId = searchParams.get('storeId');
+    const forceUpdate = searchParams.get('forceUpdate') === 'true';
 
     if (!storeId) {
       return NextResponse.json(
@@ -214,7 +250,7 @@ export async function GET(request: NextRequest) {
 
     const { data: store, error: fetchError } = await supabase
       .from('stores')
-      .select('id, google_place_id, vacancy_status')
+      .select('id, google_place_id, vacancy_status, last_is_open_check_at, is_open')
       .eq('id', storeId)
       .single();
 
@@ -232,42 +268,19 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Google Maps APIから営業時間を取得してis_openを判定
-    const isOpen = await checkIsOpenFromGooglePlaceId(store.google_place_id);
+    const result = await updateSingleStore(store, forceUpdate);
 
-    if (isOpen === null) {
+    if (!result) {
       return NextResponse.json(
-        { error: 'Failed to get opening hours from Google Maps API' },
-        { status: 500 }
-      );
-    }
-
-    // vacancy_statusを決定
-    const newVacancyStatus = determineVacancyStatus(isOpen, store.vacancy_status);
-
-    // is_openとvacancy_statusを更新
-    const { error: updateError } = await supabase
-      .from('stores')
-      .update({
-        is_open: isOpen,
-        vacancy_status: newVacancyStatus,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', storeId);
-
-    if (updateError) {
-      console.error('Error updating is_open:', updateError);
-      return NextResponse.json(
-        { error: 'Failed to update is_open' },
+        { error: 'Failed to update store' },
         { status: 500 }
       );
     }
 
     return NextResponse.json({
       success: true,
-      storeId: storeId,
-      isOpen: isOpen,
-      vacancyStatus: newVacancyStatus,
+      ...result,
+      cacheTTL: CACHE_TTL_MS,
     });
   } catch (error) {
     console.error('Error in update-is-open API:', error);

@@ -3,13 +3,13 @@
  * ファイルパス: app/(main)/map/page.tsx
  * 
  * 機能: マップページ
- *       画面表示時にis_open更新APIを呼び出す
+ *       【最適化】初回ロード時のみis_open更新APIを呼び出す
  * ============================================
  */
 
 'use client';
 
-import { useEffect, useState, Suspense } from 'react';
+import { useEffect, useState, Suspense, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, List, ExternalLink, Building2, RefreshCw, Home, Star } from 'lucide-react';
@@ -22,7 +22,6 @@ import { useLanguage } from '@/lib/i18n/context';
 
 type Store = Database['public']['Tables']['stores']['Row'];
 
-// useSearchParams()を使用する内部コンポーネント
 function MapPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -33,19 +32,45 @@ function MapPageContent() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
+  // 初回ロード完了フラグ（is_open更新の重複防止）
+  const isOpenUpdatedRef = useRef(false);
+
+  // 初回マウント時のみis_open更新APIを呼び出す
   useEffect(() => {
-    // 初回ロードまたはrefreshパラメータがある場合に実行
+    const updateIsOpenOnce = async () => {
+      if (isOpenUpdatedRef.current) return;
+      isOpenUpdatedRef.current = true;
+
+      try {
+        const res = await fetch('/api/stores/update-is-open', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({}),
+        });
+        const result = await res.json();
+        console.log('is_open update result:', result);
+
+        if (result.updated > 0) {
+          fetchStoresOnly();
+        }
+      } catch (err) {
+        console.warn('Failed to update is_open:', err);
+      }
+    };
+
+    updateIsOpenOnce();
+  }, []);
+
+  useEffect(() => {
     const shouldRefresh = searchParams?.get('refresh') === 'true';
     
-    fetchStores();
+    fetchStoresOnly();
     loadUserLocation();
 
-    // refreshパラメータがあった場合は削除（履歴を汚さない）
     if (shouldRefresh) {
       router.replace('/map', { scroll: false });
     }
 
-    // リアルタイム更新の設定
     const channel = supabase
       .channel('stores-changes')
       .on(
@@ -57,7 +82,7 @@ function MapPageContent() {
         },
         (payload) => {
           console.log('Store change detected:', payload);
-          fetchStores(); // 変更があったら再取得
+          fetchStoresOnly();
         }
       )
       .subscribe();
@@ -67,13 +92,11 @@ function MapPageContent() {
     };
   }, [searchParams, router]);
 
-  // マップ画面に戻ってきたときに位置情報と空席情報を再取得
   useEffect(() => {
     const handleVisibilityChange = () => {
-      // ページが表示されたとき（他の画面から戻ってきたとき）に位置情報と空席情報を再取得
       if (document.visibilityState === 'visible') {
         loadUserLocation();
-        fetchStores();
+        fetchStoresOnly();
       }
     };
 
@@ -84,7 +107,7 @@ function MapPageContent() {
     };
   }, []);
 
-  const fetchStores = async () => {
+  const fetchStoresOnly = async () => {
     try {
       const { data, error } = await supabase
         .from('stores')
@@ -93,22 +116,6 @@ function MapPageContent() {
 
       if (error) throw error;
       setStores(data || []);
-
-      // ★★★ バックグラウンドでis_openを更新（全店舗） ★★★
-      fetch('/api/stores/update-is-open', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-        .then((res) => res.json())
-        .then((result) => {
-          console.log('is_open update result:', result);
-        })
-        .catch((err) => {
-          console.warn('Failed to update is_open:', err);
-        });
-
     } catch (error) {
       console.error('Error fetching stores:', error);
     } finally {
@@ -129,7 +136,6 @@ function MapPageContent() {
         },
         (error) => {
           console.error('Error getting location:', error);
-          // エラーの場合は保存された位置情報を使用
           const savedLocation = localStorage.getItem('userLocation');
           if (savedLocation) {
             try {
@@ -140,7 +146,6 @@ function MapPageContent() {
               console.error('Failed to parse saved location');
             }
           }
-          // デフォルト位置（大分駅周辺）
           setUserLocation({ lat: 33.2382, lng: 131.6126 });
         },
         {
@@ -150,7 +155,6 @@ function MapPageContent() {
         }
       );
     } else {
-      // Geolocation APIが利用できない場合
       const savedLocation = localStorage.getItem('userLocation');
       if (savedLocation) {
         try {
@@ -161,18 +165,27 @@ function MapPageContent() {
           console.error('Failed to parse saved location');
         }
       }
-      // デフォルト位置（大分駅周辺）
       setUserLocation({ lat: 33.2382, lng: 131.6126 });
     }
   };
 
+  // 更新ボタン押下時: forceUpdate: true で強制更新
   const handleRefresh = async () => {
     setRefreshing(true);
     try {
-      // 店舗情報の再取得
-      await fetchStores();
-      // 位置情報の再取得
       loadUserLocation();
+
+      const res = await fetch('/api/stores/update-is-open', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ forceUpdate: true }),
+      });
+      const result = await res.json();
+      console.log('Force refresh result:', result);
+
+      await fetchStoresOnly();
+    } catch (error) {
+      console.error('Error refreshing:', error);
     } finally {
       setTimeout(() => {
         setRefreshing(false);
@@ -210,24 +223,8 @@ function MapPageContent() {
     }
   };
 
-  const getVacancyColor = (status: string) => {
-    switch (status) {
-      case 'vacant':
-        return 'bg-green-500';
-      case 'moderate':
-        return 'bg-yellow-500';
-      case 'full':
-        return 'bg-red-500';
-      case 'closed':
-        return 'bg-gray-500';
-      default:
-        return 'bg-gray-500';
-    }
-  };
-
-  // Haversine formula
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-    const R = 6371; // Radius of Earth in km
+    const R = 6371;
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
     const a =
@@ -235,30 +232,25 @@ function MapPageContent() {
       Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
       Math.sin(dLon / 2) * Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const distance = R * c; // Distance in km
-    return distance;
+    return R * c;
   };
 
-  // 距離から徒歩時間を計算（徒歩速度: 4km/h = 約67m/分）
   const calculateWalkingTime = (distanceKm: number): number => {
-    const walkingSpeedKmPerHour = 4; // 徒歩速度 4km/h
+    const walkingSpeedKmPerHour = 4;
     const walkingTimeMinutes = (distanceKm / walkingSpeedKmPerHour) * 60;
     return Math.round(walkingTimeMinutes);
   };
 
   return (
     <div className="relative h-screen flex flex-col touch-manipulation">
-      {/* ヘッダー - レスポンシブ対応 */}
+      {/* ヘッダー */}
       <header className="absolute top-0 left-0 right-0 z-10 pt-4 sm:pt-6 px-3 sm:px-4 safe-top pointer-events-none">
         <motion.div
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           className="w-full"
         >
-          {/* ロゴと戻るボタン */}
           <div className="flex items-center justify-end">
-            
-            {/* ボタングループ */}
             <div className="flex flex-col gap-3 pointer-events-auto">
               {/* ホームボタン */}
               <motion.div
@@ -369,7 +361,6 @@ function MapPageContent() {
               onClick={() => router.push(`/store/${selectedStore.id}`)}
             >
               <div className="p-4 space-y-3">
-                {/* 画像と基本情報 */}
                 <div className="flex gap-4">
                   {selectedStore.image_urls && selectedStore.image_urls.length > 0 ? (
                     <img
@@ -383,7 +374,7 @@ function MapPageContent() {
                     </div>
                   )}
 
-                  <div className="flex-1 min-w-0 ">
+                  <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
                       <h3 className="font-bold text-lg line-clamp-1">{selectedStore.name}</h3>
                       <Button
@@ -399,7 +390,6 @@ function MapPageContent() {
                       </Button>
                     </div>
 
-                    {/* Google評価表示 */}
                     {selectedStore.google_rating && (
                       <div className="flex items-center gap-2 -mt-2">
                         <div className="flex items-center gap-0.5">
@@ -425,7 +415,6 @@ function MapPageContent() {
                       </div>
                     )}
 
-                    {/* 距離表示 */}
                     {userLocation && (
                       <p className="text-sm text-muted-foreground font-bold">
                         徒歩およそ{calculateWalkingTime(calculateDistance(
@@ -437,7 +426,7 @@ function MapPageContent() {
                       </p>
                     )}
 
-                    {/* Googleマップで開く */}
+                    {/* Googleマップで開く - <a>タグ修正 */}
                     <a
                       href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedStore.name)}`}
                       target="_blank"
@@ -449,7 +438,6 @@ function MapPageContent() {
                       <ExternalLink className="w-3 h-3" />
                     </a>
 
-                    {/* 空席情報 */}
                     <div className="flex items-center gap-2 pt-1">
                       <img
                         src={getVacancyIcon(selectedStore.vacancy_status)}
@@ -463,7 +451,6 @@ function MapPageContent() {
                   </div>
                 </div>
 
-                {/* 一言メッセージ */}
                 {selectedStore.status_message && (
                   <div className="pt-2 border-t border-gray-800">
                     <p className="text-sm text-muted-foreground font-bold line-clamp-2">
@@ -472,7 +459,6 @@ function MapPageContent() {
                   </div>
                 )}
 
-                {/* 詳細を見るボタン */}
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
@@ -491,7 +477,7 @@ function MapPageContent() {
         )}
       </AnimatePresence>
 
-      {/* 凡例（画面左下） */}
+      {/* 凡例 */}
       <div className="fixed bottom-24 left-4 z-20 bg-card/90 backdrop-blur-sm rounded-lg shadow-lg p-3 safe-bottom pointer-events-auto">
         <div className="space-y-2">
           <div className="flex items-center gap-2">
@@ -532,14 +518,13 @@ function MapPageContent() {
   );
 }
 
-// Suspenseでラップしたエクスポートコンポーネント
 export default function MapPage() {
   return (
     <Suspense fallback={
-      <div className="flex items-center justify-center h-screen bg-gray-50">
+      <div className="flex items-center justify-center h-screen bg-gray-900">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-muted-foreground">地図を読み込んでいます...</p>
+          <div className="w-12 h-12 border-3 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-400 text-sm">読み込み中...</p>
         </div>
       </div>
     }>
