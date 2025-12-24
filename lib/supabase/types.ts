@@ -75,6 +75,21 @@ export interface Database {
           google_place_id: string | null
           google_rating: number | null
           google_reviews_count: number | null
+          // ============================================
+          // 臨時休業（manual_closed）関連のカラム
+          // ============================================
+          /** 臨時休業フラグ。trueの場合、Google Maps APIの結果に関わらず閉店扱い */
+          manual_closed: boolean
+          /** 閉店理由。'manual'=臨時休業、'business_hours'=営業時間外 */
+          closed_reason: 'manual' | 'business_hours' | null
+          /** 臨時休業の理由（店主が入力） */
+          manual_close_reason: string | null
+          /** 臨時休業を設定した日時 */
+          manual_closed_at: string | null
+          /** 再開予定日時（任意） */
+          estimated_reopen_at: string | null
+          /** 最後にis_openをチェックした日時（キャッシュ用） */
+          last_is_open_check_at: string | null
         }
         Insert: {
           id?: string
@@ -106,6 +121,13 @@ export interface Database {
           google_place_id?: string | null
           google_rating?: number | null
           google_reviews_count?: number | null
+          // 臨時休業関連（すべてオプショナル）
+          manual_closed?: boolean
+          closed_reason?: 'manual' | 'business_hours' | null
+          manual_close_reason?: string | null
+          manual_closed_at?: string | null
+          estimated_reopen_at?: string | null
+          last_is_open_check_at?: string | null
         }
         Update: {
           id?: string
@@ -137,6 +159,13 @@ export interface Database {
           google_place_id?: string | null
           google_rating?: number | null
           google_reviews_count?: number | null
+          // 臨時休業関連（すべてオプショナル）
+          manual_closed?: boolean
+          closed_reason?: 'manual' | 'business_hours' | null
+          manual_close_reason?: string | null
+          manual_closed_at?: string | null
+          estimated_reopen_at?: string | null
+          last_is_open_check_at?: string | null
         }
       }
       quick_reservations: {
@@ -207,3 +236,98 @@ export type BusinessHours = {
     closed?: boolean;
   };
 };
+
+// ============================================
+// 臨時休業関連の型定義
+// ============================================
+
+/** 閉店理由の型 */
+export type ClosedReason = 'manual' | 'business_hours' | null;
+
+/** 表示用ステータスのタイプ */
+export type DisplayStatusType = 'open' | 'closed_manual' | 'closed_hours';
+
+/** フロントエンド表示用のステータス情報 */
+export interface DisplayStatus {
+  /** 日本語ラベル */
+  label: string;
+  /** 英語ラベル */
+  labelEn: string;
+  /** ステータスタイプ */
+  type: DisplayStatusType;
+  /** 表示色（Tailwind色またはHex） */
+  color: string;
+  /** アイコン名（lucide-react等） */
+  icon: string;
+}
+
+/** 臨時休業の詳細情報 */
+export interface ManualCloseDetails {
+  /** 臨時休業の理由 */
+  reason: string | null;
+  /** 臨時休業開始日時 */
+  closed_at: string | null;
+  /** 再開予定日時 */
+  estimated_reopen_at: string | null;
+}
+
+/**
+ * 表示用ステータスを取得するユーティリティ関数
+ */
+export function getDisplayStatus(
+  isOpen: boolean,
+  vacancyStatus: 'vacant' | 'moderate' | 'full' | 'closed',
+  manualClosed: boolean,
+  closedReason: ClosedReason
+): DisplayStatus {
+  // 臨時休業中
+  if (manualClosed || closedReason === 'manual') {
+    return {
+      label: '臨時休業',
+      labelEn: 'Temporarily Closed',
+      type: 'closed_manual',
+      color: '#ef4444', // red-500
+      icon: 'pause-circle',
+    };
+  }
+
+  // 営業時間外による閉店
+  if (!isOpen || vacancyStatus === 'closed') {
+    return {
+      label: '営業時間外',
+      labelEn: 'Closed',
+      type: 'closed_hours',
+      color: '#6b7280', // gray-500
+      icon: 'clock',
+    };
+  }
+
+  // 営業中のステータス
+  const statusMap: Record<string, Omit<DisplayStatus, 'type'>> = {
+    vacant: {
+      label: '空席あり',
+      labelEn: 'Available',
+      color: '#22c55e', // green-500
+      icon: 'check-circle',
+    },
+    moderate: {
+      label: 'やや混雑',
+      labelEn: 'Moderate',
+      color: '#f59e0b', // amber-500
+      icon: 'minus-circle',
+    },
+    full: {
+      label: '満席',
+      labelEn: 'Full',
+      color: '#ef4444', // red-500
+      icon: 'x-circle',
+    },
+  };
+
+  const status = statusMap[vacancyStatus] || statusMap.vacant;
+
+  return {
+    ...status,
+    type: 'open',
+  };
+}

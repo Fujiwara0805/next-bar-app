@@ -1,5 +1,18 @@
 'use client';
 
+/**
+ * ============================================
+ * ファイルパス: app/store/manage/[id]/page.tsx
+ * 
+ * 店舗管理ページ
+ * 
+ * 【v2: 臨時休業対応】
+ * - 「閉店」→「臨時休業」に変更
+ * - 臨時休業選択時に manual_closed: true を設定
+ * - Google Maps APIの同期で上書きされない仕組み
+ * ============================================
+ */
+
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
@@ -35,6 +48,7 @@ import {
   CheckCircle2,
   XCircle,
   Download,
+  PauseCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -52,6 +66,10 @@ import type { Database } from '@/lib/supabase/types';
 
 type Store = Database['public']['Tables']['stores']['Row'];
 
+/**
+ * 空席状況の選択肢
+ * 【変更点】'closed' を「臨時休業」として扱い、manual_closed フラグを設定
+ */
 const VACANCY_OPTIONS = [
   {
     value: 'vacant',
@@ -60,6 +78,7 @@ const VACANCY_OPTIONS = [
     color: 'text-green-600',
     bgColor: 'bg-green-50',
     borderColor: 'border-green-200',
+    icon: null,
   },
   {
     value: 'moderate',
@@ -68,6 +87,7 @@ const VACANCY_OPTIONS = [
     color: 'text-yellow-600',
     bgColor: 'bg-yellow-50',
     borderColor: 'border-yellow-200',
+    icon: null,
   },
   {
     value: 'full',
@@ -76,6 +96,7 @@ const VACANCY_OPTIONS = [
     color: 'text-red-600',
     bgColor: 'bg-red-50',
     borderColor: 'border-red-200',
+    icon: null,
   },
   {
     value: 'closed',
@@ -84,6 +105,7 @@ const VACANCY_OPTIONS = [
     color: 'text-gray-600',
     bgColor: 'bg-purple-50',
     borderColor: 'border-purple-200',
+    icon: PauseCircle,
   },
 ] as const;
 
@@ -115,6 +137,9 @@ export default function StoreUpdatePage() {
   
   // 男女数トグルのstate
   const [isGenderCountOpen, setIsGenderCountOpen] = useState(false);
+
+  // 臨時休業中かどうかを表示するためのstate
+  const [isManualClosed, setIsManualClosed] = useState(false);
 
   useEffect(() => {
     // 運営会社アカウントまたは店舗アカウントのみアクセス可能
@@ -154,11 +179,19 @@ export default function StoreUpdatePage() {
       if (error) throw error;
 
       if (data) {
-        const storeData = data as Store;
+        const storeData = data as Store & { manual_closed?: boolean; closed_reason?: string };
         setStore(storeData);
         
         // フォームに値を設定
-        setVacancyStatus(storeData.vacancy_status as 'vacant' | 'moderate' | 'full' | 'closed');
+        // 臨時休業中（manual_closed: true）の場合は 'closed' を選択状態に
+        if (storeData.manual_closed) {
+          setVacancyStatus('closed');
+          setIsManualClosed(true);
+        } else {
+          setVacancyStatus(storeData.vacancy_status as 'vacant' | 'moderate' | 'full' | 'closed');
+          setIsManualClosed(false);
+        }
+        
         setStatusMessage(storeData.status_message || '');
         setMaleCount(storeData.male_ratio);
         setFemaleCount(storeData.female_ratio);
@@ -197,16 +230,48 @@ export default function StoreUpdatePage() {
     setLoading(true);
 
     try {
+      /**
+       * 【重要】臨時休業ロジック
+       * - vacancyStatus === 'closed' の場合:
+       *   - manual_closed: true を設定（臨時休業フラグ）
+       *   - closed_reason: 'manual' を設定
+       *   - is_open: false を設定
+       *   - これにより、Google Maps APIの同期が走っても上書きされない
+       * 
+       * - vacancyStatus !== 'closed' の場合:
+       *   - manual_closed: false を設定（臨時休業解除）
+       *   - closed_reason: null を設定
+       *   - is_open: true を設定
+       *   - last_is_open_check_at: null を設定（次回API同期を即座に実行させる）
+       */
+      const isClosed = vacancyStatus === 'closed';
+      
+      const updateData: Record<string, unknown> = {
+        vacancy_status: vacancyStatus,
+        status_message: statusMessage.trim() || null,
+        is_open: !isClosed,
+        male_ratio: maleCount,
+        female_ratio: femaleCount,
+        last_updated: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        // 臨時休業関連のフィールド
+        manual_closed: isClosed,
+        closed_reason: isClosed ? 'manual' : null,
+      };
+
+      // 臨時休業を解除する場合は、API同期を即座に実行させるためキャッシュをクリア
+      if (!isClosed) {
+        updateData.last_is_open_check_at = null;
+        updateData.manual_close_reason = null;
+        updateData.manual_closed_at = null;
+        updateData.estimated_reopen_at = null;
+      } else {
+        // 臨時休業を設定する場合は、設定日時を記録
+        updateData.manual_closed_at = new Date().toISOString();
+      }
+
       let query = (supabase.from('stores') as any)
-        .update({
-          vacancy_status: vacancyStatus,
-          status_message: statusMessage.trim() || null,
-          is_open: vacancyStatus !== 'closed',
-          male_ratio: maleCount,
-          female_ratio: femaleCount,
-          last_updated: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
+        .update(updateData)
         .eq('id', params.id as string);
 
       // 運営会社アカウントの場合はowner_idでフィルタ
@@ -229,11 +294,19 @@ export default function StoreUpdatePage() {
 
       if (error) throw error;
 
-      toast.success('更新が完了しました', { 
+      // 成功メッセージを状態に応じて変更
+      const successMessage = isClosed 
+        ? '臨時休業を設定しました' 
+        : '更新が完了しました';
+
+      toast.success(successMessage, { 
         position: 'top-center',
         duration: 1000,
         className: 'bg-gray-100'
       });
+      
+      // 臨時休業状態を更新
+      setIsManualClosed(isClosed);
       
       // アカウントタイプによってリダイレクト先を変更
       if (accountType === 'store') {
@@ -516,35 +589,39 @@ export default function StoreUpdatePage() {
                     onValueChange={(value) => setVacancyStatus(value as typeof vacancyStatus)}
                     className="space-y-3"
                   >
-                    {VACANCY_OPTIONS.map((option) => (
-                      <motion.div
-                        key={option.value}
-                        whileTap={{ scale: 0.98 }}
-                      >
-                        <Label
-                          htmlFor={option.value}
-                          className={`flex items-start gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                            vacancyStatus === option.value
-                              ? `${option.bgColor} ${option.borderColor}`
-                              : 'bg-gray-100 border-2 border-gray-300'
-                          }`}
+                    {VACANCY_OPTIONS.map((option) => {
+                      const IconComponent = option.icon;
+                      return (
+                        <motion.div
+                          key={option.value}
+                          whileTap={{ scale: 0.98 }}
                         >
-                          <RadioGroupItem
-                            value={option.value}
-                            id={option.value}
-                            className="mt-1"
-                          />
-                          <div className="flex-1">
-                            <div className={`font-bold mb-1 ${option.color}`}>
-                              {option.label}
+                          <Label
+                            htmlFor={option.value}
+                            className={`flex items-start gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                              vacancyStatus === option.value
+                                ? `${option.bgColor} ${option.borderColor}`
+                                : 'bg-gray-100 border-2 border-gray-300'
+                            }`}
+                          >
+                            <RadioGroupItem
+                              value={option.value}
+                              id={option.value}
+                              className="mt-1"
+                            />
+                            <div className="flex-1">
+                              <div className={`font-bold mb-1 ${option.color} flex items-center gap-2`}>
+                                {IconComponent && <IconComponent className="w-4 h-4" />}
+                                {option.label}
+                              </div>
+                              <div className="text-sm text-muted-foreground font-bold">
+                                {option.description}
+                              </div>
                             </div>
-                            <div className="text-sm text-muted-foreground font-bold">
-                              {option.description}
-                            </div>
-                          </div>
-                        </Label>
-                      </motion.div>
-                    ))}
+                          </Label>
+                        </motion.div>
+                      );
+                    })}
                   </RadioGroup>
                 </Card>
 
