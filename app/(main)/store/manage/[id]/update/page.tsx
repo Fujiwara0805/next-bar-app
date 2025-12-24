@@ -3,16 +3,7 @@
 /**
  * ============================================
  * ファイルパス: app/store/manage/[id]/page.tsx
- * 
- * 店舗管理ページ
- * 
- * 【v2: 臨時休業対応】
- * - 「閉店」選択時に manual_closed: true を設定
- * - Google Maps APIの同期で上書きされない仕組み
- * 
- * 【v3: 臨時休業解除の改善】
- * - 空席状況を変更すると自動的に臨時休業が解除される
- * - 12時間後に自動解除されるため、翌営業日には通常営業に戻る
+ * * 店舗管理ページ
  * ============================================
  */
 
@@ -28,23 +19,9 @@ import {
   Key,
   Info,
   Image as ImageIcon,
-  ExternalLink,
-  X,
-  Upload,
-  Building2,
-  FileText,
-  MapPin,
-  Phone,
-  Globe,
-  Mail,
-  Clock,
-  Calendar,
-  DollarSign,
-  CreditCard,
-  Settings,
   Edit,
-  ChevronDown,
   Trash2,
+  ChevronDown,
   ChevronUp,
   User,
   Users,
@@ -52,6 +29,9 @@ import {
   XCircle,
   Download,
   PauseCircle,
+  Clock,
+  X,
+  Phone,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -60,7 +40,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useAuth } from '@/lib/auth/context';
 import { supabase } from '@/lib/supabase/client';
@@ -68,6 +47,7 @@ import { toast } from 'sonner';
 import type { Database } from '@/lib/supabase/types';
 
 type Store = Database['public']['Tables']['stores']['Row'];
+type StoreUpdate = Database['public']['Tables']['stores']['Update'];
 
 /**
  * 空席状況の選択肢
@@ -114,13 +94,11 @@ const VACANCY_OPTIONS = [
 export default function StoreUpdatePage() {
   const router = useRouter();
   const params = useParams();
-  const { user, profile, store: userStore, accountType, signOut } = useAuth();
+  const { user, accountType, signOut } = useAuth();
   const [loading, setLoading] = useState(false);
   const [fetchingStore, setFetchingStore] = useState(true);
   const [store, setStore] = useState<Store | null>(null);
   
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
   // 店舗状況フォーム
   const [vacancyStatus, setVacancyStatus] = useState<'vacant' | 'moderate' | 'full' | 'closed'>('closed');
   const [statusMessage, setStatusMessage] = useState('');
@@ -129,7 +107,6 @@ export default function StoreUpdatePage() {
 
   // 画像関連のstate
   const [imageUrls, setImageUrls] = useState<string[]>([]);
-  const [uploadingImage, setUploadingImage] = useState(false);
   const [mainImageIndex, setMainImageIndex] = useState(0);
 
   // 予約管理関連のstate
@@ -152,6 +129,7 @@ export default function StoreUpdatePage() {
 
     fetchStore();
     fetchReservations();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accountType, router, params.id]);
 
   const fetchStore = async () => {
@@ -164,7 +142,6 @@ export default function StoreUpdatePage() {
         .eq('id', params.id as string);
 
       // 運営会社アカウントの場合はowner_idでフィルタ
-      // 店舗アカウントの場合は自分のIDでフィルタ
       if (accountType === 'platform') {
         query = query.eq('owner_id', user.id);
       } else if (accountType === 'store') {
@@ -195,8 +172,8 @@ export default function StoreUpdatePage() {
         }
         
         setStatusMessage(storeData.status_message || '');
-        setMaleCount(storeData.male_ratio);
-        setFemaleCount(storeData.female_ratio);
+        setMaleCount(storeData.male_ratio ?? 0);
+        setFemaleCount(storeData.female_ratio ?? 0);
 
         // 画像URLの設定
         setImageUrls(storeData.image_urls || []);
@@ -232,69 +209,50 @@ export default function StoreUpdatePage() {
     setLoading(true);
 
     try {
-      /**
-       * 【重要】空席状況更新ロジック
-       * 
-       * - vacancyStatus === 'closed' の場合:
-       *   - manual_closed: true を設定（臨時休業フラグ）
-       *   - closed_reason: 'manual' を設定
-       *   - is_open: false を設定
-       *   - manual_closed_at: 現在時刻を設定（12時間後に自動解除される基準）
-       * 
-       * - vacancyStatus !== 'closed' の場合:
-       *   - manual_closed: false を設定（臨時休業解除）
-       *   - closed_reason: null を設定
-       *   - is_open: true を設定
-       *   - manual_closed_at: null を設定
-       *   - last_is_open_check_at: null を設定（次回API同期を即座に実行させる）
-       * 
-       * 【ポイント】
-       * - 空席状況を変更するだけで臨時休業が解除される
-       * - closed_reasonがmanualでも、空席情報を変更すれば更新可能
-       */
       const isClosed = vacancyStatus === 'closed';
+      const now = new Date().toISOString();
       
-      const updateData: Record<string, unknown> = {
+      /**
+       * 更新データの構築
+       * ここで明示的に closed_reason を制御します。
+       */
+      const updateData: StoreUpdate = {
         vacancy_status: vacancyStatus,
         status_message: statusMessage.trim() || null,
         is_open: !isClosed,
         male_ratio: maleCount,
         female_ratio: femaleCount,
-        last_updated: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        // 臨時休業関連のフィールド
-        manual_closed: isClosed,
-        closed_reason: isClosed ? 'manual' : null,
+        last_updated: now,
+        updated_at: now,
+        manual_closed: isClosed, // 閉店ならtrue, それ以外はfalse
       };
 
       if (isClosed) {
-        // 臨時休業を設定する場合は、設定日時を記録（12時間後に自動解除される）
-        updateData.manual_closed_at = new Date().toISOString();
+        // --- 閉店（臨時休業）にする場合 ---
+        updateData.closed_reason = 'manual';
+        updateData.manual_closed_at = now;
       } else {
-        // 臨時休業を解除する場合は、すべての臨時休業関連フィールドをクリア
-        updateData.last_is_open_check_at = null;
-        updateData.manual_close_reason = null;
+        // --- 営業再開（空席あり/混雑/満席）にする場合 ---
+        // 【重要】closed_reasonをnullにする
+        updateData.closed_reason = null;
         updateData.manual_closed_at = null;
-        updateData.estimated_reopen_at = null;
+        
+        // API同期のキャッシュを無効化し、次回同期で正確な情報を取得させる
+        updateData.last_is_open_check_at = null;
       }
 
-      let query = (supabase.from('stores') as any)
+      let query = supabase
+        .from('stores')
+        // @ts-ignore - Supabaseの型推論の問題を回避
         .update(updateData)
         .eq('id', params.id as string);
 
-      // 運営会社アカウントの場合はowner_idでフィルタ
+      // セキュリティチェック（念のため）
       if (accountType === 'platform') {
         query = query.eq('owner_id', user.id);
-      }
-      // 店舗アカウントの場合は自分のIDであることを確認
-      else if (accountType === 'store') {
+      } else if (accountType === 'store') {
         if (params.id !== user.id) {
-          toast.error('アクセス権限がありません', { 
-            position: 'top-center',
-            duration: 3000,
-            className: 'bg-gray-100'
-          });
-          return;
+          throw new Error('Unauthorized');
         }
       }
 
@@ -302,10 +260,10 @@ export default function StoreUpdatePage() {
 
       if (error) throw error;
 
-      // 成功メッセージを状態に応じて変更
+      // 成功メッセージ
       let successMessage = '更新が完了しました';
       if (isClosed) {
-        successMessage = '閉店を設定しました（12時間後に自動解除されます）';
+        successMessage = '閉店を設定しました';
       } else if (isManualClosed) {
         // 臨時休業中から営業中に変更した場合
         successMessage = '営業を再開しました';
@@ -317,15 +275,12 @@ export default function StoreUpdatePage() {
         className: 'bg-gray-100'
       });
       
-      // 臨時休業状態を更新
+      // 状態を更新
       setIsManualClosed(isClosed);
       
-      // アカウントタイプによってリダイレクト先を変更
       if (accountType === 'store') {
-        // 店舗アカウントは同じページに留まる
         fetchStore();
       } else {
-        // 運営会社アカウントは店舗管理画面へ
         router.push('/store/manage');
       }
     } catch (error) {
@@ -366,7 +321,6 @@ export default function StoreUpdatePage() {
     }
   };
 
-  // 予約を画面上から削除（データベースには影響しない）
   const handleDeleteReservation = (reservationId: string) => {
     setReservations(prev => prev.filter(r => r.id !== reservationId));
     toast.success('予約カードを削除しました', { 
@@ -376,19 +330,16 @@ export default function StoreUpdatePage() {
     });
   };
 
-  // 当月の予約データをCSVで出力
   const handleExportCSV = async () => {
     if (!params.id || !store) return;
 
     try {
-      // 当月の開始日と終了日を計算
       const now = new Date();
       const year = now.getFullYear();
       const month = now.getMonth();
       const startDate = new Date(year, month, 1);
       const endDate = new Date(year, month + 1, 0, 23, 59, 59);
 
-      // quick_reservationsテーブルから当月の予約データを取得
       const { data: monthlyReservations, error } = await supabase
         .from('quick_reservations')
         .select('*')
@@ -399,10 +350,8 @@ export default function StoreUpdatePage() {
 
       if (error) throw error;
 
-      // 型を明示的に指定
       const reservations: Database['public']['Tables']['quick_reservations']['Row'][] = monthlyReservations || [];
 
-      // CSVデータの準備
       const statusLabels: Record<string, string> = {
         pending: '保留中',
         confirmed: '承認',
@@ -411,10 +360,8 @@ export default function StoreUpdatePage() {
         expired: '期限切れ',
       };
 
-      // CSVヘッダー
       const headers = ['No', '受付時刻', '名前', '電話番号', '人数', '到着予定', 'ステータス'];
       
-      // CSVデータ行
       const csvRows = reservations.map((reservation, index) => {
         const createdAt = new Date(reservation.created_at);
         const arrivalTime = new Date(reservation.arrival_time);
@@ -442,7 +389,6 @@ export default function StoreUpdatePage() {
         ];
       });
 
-      // CSV形式に変換（値にカンマや改行が含まれる場合はダブルクォートで囲む）
       const escapeCSV = (value: string): string => {
         if (value.includes(',') || value.includes('"') || value.includes('\n')) {
           return `"${value.replace(/"/g, '""')}"`;
@@ -450,13 +396,11 @@ export default function StoreUpdatePage() {
         return value;
       };
 
-      // CSVコンテンツを生成
       const csvContent = [
         headers.map(escapeCSV).join(','),
         ...csvRows.map(row => row.map(escapeCSV).join(','))
       ].join('\n');
 
-      // BOMを追加してExcelで正しく開けるようにする
       const BOM = '\uFEFF';
       const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
@@ -672,7 +616,6 @@ export default function StoreUpdatePage() {
                     <CollapsibleContent>
                       <div className="space-y-4 mt-4">
                         <div className="grid grid-cols-2 gap-4">
-                          {/* 男性数入力 */}
                           <div className="space-y-2">
                             <Label htmlFor="maleCount" className="font-bold">男性数</Label>
                             <Input
@@ -686,8 +629,6 @@ export default function StoreUpdatePage() {
                               style={{ fontSize: '16px' }}
                             />
                           </div>
-                          
-                          {/* 女性数入力 */}
                           <div className="space-y-2">
                             <Label htmlFor="femaleCount" className="font-bold">女性数</Label>
                             <Input
@@ -702,8 +643,6 @@ export default function StoreUpdatePage() {
                             />
                           </div>
                         </div>
-                        
-                        {/* 合計表示 */}
                         <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
                           <span className="text-sm font-bold">合計人数</span>
                           <span className="text-lg font-bold">{maleCount + femaleCount}人</span>
@@ -803,7 +742,7 @@ export default function StoreUpdatePage() {
                               <Trash2 className="w-4 h-4" />
                             </Button>
                             <div className="space-y-3">
-                              {/* 1行目: ステータスバッジ + 電話がかかってきた時間 */}
+                              {/* 1行目: ステータスバッジ + 電話受付時刻 */}
                               <div className="flex items-center justify-between pr-10">
                                 <div className={`flex items-center gap-2 px-3 py-1 rounded-full border ${statusInfo.color}`}>
                                   {statusInfo.icon}
@@ -894,7 +833,6 @@ export default function StoreUpdatePage() {
             transition={{ delay: 0.2 }}
             className="mt-6 space-y-3"
           >
-            {/* データ出力ボタンは予約管理タブが開いているときのみ表示 */}
             {activeTab === 'reservations' && (
               <Button
                 type="button"
