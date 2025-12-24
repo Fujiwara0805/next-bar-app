@@ -14,6 +14,10 @@
  * - manual_closed フラグによる強制閉店機能を追加
  * - manual_closed が true の場合、Google Maps APIの結果に関わらず
  *   is_open: false, vacancy_status: 'closed' を維持
+ * 
+ * 【v3: 12時間後の自動解除】
+ * - manual_closed_at から12時間経過した場合、自動的に臨時休業を解除
+ * - 翌営業日には通常通りGoogle Maps APIベースの営業状態に戻る
  * ============================================
  */
 
@@ -38,6 +42,12 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 const CACHE_TTL_MS = 30 * 60 * 1000;
 
 /**
+ * 臨時休業の自動解除時間（ミリ秒）
+ * 12時間 = 43200000ms
+ */
+const MANUAL_CLOSE_TTL_MS = 12 * 60 * 60 * 1000;
+
+/**
  * キャッシュが有効かどうかを判定
  */
 function isCacheValid(lastCheckAt: string | null): boolean {
@@ -50,11 +60,25 @@ function isCacheValid(lastCheckAt: string | null): boolean {
 }
 
 /**
+ * 臨時休業が有効期限切れかどうかを判定
+ * manual_closed_at から12時間経過していたら true を返す
+ */
+function isManualCloseExpired(manualClosedAt: string | null): boolean {
+  if (!manualClosedAt) return true; // タイムスタンプがなければ期限切れとみなす
+  
+  const closedTime = new Date(manualClosedAt).getTime();
+  const now = Date.now();
+  
+  return (now - closedTime) >= MANUAL_CLOSE_TTL_MS;
+}
+
+/**
  * 営業状態とvacancy_statusを決定
  * 
  * 【優先順位】
- * 1. manual_closed === true → is_open: false, vacancy_status: 'closed'
- * 2. manual_closed === false → Google Maps APIの結果に従う
+ * 1. manual_closed === true かつ 12時間以内 → is_open: false, vacancy_status: 'closed'
+ * 2. manual_closed === true かつ 12時間経過 → 臨時休業を解除してGoogle Maps APIに従う
+ * 3. manual_closed === false → Google Maps APIの結果に従う
  * 
  * @param googleIsOpen - Google Maps APIから取得した営業状態
  * @param manualClosed - 店主が設定した臨時休業フラグ
@@ -112,10 +136,39 @@ interface StoreData {
   is_open: boolean | null;
   manual_closed: boolean | null;
   closed_reason: string | null;
+  manual_closed_at: string | null;
 }
 
 /**
- * 単一店舗のis_openを更新（キャッシュ考慮 + 臨時休業対応）
+ * 臨時休業を解除する
+ */
+async function clearManualClose(storeId: string): Promise<boolean> {
+  const now = new Date().toISOString();
+  
+  const { error } = await supabase
+    .from('stores')
+    .update({
+      manual_closed: false,
+      closed_reason: null,
+      manual_close_reason: null,
+      manual_closed_at: null,
+      estimated_reopen_at: null,
+      last_is_open_check_at: null, // キャッシュをクリアして即座にAPI同期を促す
+      updated_at: now,
+    })
+    .eq('id', storeId);
+
+  if (error) {
+    console.error(`Error clearing manual_close for store ${storeId}:`, error);
+    return false;
+  }
+
+  console.log(`Manual close expired and cleared for store ${storeId}`);
+  return true;
+}
+
+/**
+ * 単一店舗のis_openを更新（キャッシュ考慮 + 臨時休業対応 + 12時間自動解除）
  */
 async function updateSingleStore(
   store: StoreData,
@@ -127,12 +180,21 @@ async function updateSingleStore(
   manualClosed: boolean;
   closedReason: 'manual' | 'business_hours' | null;
   fromCache: boolean;
+  manualCloseExpired?: boolean;
 } | null> {
   
-  const manualClosed = store.manual_closed ?? false;
+  let manualClosed = store.manual_closed ?? false;
   
-  // 【重要】臨時休業中の場合は、Google Maps APIを呼ばずに即座にclosedを返す
-  // これによりAPI消費を節約しつつ、手動設定が上書きされることを防ぐ
+  // 【重要】臨時休業が12時間経過していたら自動解除
+  if (manualClosed && isManualCloseExpired(store.manual_closed_at)) {
+    const cleared = await clearManualClose(store.id);
+    if (cleared) {
+      manualClosed = false; // 解除されたのでフラグを更新
+      // 解除後は通常のGoogle Maps API同期に進む
+    }
+  }
+  
+  // 臨時休業中（12時間以内）の場合は、Google Maps APIを呼ばずに即座にclosedを返す
   if (manualClosed) {
     // DBの状態が既に正しければ更新不要
     if (store.is_open === false && store.vacancy_status === 'closed') {
@@ -250,7 +312,7 @@ export async function POST(request: NextRequest) {
     if (storeId) {
       const { data: store, error: fetchError } = await supabase
         .from('stores')
-        .select('id, google_place_id, vacancy_status, last_is_open_check_at, is_open, manual_closed, closed_reason')
+        .select('id, google_place_id, vacancy_status, last_is_open_check_at, is_open, manual_closed, closed_reason, manual_closed_at')
         .eq('id', storeId)
         .single();
 
@@ -281,13 +343,14 @@ export async function POST(request: NextRequest) {
         success: true,
         ...result,
         cacheTTL: CACHE_TTL_MS,
+        manualCloseTTL: MANUAL_CLOSE_TTL_MS,
       });
     }
 
     // 全店舗を更新する場合
     const { data: stores, error: fetchError } = await supabase
       .from('stores')
-      .select('id, google_place_id, vacancy_status, last_is_open_check_at, is_open, manual_closed, closed_reason')
+      .select('id, google_place_id, vacancy_status, last_is_open_check_at, is_open, manual_closed, closed_reason, manual_closed_at')
       .not('google_place_id', 'is', null);
 
     if (fetchError) {
@@ -327,6 +390,7 @@ export async function POST(request: NextRequest) {
       manualClosed: manualClosedCount,
       failed: stores.length - successful.length,
       cacheTTL: CACHE_TTL_MS,
+      manualCloseTTL: MANUAL_CLOSE_TTL_MS,
       results: successful,
     });
   } catch (error) {
@@ -356,7 +420,7 @@ export async function GET(request: NextRequest) {
 
     const { data: store, error: fetchError } = await supabase
       .from('stores')
-      .select('id, google_place_id, vacancy_status, last_is_open_check_at, is_open, manual_closed, closed_reason')
+      .select('id, google_place_id, vacancy_status, last_is_open_check_at, is_open, manual_closed, closed_reason, manual_closed_at')
       .eq('id', storeId)
       .single();
 
@@ -387,6 +451,7 @@ export async function GET(request: NextRequest) {
       success: true,
       ...result,
       cacheTTL: CACHE_TTL_MS,
+      manualCloseTTL: MANUAL_CLOSE_TTL_MS,
     });
   } catch (error) {
     console.error('Error in update-is-open API:', error);

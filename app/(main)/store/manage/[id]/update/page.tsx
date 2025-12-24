@@ -7,9 +7,12 @@
  * 店舗管理ページ
  * 
  * 【v2: 臨時休業対応】
- * - 「閉店」→「臨時休業」に変更
- * - 臨時休業選択時に manual_closed: true を設定
+ * - 「閉店」選択時に manual_closed: true を設定
  * - Google Maps APIの同期で上書きされない仕組み
+ * 
+ * 【v3: 臨時休業解除の改善】
+ * - 空席状況を変更すると自動的に臨時休業が解除される
+ * - 12時間後に自動解除されるため、翌営業日には通常営業に戻る
  * ============================================
  */
 
@@ -68,7 +71,6 @@ type Store = Database['public']['Tables']['stores']['Row'];
 
 /**
  * 空席状況の選択肢
- * 【変更点】'closed' を「臨時休業」として扱い、manual_closed フラグを設定
  */
 const VACANCY_OPTIONS = [
   {
@@ -101,7 +103,7 @@ const VACANCY_OPTIONS = [
   {
     value: 'closed',
     label: '閉店',
-    description: '営業時間外または休業中',
+    description: '営業時間外または臨時休業（12時間後に自動解除）',
     color: 'text-gray-600',
     bgColor: 'bg-purple-50',
     borderColor: 'border-purple-200',
@@ -179,7 +181,7 @@ export default function StoreUpdatePage() {
       if (error) throw error;
 
       if (data) {
-        const storeData = data as Store & { manual_closed?: boolean; closed_reason?: string };
+        const storeData = data as Store;
         setStore(storeData);
         
         // フォームに値を設定
@@ -231,18 +233,24 @@ export default function StoreUpdatePage() {
 
     try {
       /**
-       * 【重要】臨時休業ロジック
+       * 【重要】空席状況更新ロジック
+       * 
        * - vacancyStatus === 'closed' の場合:
        *   - manual_closed: true を設定（臨時休業フラグ）
        *   - closed_reason: 'manual' を設定
        *   - is_open: false を設定
-       *   - これにより、Google Maps APIの同期が走っても上書きされない
+       *   - manual_closed_at: 現在時刻を設定（12時間後に自動解除される基準）
        * 
        * - vacancyStatus !== 'closed' の場合:
        *   - manual_closed: false を設定（臨時休業解除）
        *   - closed_reason: null を設定
        *   - is_open: true を設定
+       *   - manual_closed_at: null を設定
        *   - last_is_open_check_at: null を設定（次回API同期を即座に実行させる）
+       * 
+       * 【ポイント】
+       * - 空席状況を変更するだけで臨時休業が解除される
+       * - closed_reasonがmanualでも、空席情報を変更すれば更新可能
        */
       const isClosed = vacancyStatus === 'closed';
       
@@ -259,15 +267,15 @@ export default function StoreUpdatePage() {
         closed_reason: isClosed ? 'manual' : null,
       };
 
-      // 臨時休業を解除する場合は、API同期を即座に実行させるためキャッシュをクリア
-      if (!isClosed) {
+      if (isClosed) {
+        // 臨時休業を設定する場合は、設定日時を記録（12時間後に自動解除される）
+        updateData.manual_closed_at = new Date().toISOString();
+      } else {
+        // 臨時休業を解除する場合は、すべての臨時休業関連フィールドをクリア
         updateData.last_is_open_check_at = null;
         updateData.manual_close_reason = null;
         updateData.manual_closed_at = null;
         updateData.estimated_reopen_at = null;
-      } else {
-        // 臨時休業を設定する場合は、設定日時を記録
-        updateData.manual_closed_at = new Date().toISOString();
       }
 
       let query = (supabase.from('stores') as any)
@@ -295,13 +303,17 @@ export default function StoreUpdatePage() {
       if (error) throw error;
 
       // 成功メッセージを状態に応じて変更
-      const successMessage = isClosed 
-        ? '臨時休業を設定しました' 
-        : '更新が完了しました';
+      let successMessage = '更新が完了しました';
+      if (isClosed) {
+        successMessage = '閉店を設定しました（12時間後に自動解除されます）';
+      } else if (isManualClosed) {
+        // 臨時休業中から営業中に変更した場合
+        successMessage = '営業を再開しました';
+      }
 
       toast.success(successMessage, { 
         position: 'top-center',
-        duration: 1000,
+        duration: 2000,
         className: 'bg-gray-100'
       });
       
@@ -623,6 +635,26 @@ export default function StoreUpdatePage() {
                       );
                     })}
                   </RadioGroup>
+
+                  {/* 閉店選択時の注意書き */}
+                  {vacancyStatus === 'closed' && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg"
+                    >
+                      <div className="flex items-start gap-2">
+                        <Info className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                        <div className="text-sm text-amber-800">
+                          <p className="font-bold mb-1">閉店について</p>
+                          <ul className="list-disc list-inside space-y-1 text-amber-700">
+                            <li>12時間後に自動的に解除されます</li>
+                            <li>営業を再開するには、他のステータスを選択してください</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
                 </Card>
 
                 <Card className="p-6">
