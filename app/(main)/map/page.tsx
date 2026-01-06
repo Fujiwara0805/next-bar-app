@@ -61,15 +61,40 @@ function MapPageContent() {
     updateIsOpenOnce();
   }, []);
 
+  // LPからの遷移時に自動でデータ取得を行う
   useEffect(() => {
     const shouldRefresh = searchParams?.get('refresh') === 'true';
+    const fromLanding = searchParams?.get('from') === 'landing';
     
-    fetchStoresOnly();
-    loadUserLocation();
-
-    if (shouldRefresh) {
-      router.replace('/map', { scroll: false });
-    }
+    // 初回ロードまたはLPからの遷移時にデータ取得
+    const loadData = async () => {
+      setLoading(true);
+      
+      // LPからの遷移時は強制更新を実行（更新ボタン押下と同じ挙動）
+      if (fromLanding || shouldRefresh) {
+        try {
+          const res = await fetch('/api/stores/update-is-open', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ forceUpdate: true }),
+          });
+          const result = await res.json();
+          console.log('Auto refresh from landing result:', result);
+        } catch (err) {
+          console.warn('Failed to auto-refresh is_open:', err);
+        }
+      }
+      
+      await fetchStoresOnly();
+      loadUserLocation();
+      
+      // クエリパラメータをクリア
+      if (shouldRefresh || fromLanding) {
+        router.replace('/map', { scroll: false });
+      }
+    };
+    
+    loadData();
 
     const channel = supabase
       .channel('stores-changes')

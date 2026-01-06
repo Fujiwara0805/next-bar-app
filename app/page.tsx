@@ -1,21 +1,25 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { SplashScreen } from '@/components/splash-screen';
 
 export default function Home() {
   const router = useRouter();
-  const [showSplash, setShowSplash] = useState(true);
 
-  const handleSplashComplete = () => {
-    setShowSplash(false);
-    router.push('/landing');
-  };
+  useEffect(() => {
+    // スプラッシュ画面を廃止し、直接LPへリダイレクト
+    router.replace('/landing');
+  }, [router]);
 
-  if (showSplash) {
-    return <SplashScreen onComplete={handleSplashComplete} />;
-  }
-
-  return null;
+  // リダイレクト中の最小限のローディング表示
+  return (
+    <div 
+      className="min-h-screen flex items-center justify-center"
+      style={{ background: '#050505' }}
+    >
+      <div className="text-center">
+        <div className="w-10 h-10 border-2 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto" />
+      </div>
+    </div>
+  );
 }
