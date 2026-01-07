@@ -11,11 +11,11 @@ type Store = Database['public']['Tables']['stores']['Row'];
 // ============================================================================
 
 const colors = {
-  background: '#2B1F1A',      // Dark Brown
-  surface: '#1C1C1C',         // Charcoal Black
-  accent: '#C89B3C',          // Amber Gold
-  accentDark: '#8A6A2F',      // Dark Gold
-  text: '#F2EBDD',            // Ivory
+  background: '#2B1F1A',
+  surface: '#1C1C1C',
+  accent: '#C89B3C',
+  accentDark: '#8A6A2F',
+  text: '#F2EBDD',
   textMuted: 'rgba(242, 235, 221, 0.6)',
   textSubtle: 'rgba(242, 235, 221, 0.4)',
 };
@@ -30,6 +30,7 @@ interface MapViewProps {
   onStoreClick?: (store: Store) => void;
   enableLocationTracking?: boolean;
   enableCompass?: boolean;
+  onBoundsChange?: (bounds: google.maps.LatLngBounds, zoom: number) => void;
 }
 
 interface GeolocationState {
@@ -63,6 +64,13 @@ const COMPASS_STORAGE_KEY = 'nikenme_compass_permission';
 const COMPASS_EXPIRY_MS = 30 * 60 * 1000;
 
 // ============================================================================
+// 位置情報更新の閾値設定（API最適化）
+// ============================================================================
+
+const LOCATION_UPDATE_THRESHOLD_METERS = 50; // 50m以上移動したら更新
+const LOCATION_UPDATE_INTERVAL_MS = 30000;   // 最低30秒間隔で更新
+
+// ============================================================================
 // localStorage ヘルパー
 // ============================================================================
 
@@ -84,7 +92,6 @@ function getLocationCache(): LocationCacheData | null {
     const parsed: LocationCacheData = JSON.parse(data);
     const age = Date.now() - parsed.timestamp;
     
-    // キャッシュが有効期限内なら使用
     if (age < LOCATION_CACHE_MAX_AGE) {
       return parsed;
     }
@@ -151,7 +158,30 @@ function setCompassStorage(granted: boolean, enabled: boolean): void {
 }
 
 // ============================================================================
-// カスタムフック: useOptimizedGeolocation（最適化版）
+// 距離計算ユーティリティ
+// ============================================================================
+
+function calculateDistanceMeters(
+  lat1: number,
+  lng1: number,
+  lat2: number,
+  lng2: number
+): number {
+  const R = 6371000; // 地球の半径（メートル）
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLng / 2) *
+      Math.sin(dLng / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+// ============================================================================
+// カスタムフック: useOptimizedGeolocation（最適化版・閾値ベース更新）
 // ============================================================================
 
 function useOptimizedGeolocation(enabled: boolean = true) {
@@ -160,11 +190,12 @@ function useOptimizedGeolocation(enabled: boolean = true) {
   const [isTracking, setIsTracking] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
 
-  const smoothedLocationRef = useRef<{ lat: number; lng: number } | null>(null);
-  const watchIdRef = useRef<number | null>(null);
-  const retryCountRef = useRef(0);
-  const MAX_RETRIES = 2;
+  const lastUpdateRef = useRef<{ lat: number; lng: number; time: number } | null>(null);
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const isVisibleRef = useRef(true);
+
   const SMOOTHING_FACTOR = 0.3;
+  const smoothedLocationRef = useRef<{ lat: number; lng: number } | null>(null);
 
   const smoothPosition = useCallback(
     (lat: number, lng: number): { lat: number; lng: number } => {
@@ -186,11 +217,72 @@ function useOptimizedGeolocation(enabled: boolean = true) {
     []
   );
 
+  // 位置更新が必要かどうかを判定
+  const shouldUpdateLocation = useCallback(
+    (newLat: number, newLng: number): boolean => {
+      if (!lastUpdateRef.current) return true;
+
+      const timeSinceLastUpdate = Date.now() - lastUpdateRef.current.time;
+      if (timeSinceLastUpdate < LOCATION_UPDATE_INTERVAL_MS) {
+        // 時間閾値未満でも、距離閾値を超えていれば更新
+        const distance = calculateDistanceMeters(
+          lastUpdateRef.current.lat,
+          lastUpdateRef.current.lng,
+          newLat,
+          newLng
+        );
+        return distance >= LOCATION_UPDATE_THRESHOLD_METERS;
+      }
+
+      return true; // 時間閾値を超えていれば更新
+    },
+    []
+  );
+
+  // 位置取得成功時のハンドラー
+  const handlePositionSuccess = useCallback(
+    (position: GeolocationPosition) => {
+      const { latitude, longitude, accuracy, heading } = position.coords;
+
+      // 閾値チェック
+      if (!shouldUpdateLocation(latitude, longitude)) {
+        return;
+      }
+
+      const smoothed = smoothPosition(latitude, longitude);
+
+      // キャッシュと参照を更新
+      setLocationCache({
+        lat: smoothed.lat,
+        lng: smoothed.lng,
+        accuracy,
+        timestamp: position.timestamp,
+        isDefault: false,
+      });
+
+      lastUpdateRef.current = {
+        lat: smoothed.lat,
+        lng: smoothed.lng,
+        time: Date.now(),
+      };
+
+      setLocation({
+        latitude: smoothed.lat,
+        longitude: smoothed.lng,
+        accuracy,
+        heading,
+        timestamp: position.timestamp,
+        isDefault: false,
+      });
+      setError(null);
+    },
+    [shouldUpdateLocation, smoothPosition]
+  );
+
   // 初期位置の即座取得（キャッシュ優先）
   useEffect(() => {
     if (!enabled) return;
 
-    // 1. キャッシュから即座に位置を設定
     const cached = getLocationCache();
     if (cached) {
       setLocation({
@@ -202,9 +294,9 @@ function useOptimizedGeolocation(enabled: boolean = true) {
         isDefault: cached.isDefault,
       });
       smoothedLocationRef.current = { lat: cached.lat, lng: cached.lng };
+      lastUpdateRef.current = { lat: cached.lat, lng: cached.lng, time: cached.timestamp };
       setIsInitialized(true);
     } else {
-      // キャッシュがない場合はデフォルト位置を即座に設定
       setLocation({
         latitude: DEFAULT_LOCATION.lat,
         longitude: DEFAULT_LOCATION.lng,
@@ -217,7 +309,19 @@ function useOptimizedGeolocation(enabled: boolean = true) {
     }
   }, [enabled]);
 
-  // バックグラウンドで実際の位置を取得
+  // Visibility APIでバックグラウンド時の取得を停止
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      isVisibleRef.current = document.visibilityState === 'visible';
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
+
+  // ポーリングベースの位置取得（watchPositionの代替）
   useEffect(() => {
     if (!enabled || !navigator.geolocation) {
       return;
@@ -225,104 +329,47 @@ function useOptimizedGeolocation(enabled: boolean = true) {
 
     let isMounted = true;
 
-    const handleSuccess = (position: GeolocationPosition) => {
-      if (!isMounted) return;
+    const fetchPosition = () => {
+      // バックグラウンド時はスキップ
+      if (!isVisibleRef.current || !isMounted) return;
 
-      const { latitude, longitude, accuracy, heading } = position.coords;
-      const smoothed = smoothPosition(latitude, longitude);
-
-      // キャッシュを更新
-      setLocationCache({
-        lat: smoothed.lat,
-        lng: smoothed.lng,
-        accuracy,
-        timestamp: position.timestamp,
-        isDefault: false,
-      });
-
-      setLocation({
-        latitude: smoothed.lat,
-        longitude: smoothed.lng,
-        accuracy,
-        heading,
-        timestamp: position.timestamp,
-        isDefault: false,
-      });
-      setError(null);
-      retryCountRef.current = 0;
-    };
-
-    const handleError = (err: GeolocationPositionError) => {
-      if (!isMounted) return;
-
-      console.warn('Geolocation error:', err.message);
-      setError(err);
-
-      // リトライロジック
-      if (retryCountRef.current < MAX_RETRIES && err.code !== 1) {
-        retryCountRef.current++;
-        // 低精度モードでリトライ
-        navigator.geolocation.getCurrentPosition(
-          handleSuccess,
-          () => {
-            // 最終的にエラーの場合はデフォルト位置を維持
-            console.log('Using default location after retries');
-          },
-          {
-            enableHighAccuracy: false,
-            timeout: 3000,
-            maximumAge: 600000, // 10分のキャッシュを許容
-          }
-        );
-      }
-    };
-
-    // 初回取得（低精度・高速モード）
-    const getInitialPosition = () => {
       navigator.geolocation.getCurrentPosition(
-        handleSuccess,
-        handleError,
+        (position) => {
+          if (isMounted) {
+            handlePositionSuccess(position);
+          }
+        },
+        (err) => {
+          if (isMounted) {
+            console.warn('Geolocation error:', err.message);
+            setError(err);
+          }
+        },
         {
           enableHighAccuracy: false,
           timeout: 5000,
-          maximumAge: 300000, // 5分のキャッシュを許容
+          maximumAge: 60000, // 1分のキャッシュを許容
         }
       );
     };
 
-    // 非同期で初回取得
-    const initialTimer = setTimeout(getInitialPosition, 100);
+    // 初回取得
+    const initialTimer = setTimeout(fetchPosition, 100);
 
-    // watchPositionは少し遅延させて開始（初回取得後）
-    const watchTimer = setTimeout(() => {
-      if (!isMounted) return;
-
-      setIsTracking(true);
-      watchIdRef.current = navigator.geolocation.watchPosition(
-        handleSuccess,
-        (err) => {
-          // watchPositionのエラーはログのみ（UIには影響させない）
-          console.warn('Watch position error:', err.message);
-        },
-        {
-          enableHighAccuracy: false, // 低精度モードで安定性優先
-          timeout: 10000,
-          maximumAge: 30000, // 30秒のキャッシュを許容
-        }
-      );
-    }, 2000);
+    // ポーリング開始（30秒間隔）
+    setIsTracking(true);
+    pollingIntervalRef.current = setInterval(fetchPosition, LOCATION_UPDATE_INTERVAL_MS);
 
     return () => {
       isMounted = false;
       clearTimeout(initialTimer);
-      clearTimeout(watchTimer);
-      if (watchIdRef.current !== null) {
-        navigator.geolocation.clearWatch(watchIdRef.current);
-        watchIdRef.current = null;
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
       }
       setIsTracking(false);
     };
-  }, [enabled, smoothPosition]);
+  }, [enabled, handlePositionSuccess]);
 
   return { location, error, isTracking, isInitialized };
 }
@@ -560,7 +607,6 @@ function MapLoadingScreen() {
       style={{ background: colors.background }}
     >
       <div className="text-center">
-        {/* ゴールドアクセントのスピナー */}
         <div className="relative w-14 h-14 mx-auto mb-5">
           <div 
             className="absolute inset-0 rounded-full"
@@ -573,7 +619,6 @@ function MapLoadingScreen() {
               borderTopColor: colors.accent,
             }}
           />
-          {/* 中央のドット */}
           <div 
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full"
             style={{ background: colors.accent }}
@@ -663,32 +708,45 @@ function DirectionPermissionDialog({
 }
 
 // ============================================================================
-// マップスタイル（LP統一ダークブラウンテーマ）
+// マップスタイル（明度を1トーン上げた調整版）
 // ============================================================================
 
 const luxuryMapStyles: google.maps.MapTypeStyle[] = [
-  { elementType: 'geometry', stylers: [{ color: '#2B1F1A' }] },
+  // 全体の背景を明るめに調整
+  { elementType: 'geometry', stylers: [{ color: '#3D2E26' }] },
   { elementType: 'labels.icon', stylers: [{ visibility: 'off' }] },
-  { elementType: 'labels.text.fill', stylers: [{ color: '#A89078' }] },
-  { elementType: 'labels.text.stroke', stylers: [{ color: '#1C1C1C' }] },
-  { featureType: 'administrative', elementType: 'geometry', stylers: [{ color: '#8A6A2F' }] },
-  { featureType: 'administrative.country', elementType: 'labels.text.fill', stylers: [{ color: '#C89B3C' }] },
-  { featureType: 'administrative.locality', elementType: 'labels.text.fill', stylers: [{ color: '#F2EBDD' }] },
+  { elementType: 'labels.text.fill', stylers: [{ color: '#C4A88C' }] },
+  { elementType: 'labels.text.stroke', stylers: [{ color: '#2B1F1A' }] },
+  
+  // 行政区域
+  { featureType: 'administrative', elementType: 'geometry', stylers: [{ color: '#A88A5C' }] },
+  { featureType: 'administrative.country', elementType: 'labels.text.fill', stylers: [{ color: '#D4B050' }] },
+  { featureType: 'administrative.locality', elementType: 'labels.text.fill', stylers: [{ color: '#F5EFE3' }] },
+  
+  // POI（非表示のまま）
   { featureType: 'poi', stylers: [{ visibility: 'off' }] },
-  { featureType: 'poi.park', elementType: 'geometry', stylers: [{ color: '#2D3A2A' }, { visibility: 'simplified' }] },
+  { featureType: 'poi.park', elementType: 'geometry', stylers: [{ color: '#3E4A3A' }, { visibility: 'simplified' }] },
   { featureType: 'poi.park', elementType: 'labels', stylers: [{ visibility: 'off' }] },
-  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#3D2E26' }] },
-  { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#2B1F1A' }] },
-  { featureType: 'road', elementType: 'labels.text.fill', stylers: [{ color: '#A89078' }] },
-  { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#5C4A3A' }] },
-  { featureType: 'road.highway', elementType: 'labels.text.fill', stylers: [{ color: '#C89B3C' }] },
-  { featureType: 'road.arterial', elementType: 'geometry', stylers: [{ color: '#4A3828' }] },
-  { featureType: 'transit', elementType: 'geometry', stylers: [{ color: '#3D2E26' }] },
+  
+  // 道路（明度アップ）
+  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#4E3E34' }] },
+  { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#3D2E26' }] },
+  { featureType: 'road', elementType: 'labels.text.fill', stylers: [{ color: '#C4A88C' }] },
+  { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#6E5A48' }] },
+  { featureType: 'road.highway', elementType: 'labels.text.fill', stylers: [{ color: '#D4B050' }] },
+  { featureType: 'road.arterial', elementType: 'geometry', stylers: [{ color: '#5C4838' }] },
+  
+  // 公共交通
+  { featureType: 'transit', elementType: 'geometry', stylers: [{ color: '#4E3E34' }] },
   { featureType: 'transit', elementType: 'labels', stylers: [{ visibility: 'off' }] },
-  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#1A2A3A' }] },
-  { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#6B8CAE' }] },
-  { featureType: 'landscape.man_made', elementType: 'geometry', stylers: [{ color: '#2B1F1A' }] },
-  { featureType: 'landscape.natural', elementType: 'geometry', stylers: [{ color: '#2B1F1A' }] },
+  
+  // 水域（明度アップ）
+  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#2A3A4A' }] },
+  { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#8AA4BE' }] },
+  
+  // 風景
+  { featureType: 'landscape.man_made', elementType: 'geometry', stylers: [{ color: '#3D2E26' }] },
+  { featureType: 'landscape.natural', elementType: 'geometry', stylers: [{ color: '#3D2E26' }] },
 ];
 
 // ============================================================================
@@ -720,6 +778,7 @@ export function MapView({
   onStoreClick,
   enableLocationTracking = true,
   enableCompass = true,
+  onBoundsChange,
 }: MapViewProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
@@ -734,6 +793,9 @@ export function MapView({
   const [mapReady, setMapReady] = useState(false);
   const [showDirectionDialog, setShowDirectionDialog] = useState(false);
   const [compassEnabled, setCompassEnabled] = useState(false);
+
+  // Debounce用のタイマー参照
+  const boundsChangeTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const { location: geoLocation, isInitialized } = useOptimizedGeolocation(enableLocationTracking);
   const { orientation, needsPermission, requestPermission, setPermissionGranted } =
@@ -832,12 +894,33 @@ export function MapView({
       mapInstanceRef.current = map;
       setLoading(false);
 
+      // Debounced bounds change listener
+      map.addListener('idle', () => {
+        if (boundsChangeTimerRef.current) {
+          clearTimeout(boundsChangeTimerRef.current);
+        }
+
+        boundsChangeTimerRef.current = setTimeout(() => {
+          const bounds = map.getBounds();
+          const zoom = map.getZoom();
+          if (bounds && zoom && onBoundsChange) {
+            onBoundsChange(bounds, zoom);
+          }
+        }, 600); // 600ms debounce
+      });
+
       google.maps.event.addListenerOnce(map, 'idle', () => {
         setMapReady(true);
       });
     };
 
     initMap();
+
+    return () => {
+      if (boundsChangeTimerRef.current) {
+        clearTimeout(boundsChangeTimerRef.current);
+      }
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -870,15 +953,14 @@ export function MapView({
     setShowDirectionDialog(false);
   }, []);
 
-  // マップ中心の更新（初回のみ、または明示的なcenter変更時）
+  // マップ中心の更新（初回のみ）
   useEffect(() => {
     if (mapInstanceRef.current && currentPosition && mapReady && isInitialized) {
-      // 初回のみパン（位置が更新されるたびにパンしない）
       if (!geoLocation?.isDefault) {
         mapInstanceRef.current.panTo(currentPosition);
       }
     }
-  }, [isInitialized, mapReady]); // currentPositionは依存から除外
+  }, [isInitialized, mapReady]);
 
   // 店舗マーカーの更新
   useEffect(() => {
@@ -1020,13 +1102,8 @@ export function MapView({
     }
   }, []);
 
-  // 現在地に戻るハンドラー
-  const handleCenterToUser = useCallback(() => {
-    if (mapInstanceRef.current && currentPosition) {
-      mapInstanceRef.current.panTo(currentPosition);
-      mapInstanceRef.current.setZoom(16);
-    }
-  }, [currentPosition]);
+  // 【削除】現在地に戻るハンドラー - UI要件により削除
+  // const handleCenterToUser は不要
 
   return (
     <div className="relative w-full h-full">
@@ -1043,26 +1120,9 @@ export function MapView({
         )}
       </AnimatePresence>
 
-      {/* コントロールボタン（LP統一デザイン） */}
+      {/* コントロールボタン（現在地ボタン削除版） */}
       <div className="absolute bottom-32 right-4 z-10 flex flex-col gap-2">
-        {/* 現在地ボタン */}
-        <motion.button
-          whileTap={{ scale: 0.95 }}
-          onClick={handleCenterToUser}
-          className="w-11 h-11 rounded-full flex items-center justify-center"
-          style={{
-            background: colors.surface,
-            border: `1px solid ${colors.accentDark}60`,
-            boxShadow: `0 2px 10px rgba(0,0,0,0.3)`,
-          }}
-          aria-label="現在地に戻る"
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="12" r="3" fill={colors.accent} />
-            <circle cx="12" cy="12" r="8" stroke={colors.accent} strokeWidth="1.5" fill="none" />
-            <path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke={colors.accent} strokeWidth="1.5" strokeLinecap="round" />
-          </svg>
-        </motion.button>
+        {/* 【削除】現在地ボタン - UI要件により削除 */}
 
         {/* コンパスON/OFFボタン */}
         <motion.button

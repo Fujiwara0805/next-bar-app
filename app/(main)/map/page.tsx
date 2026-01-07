@@ -3,8 +3,9 @@
  * ファイルパス: app/(main)/map/page.tsx
  * 
  * 機能: マップページ
- *       【最適化】位置情報取得の高パフォーマンス化
+ *       【最適化】位置情報・データ取得の高パフォーマンス化
  *       【デザイン】LP統一カラーパレット適用
+ *       【UI変更】アイコン名称「一覧」、現在地ボタン削除
  * ============================================
  */
 
@@ -43,6 +44,8 @@ const colors = {
 
 const LOCATION_CACHE_KEY = 'nikenme_user_location';
 const LOCATION_CACHE_MAX_AGE = 5 * 60 * 1000; // 5分
+const STORES_CACHE_KEY = 'nikenme_stores_cache';
+const STORES_CACHE_MAX_AGE = 60 * 1000; // 1分
 
 const DEFAULT_LOCATION = {
   lat: 33.2382,
@@ -99,7 +102,55 @@ function setLocationCache(lat: number, lng: number, accuracy?: number, isDefault
 }
 
 // ============================================================================
-// 最適化された位置情報取得フック（無限ループ修正版）
+// 店舗データキャッシュヘルパー（新規追加）
+// ============================================================================
+
+interface StoresCacheData {
+  stores: Store[];
+  timestamp: number;
+  boundsKey?: string;
+}
+
+function getStoresCache(boundsKey?: string): StoresCacheData | null {
+  if (typeof window === 'undefined') return null;
+  
+  try {
+    const data = localStorage.getItem(STORES_CACHE_KEY);
+    if (!data) return null;
+    
+    const parsed: StoresCacheData = JSON.parse(data);
+    const age = Date.now() - parsed.timestamp;
+    
+    // キャッシュが有効期限内で、同じ範囲ならば使用
+    if (age < STORES_CACHE_MAX_AGE) {
+      if (!boundsKey || parsed.boundsKey === boundsKey) {
+        return parsed;
+      }
+    }
+    
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function setStoresCache(stores: Store[], boundsKey?: string): void {
+  if (typeof window === 'undefined') return;
+  
+  try {
+    const data: StoresCacheData = {
+      stores,
+      timestamp: Date.now(),
+      boundsKey,
+    };
+    localStorage.setItem(STORES_CACHE_KEY, JSON.stringify(data));
+  } catch {
+    // ignore
+  }
+}
+
+// ============================================================================
+// 最適化された位置情報取得フック
 // ============================================================================
 
 function useOptimizedLocation() {
@@ -108,7 +159,6 @@ function useOptimizedLocation() {
   const isInitializedRef = useRef(false);
   const isUpdatingRef = useRef(false);
 
-  // バックグラウンドで位置を更新する関数（依存なし）
   const updateLocationInBackground = useCallback(() => {
     if (isUpdatingRef.current) return;
     if (!navigator.geolocation) {
@@ -120,12 +170,10 @@ function useOptimizedLocation() {
 
     let resolved = false;
 
-    // 3秒で強制タイムアウト
     const timeoutId = setTimeout(() => {
       if (!resolved) {
         resolved = true;
         isUpdatingRef.current = false;
-        console.log('Location background update timeout');
       }
     }, 3000);
 
@@ -151,8 +199,6 @@ function useOptimizedLocation() {
           clearTimeout(timeoutId);
           isUpdatingRef.current = false;
           console.warn('Background location error:', error.message);
-          
-          // エラー時はデフォルト位置をキャッシュ（現在の位置がなければ）
           setLocationCache(DEFAULT_LOCATION.lat, DEFAULT_LOCATION.lng, undefined, true);
         }
       },
@@ -164,35 +210,61 @@ function useOptimizedLocation() {
     );
   }, []);
 
-  // 初回マウント時のみ実行
   useEffect(() => {
     if (isInitializedRef.current) return;
     isInitializedRef.current = true;
 
-    // 1. キャッシュから即座に位置を設定
     const cached = getLocationCache();
     if (cached && !cached.isDefault) {
       setLocation({ lat: cached.lat, lng: cached.lng });
       setIsLoading(false);
-      // バックグラウンドで更新を試みる
       updateLocationInBackground();
       return;
     }
 
-    // 2. キャッシュがない場合はデフォルト位置を即座に設定
     setLocation(DEFAULT_LOCATION);
     setIsLoading(false);
-
-    // 3. バックグラウンドで実際の位置を取得
     updateLocationInBackground();
   }, [updateLocationInBackground]);
 
-  // 強制リフレッシュ関数
   const refreshLocation = useCallback(() => {
     updateLocationInBackground();
   }, [updateLocationInBackground]);
 
   return { location, isLoading, refreshLocation };
+}
+
+// ============================================================================
+// Debounce ユーティリティ
+// ============================================================================
+
+function useDebouncedCallback<T extends (...args: Parameters<T>) => void>(
+  callback: T,
+  delay: number
+): T {
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const debouncedCallback = useCallback(
+    (...args: Parameters<T>) => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      timeoutRef.current = setTimeout(() => {
+        callback(...args);
+      }, delay);
+    },
+    [callback, delay]
+  ) as T;
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
+
+  return debouncedCallback;
 }
 
 // ============================================================================
@@ -202,17 +274,23 @@ function useOptimizedLocation() {
 function MapPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [stores, setStores] = useState<Store[]>([]);
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  // 最適化された位置情報フック
+  // 現在のViewport bounds
+  const [currentBounds, setCurrentBounds] = useState<{
+    ne: { lat: number; lng: number };
+    sw: { lat: number; lng: number };
+    zoom: number;
+  } | null>(null);
+
   const { location: userLocation, refreshLocation } = useOptimizedLocation();
 
-  // 初回ロード完了フラグ（is_open更新の重複防止）
   const isOpenUpdatedRef = useRef(false);
+  const lastFetchBoundsRef = useRef<string | null>(null);
 
   // 初回マウント時のみis_open更新APIを呼び出す
   useEffect(() => {
@@ -230,7 +308,7 @@ function MapPageContent() {
         console.log('is_open update result:', result);
 
         if (result.updated > 0) {
-          fetchStoresOnly();
+          fetchStoresWithCache();
         }
       } catch (err) {
         console.warn('Failed to update is_open:', err);
@@ -240,7 +318,64 @@ function MapPageContent() {
     updateIsOpenOnce();
   }, []);
 
-  // LPからの遷移時に自動でデータ取得を行う
+  // キャッシュ付き店舗データ取得
+  const fetchStoresWithCache = useCallback(async (forceRefresh: boolean = false, boundsKey?: string) => {
+    // キャッシュチェック（強制リフレッシュでなければ）
+    if (!forceRefresh) {
+      const cached = getStoresCache(boundsKey);
+      if (cached) {
+        setStores(cached.stores);
+        setLoading(false);
+        return;
+      }
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('stores')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      
+      const storesData = data || [];
+      setStores(storesData);
+      setStoresCache(storesData, boundsKey);
+    } catch (error) {
+      console.error('Error fetching stores:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Debounced bounds change handler（600ms遅延）
+  const handleBoundsChange = useDebouncedCallback(
+    useCallback((bounds: google.maps.LatLngBounds, zoom: number) => {
+      const ne = bounds.getNorthEast();
+      const sw = bounds.getSouthWest();
+      
+      const boundsKey = `${ne.lat().toFixed(4)},${ne.lng().toFixed(4)},${sw.lat().toFixed(4)},${sw.lng().toFixed(4)},${zoom}`;
+      
+      // 前回と同じboundsなら何もしない
+      if (lastFetchBoundsRef.current === boundsKey) {
+        return;
+      }
+      
+      lastFetchBoundsRef.current = boundsKey;
+      
+      setCurrentBounds({
+        ne: { lat: ne.lat(), lng: ne.lng() },
+        sw: { lat: sw.lat(), lng: sw.lng() },
+        zoom,
+      });
+      
+      // キャッシュ付きで取得
+      fetchStoresWithCache(false, boundsKey);
+    }, [fetchStoresWithCache]),
+    600 // 600ms debounce
+  );
+
+  // LPからの遷移時・初回ロード
   useEffect(() => {
     const shouldRefresh = searchParams?.get('refresh') === 'true';
     const fromLanding = searchParams?.get('from') === 'landing';
@@ -262,7 +397,7 @@ function MapPageContent() {
         }
       }
       
-      await fetchStoresOnly();
+      await fetchStoresWithCache(fromLanding || shouldRefresh);
       
       if (shouldRefresh || fromLanding) {
         router.replace('/map', { scroll: false });
@@ -271,6 +406,7 @@ function MapPageContent() {
     
     loadData();
 
+    // Realtime subscription
     const channel = supabase
       .channel('stores-changes')
       .on(
@@ -282,7 +418,7 @@ function MapPageContent() {
         },
         (payload) => {
           console.log('Store change detected:', payload);
-          fetchStoresOnly();
+          fetchStoresWithCache(true); // 強制リフレッシュ
         }
       )
       .subscribe();
@@ -290,14 +426,18 @@ function MapPageContent() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [searchParams, router]);
+  }, [searchParams, router, fetchStoresWithCache]);
 
-  // ページ復帰時の処理
+  // Visibility change handler（バックグラウンド復帰時）
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
         refreshLocation();
-        fetchStoresOnly();
+        // キャッシュが無効なら取得
+        const cached = getStoresCache();
+        if (!cached) {
+          fetchStoresWithCache(true);
+        }
       }
     };
 
@@ -306,23 +446,7 @@ function MapPageContent() {
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [refreshLocation]);
-
-  const fetchStoresOnly = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('stores')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setStores(data || []);
-    } catch (error) {
-      console.error('Error fetching stores:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [refreshLocation, fetchStoresWithCache]);
 
   // 更新ボタン押下時
   const handleRefresh = async () => {
@@ -338,7 +462,7 @@ function MapPageContent() {
       const result = await res.json();
       console.log('Force refresh result:', result);
 
-      await fetchStoresOnly();
+      await fetchStoresWithCache(true);
     } catch (error) {
       console.error('Error refreshing:', error);
     } finally {
@@ -347,6 +471,25 @@ function MapPageContent() {
       }, 500);
     }
   };
+
+  // Viewport内の店舗のみをフィルタリング（パフォーマンス最適化）
+  const filteredStores = useCallback(() => {
+    if (!currentBounds) return stores;
+    
+    // 少し余裕を持たせたboundsでフィルタリング
+    const padding = 0.01; // 約1km程度の余裕
+    return stores.filter((store) => {
+      const lat = Number(store.latitude);
+      const lng = Number(store.longitude);
+      
+      return (
+        lat >= currentBounds.sw.lat - padding &&
+        lat <= currentBounds.ne.lat + padding &&
+        lng >= currentBounds.sw.lng - padding &&
+        lng <= currentBounds.ne.lng + padding
+      );
+    });
+  }, [stores, currentBounds]);
 
   const getVacancyLabel = (status: string) => {
     switch (status) {
@@ -401,7 +544,7 @@ function MapPageContent() {
       className="relative h-screen flex flex-col touch-manipulation"
       style={{ background: colors.background }}
     >
-      {/* ヘッダー（LP統一デザイン） */}
+      {/* ヘッダー */}
       <header className="absolute top-0 left-0 right-0 z-10 pt-4 sm:pt-6 px-3 sm:px-4 safe-top pointer-events-none">
         <motion.div
           initial={{ y: -20, opacity: 0 }}
@@ -436,7 +579,7 @@ function MapPageContent() {
                 </Button>
               </motion.div>
 
-              {/* リストボタン */}
+              {/* リストボタン - ラベルを「一覧」に変更 */}
               <motion.div
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -453,11 +596,11 @@ function MapPageContent() {
                     minWidth: '56px',
                     minHeight: '56px',
                   }}
-                  title={t('map.store_list')}
+                  title={language === 'ja' ? '一覧' : 'List'}
                 >
                   <List className="w-5 h-5" style={{ color: colors.accent }} />
                   <span className="text-[10px] font-bold" style={{ color: colors.accent }}>
-                    {t('map.store_list')}
+                    {language === 'ja' ? '一覧' : 'List'}
                   </span>
                 </Button>
               </motion.div>
@@ -497,14 +640,15 @@ function MapPageContent() {
         </motion.div>
       </header>
 
-      {/* マップ */}
+      {/* マップ（フィルタリング済み店舗を渡す） */}
       <MapView
-        stores={stores}
+        stores={filteredStores()}
         center={userLocation || undefined}
         onStoreClick={setSelectedStore}
+        onBoundsChange={handleBoundsChange}
       />
 
-      {/* 店舗詳細カード（LP統一デザイン） */}
+      {/* 店舗詳細カード */}
       <AnimatePresence>
         {selectedStore && (
           <motion.div
@@ -611,7 +755,6 @@ function MapPageContent() {
                       </p>
                     )}
 
-                    {/* Googleマップで開く */}
                     <a
                       href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedStore.name)}`}
                       target="_blank"
@@ -676,7 +819,7 @@ function MapPageContent() {
         )}
       </AnimatePresence>
 
-      {/* 凡例（LP統一デザイン） */}
+      {/* 凡例 */}
       <div 
         className="fixed bottom-24 left-4 z-20 rounded-xl shadow-lg p-3 safe-bottom pointer-events-auto"
         style={{
@@ -725,7 +868,7 @@ function MapPageContent() {
 }
 
 // ============================================================================
-// ローディングフォールバック（LP統一デザイン）
+// ローディングフォールバック
 // ============================================================================
 
 function MapPageLoading() {
