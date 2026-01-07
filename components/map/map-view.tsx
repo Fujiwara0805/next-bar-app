@@ -1,10 +1,47 @@
+/**
+ * ============================================
+ * ファイルパス: components/map/map-view.tsx
+ * 
+ * 機能: マップビューコンポーネント（スケーラブル改善版）
+ *       【最適化】共通キャッシュモジュール統合
+ *       【最適化】メモリリーク対策強化
+ *       【最適化】Ref経由の関数参照でEffect依存を最小化
+ *       【準備】マーカークラスタリング対応（コメント付き）
+ *       【デザイン】LP統一カラーパレット適用
+ * ============================================
+ */
+
 'use client';
 
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Database } from '@/lib/supabase/types';
 
+// ============================================================================
+// 共通モジュールのインポート
+// ============================================================================
+
+import { locationCache, compassCache } from '@/lib/cache';
+
 type Store = Database['public']['Tables']['stores']['Row'];
+
+// ============================================================================
+// 環境変数・デバッグ設定
+// ============================================================================
+
+const isDev = process.env.NODE_ENV === 'development';
+
+function debugLog(message: string, data?: unknown): void {
+  if (isDev) {
+    console.log(`[MapView] ${message}`, data ?? '');
+  }
+}
+
+function debugWarn(message: string, data?: unknown): void {
+  if (isDev) {
+    console.warn(`[MapView] ${message}`, data ?? '');
+  }
+}
 
 // ============================================================================
 // デザイントークン（LP画面と統一）
@@ -57,117 +94,25 @@ const DEFAULT_LOCATION = {
   lng: 131.6126,
 };
 
-const LOCATION_CACHE_KEY = 'nikenme_user_location';
-const LOCATION_CACHE_MAX_AGE = 5 * 60 * 1000; // 5分
-
-const COMPASS_STORAGE_KEY = 'nikenme_compass_permission';
-const COMPASS_EXPIRY_MS = 30 * 60 * 1000;
-
-// ============================================================================
 // 位置情報更新の閾値設定（API最適化）
-// ============================================================================
-
-const LOCATION_UPDATE_THRESHOLD_METERS = 50; // 50m以上移動したら更新
-const LOCATION_UPDATE_INTERVAL_MS = 30000;   // 最低30秒間隔で更新
-
-// ============================================================================
-// localStorage ヘルパー
-// ============================================================================
-
-interface LocationCacheData {
-  lat: number;
-  lng: number;
-  accuracy?: number;
-  timestamp: number;
-  isDefault?: boolean;
-}
-
-function getLocationCache(): LocationCacheData | null {
-  if (typeof window === 'undefined') return null;
-  
-  try {
-    const data = localStorage.getItem(LOCATION_CACHE_KEY);
-    if (!data) return null;
-    
-    const parsed: LocationCacheData = JSON.parse(data);
-    const age = Date.now() - parsed.timestamp;
-    
-    if (age < LOCATION_CACHE_MAX_AGE) {
-      return parsed;
-    }
-    
-    return null;
-  } catch {
-    return null;
-  }
-}
-
-function setLocationCache(data: LocationCacheData): void {
-  if (typeof window === 'undefined') return;
-  
-  try {
-    localStorage.setItem(LOCATION_CACHE_KEY, JSON.stringify({
-      ...data,
-      timestamp: Date.now(),
-    }));
-  } catch {
-    // ignore
-  }
-}
-
-interface CompassStorageData {
-  granted: boolean;
-  enabled: boolean;
-  timestamp: number;
-}
-
-function getCompassStorage(): CompassStorageData | null {
-  if (typeof window === 'undefined') return null;
-  
-  try {
-    const data = localStorage.getItem(COMPASS_STORAGE_KEY);
-    if (!data) return null;
-    
-    const parsed: CompassStorageData = JSON.parse(data);
-    const now = Date.now();
-    
-    if (now - parsed.timestamp > COMPASS_EXPIRY_MS) {
-      localStorage.removeItem(COMPASS_STORAGE_KEY);
-      return null;
-    }
-    
-    return parsed;
-  } catch {
-    return null;
-  }
-}
-
-function setCompassStorage(granted: boolean, enabled: boolean): void {
-  if (typeof window === 'undefined') return;
-  
-  try {
-    const data: CompassStorageData = {
-      granted,
-      enabled,
-      timestamp: Date.now(),
-    };
-    localStorage.setItem(COMPASS_STORAGE_KEY, JSON.stringify(data));
-  } catch {
-    // ignore
-  }
-}
+const LOCATION_UPDATE_THRESHOLD_METERS = 50;
+const LOCATION_UPDATE_INTERVAL_MS = 30000;
+const BOUNDS_CHANGE_DEBOUNCE_MS = 600;
 
 // ============================================================================
-// 距離計算ユーティリティ
+// ユーティリティ関数
 // ============================================================================
 
+/**
+ * 2点間の距離を計算（メートル）
+ */
 function calculateDistanceMeters(
   lat1: number,
   lng1: number,
   lat2: number,
   lng2: number
 ): number {
-  const R = 6371000; // 地球の半径（メートル）
+  const R = 6371000;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
   const dLng = ((lng2 - lng1) * Math.PI) / 180;
   const a =
@@ -181,7 +126,7 @@ function calculateDistanceMeters(
 }
 
 // ============================================================================
-// カスタムフック: useOptimizedGeolocation（最適化版・閾値ベース更新）
+// カスタムフック: useOptimizedGeolocation（メモリリーク対策強化版）
 // ============================================================================
 
 function useOptimizedGeolocation(enabled: boolean = true) {
@@ -190,13 +135,18 @@ function useOptimizedGeolocation(enabled: boolean = true) {
   const [isTracking, setIsTracking] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
 
+  // Refs（メモリリーク対策：依存配列を最小化）
+  const isMountedRef = useRef(true);
   const lastUpdateRef = useRef<{ lat: number; lng: number; time: number } | null>(null);
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const isVisibleRef = useRef(true);
-
-  const SMOOTHING_FACTOR = 0.3;
   const smoothedLocationRef = useRef<{ lat: number; lng: number } | null>(null);
 
+  const SMOOTHING_FACTOR = 0.3;
+
+  /**
+   * 位置をスムージング
+   */
   const smoothPosition = useCallback(
     (lat: number, lng: number): { lat: number; lng: number } => {
       if (!smoothedLocationRef.current) {
@@ -205,11 +155,9 @@ function useOptimizedGeolocation(enabled: boolean = true) {
       }
 
       const smoothedLat =
-        smoothedLocationRef.current.lat * (1 - SMOOTHING_FACTOR) +
-        lat * SMOOTHING_FACTOR;
+        smoothedLocationRef.current.lat * (1 - SMOOTHING_FACTOR) + lat * SMOOTHING_FACTOR;
       const smoothedLng =
-        smoothedLocationRef.current.lng * (1 - SMOOTHING_FACTOR) +
-        lng * SMOOTHING_FACTOR;
+        smoothedLocationRef.current.lng * (1 - SMOOTHING_FACTOR) + lng * SMOOTHING_FACTOR;
 
       smoothedLocationRef.current = { lat: smoothedLat, lng: smoothedLng };
       return { lat: smoothedLat, lng: smoothedLng };
@@ -217,73 +165,74 @@ function useOptimizedGeolocation(enabled: boolean = true) {
     []
   );
 
-  // 位置更新が必要かどうかを判定
-  const shouldUpdateLocation = useCallback(
-    (newLat: number, newLng: number): boolean => {
-      if (!lastUpdateRef.current) return true;
+  /**
+   * 位置更新が必要かどうかを判定
+   */
+  const shouldUpdateLocation = useCallback((newLat: number, newLng: number): boolean => {
+    if (!lastUpdateRef.current) return true;
 
-      const timeSinceLastUpdate = Date.now() - lastUpdateRef.current.time;
-      if (timeSinceLastUpdate < LOCATION_UPDATE_INTERVAL_MS) {
-        // 時間閾値未満でも、距離閾値を超えていれば更新
-        const distance = calculateDistanceMeters(
-          lastUpdateRef.current.lat,
-          lastUpdateRef.current.lng,
-          newLat,
-          newLng
-        );
-        return distance >= LOCATION_UPDATE_THRESHOLD_METERS;
-      }
+    const timeSinceLastUpdate = Date.now() - lastUpdateRef.current.time;
+    if (timeSinceLastUpdate < LOCATION_UPDATE_INTERVAL_MS) {
+      const distance = calculateDistanceMeters(
+        lastUpdateRef.current.lat,
+        lastUpdateRef.current.lng,
+        newLat,
+        newLng
+      );
+      return distance >= LOCATION_UPDATE_THRESHOLD_METERS;
+    }
 
-      return true; // 時間閾値を超えていれば更新
-    },
-    []
-  );
+    return true;
+  }, []);
 
-  // 位置取得成功時のハンドラー
-  const handlePositionSuccess = useCallback(
-    (position: GeolocationPosition) => {
-      const { latitude, longitude, accuracy, heading } = position.coords;
+  /**
+   * 位置取得成功時のハンドラー（Ref経由で最新の関数を参照）
+   */
+  const handlePositionSuccessRef = useRef<(position: GeolocationPosition) => void>();
+  
+  handlePositionSuccessRef.current = (position: GeolocationPosition) => {
+    if (!isMountedRef.current) return;
 
-      // 閾値チェック
-      if (!shouldUpdateLocation(latitude, longitude)) {
-        return;
-      }
+    const { latitude, longitude, accuracy, heading } = position.coords;
 
-      const smoothed = smoothPosition(latitude, longitude);
+    if (!shouldUpdateLocation(latitude, longitude)) {
+      return;
+    }
 
-      // キャッシュと参照を更新
-      setLocationCache({
-        lat: smoothed.lat,
-        lng: smoothed.lng,
-        accuracy,
-        timestamp: position.timestamp,
-        isDefault: false,
-      });
+    const smoothed = smoothPosition(latitude, longitude);
 
-      lastUpdateRef.current = {
-        lat: smoothed.lat,
-        lng: smoothed.lng,
-        time: Date.now(),
-      };
+    // キャッシュ更新
+    locationCache.set({
+      lat: smoothed.lat,
+      lng: smoothed.lng,
+      accuracy,
+      isDefault: false,
+    });
 
-      setLocation({
-        latitude: smoothed.lat,
-        longitude: smoothed.lng,
-        accuracy,
-        heading,
-        timestamp: position.timestamp,
-        isDefault: false,
-      });
-      setError(null);
-    },
-    [shouldUpdateLocation, smoothPosition]
-  );
+    lastUpdateRef.current = {
+      lat: smoothed.lat,
+      lng: smoothed.lng,
+      time: Date.now(),
+    };
 
-  // 初期位置の即座取得（キャッシュ優先）
+    setLocation({
+      latitude: smoothed.lat,
+      longitude: smoothed.lng,
+      accuracy,
+      heading,
+      timestamp: position.timestamp,
+      isDefault: false,
+    });
+    setError(null);
+  };
+
+  /**
+   * 初期位置の即座取得（キャッシュ優先）
+   */
   useEffect(() => {
     if (!enabled) return;
 
-    const cached = getLocationCache();
+    const cached = locationCache.get();
     if (cached) {
       setLocation({
         latitude: cached.lat,
@@ -309,7 +258,9 @@ function useOptimizedGeolocation(enabled: boolean = true) {
     }
   }, [enabled]);
 
-  // Visibility APIでバックグラウンド時の取得を停止
+  /**
+   * Visibility APIでバックグラウンド時の取得を停止
+   */
   useEffect(() => {
     const handleVisibilityChange = () => {
       isVisibleRef.current = document.visibilityState === 'visible';
@@ -321,34 +272,33 @@ function useOptimizedGeolocation(enabled: boolean = true) {
     };
   }, []);
 
-  // ポーリングベースの位置取得（watchPositionの代替）
+  /**
+   * ポーリングベースの位置取得（依存配列を最小化してメモリリーク対策）
+   */
   useEffect(() => {
     if (!enabled || !navigator.geolocation) {
       return;
     }
 
-    let isMounted = true;
+    isMountedRef.current = true;
 
     const fetchPosition = () => {
-      // バックグラウンド時はスキップ
-      if (!isVisibleRef.current || !isMounted) return;
+      if (!isVisibleRef.current || !isMountedRef.current) return;
 
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          if (isMounted) {
-            handlePositionSuccess(position);
-          }
+          handlePositionSuccessRef.current?.(position);
         },
         (err) => {
-          if (isMounted) {
-            console.warn('Geolocation error:', err.message);
+          if (isMountedRef.current) {
+            debugWarn('Geolocation error:', err.message);
             setError(err);
           }
         },
         {
           enableHighAccuracy: false,
           timeout: 5000,
-          maximumAge: 60000, // 1分のキャッシュを許容
+          maximumAge: 60000,
         }
       );
     };
@@ -356,12 +306,12 @@ function useOptimizedGeolocation(enabled: boolean = true) {
     // 初回取得
     const initialTimer = setTimeout(fetchPosition, 100);
 
-    // ポーリング開始（30秒間隔）
+    // ポーリング開始
     setIsTracking(true);
     pollingIntervalRef.current = setInterval(fetchPosition, LOCATION_UPDATE_INTERVAL_MS);
 
     return () => {
-      isMounted = false;
+      isMountedRef.current = false;
       clearTimeout(initialTimer);
       if (pollingIntervalRef.current) {
         clearInterval(pollingIntervalRef.current);
@@ -369,7 +319,7 @@ function useOptimizedGeolocation(enabled: boolean = true) {
       }
       setIsTracking(false);
     };
-  }, [enabled, handlePositionSuccess]);
+  }, [enabled]); // 依存配列を最小化
 
   return { location, error, isTracking, isInitialized };
 }
@@ -389,15 +339,12 @@ function useDeviceOrientation(enabled: boolean = true) {
   const smoothedAlphaRef = useRef<number>(0);
   const ALPHA_SMOOTHING = 0.15;
 
-  const angleDifference = useCallback(
-    (current: number, target: number): number => {
-      let diff = target - current;
-      if (diff > 180) diff -= 360;
-      if (diff < -180) diff += 360;
-      return diff;
-    },
-    []
-  );
+  const angleDifference = useCallback((current: number, target: number): number => {
+    let diff = target - current;
+    if (diff > 180) diff -= 360;
+    if (diff < -180) diff += 360;
+    return diff;
+  }, []);
 
   const smoothAlpha = useCallback(
     (newAlpha: number): number => {
@@ -413,26 +360,26 @@ function useDeviceOrientation(enabled: boolean = true) {
     [angleDifference]
   );
 
-  const handleOrientation = useCallback(
-    (event: DeviceOrientationEvent) => {
-      let alpha = 0;
+  // Ref経由でハンドラーを参照（依存配列問題を回避）
+  const handleOrientationRef = useRef<(event: DeviceOrientationEvent) => void>();
+  
+  handleOrientationRef.current = (event: DeviceOrientationEvent) => {
+    let alpha = 0;
 
-      if ('webkitCompassHeading' in event) {
-        alpha = (event as DeviceOrientationEvent & { webkitCompassHeading: number })
-          .webkitCompassHeading;
-      } else if (event.alpha !== null) {
-        alpha = (360 - event.alpha) % 360;
-      }
+    if ('webkitCompassHeading' in event) {
+      alpha = (event as DeviceOrientationEvent & { webkitCompassHeading: number })
+        .webkitCompassHeading;
+    } else if (event.alpha !== null) {
+      alpha = (360 - event.alpha) % 360;
+    }
 
-      const smoothedAlpha = smoothAlpha(alpha);
+    const smoothedAlpha = smoothAlpha(alpha);
 
-      setOrientation((prev) => ({
-        ...prev,
-        alpha: smoothedAlpha,
-      }));
-    },
-    [smoothAlpha]
-  );
+    setOrientation((prev) => ({
+      ...prev,
+      alpha: smoothedAlpha,
+    }));
+  };
 
   const requestPermission = useCallback(async (): Promise<boolean> => {
     if (
@@ -453,7 +400,7 @@ function useDeviceOrientation(enabled: boolean = true) {
           return true;
         }
       } catch (err) {
-        console.error('DeviceOrientation permission error:', err);
+        debugWarn('DeviceOrientation permission error:', err);
       }
       return false;
     }
@@ -478,6 +425,10 @@ function useDeviceOrientation(enabled: boolean = true) {
       typeof (DeviceOrientationEvent as unknown as { requestPermission?: () => Promise<string> })
         .requestPermission === 'function';
 
+    const handleOrientation = (event: DeviceOrientationEvent) => {
+      handleOrientationRef.current?.(event);
+    };
+
     if (needsRequest) {
       setNeedsPermission(true);
     } else {
@@ -488,22 +439,26 @@ function useDeviceOrientation(enabled: boolean = true) {
     return () => {
       window.removeEventListener('deviceorientation', handleOrientation, true);
     };
-  }, [enabled, handleOrientation]);
+  }, [enabled]);
 
   useEffect(() => {
     if (orientation.permissionGranted && enabled) {
+      const handleOrientation = (event: DeviceOrientationEvent) => {
+        handleOrientationRef.current?.(event);
+      };
+
       window.addEventListener('deviceorientation', handleOrientation, true);
       return () => {
         window.removeEventListener('deviceorientation', handleOrientation, true);
       };
     }
-  }, [orientation.permissionGranted, enabled, handleOrientation]);
+  }, [orientation.permissionGranted, enabled]);
 
   return { orientation, needsPermission, requestPermission, setPermissionGranted };
 }
 
 // ============================================================================
-// 現在地マーカー
+// 現在地マーカー生成
 // ============================================================================
 
 interface UserLocationMarkerProps {
@@ -594,7 +549,7 @@ function calculateSimpleBeamPoints(
 }
 
 // ============================================================================
-// ローディング画面（LP統一デザイン）
+// ローディング画面
 // ============================================================================
 
 function MapLoadingScreen() {
@@ -608,23 +563,23 @@ function MapLoadingScreen() {
     >
       <div className="text-center">
         <div className="relative w-14 h-14 mx-auto mb-5">
-          <div 
+          <div
             className="absolute inset-0 rounded-full"
             style={{ border: `2px solid ${colors.accentDark}40` }}
           />
-          <div 
+          <div
             className="absolute inset-0 rounded-full animate-spin"
-            style={{ 
+            style={{
               border: '2px solid transparent',
               borderTopColor: colors.accent,
             }}
           />
-          <div 
+          <div
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full"
             style={{ background: colors.accent }}
           />
         </div>
-        
+
         <p style={{ color: colors.textMuted }} className="text-sm font-medium">
           マップを読み込んでいます...
         </p>
@@ -634,7 +589,7 @@ function MapLoadingScreen() {
 }
 
 // ============================================================================
-// 方向表示許可ダイアログ（LP統一デザイン）
+// 方向表示許可ダイアログ
 // ============================================================================
 
 interface DirectionPermissionDialogProps {
@@ -665,18 +620,27 @@ function DirectionPermissionDialog({
         }}
       >
         <div className="flex items-center gap-3 mb-3">
-          <div 
+          <div
             className="w-10 h-10 rounded-lg flex items-center justify-center"
             style={{ background: `${colors.accent}15` }}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
               <circle cx="12" cy="12" r="9" stroke={colors.accent} strokeWidth="1.5" />
-              <path d="M12 2v2M12 20v2M2 12h2M20 12h2" stroke={colors.accent} strokeWidth="1.5" strokeLinecap="round" />
+              <path
+                d="M12 2v2M12 20v2M2 12h2M20 12h2"
+                stroke={colors.accent}
+                strokeWidth="1.5"
+                strokeLinecap="round"
+              />
             </svg>
           </div>
           <div>
-            <h4 style={{ color: colors.text }} className="font-bold text-sm">方向表示をオンにする</h4>
-            <p style={{ color: colors.textSubtle }} className="text-xs">あなたの向きをマップに表示</p>
+            <h4 style={{ color: colors.text }} className="font-bold text-sm">
+              方向表示をオンにする
+            </h4>
+            <p style={{ color: colors.textSubtle }} className="text-xs">
+              あなたの向きをマップに表示
+            </p>
           </div>
         </div>
 
@@ -684,7 +648,7 @@ function DirectionPermissionDialog({
           <button
             onClick={onDismiss}
             className="flex-1 py-2.5 rounded-lg text-sm transition-colors"
-            style={{ 
+            style={{
               background: `${colors.text}08`,
               color: colors.textMuted,
             }}
@@ -694,7 +658,7 @@ function DirectionPermissionDialog({
           <button
             onClick={onRequestPermission}
             className="flex-1 py-2.5 rounded-lg text-sm font-bold transition-colors"
-            style={{ 
+            style={{
               background: `linear-gradient(135deg, ${colors.accent}, ${colors.accentDark})`,
               color: colors.background,
             }}
@@ -712,39 +676,38 @@ function DirectionPermissionDialog({
 // ============================================================================
 
 const luxuryMapStyles: google.maps.MapTypeStyle[] = [
-  // 全体の背景を明るめに調整
   { elementType: 'geometry', stylers: [{ color: '#3D2E26' }] },
   { elementType: 'labels.icon', stylers: [{ visibility: 'off' }] },
   { elementType: 'labels.text.fill', stylers: [{ color: '#C4A88C' }] },
   { elementType: 'labels.text.stroke', stylers: [{ color: '#2B1F1A' }] },
-  
-  // 行政区域
   { featureType: 'administrative', elementType: 'geometry', stylers: [{ color: '#A88A5C' }] },
-  { featureType: 'administrative.country', elementType: 'labels.text.fill', stylers: [{ color: '#D4B050' }] },
-  { featureType: 'administrative.locality', elementType: 'labels.text.fill', stylers: [{ color: '#F5EFE3' }] },
-  
-  // POI（非表示のまま）
+  {
+    featureType: 'administrative.country',
+    elementType: 'labels.text.fill',
+    stylers: [{ color: '#D4B050' }],
+  },
+  {
+    featureType: 'administrative.locality',
+    elementType: 'labels.text.fill',
+    stylers: [{ color: '#F5EFE3' }],
+  },
   { featureType: 'poi', stylers: [{ visibility: 'off' }] },
-  { featureType: 'poi.park', elementType: 'geometry', stylers: [{ color: '#3E4A3A' }, { visibility: 'simplified' }] },
+  {
+    featureType: 'poi.park',
+    elementType: 'geometry',
+    stylers: [{ color: '#3E4A3A' }, { visibility: 'simplified' }],
+  },
   { featureType: 'poi.park', elementType: 'labels', stylers: [{ visibility: 'off' }] },
-  
-  // 道路（明度アップ）
   { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#4E3E34' }] },
   { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#3D2E26' }] },
   { featureType: 'road', elementType: 'labels.text.fill', stylers: [{ color: '#C4A88C' }] },
   { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#6E5A48' }] },
   { featureType: 'road.highway', elementType: 'labels.text.fill', stylers: [{ color: '#D4B050' }] },
   { featureType: 'road.arterial', elementType: 'geometry', stylers: [{ color: '#5C4838' }] },
-  
-  // 公共交通
   { featureType: 'transit', elementType: 'geometry', stylers: [{ color: '#4E3E34' }] },
   { featureType: 'transit', elementType: 'labels', stylers: [{ visibility: 'off' }] },
-  
-  // 水域（明度アップ）
   { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#2A3A4A' }] },
   { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#8AA4BE' }] },
-  
-  // 風景
   { featureType: 'landscape.man_made', elementType: 'geometry', stylers: [{ color: '#3D2E26' }] },
   { featureType: 'landscape.natural', elementType: 'geometry', stylers: [{ color: '#3D2E26' }] },
 ];
@@ -780,27 +743,29 @@ export function MapView({
   enableCompass = true,
   onBoundsChange,
 }: MapViewProps) {
+  // Refs
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
   const markersRef = useRef<google.maps.Marker[]>([]);
   const touchAreasRef = useRef<google.maps.Circle[]>([]);
-
   const userMarkerRef = useRef<google.maps.Marker | null>(null);
   const userBeamRef = useRef<google.maps.Polygon | null>(null);
   const accuracyCircleRef = useRef<google.maps.Circle | null>(null);
+  const boundsChangeTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const isMountedRef = useRef(true);
 
+  // State
   const [loading, setLoading] = useState(true);
   const [mapReady, setMapReady] = useState(false);
   const [showDirectionDialog, setShowDirectionDialog] = useState(false);
   const [compassEnabled, setCompassEnabled] = useState(false);
 
-  // Debounce用のタイマー参照
-  const boundsChangeTimerRef = useRef<NodeJS.Timeout | null>(null);
-
+  // Hooks
   const { location: geoLocation, isInitialized } = useOptimizedGeolocation(enableLocationTracking);
   const { orientation, needsPermission, requestPermission, setPermissionGranted } =
     useDeviceOrientation(enableCompass);
 
+  // 現在位置（メモ化）
   const currentPosition = useMemo(() => {
     if (center) return center;
     if (geoLocation) {
@@ -811,7 +776,7 @@ export function MapView({
 
   // 初期化時にlocalStorageから状態を復元
   useEffect(() => {
-    const stored = getCompassStorage();
+    const stored = compassCache.get();
     if (stored) {
       setCompassEnabled(stored.enabled);
       if (stored.granted) {
@@ -822,11 +787,13 @@ export function MapView({
 
   // Google Maps初期化
   useEffect(() => {
+    isMountedRef.current = true;
+
     const initMap = async () => {
       try {
         const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
         if (!apiKey) {
-          console.error('Google Maps API key not found');
+          debugWarn('Google Maps API key not found');
           setLoading(false);
           return;
         }
@@ -838,14 +805,12 @@ export function MapView({
           return;
         }
 
-        const existingScript = document.querySelector(
-          'script[src*="maps.googleapis.com"]'
-        );
+        const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
         if (existingScript) {
           const checkGoogle = setInterval(() => {
             if (window.google?.maps) {
               clearInterval(checkGoogle);
-              if (!mapInstanceRef.current) {
+              if (!mapInstanceRef.current && isMountedRef.current) {
                 createMap();
               }
             }
@@ -859,21 +824,25 @@ export function MapView({
         script.defer = true;
         script.id = 'google-maps-script';
 
-        script.onload = () => createMap();
+        script.onload = () => {
+          if (isMountedRef.current) {
+            createMap();
+          }
+        };
         script.onerror = () => {
-          console.error('Error loading Google Maps');
+          debugWarn('Error loading Google Maps');
           setLoading(false);
         };
 
         document.head.appendChild(script);
       } catch (error) {
-        console.error('Error loading Google Maps:', error);
+        debugWarn('Error loading Google Maps:', error);
         setLoading(false);
       }
     };
 
     const createMap = () => {
-      if (!mapRef.current || mapInstanceRef.current) return;
+      if (!mapRef.current || mapInstanceRef.current || !isMountedRef.current) return;
 
       const map = new google.maps.Map(mapRef.current, {
         center: currentPosition,
@@ -901,22 +870,27 @@ export function MapView({
         }
 
         boundsChangeTimerRef.current = setTimeout(() => {
+          if (!isMountedRef.current) return;
+          
           const bounds = map.getBounds();
           const zoom = map.getZoom();
           if (bounds && zoom && onBoundsChange) {
             onBoundsChange(bounds, zoom);
           }
-        }, 600); // 600ms debounce
+        }, BOUNDS_CHANGE_DEBOUNCE_MS);
       });
 
       google.maps.event.addListenerOnce(map, 'idle', () => {
-        setMapReady(true);
+        if (isMountedRef.current) {
+          setMapReady(true);
+        }
       });
     };
 
     initMap();
 
     return () => {
+      isMountedRef.current = false;
       if (boundsChangeTimerRef.current) {
         clearTimeout(boundsChangeTimerRef.current);
       }
@@ -928,13 +902,13 @@ export function MapView({
   const handleCompassToggle = useCallback(async () => {
     if (compassEnabled) {
       setCompassEnabled(false);
-      setCompassStorage(orientation.permissionGranted, false);
+      compassCache.set(orientation.permissionGranted, false);
     } else {
       if (needsPermission && !orientation.permissionGranted) {
         setShowDirectionDialog(true);
       } else {
         setCompassEnabled(true);
-        setCompassStorage(true, true);
+        compassCache.set(true, true);
       }
     }
   }, [compassEnabled, needsPermission, orientation.permissionGranted]);
@@ -942,10 +916,10 @@ export function MapView({
   const handleRequestPermission = useCallback(async () => {
     const granted = await requestPermission();
     setShowDirectionDialog(false);
-    
+
     if (granted) {
       setCompassEnabled(true);
-      setCompassStorage(true, true);
+      compassCache.set(true, true);
     }
   }, [requestPermission]);
 
@@ -960,33 +934,37 @@ export function MapView({
         mapInstanceRef.current.panTo(currentPosition);
       }
     }
-  }, [isInitialized, mapReady]);
+  }, [isInitialized, mapReady, currentPosition, geoLocation?.isDefault]);
 
   // 店舗マーカーの更新
   useEffect(() => {
     if (!mapInstanceRef.current || !mapReady) return;
 
+    // 既存マーカーをクリア
     markersRef.current.forEach((marker) => marker.setMap(null));
     markersRef.current = [];
     touchAreasRef.current.forEach((circle) => circle.setMap(null));
     touchAreasRef.current = [];
+
+    // 【将来の拡張】店舗数が100件以上の場合はクラスタリングを検討
+    // if (stores.length > 100) {
+    //   // MarkerClustererを使用
+    //   // npm install @googlemaps/markerclusterer
+    // }
 
     stores.forEach((store) => {
       const positionKey = `${store.latitude},${store.longitude}`;
       const samePositionStores = stores.filter(
         (s) => `${s.latitude},${s.longitude}` === positionKey
       );
-      const indexAtPosition = samePositionStores.findIndex(
-        (s) => s.id === store.id
-      );
+      const indexAtPosition = samePositionStores.findIndex((s) => s.id === store.id);
 
       let latOffset = 0;
       let lngOffset = 0;
 
       if (samePositionStores.length > 1) {
         const offsetDistance = 0.00008;
-        const angle =
-          (indexAtPosition * (360 / samePositionStores.length) * Math.PI) / 180;
+        const angle = (indexAtPosition * (360 / samePositionStores.length) * Math.PI) / 180;
         latOffset = Math.cos(angle) * offsetDistance;
         lngOffset = Math.sin(angle) * offsetDistance;
       }
@@ -1050,6 +1028,7 @@ export function MapView({
     const accuracy = geoLocation?.accuracy || 30;
     const showBeam = compassEnabled && orientation.permissionGranted;
 
+    // 既存マーカーをクリア
     if (userMarkerRef.current) userMarkerRef.current.setMap(null);
     if (userBeamRef.current) userBeamRef.current.setMap(null);
     if (accuracyCircleRef.current) accuracyCircleRef.current.setMap(null);
@@ -1071,7 +1050,14 @@ export function MapView({
       if (userBeamRef.current) userBeamRef.current.setMap(null);
       if (accuracyCircleRef.current) accuracyCircleRef.current.setMap(null);
     };
-  }, [currentPosition, orientation.permissionGranted, geoLocation?.accuracy, mapReady, compassEnabled]);
+  }, [
+    currentPosition,
+    orientation.permissionGranted,
+    geoLocation?.accuracy,
+    mapReady,
+    compassEnabled,
+    orientation.alpha,
+  ]);
 
   // ビームのリアルタイム更新
   useEffect(() => {
@@ -1102,9 +1088,6 @@ export function MapView({
     }
   }, []);
 
-  // 【削除】現在地に戻るハンドラー - UI要件により削除
-  // const handleCenterToUser は不要
-
   return (
     <div className="relative w-full h-full">
       <div ref={mapRef} className="w-full h-full" />
@@ -1120,49 +1103,44 @@ export function MapView({
         )}
       </AnimatePresence>
 
-      {/* コントロールボタン（現在地ボタン削除版） */}
+      {/* コントロールボタン */}
       <div className="absolute bottom-32 right-4 z-10 flex flex-col gap-2">
-        {/* 【削除】現在地ボタン - UI要件により削除 */}
-
         {/* コンパスON/OFFボタン */}
         <motion.button
           whileTap={{ scale: 0.95 }}
           onClick={handleCompassToggle}
           className="w-11 h-11 rounded-full flex items-center justify-center"
           style={{
-            background: compassEnabled 
+            background: compassEnabled
               ? `linear-gradient(135deg, ${colors.accent}, ${colors.accentDark})`
               : colors.surface,
-            border: compassEnabled 
+            border: compassEnabled
               ? `1px solid ${colors.accent}`
               : `1px solid ${colors.accentDark}60`,
-            boxShadow: compassEnabled 
+            boxShadow: compassEnabled
               ? `0 0 15px ${colors.accent}40`
               : `0 2px 10px rgba(0,0,0,0.3)`,
           }}
           aria-label={compassEnabled ? '方向表示をオフ' : '方向表示をオン'}
         >
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-          >
-            <circle 
-              cx="12" cy="12" r="9" 
-              stroke={compassEnabled ? colors.background : colors.accent} 
-              strokeWidth="1.5" 
-              fill="none" 
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <circle
+              cx="12"
+              cy="12"
+              r="9"
+              stroke={compassEnabled ? colors.background : colors.accent}
+              strokeWidth="1.5"
+              fill="none"
             />
-            <path 
-              d="M12 2v2M12 20v2M2 12h2M20 12h2" 
-              stroke={compassEnabled ? colors.background : colors.accent} 
-              strokeWidth="1.5" 
-              strokeLinecap="round" 
+            <path
+              d="M12 2v2M12 20v2M2 12h2M20 12h2"
+              stroke={compassEnabled ? colors.background : colors.accent}
+              strokeWidth="1.5"
+              strokeLinecap="round"
             />
-            <path 
-              d="M16.24 7.76l-2.12 6.36-6.36 2.12 2.12-6.36 6.36-2.12z" 
-              fill={compassEnabled ? colors.background : colors.accent} 
+            <path
+              d="M16.24 7.76l-2.12 6.36-6.36 2.12 2.12-6.36 6.36-2.12z"
+              fill={compassEnabled ? colors.background : colors.accent}
             />
           </svg>
         </motion.button>

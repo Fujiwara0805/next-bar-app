@@ -2,19 +2,21 @@
  * ============================================
  * ファイルパス: app/(main)/map/page.tsx
  * 
- * 機能: マップページ
- *       【最適化】位置情報・データ取得の高パフォーマンス化
+ * 機能: マップページ（スケーラブル改善版）
+ *       【最適化】共通キャッシュモジュール統合
+ *       【最適化】useStoresフックによる差分更新
+ *       【最適化】エラーハンドリング + リトライUI
+ *       【最適化】メモリリーク対策
  *       【デザイン】LP統一カラーパレット適用
- *       【UI変更】アイコン名称「一覧」、現在地ボタン削除
  * ============================================
  */
 
 'use client';
 
-import { useEffect, useState, Suspense, useRef, useCallback } from 'react';
+import { useEffect, useState, Suspense, useRef, useCallback, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, List, ExternalLink, Building2, RefreshCw, Home, Star } from 'lucide-react';
+import { X, List, ExternalLink, Building2, RefreshCw, Home, Star, AlertCircle } from 'lucide-react';
 import { MapView } from '@/components/map/map-view';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -22,7 +24,36 @@ import { supabase } from '@/lib/supabase/client';
 import type { Database } from '@/lib/supabase/types';
 import { useLanguage } from '@/lib/i18n/context';
 
+// ============================================================================
+// 共通モジュールのインポート
+// ============================================================================
+
+import { 
+  locationCache, 
+  storesCache, 
+  cacheManager,
+  type LocationCacheData 
+} from '@/lib/cache';
+
 type Store = Database['public']['Tables']['stores']['Row'];
+
+// ============================================================================
+// 環境変数・デバッグ設定
+// ============================================================================
+
+const isDev = process.env.NODE_ENV === 'development';
+
+function debugLog(message: string, data?: unknown): void {
+  if (isDev) {
+    console.log(`[MapPage] ${message}`, data ?? '');
+  }
+}
+
+function debugWarn(message: string, data?: unknown): void {
+  if (isDev) {
+    console.warn(`[MapPage] ${message}`, data ?? '');
+  }
+}
 
 // ============================================================================
 // デザイントークン（LP統一）
@@ -36,117 +67,94 @@ const colors = {
   text: '#F2EBDD',
   textMuted: 'rgba(242, 235, 221, 0.6)',
   textSubtle: 'rgba(242, 235, 221, 0.4)',
+  error: '#EF4444',
+  errorBg: 'rgba(239, 68, 68, 0.15)',
+  errorBorder: 'rgba(239, 68, 68, 0.3)',
 };
 
 // ============================================================================
 // 定数
 // ============================================================================
 
-const LOCATION_CACHE_KEY = 'nikenme_user_location';
-const LOCATION_CACHE_MAX_AGE = 5 * 60 * 1000; // 5分
-const STORES_CACHE_KEY = 'nikenme_stores_cache';
-const STORES_CACHE_MAX_AGE = 60 * 1000; // 1分
-
 const DEFAULT_LOCATION = {
   lat: 33.2382,
   lng: 131.6126,
 };
 
+const MAX_RETRY_COUNT = 3;
+const BASE_RETRY_DELAY_MS = 1000;
+const DEBOUNCE_DELAY_MS = 600;
+
+// 必要なカラムのみ選択（パフォーマンス最適化）
+const STORE_SELECT_COLUMNS = `
+  id,
+  name,
+  latitude,
+  longitude,
+  vacancy_status,
+  status_message,
+  image_urls,
+  google_rating,
+  google_reviews_count,
+  is_open,
+  phone,
+  address,
+  website_url,
+  description,
+  business_hours,
+  created_at,
+  updated_at
+`;
+
 // ============================================================================
-// 位置情報キャッシュヘルパー
+// 型定義
 // ============================================================================
 
-interface LocationCacheData {
-  lat: number;
-  lng: number;
-  accuracy?: number;
-  timestamp: number;
-  isDefault?: boolean;
-}
-
-function getLocationCache(): LocationCacheData | null {
-  if (typeof window === 'undefined') return null;
-  
-  try {
-    const data = localStorage.getItem(LOCATION_CACHE_KEY);
-    if (!data) return null;
-    
-    const parsed: LocationCacheData = JSON.parse(data);
-    const age = Date.now() - parsed.timestamp;
-    
-    if (age < LOCATION_CACHE_MAX_AGE) {
-      return parsed;
-    }
-    
-    return null;
-  } catch {
-    return null;
-  }
-}
-
-function setLocationCache(lat: number, lng: number, accuracy?: number, isDefault?: boolean): void {
-  if (typeof window === 'undefined') return;
-  
-  try {
-    const data: LocationCacheData = {
-      lat,
-      lng,
-      accuracy,
-      timestamp: Date.now(),
-      isDefault,
-    };
-    localStorage.setItem(LOCATION_CACHE_KEY, JSON.stringify(data));
-  } catch {
-    // ignore
-  }
+interface ViewportBounds {
+  ne: { lat: number; lng: number };
+  sw: { lat: number; lng: number };
+  zoom: number;
 }
 
 // ============================================================================
-// 店舗データキャッシュヘルパー（新規追加）
+// ユーティリティ関数
 // ============================================================================
 
-interface StoresCacheData {
-  stores: Store[];
-  timestamp: number;
-  boundsKey?: string;
+/**
+ * 指数バックオフ遅延を計算
+ */
+function calculateRetryDelay(retryCount: number): number {
+  return BASE_RETRY_DELAY_MS * Math.pow(2, retryCount);
 }
 
-function getStoresCache(boundsKey?: string): StoresCacheData | null {
-  if (typeof window === 'undefined') return null;
-  
-  try {
-    const data = localStorage.getItem(STORES_CACHE_KEY);
-    if (!data) return null;
-    
-    const parsed: StoresCacheData = JSON.parse(data);
-    const age = Date.now() - parsed.timestamp;
-    
-    // キャッシュが有効期限内で、同じ範囲ならば使用
-    if (age < STORES_CACHE_MAX_AGE) {
-      if (!boundsKey || parsed.boundsKey === boundsKey) {
-        return parsed;
-      }
-    }
-    
-    return null;
-  } catch {
-    return null;
-  }
+/**
+ * Viewport内の店舗のみをフィルタリング
+ */
+function filterStoresByViewport(
+  stores: Store[],
+  bounds: ViewportBounds | null,
+  padding: number = 0.01
+): Store[] {
+  if (!bounds) return stores;
+
+  return stores.filter((store) => {
+    const lat = Number(store.latitude);
+    const lng = Number(store.longitude);
+
+    return (
+      lat >= bounds.sw.lat - padding &&
+      lat <= bounds.ne.lat + padding &&
+      lng >= bounds.sw.lng - padding &&
+      lng <= bounds.ne.lng + padding
+    );
+  });
 }
 
-function setStoresCache(stores: Store[], boundsKey?: string): void {
-  if (typeof window === 'undefined') return;
-  
-  try {
-    const data: StoresCacheData = {
-      stores,
-      timestamp: Date.now(),
-      boundsKey,
-    };
-    localStorage.setItem(STORES_CACHE_KEY, JSON.stringify(data));
-  } catch {
-    // ignore
-  }
+/**
+ * BoundsKeyを生成
+ */
+function generateBoundsKey(bounds: ViewportBounds): string {
+  return `${bounds.ne.lat.toFixed(4)},${bounds.ne.lng.toFixed(4)},${bounds.sw.lat.toFixed(4)},${bounds.sw.lng.toFixed(4)},${bounds.zoom}`;
 }
 
 // ============================================================================
@@ -158,16 +166,16 @@ function useOptimizedLocation() {
   const [isLoading, setIsLoading] = useState(true);
   const isInitializedRef = useRef(false);
   const isUpdatingRef = useRef(false);
+  const isMountedRef = useRef(true);
 
   const updateLocationInBackground = useCallback(() => {
-    if (isUpdatingRef.current) return;
+    if (isUpdatingRef.current || !isMountedRef.current) return;
     if (!navigator.geolocation) {
-      setLocationCache(DEFAULT_LOCATION.lat, DEFAULT_LOCATION.lng, undefined, true);
+      locationCache.set({ ...DEFAULT_LOCATION, isDefault: true });
       return;
     }
 
     isUpdatingRef.current = true;
-
     let resolved = false;
 
     const timeoutId = setTimeout(() => {
@@ -179,18 +187,23 @@ function useOptimizedLocation() {
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        if (!resolved) {
+        if (!resolved && isMountedRef.current) {
           resolved = true;
           clearTimeout(timeoutId);
           isUpdatingRef.current = false;
-          
+
           const newLocation = {
             lat: position.coords.latitude,
             lng: position.coords.longitude,
           };
-          
+
           setLocation(newLocation);
-          setLocationCache(newLocation.lat, newLocation.lng, position.coords.accuracy, false);
+          locationCache.set({
+            lat: newLocation.lat,
+            lng: newLocation.lng,
+            accuracy: position.coords.accuracy,
+            isDefault: false,
+          });
         }
       },
       (error) => {
@@ -198,8 +211,8 @@ function useOptimizedLocation() {
           resolved = true;
           clearTimeout(timeoutId);
           isUpdatingRef.current = false;
-          console.warn('Background location error:', error.message);
-          setLocationCache(DEFAULT_LOCATION.lat, DEFAULT_LOCATION.lng, undefined, true);
+          debugWarn('Background location error:', error.message);
+          locationCache.set({ ...DEFAULT_LOCATION, isDefault: true });
         }
       },
       {
@@ -211,10 +224,12 @@ function useOptimizedLocation() {
   }, []);
 
   useEffect(() => {
+    isMountedRef.current = true;
+
     if (isInitializedRef.current) return;
     isInitializedRef.current = true;
 
-    const cached = getLocationCache();
+    const cached = locationCache.get();
     if (cached && !cached.isDefault) {
       setLocation({ lat: cached.lat, lng: cached.lng });
       setIsLoading(false);
@@ -225,6 +240,10 @@ function useOptimizedLocation() {
     setLocation(DEFAULT_LOCATION);
     setIsLoading(false);
     updateLocationInBackground();
+
+    return () => {
+      isMountedRef.current = false;
+    };
   }, [updateLocationInBackground]);
 
   const refreshLocation = useCallback(() => {
@@ -235,7 +254,7 @@ function useOptimizedLocation() {
 }
 
 // ============================================================================
-// Debounce ユーティリティ
+// 改善版Debounceフック（メモリリーク対策済み）
 // ============================================================================
 
 function useDebouncedCallback<T extends (...args: Parameters<T>) => void>(
@@ -243,6 +262,12 @@ function useDebouncedCallback<T extends (...args: Parameters<T>) => void>(
   delay: number
 ): T {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const callbackRef = useRef(callback);
+
+  // callbackが変わってもタイマーは維持
+  useEffect(() => {
+    callbackRef.current = callback;
+  }, [callback]);
 
   const debouncedCallback = useCallback(
     (...args: Parameters<T>) => {
@@ -250,10 +275,10 @@ function useDebouncedCallback<T extends (...args: Parameters<T>) => void>(
         clearTimeout(timeoutRef.current);
       }
       timeoutRef.current = setTimeout(() => {
-        callback(...args);
+        callbackRef.current(...args);
       }, delay);
     },
-    [callback, delay]
+    [delay]
   ) as T;
 
   useEffect(() => {
@@ -268,6 +293,249 @@ function useDebouncedCallback<T extends (...args: Parameters<T>) => void>(
 }
 
 // ============================================================================
+// 改善版店舗データ取得フック（エラーハンドリング・差分更新対応）
+// ============================================================================
+
+interface UseStoresReturn {
+  stores: Store[];
+  isLoading: boolean;
+  error: Error | null;
+  retryCount: number;
+  fetchStores: (forceRefresh?: boolean, boundsKey?: string) => Promise<void>;
+  refreshStores: () => Promise<void>;
+}
+
+function useStores(): UseStoresReturn {
+  const [stores, setStores] = useState<Store[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
+
+  const isMountedRef = useRef(true);
+  const retryTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+
+  /**
+   * 店舗データを取得
+   */
+  const fetchStores = useCallback(
+    async (forceRefresh: boolean = false, boundsKey?: string): Promise<void> => {
+      // キャッシュチェック（強制リフレッシュでなければ）
+      if (!forceRefresh) {
+        const cached = storesCache.get(boundsKey);
+        if (cached) {
+          debugLog('Using cached stores', { count: cached.stores.length });
+          setStores(cached.stores);
+          setIsLoading(false);
+          setError(null);
+          return;
+        }
+      }
+
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const { data, error: fetchError } = await supabase
+          .from('stores')
+          .select(STORE_SELECT_COLUMNS)
+          .order('created_at', { ascending: false });
+
+        if (fetchError) {
+          throw new Error(fetchError.message);
+        }
+
+        if (!isMountedRef.current) return;
+
+        const storesData = (data as Store[]) || [];
+
+        debugLog('Fetched stores', { count: storesData.length });
+
+        setStores(storesData);
+        storesCache.set(storesData, boundsKey);
+        setRetryCount(0);
+        setError(null);
+      } catch (err) {
+        if (!isMountedRef.current) return;
+
+        const errorInstance = err instanceof Error ? err : new Error('Unknown error');
+        setError(errorInstance);
+
+        debugWarn('Fetch error', errorInstance.message);
+
+        // 自動リトライ（指数バックオフ）
+        if (retryCount < MAX_RETRY_COUNT) {
+          const delay = calculateRetryDelay(retryCount);
+          debugLog(`Scheduling retry ${retryCount + 1}/${MAX_RETRY_COUNT} in ${delay}ms`);
+
+          retryTimerRef.current = setTimeout(() => {
+            if (isMountedRef.current) {
+              setRetryCount((prev) => prev + 1);
+              fetchStores(forceRefresh, boundsKey);
+            }
+          }, delay);
+        }
+      } finally {
+        if (isMountedRef.current) {
+          setIsLoading(false);
+        }
+      }
+    },
+    [retryCount]
+  );
+
+  /**
+   * 強制リフレッシュ
+   */
+  const refreshStores = useCallback(async (): Promise<void> => {
+    setRetryCount(0);
+    await fetchStores(true);
+  }, [fetchStores]);
+
+  /**
+   * Realtime変更のハンドラー（差分更新）
+   */
+  const handleRealtimeChange = useCallback(
+    (payload: {
+      eventType: string;
+      new: Record<string, unknown>;
+      old: Record<string, unknown>;
+    }) => {
+      debugLog('Realtime change detected', payload.eventType);
+
+      switch (payload.eventType) {
+        case 'UPDATE': {
+          const updatedStore = payload.new as Store;
+          setStores((prev) =>
+            prev.map((store) =>
+              store.id === updatedStore.id ? { ...store, ...updatedStore } : store
+            )
+          );
+          storesCache.updateStore(updatedStore);
+          break;
+        }
+
+        case 'INSERT': {
+          const newStore = payload.new as Store;
+          setStores((prev) => [newStore, ...prev]);
+          storesCache.addStore(newStore);
+          break;
+        }
+
+        case 'DELETE': {
+          const deletedId = (payload.old as { id: string }).id;
+          setStores((prev) => prev.filter((store) => store.id !== deletedId));
+          storesCache.removeStore(deletedId);
+          break;
+        }
+
+        default:
+          // 不明なイベントの場合のみ全取得
+          debugWarn('Unknown event type, fetching all stores');
+          fetchStores(true);
+      }
+    },
+    [fetchStores]
+  );
+
+  /**
+   * マウント時の初期化とRealtime subscription
+   */
+  useEffect(() => {
+    isMountedRef.current = true;
+
+    // Realtime subscription
+    channelRef.current = supabase
+      .channel('stores-realtime-optimized')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'stores',
+        },
+        handleRealtimeChange
+      )
+      .subscribe((status) => {
+        debugLog('Realtime subscription status', status);
+      });
+
+    return () => {
+      isMountedRef.current = false;
+
+      if (retryTimerRef.current) {
+        clearTimeout(retryTimerRef.current);
+      }
+
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+    };
+  }, [handleRealtimeChange]);
+
+  return {
+    stores,
+    isLoading,
+    error,
+    retryCount,
+    fetchStores,
+    refreshStores,
+  };
+}
+
+// ============================================================================
+// エラー表示コンポーネント
+// ============================================================================
+
+interface ErrorBannerProps {
+  error: Error;
+  retryCount: number;
+  onRetry: () => void;
+}
+
+function ErrorBanner({ error, retryCount, onRetry }: ErrorBannerProps) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      className="fixed top-20 left-4 right-4 z-50"
+    >
+      <div
+        className="p-4 rounded-xl flex items-start gap-3"
+        style={{
+          background: colors.errorBg,
+          border: `1px solid ${colors.errorBorder}`,
+          backdropFilter: 'blur(12px)',
+        }}
+      >
+        <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: colors.error }} />
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium" style={{ color: colors.error }}>
+            データの取得に失敗しました
+          </p>
+          {retryCount > 0 && retryCount < MAX_RETRY_COUNT && (
+            <p className="text-xs mt-1" style={{ color: `${colors.error}99` }}>
+              リトライ中: {retryCount}/{MAX_RETRY_COUNT}
+            </p>
+          )}
+          {retryCount >= MAX_RETRY_COUNT && (
+            <button
+              onClick={onRetry}
+              className="mt-2 text-xs underline"
+              style={{ color: colors.error }}
+            >
+              再試行
+            </button>
+          )}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// ============================================================================
 // メインコンポーネント
 // ============================================================================
 
@@ -275,19 +543,13 @@ function MapPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t, language } = useLanguage();
-  const [stores, setStores] = useState<Store[]>([]);
-  const [selectedStore, setSelectedStore] = useState<Store | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
 
-  // 現在のViewport bounds
-  const [currentBounds, setCurrentBounds] = useState<{
-    ne: { lat: number; lng: number };
-    sw: { lat: number; lng: number };
-    zoom: number;
-  } | null>(null);
+  const [selectedStore, setSelectedStore] = useState<Store | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [currentBounds, setCurrentBounds] = useState<ViewportBounds | null>(null);
 
   const { location: userLocation, refreshLocation } = useOptimizedLocation();
+  const { stores, isLoading, error, retryCount, fetchStores, refreshStores } = useStores();
 
   const isOpenUpdatedRef = useRef(false);
   const lastFetchBoundsRef = useRef<string | null>(null);
@@ -305,84 +567,55 @@ function MapPageContent() {
           body: JSON.stringify({}),
         });
         const result = await res.json();
-        console.log('is_open update result:', result);
+        debugLog('is_open update result:', result);
 
         if (result.updated > 0) {
-          fetchStoresWithCache();
+          fetchStores();
         }
       } catch (err) {
-        console.warn('Failed to update is_open:', err);
+        debugWarn('Failed to update is_open:', err);
       }
     };
 
     updateIsOpenOnce();
-  }, []);
+  }, [fetchStores]);
 
-  // キャッシュ付き店舗データ取得
-  const fetchStoresWithCache = useCallback(async (forceRefresh: boolean = false, boundsKey?: string) => {
-    // キャッシュチェック（強制リフレッシュでなければ）
-    if (!forceRefresh) {
-      const cached = getStoresCache(boundsKey);
-      if (cached) {
-        setStores(cached.stores);
-        setLoading(false);
-        return;
-      }
-    }
-
-    try {
-      const { data, error } = await supabase
-        .from('stores')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      
-      const storesData = data || [];
-      setStores(storesData);
-      setStoresCache(storesData, boundsKey);
-    } catch (error) {
-      console.error('Error fetching stores:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  // Debounced bounds change handler（600ms遅延）
-  const handleBoundsChange = useDebouncedCallback(
-    useCallback((bounds: google.maps.LatLngBounds, zoom: number) => {
+  // Debounced bounds change handler
+  const handleBoundsChangeInternal = useCallback(
+    (bounds: google.maps.LatLngBounds, zoom: number) => {
       const ne = bounds.getNorthEast();
       const sw = bounds.getSouthWest();
-      
-      const boundsKey = `${ne.lat().toFixed(4)},${ne.lng().toFixed(4)},${sw.lat().toFixed(4)},${sw.lng().toFixed(4)},${zoom}`;
-      
+
+      const newBounds: ViewportBounds = {
+        ne: { lat: ne.lat(), lng: ne.lng() },
+        sw: { lat: sw.lat(), lng: sw.lng() },
+        zoom,
+      };
+
+      const boundsKey = generateBoundsKey(newBounds);
+
       // 前回と同じboundsなら何もしない
       if (lastFetchBoundsRef.current === boundsKey) {
         return;
       }
-      
+
       lastFetchBoundsRef.current = boundsKey;
-      
-      setCurrentBounds({
-        ne: { lat: ne.lat(), lng: ne.lng() },
-        sw: { lat: sw.lat(), lng: sw.lng() },
-        zoom,
-      });
-      
+      setCurrentBounds(newBounds);
+
       // キャッシュ付きで取得
-      fetchStoresWithCache(false, boundsKey);
-    }, [fetchStoresWithCache]),
-    600 // 600ms debounce
+      fetchStores(false, boundsKey);
+    },
+    [fetchStores]
   );
+
+  const handleBoundsChange = useDebouncedCallback(handleBoundsChangeInternal, DEBOUNCE_DELAY_MS);
 
   // LPからの遷移時・初回ロード
   useEffect(() => {
     const shouldRefresh = searchParams?.get('refresh') === 'true';
     const fromLanding = searchParams?.get('from') === 'landing';
-    
+
     const loadData = async () => {
-      setLoading(true);
-      
       if (fromLanding || shouldRefresh) {
         try {
           const res = await fetch('/api/stores/update-is-open', {
@@ -391,42 +624,21 @@ function MapPageContent() {
             body: JSON.stringify({ forceUpdate: true }),
           });
           const result = await res.json();
-          console.log('Auto refresh from landing result:', result);
+          debugLog('Auto refresh from landing result:', result);
         } catch (err) {
-          console.warn('Failed to auto-refresh is_open:', err);
+          debugWarn('Failed to auto-refresh is_open:', err);
         }
       }
-      
-      await fetchStoresWithCache(fromLanding || shouldRefresh);
-      
+
+      await fetchStores(fromLanding || shouldRefresh);
+
       if (shouldRefresh || fromLanding) {
         router.replace('/map', { scroll: false });
       }
     };
-    
+
     loadData();
-
-    // Realtime subscription
-    const channel = supabase
-      .channel('stores-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'stores'
-        },
-        (payload) => {
-          console.log('Store change detected:', payload);
-          fetchStoresWithCache(true); // 強制リフレッシュ
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [searchParams, router, fetchStoresWithCache]);
+  }, [searchParams, router, fetchStores]);
 
   // Visibility change handler（バックグラウンド復帰時）
   useEffect(() => {
@@ -434,9 +646,8 @@ function MapPageContent() {
       if (document.visibilityState === 'visible') {
         refreshLocation();
         // キャッシュが無効なら取得
-        const cached = getStoresCache();
-        if (!cached) {
-          fetchStoresWithCache(true);
+        if (storesCache.isExpired()) {
+          fetchStores(true);
         }
       }
     };
@@ -446,7 +657,7 @@ function MapPageContent() {
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [refreshLocation, fetchStoresWithCache]);
+  }, [refreshLocation, fetchStores]);
 
   // 更新ボタン押下時
   const handleRefresh = async () => {
@@ -460,11 +671,11 @@ function MapPageContent() {
         body: JSON.stringify({ forceUpdate: true }),
       });
       const result = await res.json();
-      console.log('Force refresh result:', result);
+      debugLog('Force refresh result:', result);
 
-      await fetchStoresWithCache(true);
-    } catch (error) {
-      console.error('Error refreshing:', error);
+      await refreshStores();
+    } catch (err) {
+      debugWarn('Error refreshing:', err);
     } finally {
       setTimeout(() => {
         setRefreshing(false);
@@ -472,23 +683,9 @@ function MapPageContent() {
     }
   };
 
-  // Viewport内の店舗のみをフィルタリング（パフォーマンス最適化）
-  const filteredStores = useCallback(() => {
-    if (!currentBounds) return stores;
-    
-    // 少し余裕を持たせたboundsでフィルタリング
-    const padding = 0.01; // 約1km程度の余裕
-    return stores.filter((store) => {
-      const lat = Number(store.latitude);
-      const lng = Number(store.longitude);
-      
-      return (
-        lat >= currentBounds.sw.lat - padding &&
-        lat <= currentBounds.ne.lat + padding &&
-        lng >= currentBounds.sw.lng - padding &&
-        lng <= currentBounds.ne.lng + padding
-      );
-    });
+  // Viewport内の店舗のみをフィルタリング（メモ化）
+  const filteredStores = useMemo(() => {
+    return filterStoresByViewport(stores, currentBounds);
   }, [stores, currentBounds]);
 
   const getVacancyLabel = (status: string) => {
@@ -523,12 +720,14 @@ function MapPageContent() {
 
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
     const R = 6371;
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
     const a =
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
   };
@@ -540,10 +739,21 @@ function MapPageContent() {
   };
 
   return (
-    <div 
+    <div
       className="relative h-screen flex flex-col touch-manipulation"
       style={{ background: colors.background }}
     >
+      {/* エラーバナー */}
+      <AnimatePresence>
+        {error && (
+          <ErrorBanner
+            error={error}
+            retryCount={retryCount}
+            onRetry={() => refreshStores()}
+          />
+        )}
+      </AnimatePresence>
+
       {/* ヘッダー */}
       <header className="absolute top-0 left-0 right-0 z-10 pt-4 sm:pt-6 px-3 sm:px-4 safe-top pointer-events-none">
         <motion.div
@@ -579,7 +789,7 @@ function MapPageContent() {
                 </Button>
               </motion.div>
 
-              {/* リストボタン - ラベルを「一覧」に変更 */}
+              {/* リストボタン */}
               <motion.div
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -626,7 +836,7 @@ function MapPageContent() {
                   }}
                   title={t('map.refresh')}
                 >
-                  <RefreshCw 
+                  <RefreshCw
                     className={`w-5 h-5 ${refreshing ? 'animate-spin' : ''}`}
                     style={{ color: colors.accent }}
                   />
@@ -640,9 +850,9 @@ function MapPageContent() {
         </motion.div>
       </header>
 
-      {/* マップ（フィルタリング済み店舗を渡す） */}
+      {/* マップ */}
       <MapView
-        stores={filteredStores()}
+        stores={filteredStores}
         center={userLocation || undefined}
         onStoreClick={setSelectedStore}
         onBoundsChange={handleBoundsChange}
@@ -655,10 +865,10 @@ function MapPageContent() {
             initial={{ y: 100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 100, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
             className="fixed bottom-0 left-0 right-0 z-30 safe-bottom touch-manipulation"
           >
-            <Card 
+            <Card
               className="rounded-t-3xl rounded-b-none border-0 cursor-pointer transition-colors"
               style={{
                 background: colors.surface,
@@ -676,7 +886,7 @@ function MapPageContent() {
                       style={{ border: `1px solid ${colors.accentDark}40` }}
                     />
                   ) : (
-                    <div 
+                    <div
                       className="w-24 h-24 rounded-xl flex items-center justify-center flex-shrink-0"
                       style={{ background: colors.background }}
                     >
@@ -686,7 +896,7 @@ function MapPageContent() {
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
-                      <h3 
+                      <h3
                         className="font-bold text-lg line-clamp-1"
                         style={{ color: colors.text }}
                       >
@@ -718,23 +928,23 @@ function MapPageContent() {
                                   : 'text-gray-600'
                               }`}
                               style={{
-                                fill: star <= Math.round(selectedStore.google_rating!) ? colors.accent : 'transparent',
-                                color: star <= Math.round(selectedStore.google_rating!) ? colors.accent : colors.textSubtle,
+                                fill:
+                                  star <= Math.round(selectedStore.google_rating!)
+                                    ? colors.accent
+                                    : 'transparent',
+                                color:
+                                  star <= Math.round(selectedStore.google_rating!)
+                                    ? colors.accent
+                                    : colors.textSubtle,
                               }}
                             />
                           ))}
                         </div>
-                        <span 
-                          className="text-sm font-bold"
-                          style={{ color: colors.text }}
-                        >
+                        <span className="text-sm font-bold" style={{ color: colors.text }}>
                           {selectedStore.google_rating.toFixed(1)}
                         </span>
                         {selectedStore.google_reviews_count && (
-                          <span 
-                            className="text-xs"
-                            style={{ color: colors.textMuted }}
-                          >
+                          <span className="text-xs" style={{ color: colors.textMuted }}>
                             ({selectedStore.google_reviews_count})
                           </span>
                         )}
@@ -742,21 +952,24 @@ function MapPageContent() {
                     )}
 
                     {userLocation && (
-                      <p 
-                        className="text-sm font-bold"
-                        style={{ color: colors.textMuted }}
-                      >
-                        徒歩およそ{calculateWalkingTime(calculateDistance(
-                          userLocation.lat,
-                          userLocation.lng,
-                          Number(selectedStore.latitude),
-                          Number(selectedStore.longitude)
-                        ))}分
+                      <p className="text-sm font-bold" style={{ color: colors.textMuted }}>
+                        徒歩およそ
+                        {calculateWalkingTime(
+                          calculateDistance(
+                            userLocation.lat,
+                            userLocation.lng,
+                            Number(selectedStore.latitude),
+                            Number(selectedStore.longitude)
+                          )
+                        )}
+                        分
                       </p>
                     )}
 
                     <a
-                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedStore.name)}`}
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                        selectedStore.name
+                      )}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 text-sm hover:underline font-bold"
@@ -773,10 +986,7 @@ function MapPageContent() {
                         alt={getVacancyLabel(selectedStore.vacancy_status)}
                         className="w-6 h-6"
                       />
-                      <span 
-                        className="text-xl font-bold"
-                        style={{ color: colors.text }}
-                      >
+                      <span className="text-xl font-bold" style={{ color: colors.text }}>
                         {getVacancyLabel(selectedStore.vacancy_status)}
                       </span>
                     </div>
@@ -784,11 +994,11 @@ function MapPageContent() {
                 </div>
 
                 {selectedStore.status_message && (
-                  <div 
+                  <div
                     className="pt-2"
                     style={{ borderTop: `1px solid ${colors.accentDark}30` }}
                   >
-                    <p 
+                    <p
                       className="text-sm font-bold line-clamp-2"
                       style={{ color: colors.textMuted }}
                     >
@@ -805,7 +1015,7 @@ function MapPageContent() {
                     router.push(`/store/${selectedStore.id}`);
                   }}
                   className="w-full py-3.5 px-4 rounded-xl font-bold transition-colors touch-manipulation"
-                  style={{ 
+                  style={{
                     background: `linear-gradient(135deg, ${colors.accent}, ${colors.accentDark})`,
                     color: colors.background,
                     boxShadow: `0 4px 15px ${colors.accent}30`,
@@ -820,7 +1030,7 @@ function MapPageContent() {
       </AnimatePresence>
 
       {/* 凡例 */}
-      <div 
+      <div
         className="fixed bottom-24 left-4 z-20 rounded-xl shadow-lg p-3 safe-bottom pointer-events-auto"
         style={{
           background: `${colors.surface}F0`,
@@ -835,7 +1045,9 @@ function MapPageContent() {
               alt={t('map.vacant')}
               className="w-6 h-6"
             />
-            <span className="text-sm font-bold" style={{ color: colors.text }}>{t('map.vacant')}</span>
+            <span className="text-sm font-bold" style={{ color: colors.text }}>
+              {t('map.vacant')}
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <img
@@ -843,7 +1055,9 @@ function MapPageContent() {
               alt={t('map.moderate')}
               className="w-6 h-6"
             />
-            <span className="text-sm font-bold" style={{ color: colors.text }}>{t('map.moderate')}</span>
+            <span className="text-sm font-bold" style={{ color: colors.text }}>
+              {t('map.moderate')}
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <img
@@ -851,7 +1065,9 @@ function MapPageContent() {
               alt={t('map.full')}
               className="w-6 h-6"
             />
-            <span className="text-sm font-bold" style={{ color: colors.text }}>{t('map.full')}</span>
+            <span className="text-sm font-bold" style={{ color: colors.text }}>
+              {t('map.full')}
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <img
@@ -859,7 +1075,9 @@ function MapPageContent() {
               alt={t('map.closed')}
               className="w-6 h-6"
             />
-            <span className="text-sm font-bold" style={{ color: colors.text }}>{t('map.closed')}</span>
+            <span className="text-sm font-bold" style={{ color: colors.text }}>
+              {t('map.closed')}
+            </span>
           </div>
         </div>
       </div>
@@ -873,24 +1091,24 @@ function MapPageContent() {
 
 function MapPageLoading() {
   return (
-    <div 
+    <div
       className="flex items-center justify-center h-screen"
       style={{ background: colors.background }}
     >
       <div className="text-center">
         <div className="relative w-14 h-14 mx-auto mb-5">
-          <div 
+          <div
             className="absolute inset-0 rounded-full"
             style={{ border: `2px solid ${colors.accentDark}40` }}
           />
-          <div 
+          <div
             className="absolute inset-0 rounded-full animate-spin"
-            style={{ 
+            style={{
               border: '2px solid transparent',
               borderTopColor: colors.accent,
             }}
           />
-          <div 
+          <div
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full"
             style={{ background: colors.accent }}
           />
