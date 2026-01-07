@@ -83,11 +83,7 @@ const copy = {
         },
         {
           icon: Phone,
-          text: '電話で予約するのが面倒、または苦手',
-        },
-        {
-          icon: Heart,
-          text: '一人や女性でも入りやすいお店を探している',
+          text: '電話予約が苦手',
         },
         {
           icon: Clock,
@@ -114,7 +110,7 @@ const copy = {
         },
         {
           icon: Shield,
-          title: '安心の情報',
+          title: '安心できる',
           titleEn: 'Safe & Clear',
           description: '料金目安や客層など、入る前に知りたい情報が揃っています。女性や観光客も安心です。',
         },
@@ -126,19 +122,19 @@ const copy = {
       steps: [
         {
           step: '01',
-          title: 'マップで探す',
+          title: '次に行くお店を探す',
           titleEn: 'Find',
           description: '現在地周辺の空席があるお店をマップで確認します。「空席あり」のアイコンが表示されているお店が今すぐ入れるお店です。',
         },
         {
           step: '02',
-          title: '詳細を見る',
+          title: 'お店の情報を確認',
           titleEn: 'Check',
           description: 'お店の雰囲気、メニュー、料金目安をチェック。気になるお店が見つかったら次へ進みます。',
         },
         {
           step: '03',
-          title: '席をキープ',
+          title: '席をキープする',
           titleEn: 'Reserve',
           description: '到着時間と人数、電話番号、名前を入力するだけ。自動音声があなたの代わりにお店へ電話します。',
           highlight: true,
@@ -389,9 +385,15 @@ export default function LandingPage() {
     };
   }, []);
 
-  // Partner stores carousel
+  // Partner stores carousel (モバイルのみ自動スライド)
   useEffect(() => {
     if (partnerStores.length === 0) return;
+    
+    // モバイルサイズの時のみ自動スライドを有効化
+    const checkIsMobile = () => window.innerWidth < 640; // sm breakpoint
+    
+    if (!checkIsMobile()) return;
+    
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % partnerStores.length);
     }, 5000);
@@ -406,7 +408,7 @@ export default function LandingPage() {
   ];
 
   const footerLinks = [
-    { icon: Building2, label: language === 'ja' ? '会社概要' : 'About Us', href: 'https://www.nobody-inc.jp/' },
+    { icon: Building2, label: language === 'ja' ? '会社概要' : 'About Us', href: 'https://www.nobody-inc.jp/' ,target:'_blank' },
     { icon: FileText, label: language === 'ja' ? '利用規約' : 'Terms', href: '/terms' },
     { icon: HelpCircle, label: language === 'ja' ? 'よくある質問' : 'FAQ', href: '/faq' },
     { icon: FileText, label: language === 'ja' ? 'リリースノート' : 'Release Notes', href: '/release-notes' },
@@ -1184,13 +1186,14 @@ export default function LandingPage() {
               </h2>
               <p className="text-lg max-w-xl mx-auto" style={{ color: colors.textMuted }}>
                 {language === 'ja' 
-                  ? 'NIKENME+に参加しているお店をチェック' 
+                  ? 'NIKENME+を利用しているお店をCHECK' 
                   : 'Check out stores on NIKENME+'}
               </p>
             </motion.div>
 
-            {/* Carousel */}
-            <div className="relative">
+            {/* モバイル: カルーセル表示、PC: グリッド表示 */}
+            {/* モバイルサイズ（sm未満）: カルーセル */}
+            <div className="block sm:hidden relative">
               <div 
                 ref={carouselRef}
                 className="overflow-hidden rounded-2xl cursor-pointer group"
@@ -1201,7 +1204,7 @@ export default function LandingPage() {
                 }}
                 onClick={() => partnerStores[currentSlide] && handleStoreCardClick(partnerStores[currentSlide].id)}
               >
-                <div className="relative aspect-[4/3] sm:aspect-[16/9]">
+                <div className="relative aspect-[4/3]">
                   <AnimatePresence mode="wait">
                     {partnerStores[currentSlide] && (
                       <motion.div
@@ -1225,9 +1228,9 @@ export default function LandingPage() {
                           }}
                         />
                         
-                        <div className="absolute top-4 left-4 sm:top-6 sm:left-6">
+                        <div className="absolute top-4 left-4">
                           <h3 
-                            className="text-xl sm:text-2xl md:text-3xl font-bold"
+                            className="text-xl font-bold"
                             style={{
                               color: colors.text,
                               textShadow: '0 2px 10px rgba(0,0,0,0.8)',
@@ -1237,7 +1240,7 @@ export default function LandingPage() {
                           </h3>
                         </div>
 
-                        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 sm:bottom-6">
+                        <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
                           <motion.span 
                             className="text-sm font-medium px-4 py-2.5 rounded-full flex items-center gap-2"
                             style={{
@@ -1261,7 +1264,7 @@ export default function LandingPage() {
               {/* Navigation Arrows */}
               <button
                 onClick={(e) => { e.stopPropagation(); prevSlide(); }}
-                className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95"
+                className="absolute left-2 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95"
                 style={{
                   background: `${colors.background}E6`,
                   border: `1px solid ${colors.accentDark}60`,
@@ -1269,11 +1272,11 @@ export default function LandingPage() {
                 }}
                 aria-label="Previous slide"
               >
-                <ChevronLeft className="w-6 h-6 sm:w-7 sm:h-7" style={{ color: colors.text }} />
+                <ChevronLeft className="w-6 h-6" style={{ color: colors.text }} />
               </button>
               <button
                 onClick={(e) => { e.stopPropagation(); nextSlide(); }}
-                className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95"
+                className="absolute right-2 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95"
                 style={{
                   background: `${colors.background}E6`,
                   border: `1px solid ${colors.accentDark}60`,
@@ -1281,7 +1284,7 @@ export default function LandingPage() {
                 }}
                 aria-label="Next slide"
               >
-                <ChevronRight className="w-6 h-6 sm:w-7 sm:h-7" style={{ color: colors.text }} />
+                <ChevronRight className="w-6 h-6" style={{ color: colors.text }} />
               </button>
 
               {/* Dots Indicator */}
@@ -1300,6 +1303,68 @@ export default function LandingPage() {
                   />
                 ))}
               </div>
+            </div>
+
+            {/* タブレット・PCサイズ（sm以上）: グリッド表示 */}
+            <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {partnerStores.slice(0, 6).map((store, index) => (
+                <motion.div
+                  key={store.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.1 }}
+                  className="relative group cursor-pointer overflow-hidden rounded-2xl"
+                  style={{
+                    background: `${colors.surface}80`,
+                    border: `1px solid ${colors.accentDark}40`,
+                  }}
+                  onClick={() => handleStoreCardClick(store.id)}
+                >
+                  <div className="relative aspect-[4/3]">
+                    <img
+                      src={store.image_urls?.[0] || ''}
+                      alt={store.name}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                    
+                    <div
+                      className="absolute inset-0"
+                      style={{
+                        background: `linear-gradient(to top, ${colors.background} 0%, ${colors.background}80 50%, transparent 100%)`,
+                      }}
+                    />
+                    
+                    <div className="absolute top-4 left-4 right-4">
+                      <h3 
+                        className="text-lg sm:text-xl lg:text-2xl font-bold mb-2"
+                        style={{
+                          color: colors.text,
+                          textShadow: '0 2px 10px rgba(0,0,0,0.8)',
+                        }}
+                      >
+                        {store.name}
+                      </h3>
+                    </div>
+
+                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
+                      <motion.span 
+                        className="text-sm font-medium px-4 py-2.5 rounded-full flex items-center gap-2"
+                        style={{
+                          background: `${colors.accent}25`,
+                          color: colors.accent,
+                          border: `1px solid ${colors.accent}50`,
+                          backdropFilter: 'blur(8px)',
+                        }}
+                        whileHover={{ scale: 1.05 }}
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                        {language === 'ja' ? '詳細をみる' : 'View Details'}
+                      </motion.span>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
             </div>
 
             {/* お店を探すボタン */}
