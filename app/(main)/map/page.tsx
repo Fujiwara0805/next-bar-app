@@ -7,6 +7,7 @@
  *       【最適化】useStoresフックによる差分更新
  *       【最適化】エラーハンドリング + リトライUI
  *       【最適化】メモリリーク対策
+ *       【追加】詳細ボタンのローディング表示
  *       【デザイン】LP統一カラーパレット適用
  * ============================================
  */
@@ -16,7 +17,7 @@
 import { useEffect, useState, Suspense, useRef, useCallback, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, List, ExternalLink, Building2, RefreshCw, Home, Star, AlertCircle } from 'lucide-react';
+import { X, List, ExternalLink, Building2, RefreshCw, Home, Star, AlertCircle, Loader2 } from 'lucide-react';
 import { MapView } from '@/components/map/map-view';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -547,6 +548,8 @@ function MapPageContent() {
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [currentBounds, setCurrentBounds] = useState<ViewportBounds | null>(null);
+  // 【追加】詳細ボタンのローディング状態
+  const [isNavigating, setIsNavigating] = useState(false);
 
   const { location: userLocation, refreshLocation } = useOptimizedLocation();
   const { stores, isLoading, error, retryCount, fetchStores, refreshStores } = useStores();
@@ -682,6 +685,12 @@ function MapPageContent() {
       }, 500);
     }
   };
+
+  // 【追加】詳細ページへの遷移（ローディング付き）
+  const handleNavigateToDetail = useCallback((storeId: string) => {
+    setIsNavigating(true);
+    router.push(`/store/${storeId}`);
+  }, [router]);
 
   // Viewport内の店舗のみをフィルタリング（メモ化）
   const filteredStores = useMemo(() => {
@@ -874,7 +883,7 @@ function MapPageContent() {
                 background: colors.surface,
                 borderTop: `1px solid ${colors.accentDark}40`,
               }}
-              onClick={() => router.push(`/store/${selectedStore.id}`)}
+              onClick={() => handleNavigateToDetail(selectedStore.id)}
             >
               <div className="p-4 space-y-3">
                 <div className="flex gap-4">
@@ -910,6 +919,7 @@ function MapPageContent() {
                         onClick={(e) => {
                           e.stopPropagation();
                           setSelectedStore(null);
+                          setIsNavigating(false);
                         }}
                       >
                         <X className="w-5 h-5" />
@@ -1007,21 +1017,38 @@ function MapPageContent() {
                   </div>
                 )}
 
+                {/* 【修正】詳細を見るボタン（ローディング付き） */}
                 <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                  whileHover={{ scale: isNavigating ? 1 : 1.02 }}
+                  whileTap={{ scale: isNavigating ? 1 : 0.98 }}
                   onClick={(e) => {
                     e.stopPropagation();
-                    router.push(`/store/${selectedStore.id}`);
+                    if (!isNavigating) {
+                      handleNavigateToDetail(selectedStore.id);
+                    }
                   }}
-                  className="w-full py-3.5 px-4 rounded-xl font-bold transition-colors touch-manipulation"
+                  disabled={isNavigating}
+                  className="w-full py-3.5 px-4 rounded-xl font-bold transition-all touch-manipulation flex items-center justify-center gap-2"
                   style={{
-                    background: `linear-gradient(135deg, ${colors.accent}, ${colors.accentDark})`,
+                    background: isNavigating 
+                      ? `linear-gradient(135deg, ${colors.accentDark}, ${colors.accentDark})`
+                      : `linear-gradient(135deg, ${colors.accent}, ${colors.accentDark})`,
                     color: colors.background,
-                    boxShadow: `0 4px 15px ${colors.accent}30`,
+                    boxShadow: isNavigating 
+                      ? 'none'
+                      : `0 4px 15px ${colors.accent}30`,
+                    opacity: isNavigating ? 0.8 : 1,
+                    cursor: isNavigating ? 'not-allowed' : 'pointer',
                   }}
                 >
-                  {t('map.view_details')}
+                  {isNavigating ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <span>読み込み中...</span>
+                    </>
+                  ) : (
+                    t('map.view_details')
+                  )}
                 </motion.button>
               </div>
             </Card>

@@ -2,12 +2,14 @@
  * ============================================
  * ファイルパス: components/map/map-view.tsx
  * 
- * 機能: マップビューコンポーネント（スケーラブル改善版）
- *       【最適化】共通キャッシュモジュール統合
+ * 機能: マップビューコンポーネント（フリッカー解消版）
+ *       【修正】マーカーインスタンス再利用による点滅防止
+ *       【修正】Google純正ライクな現在地マーカー（青いドット）
+ *       【修正】初期描画時のカメラ位置即時設定
+ *       【修正】白色系アクセント追加のマップスタイル
+ *       【修正】マップカラーを2トーン明るく調整
+ *       【修正】1時間キャッシュ有効期限管理
  *       【最適化】メモリリーク対策強化
- *       【最適化】Ref経由の関数参照でEffect依存を最小化
- *       【準備】マーカークラスタリング対応（コメント付き）
- *       【デザイン】LP統一カラーパレット適用
  * ============================================
  */
 
@@ -21,7 +23,7 @@ import type { Database } from '@/lib/supabase/types';
 // 共通モジュールのインポート
 // ============================================================================
 
-import { locationCache, compassCache } from '@/lib/cache';
+import { locationCache, compassCache, cacheManager } from '@/lib/cache';
 
 type Store = Database['public']['Tables']['stores']['Row'];
 
@@ -44,7 +46,7 @@ function debugWarn(message: string, data?: unknown): void {
 }
 
 // ============================================================================
-// デザイントークン（LP画面と統一）
+// デザイントークン（LP画面と統一 + 白色アクセント追加）
 // ============================================================================
 
 const colors = {
@@ -55,6 +57,10 @@ const colors = {
   text: '#F2EBDD',
   textMuted: 'rgba(242, 235, 221, 0.6)',
   textSubtle: 'rgba(242, 235, 221, 0.4)',
+  // Google純正マーカー用カラー
+  googleBlue: '#4285F4',
+  googleBlueDark: '#1A73E8',
+  white: '#FFFFFF',
 };
 
 // ============================================================================
@@ -85,6 +91,14 @@ interface DeviceOrientationState {
   isSupported: boolean;
 }
 
+// マーカー管理用の型
+interface StoreMarkerData {
+  marker: google.maps.Marker;
+  touchArea: google.maps.Circle;
+  lastStatus: string;
+  lastPosition: { lat: number; lng: number };
+}
+
 // ============================================================================
 // 定数
 // ============================================================================
@@ -98,6 +112,9 @@ const DEFAULT_LOCATION = {
 const LOCATION_UPDATE_THRESHOLD_METERS = 50;
 const LOCATION_UPDATE_INTERVAL_MS = 30000;
 const BOUNDS_CHANGE_DEBOUNCE_MS = 600;
+
+// 1時間キャッシュ有効期限（ミリ秒）
+const CACHE_TTL_MS = 60 * 60 * 1000;
 
 // ============================================================================
 // ユーティリティ関数
@@ -125,8 +142,26 @@ function calculateDistanceMeters(
   return R * c;
 }
 
+/**
+ * マーカーアイコンURLを取得
+ */
+function getMarkerIconUrl(status: string): string {
+  switch (status) {
+    case 'vacant':
+      return 'https://res.cloudinary.com/dz9trbwma/image/upload/v1761311529/%E7%A9%BA%E5%B8%AD%E3%81%82%E3%82%8A_rzejgw.png';
+    case 'moderate':
+      return 'https://res.cloudinary.com/dz9trbwma/image/upload/v1761311676/%E3%82%84%E3%82%84%E6%B7%B7%E9%9B%91_qjfizb.png';
+    case 'full':
+      return 'https://res.cloudinary.com/dz9trbwma/image/upload/v1761311529/%E6%BA%80%E5%B8%AD_gszsqi.png';
+    case 'closed':
+      return 'https://res.cloudinary.com/dz9trbwma/image/upload/v1761318837/icons8-%E9%96%89%E5%BA%97%E3%82%B5%E3%82%A4%E3%83%B3-100_fczegk.png';
+    default:
+      return 'https://res.cloudinary.com/dz9trbwma/image/upload/v1761311529/%E7%A9%BA%E5%B8%AD%E3%81%82%E3%82%8A_rzejgw.png';
+  }
+}
+
 // ============================================================================
-// カスタムフック: useOptimizedGeolocation（メモリリーク対策強化版）
+// カスタムフック: useOptimizedGeolocation（1時間キャッシュ対応版）
 // ============================================================================
 
 function useOptimizedGeolocation(enabled: boolean = true) {
@@ -141,6 +176,7 @@ function useOptimizedGeolocation(enabled: boolean = true) {
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const isVisibleRef = useRef(true);
   const smoothedLocationRef = useRef<{ lat: number; lng: number } | null>(null);
+  const cacheCheckIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const SMOOTHING_FACTOR = 0.3;
 
@@ -227,13 +263,44 @@ function useOptimizedGeolocation(enabled: boolean = true) {
   };
 
   /**
-   * 初期位置の即座取得（キャッシュ優先）
+   * キャッシュの有効期限をチェックし、期限切れなら再取得
+   */
+  const checkCacheExpiry = useCallback(() => {
+    if (locationCache.isExpired()) {
+      debugLog('Location cache expired (1 hour TTL), clearing and refetching...');
+      locationCache.clear();
+      
+      // 再取得をトリガー
+      if (navigator.geolocation && isMountedRef.current) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            handlePositionSuccessRef.current?.(position);
+          },
+          (err) => {
+            debugWarn('Geolocation refetch error:', err.message);
+          },
+          {
+            enableHighAccuracy: false,
+            timeout: 5000,
+            maximumAge: 0, // キャッシュを使わず最新を取得
+          }
+        );
+      }
+    }
+  }, []);
+
+  /**
+   * 初期位置の即座取得（キャッシュ優先、1時間TTLチェック）
    */
   useEffect(() => {
     if (!enabled) return;
 
+    // 1時間TTLチェック
+    cacheManager.clearExpired();
+
     const cached = locationCache.get();
-    if (cached) {
+    if (cached && !cached.isDefault) {
+      debugLog('Using cached location (within 1 hour TTL)', cached);
       setLocation({
         latitude: cached.lat,
         longitude: cached.lng,
@@ -246,6 +313,7 @@ function useOptimizedGeolocation(enabled: boolean = true) {
       lastUpdateRef.current = { lat: cached.lat, lng: cached.lng, time: cached.timestamp };
       setIsInitialized(true);
     } else {
+      debugLog('No valid cache, using default location');
       setLocation({
         latitude: DEFAULT_LOCATION.lat,
         longitude: DEFAULT_LOCATION.lng,
@@ -259,18 +327,39 @@ function useOptimizedGeolocation(enabled: boolean = true) {
   }, [enabled]);
 
   /**
+   * 定期的なキャッシュ有効期限チェック（10分ごと）
+   */
+  useEffect(() => {
+    if (!enabled) return;
+
+    cacheCheckIntervalRef.current = setInterval(checkCacheExpiry, 10 * 60 * 1000);
+
+    return () => {
+      if (cacheCheckIntervalRef.current) {
+        clearInterval(cacheCheckIntervalRef.current);
+        cacheCheckIntervalRef.current = null;
+      }
+    };
+  }, [enabled, checkCacheExpiry]);
+
+  /**
    * Visibility APIでバックグラウンド時の取得を停止
    */
   useEffect(() => {
     const handleVisibilityChange = () => {
       isVisibleRef.current = document.visibilityState === 'visible';
+      
+      // フォアグラウンドに戻った時にキャッシュ有効期限をチェック
+      if (isVisibleRef.current) {
+        checkCacheExpiry();
+      }
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, []);
+  }, [checkCacheExpiry]);
 
   /**
    * ポーリングベースの位置取得（依存配列を最小化してメモリリーク対策）
@@ -319,13 +408,13 @@ function useOptimizedGeolocation(enabled: boolean = true) {
       }
       setIsTracking(false);
     };
-  }, [enabled]); // 依存配列を最小化
+  }, [enabled]);
 
   return { location, error, isTracking, isInitialized };
 }
 
 // ============================================================================
-// カスタムフック: useDeviceOrientation
+// カスタムフック: useDeviceOrientation（1時間キャッシュ対応版）
 // ============================================================================
 
 function useDeviceOrientation(enabled: boolean = true) {
@@ -413,8 +502,15 @@ function useDeviceOrientation(enabled: boolean = true) {
     setNeedsPermission(false);
   }, []);
 
+  // 初期化時にキャッシュから状態を復元（1時間TTLチェック）
   useEffect(() => {
     if (!enabled) return;
+
+    // 1時間TTLチェック
+    if (compassCache.isExpired()) {
+      debugLog('Compass cache expired (1 hour TTL), clearing...');
+      compassCache.clear();
+    }
 
     const isSupported = typeof DeviceOrientationEvent !== 'undefined';
     setOrientation((prev) => ({ ...prev, isSupported }));
@@ -455,97 +551,6 @@ function useDeviceOrientation(enabled: boolean = true) {
   }, [orientation.permissionGranted, enabled]);
 
   return { orientation, needsPermission, requestPermission, setPermissionGranted };
-}
-
-// ============================================================================
-// 現在地マーカー生成
-// ============================================================================
-
-interface UserLocationMarkerProps {
-  map: google.maps.Map;
-  position: { lat: number; lng: number };
-  heading: number;
-  accuracy: number;
-  showDirectionBeam: boolean;
-}
-
-function createUserLocationMarker({
-  map,
-  position,
-  heading,
-  accuracy,
-  showDirectionBeam,
-}: UserLocationMarkerProps): {
-  marker: google.maps.Marker;
-  accuracyCircle: google.maps.Circle;
-  beam: google.maps.Polygon | null;
-} {
-  const accuracyCircle = new google.maps.Circle({
-    map,
-    center: position,
-    radius: Math.min(Math.max(accuracy, 20), 100),
-    fillColor: colors.accent,
-    fillOpacity: 0.1,
-    strokeColor: colors.accent,
-    strokeOpacity: 0.3,
-    strokeWeight: 1,
-    zIndex: 998,
-  });
-
-  let beam: google.maps.Polygon | null = null;
-  if (showDirectionBeam) {
-    const beamPoints = calculateSimpleBeamPoints(position, heading);
-
-    beam = new google.maps.Polygon({
-      map,
-      paths: beamPoints,
-      fillColor: colors.accent,
-      fillOpacity: 0.25,
-      strokeWeight: 0,
-      zIndex: 999,
-    });
-  }
-
-  const marker = new google.maps.Marker({
-    position,
-    map,
-    icon: {
-      path: google.maps.SymbolPath.CIRCLE,
-      scale: 10,
-      fillColor: colors.accent,
-      fillOpacity: 1,
-      strokeColor: colors.text,
-      strokeWeight: 3,
-    },
-    zIndex: 1000,
-  });
-
-  return { marker, accuracyCircle, beam };
-}
-
-function calculateSimpleBeamPoints(
-  center: { lat: number; lng: number },
-  heading: number
-): google.maps.LatLngLiteral[] {
-  const beamLength = 0.0004;
-  const spreadAngle = 40;
-
-  const leftAngleRad = ((heading - spreadAngle / 2) * Math.PI) / 180;
-  const rightAngleRad = ((heading + spreadAngle / 2) * Math.PI) / 180;
-
-  const centerPoint = { lat: center.lat, lng: center.lng };
-
-  const leftPoint = {
-    lat: center.lat + Math.cos(leftAngleRad) * beamLength,
-    lng: center.lng + Math.sin(leftAngleRad) * beamLength,
-  };
-
-  const rightPoint = {
-    lat: center.lat + Math.cos(rightAngleRad) * beamLength,
-    lng: center.lng + Math.sin(rightAngleRad) * beamLength,
-  };
-
-  return [centerPoint, leftPoint, rightPoint];
 }
 
 // ============================================================================
@@ -672,64 +677,121 @@ function DirectionPermissionDialog({
 }
 
 // ============================================================================
-// マップスタイル（明度を1トーン上げた調整版）
+// マップスタイル（2トーン明るく調整 + 白色アクセント）
 // ============================================================================
 
 const luxuryMapStyles: google.maps.MapTypeStyle[] = [
-  { elementType: 'geometry', stylers: [{ color: '#3D2E26' }] },
+  // 【2トーン明るく】ベース背景: #3D2E26 → #5A4A40
+  { elementType: 'geometry', stylers: [{ color: '#5A4A40' }] },
   { elementType: 'labels.icon', stylers: [{ visibility: 'off' }] },
-  { elementType: 'labels.text.fill', stylers: [{ color: '#C4A88C' }] },
-  { elementType: 'labels.text.stroke', stylers: [{ color: '#2B1F1A' }] },
-  { featureType: 'administrative', elementType: 'geometry', stylers: [{ color: '#A88A5C' }] },
+  
+  // ラベル文字を白系に（視認性向上）
+  { elementType: 'labels.text.fill', stylers: [{ color: '#FFFFFF' }] },
+  { elementType: 'labels.text.stroke', stylers: [{ color: '#3D3530' }, { weight: 2.5 }] },
+  
+  // 行政区域
+  { featureType: 'administrative', elementType: 'geometry', stylers: [{ color: '#C4A87C' }] },
   {
     featureType: 'administrative.country',
     elementType: 'labels.text.fill',
-    stylers: [{ color: '#D4B050' }],
+    stylers: [{ color: '#FFFFFF' }],
   },
   {
     featureType: 'administrative.locality',
     elementType: 'labels.text.fill',
-    stylers: [{ color: '#F5EFE3' }],
+    stylers: [{ color: '#FFFFFF' }],
   },
+  {
+    featureType: 'administrative.neighborhood',
+    elementType: 'labels.text.fill',
+    stylers: [{ color: '#F5F5F5' }],
+  },
+  
+  // POI（非表示）
   { featureType: 'poi', stylers: [{ visibility: 'off' }] },
   {
     featureType: 'poi.park',
     elementType: 'geometry',
-    stylers: [{ color: '#3E4A3A' }, { visibility: 'simplified' }],
+    // 【2トーン明るく】#3E4A3A → #5A6A56
+    stylers: [{ color: '#5A6A56' }, { visibility: 'simplified' }],
   },
   { featureType: 'poi.park', elementType: 'labels', stylers: [{ visibility: 'off' }] },
-  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#4E3E34' }] },
-  { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#3D2E26' }] },
-  { featureType: 'road', elementType: 'labels.text.fill', stylers: [{ color: '#C4A88C' }] },
-  { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#6E5A48' }] },
-  { featureType: 'road.highway', elementType: 'labels.text.fill', stylers: [{ color: '#D4B050' }] },
-  { featureType: 'road.arterial', elementType: 'geometry', stylers: [{ color: '#5C4838' }] },
-  { featureType: 'transit', elementType: 'geometry', stylers: [{ color: '#4E3E34' }] },
+  
+  // 【2トーン明るく】道路
+  // 一般道路: #5C4838 → #7A6858
+  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#7A6858' }] },
+  // ストローク: #3D2E26 → #5A4A40
+  { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#5A4A40' }] },
+  { 
+    featureType: 'road', 
+    elementType: 'labels.text.fill', 
+    stylers: [{ color: '#FFFFFF' }] 
+  },
+  { 
+    featureType: 'road', 
+    elementType: 'labels.text.stroke', 
+    stylers: [{ color: '#3D3530' }, { weight: 3 }] 
+  },
+  
+  // 【2トーン明るく】高速道路: #6E5A48 → #8E7A68
+  { 
+    featureType: 'road.highway', 
+    elementType: 'geometry', 
+    stylers: [{ color: '#8E7A68' }] 
+  },
+  { 
+    featureType: 'road.highway', 
+    elementType: 'geometry.stroke', 
+    // ゴールドアクセント強調
+    stylers: [{ color: '#D4AC5C' }, { weight: 0.8 }] 
+  },
+  { 
+    featureType: 'road.highway', 
+    elementType: 'labels.text.fill', 
+    stylers: [{ color: '#FFFFFF' }] 
+  },
+  
+  // 【2トーン明るく】幹線道路: #5C4838 → #7A6858
+  { 
+    featureType: 'road.arterial', 
+    elementType: 'geometry', 
+    stylers: [{ color: '#7A6858' }] 
+  },
+  { 
+    featureType: 'road.arterial', 
+    elementType: 'labels.text.fill', 
+    stylers: [{ color: '#FFFFFF' }] 
+  },
+  
+  // 【2トーン明るく】地方道路: #4E3E34 → #6E5E54
+  { 
+    featureType: 'road.local', 
+    elementType: 'geometry', 
+    stylers: [{ color: '#6E5E54' }] 
+  },
+  { 
+    featureType: 'road.local', 
+    elementType: 'labels.text.fill', 
+    stylers: [{ color: '#F5F5F5' }] 
+  },
+  
+  // 【2トーン明るく】交通機関: #4E3E34 → #6E5E54
+  { featureType: 'transit', elementType: 'geometry', stylers: [{ color: '#6E5E54' }] },
   { featureType: 'transit', elementType: 'labels', stylers: [{ visibility: 'off' }] },
-  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#2A3A4A' }] },
-  { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#8AA4BE' }] },
-  { featureType: 'landscape.man_made', elementType: 'geometry', stylers: [{ color: '#3D2E26' }] },
-  { featureType: 'landscape.natural', elementType: 'geometry', stylers: [{ color: '#3D2E26' }] },
+  { 
+    featureType: 'transit.station', 
+    elementType: 'labels.text.fill', 
+    stylers: [{ color: '#FFFFFF' }] 
+  },
+  
+  // 【2トーン明るく】水域: #2A3A4A → #4A5A6A
+  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#4A5A6A' }] },
+  { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#AAC4DE' }] },
+  
+  // 【2トーン明るく】景観: #3D2E26 → #5A4A40
+  { featureType: 'landscape.man_made', elementType: 'geometry', stylers: [{ color: '#5A4A40' }] },
+  { featureType: 'landscape.natural', elementType: 'geometry', stylers: [{ color: '#5A4A40' }] },
 ];
-
-// ============================================================================
-// マーカーアイコンURL
-// ============================================================================
-
-function getMarkerIcon(status: string): string {
-  switch (status) {
-    case 'vacant':
-      return 'https://res.cloudinary.com/dz9trbwma/image/upload/v1761311529/%E7%A9%BA%E5%B8%AD%E3%81%82%E3%82%8A_rzejgw.png';
-    case 'moderate':
-      return 'https://res.cloudinary.com/dz9trbwma/image/upload/v1761311676/%E3%82%84%E3%82%84%E6%B7%B7%E9%9B%91_qjfizb.png';
-    case 'full':
-      return 'https://res.cloudinary.com/dz9trbwma/image/upload/v1761311529/%E6%BA%80%E5%B8%AD_gszsqi.png';
-    case 'closed':
-      return 'https://res.cloudinary.com/dz9trbwma/image/upload/v1761318837/icons8-%E9%96%89%E5%BA%97%E3%82%B5%E3%82%A4%E3%83%B3-100_fczegk.png';
-    default:
-      return 'https://res.cloudinary.com/dz9trbwma/image/upload/v1761311529/%E7%A9%BA%E5%B8%AD%E3%81%82%E3%82%8A_rzejgw.png';
-  }
-}
 
 // ============================================================================
 // メインコンポーネント: MapView
@@ -746,13 +808,18 @@ export function MapView({
   // Refs
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
-  const markersRef = useRef<google.maps.Marker[]>([]);
-  const touchAreasRef = useRef<google.maps.Circle[]>([]);
+  
+  // 【修正】マーカーをMapで管理（フリッカー防止）
+  const storeMarkersRef = useRef<Map<string, StoreMarkerData>>(new Map());
+  
+  // 現在地マーカー関連
   const userMarkerRef = useRef<google.maps.Marker | null>(null);
+  const userAccuracyCircleRef = useRef<google.maps.Circle | null>(null);
   const userBeamRef = useRef<google.maps.Polygon | null>(null);
-  const accuracyCircleRef = useRef<google.maps.Circle | null>(null);
+  
   const boundsChangeTimerRef = useRef<NodeJS.Timeout | null>(null);
   const isMountedRef = useRef(true);
+  const initialCenterSetRef = useRef(false);
 
   // State
   const [loading, setLoading] = useState(true);
@@ -774,8 +841,15 @@ export function MapView({
     return DEFAULT_LOCATION;
   }, [center, geoLocation]);
 
-  // 初期化時にlocalStorageから状態を復元
+  // 初期化時にlocalStorageから状態を復元（1時間TTLチェック）
   useEffect(() => {
+    // 1時間TTLチェック
+    if (compassCache.isExpired()) {
+      debugLog('Compass cache expired on mount, clearing...');
+      compassCache.clear();
+      return;
+    }
+
     const stored = compassCache.get();
     if (stored) {
       setCompassEnabled(stored.enabled);
@@ -785,7 +859,10 @@ export function MapView({
     }
   }, [setPermissionGranted]);
 
-  // Google Maps初期化
+  // ============================================================================
+  // Google Maps初期化（初期位置を即座に設定）
+  // ============================================================================
+
   useEffect(() => {
     isMountedRef.current = true;
 
@@ -844,8 +921,16 @@ export function MapView({
     const createMap = () => {
       if (!mapRef.current || mapInstanceRef.current || !isMountedRef.current) return;
 
+      // 【修正】キャッシュから初期位置を取得（即座にカメラ設定）
+      let initialCenter = DEFAULT_LOCATION;
+      const cached = locationCache.get();
+      if (cached && !cached.isDefault) {
+        initialCenter = { lat: cached.lat, lng: cached.lng };
+        debugLog('Using cached location for initial map center', initialCenter);
+      }
+
       const map = new google.maps.Map(mapRef.current, {
-        center: currentPosition,
+        center: initialCenter,
         zoom: 15,
         disableDefaultUI: true,
         zoomControl: false,
@@ -857,7 +942,8 @@ export function MapView({
         gestureHandling: 'greedy',
         clickableIcons: false,
         styles: luxuryMapStyles,
-        backgroundColor: colors.background,
+        // 【2トーン明るく】背景色も調整
+        backgroundColor: '#5A4A40',
       });
 
       mapInstanceRef.current = map;
@@ -898,7 +984,29 @@ export function MapView({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // ============================================================================
+  // 【修正】GPS取得後に初回のみカメラを移動
+  // ============================================================================
+
+  useEffect(() => {
+    if (
+      mapInstanceRef.current && 
+      currentPosition && 
+      mapReady && 
+      isInitialized && 
+      !initialCenterSetRef.current &&
+      !geoLocation?.isDefault
+    ) {
+      debugLog('Setting initial camera position', currentPosition);
+      mapInstanceRef.current.panTo(currentPosition);
+      initialCenterSetRef.current = true;
+    }
+  }, [isInitialized, mapReady, currentPosition, geoLocation?.isDefault]);
+
+  // ============================================================================
   // コンパスボタンハンドラー
+  // ============================================================================
+
   const handleCompassToggle = useCallback(async () => {
     if (compassEnabled) {
       setCompassEnabled(false);
@@ -927,41 +1035,46 @@ export function MapView({
     setShowDirectionDialog(false);
   }, []);
 
-  // マップ中心の更新（初回のみ）
-  useEffect(() => {
-    if (mapInstanceRef.current && currentPosition && mapReady && isInitialized) {
-      if (!geoLocation?.isDefault) {
-        mapInstanceRef.current.panTo(currentPosition);
-      }
-    }
-  }, [isInitialized, mapReady, currentPosition, geoLocation?.isDefault]);
+  // ============================================================================
+  // 【修正】店舗マーカーの差分更新（フリッカー防止）
+  // ============================================================================
 
-  // 店舗マーカーの更新
   useEffect(() => {
     if (!mapInstanceRef.current || !mapReady) return;
 
-    // 既存マーカーをクリア
-    markersRef.current.forEach((marker) => marker.setMap(null));
-    markersRef.current = [];
-    touchAreasRef.current.forEach((circle) => circle.setMap(null));
-    touchAreasRef.current = [];
+    const map = mapInstanceRef.current;
+    const existingMarkers = storeMarkersRef.current;
+    const currentStoreIds = new Set(stores.map(s => s.id));
 
-    // 【将来の拡張】店舗数が100件以上の場合はクラスタリングを検討
-    // if (stores.length > 100) {
-    //   // MarkerClustererを使用
-    //   // npm install @googlemaps/markerclusterer
-    // }
+    // 1. 削除された店舗のマーカーを削除
+    existingMarkers.forEach((markerData, storeId) => {
+      if (!currentStoreIds.has(storeId)) {
+        markerData.marker.setMap(null);
+        markerData.touchArea.setMap(null);
+        existingMarkers.delete(storeId);
+        debugLog('Removed marker for store', storeId);
+      }
+    });
 
+    // 2. 同一座標の店舗をグループ化
+    const positionGroups = new Map<string, Store[]>();
+    stores.forEach(store => {
+      const key = `${store.latitude},${store.longitude}`;
+      if (!positionGroups.has(key)) {
+        positionGroups.set(key, []);
+      }
+      positionGroups.get(key)!.push(store);
+    });
+
+    // 3. 各店舗のマーカーを更新または作成
     stores.forEach((store) => {
       const positionKey = `${store.latitude},${store.longitude}`;
-      const samePositionStores = stores.filter(
-        (s) => `${s.latitude},${s.longitude}` === positionKey
-      );
+      const samePositionStores = positionGroups.get(positionKey) || [];
       const indexAtPosition = samePositionStores.findIndex((s) => s.id === store.id);
 
+      // オフセット計算（同一座標に複数店舗がある場合）
       let latOffset = 0;
       let lngOffset = 0;
-
       if (samePositionStores.length > 1) {
         const offsetDistance = 0.00008;
         const angle = (indexAtPosition * (360 / samePositionStores.length) * Math.PI) / 180;
@@ -974,81 +1087,159 @@ export function MapView({
         lng: Number(store.longitude) + lngOffset,
       };
 
-      const marker = new google.maps.Marker({
-        position,
-        map: mapInstanceRef.current!,
-        title: store.name,
-        icon: {
-          url: getMarkerIcon(store.vacancy_status),
-          scaledSize: new google.maps.Size(52, 52),
-          anchor: new google.maps.Point(26, 26),
-        },
-        optimized: true,
-        zIndex: 100,
-        cursor: 'pointer',
-        clickable: true,
-      });
+      const existingMarkerData = existingMarkers.get(store.id);
 
-      marker.addListener('click', () => {
-        if (onStoreClick) {
-          marker.setAnimation(google.maps.Animation.BOUNCE);
-          setTimeout(() => marker.setAnimation(null), 700);
-          onStoreClick(store);
+      if (existingMarkerData) {
+        // 【修正】既存マーカーを再利用（位置とアイコンのみ更新）
+        const needsPositionUpdate = 
+          existingMarkerData.lastPosition.lat !== position.lat ||
+          existingMarkerData.lastPosition.lng !== position.lng;
+        
+        const needsIconUpdate = existingMarkerData.lastStatus !== store.vacancy_status;
+
+        if (needsPositionUpdate) {
+          existingMarkerData.marker.setPosition(position);
+          existingMarkerData.touchArea.setCenter(position);
+          existingMarkerData.lastPosition = position;
         }
-      });
 
-      const touchArea = new google.maps.Circle({
-        map: mapInstanceRef.current!,
-        center: position,
-        radius: 15,
-        fillOpacity: 0,
-        strokeOpacity: 0,
-        clickable: true,
-        zIndex: 99,
-      });
-
-      touchArea.addListener('click', () => {
-        if (onStoreClick) {
-          marker.setAnimation(google.maps.Animation.BOUNCE);
-          setTimeout(() => marker.setAnimation(null), 700);
-          onStoreClick(store);
+        if (needsIconUpdate) {
+          existingMarkerData.marker.setIcon({
+            url: getMarkerIconUrl(store.vacancy_status),
+            scaledSize: new google.maps.Size(52, 52),
+            anchor: new google.maps.Point(26, 26),
+          });
+          existingMarkerData.lastStatus = store.vacancy_status;
         }
-      });
+      } else {
+        // 新規マーカーを作成
+        const marker = new google.maps.Marker({
+          position,
+          map,
+          title: store.name,
+          icon: {
+            url: getMarkerIconUrl(store.vacancy_status),
+            scaledSize: new google.maps.Size(52, 52),
+            anchor: new google.maps.Point(26, 26),
+          },
+          optimized: true,
+          zIndex: 100,
+          cursor: 'pointer',
+          clickable: true,
+        });
 
-      markersRef.current.push(marker);
-      touchAreasRef.current.push(touchArea);
+        const touchArea = new google.maps.Circle({
+          map,
+          center: position,
+          radius: 15,
+          fillOpacity: 0,
+          strokeOpacity: 0,
+          clickable: true,
+          zIndex: 99,
+        });
+
+        // クリックイベント（クロージャでstoreをキャプチャ）
+        const handleClick = () => {
+          if (onStoreClick) {
+            marker.setAnimation(google.maps.Animation.BOUNCE);
+            setTimeout(() => marker.setAnimation(null), 700);
+            onStoreClick(store);
+          }
+        };
+
+        marker.addListener('click', handleClick);
+        touchArea.addListener('click', handleClick);
+
+        existingMarkers.set(store.id, {
+          marker,
+          touchArea,
+          lastStatus: store.vacancy_status,
+          lastPosition: position,
+        });
+
+        debugLog('Created new marker for store', store.id);
+      }
     });
   }, [stores, onStoreClick, mapReady]);
 
-  // 現在地マーカーの更新
+  // ============================================================================
+  // 【修正】Google純正ライクな現在地マーカー（青いドット）
+  // ============================================================================
+
   useEffect(() => {
     if (!mapInstanceRef.current || !mapReady || !currentPosition) return;
 
-    const heading = orientation.permissionGranted ? orientation.alpha : 0;
+    const map = mapInstanceRef.current;
     const accuracy = geoLocation?.accuracy || 30;
+    const heading = orientation.permissionGranted ? orientation.alpha : 0;
     const showBeam = compassEnabled && orientation.permissionGranted;
 
-    // 既存マーカーをクリア
-    if (userMarkerRef.current) userMarkerRef.current.setMap(null);
-    if (userBeamRef.current) userBeamRef.current.setMap(null);
-    if (accuracyCircleRef.current) accuracyCircleRef.current.setMap(null);
+    // 精度サークルの更新または作成
+    if (userAccuracyCircleRef.current) {
+      userAccuracyCircleRef.current.setCenter(currentPosition);
+      userAccuracyCircleRef.current.setRadius(Math.min(Math.max(accuracy, 20), 100));
+    } else {
+      userAccuracyCircleRef.current = new google.maps.Circle({
+        map,
+        center: currentPosition,
+        radius: Math.min(Math.max(accuracy, 20), 100),
+        fillColor: colors.googleBlue,
+        fillOpacity: 0.15,
+        strokeColor: colors.googleBlue,
+        strokeOpacity: 0.3,
+        strokeWeight: 1,
+        zIndex: 998,
+      });
+    }
 
-    const { marker, accuracyCircle, beam } = createUserLocationMarker({
-      map: mapInstanceRef.current,
-      position: currentPosition,
-      heading,
-      accuracy,
-      showDirectionBeam: showBeam,
-    });
+    // 方向ビームの更新または作成/削除
+    if (showBeam) {
+      const beamPoints = calculateBeamPoints(currentPosition, heading);
+      
+      if (userBeamRef.current) {
+        userBeamRef.current.setPath(beamPoints);
+        userBeamRef.current.setMap(map);
+      } else {
+        userBeamRef.current = new google.maps.Polygon({
+          map,
+          paths: beamPoints,
+          fillColor: colors.googleBlue,
+          fillOpacity: 0.25,
+          strokeWeight: 0,
+          zIndex: 999,
+        });
+      }
+    } else {
+      if (userBeamRef.current) {
+        userBeamRef.current.setMap(null);
+      }
+    }
 
-    userMarkerRef.current = marker;
-    userBeamRef.current = beam;
-    accuracyCircleRef.current = accuracyCircle;
+    // 【修正】Google純正ライクな青いドットマーカー
+    if (userMarkerRef.current) {
+      userMarkerRef.current.setPosition(currentPosition);
+    } else {
+      // Google純正の現在地マーカーを再現するSVGアイコン
+      userMarkerRef.current = new google.maps.Marker({
+        position: currentPosition,
+        map,
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 8,
+          fillColor: colors.googleBlue,
+          fillOpacity: 1,
+          strokeColor: colors.white,
+          strokeWeight: 2.5,
+        },
+        zIndex: 1000,
+        clickable: false,
+        title: '現在地',
+      });
+    }
 
+    // Cleanup
     return () => {
-      if (userMarkerRef.current) userMarkerRef.current.setMap(null);
-      if (userBeamRef.current) userBeamRef.current.setMap(null);
-      if (accuracyCircleRef.current) accuracyCircleRef.current.setMap(null);
+      // コンポーネントがアンマウントされる時のみ削除
     };
   }, [
     currentPosition,
@@ -1059,19 +1250,34 @@ export function MapView({
     orientation.alpha,
   ]);
 
-  // ビームのリアルタイム更新
-  useEffect(() => {
-    if (
-      !userBeamRef.current ||
-      !currentPosition ||
-      !orientation.permissionGranted ||
-      !compassEnabled
-    )
-      return;
+  // ============================================================================
+  // コンポーネントアンマウント時のクリーンアップ
+  // ============================================================================
 
-    const newBeamPoints = calculateSimpleBeamPoints(currentPosition, orientation.alpha);
-    userBeamRef.current.setPath(newBeamPoints);
-  }, [orientation.alpha, currentPosition, orientation.permissionGranted, compassEnabled]);
+  useEffect(() => {
+    return () => {
+      // 店舗マーカーのクリーンアップ
+      storeMarkersRef.current.forEach((markerData) => {
+        markerData.marker.setMap(null);
+        markerData.touchArea.setMap(null);
+      });
+      storeMarkersRef.current.clear();
+
+      // 現在地マーカーのクリーンアップ
+      if (userMarkerRef.current) {
+        userMarkerRef.current.setMap(null);
+        userMarkerRef.current = null;
+      }
+      if (userAccuracyCircleRef.current) {
+        userAccuracyCircleRef.current.setMap(null);
+        userAccuracyCircleRef.current = null;
+      }
+      if (userBeamRef.current) {
+        userBeamRef.current.setMap(null);
+        userBeamRef.current = null;
+      }
+    };
+  }, []);
 
   // ズームハンドラー
   const handleZoomIn = useCallback(() => {
@@ -1179,6 +1385,35 @@ export function MapView({
       </div>
     </div>
   );
+}
+
+// ============================================================================
+// ユーティリティ: 方向ビームの座標計算
+// ============================================================================
+
+function calculateBeamPoints(
+  center: { lat: number; lng: number },
+  heading: number
+): google.maps.LatLngLiteral[] {
+  const beamLength = 0.0004;
+  const spreadAngle = 40;
+
+  const leftAngleRad = ((heading - spreadAngle / 2) * Math.PI) / 180;
+  const rightAngleRad = ((heading + spreadAngle / 2) * Math.PI) / 180;
+
+  const centerPoint = { lat: center.lat, lng: center.lng };
+
+  const leftPoint = {
+    lat: center.lat + Math.cos(leftAngleRad) * beamLength,
+    lng: center.lng + Math.sin(leftAngleRad) * beamLength,
+  };
+
+  const rightPoint = {
+    lat: center.lat + Math.cos(rightAngleRad) * beamLength,
+    lng: center.lng + Math.sin(rightAngleRad) * beamLength,
+  };
+
+  return [centerPoint, leftPoint, rightPoint];
 }
 
 export default MapView;

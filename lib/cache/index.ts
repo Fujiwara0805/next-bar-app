@@ -6,6 +6,7 @@
  *       - 位置情報キャッシュ
  *       - 店舗データキャッシュ
  *       - コンパス許可キャッシュ
+ *       【更新】1時間のキャッシュ有効期限管理
  * ============================================
  */
 
@@ -23,10 +24,11 @@ const CACHE_KEYS = {
   COMPASS: 'nikenme_compass_permission',
 } as const;
 
+// 【更新】全キャッシュを1時間（3600000ms）に統一
 const CACHE_MAX_AGE = {
-  LOCATION: 5 * 60 * 1000,    // 5分
-  STORES: 60 * 1000,          // 1分
-  COMPASS: 30 * 60 * 1000,    // 30分
+  LOCATION: 60 * 60 * 1000,   // 1時間
+  STORES: 60 * 1000,          // 1分（店舗データはリアルタイム性が重要）
+  COMPASS: 60 * 60 * 1000,    // 1時間
 } as const;
 
 // ============================================================================
@@ -94,8 +96,18 @@ function safeRemoveItem(key: string): void {
   }
 }
 
+/**
+ * キャッシュの有効期限をチェック
+ * @param timestamp キャッシュのタイムスタンプ
+ * @param maxAge 最大有効期間（ミリ秒）
+ * @returns 期限切れならtrue
+ */
+function isCacheExpired(timestamp: number, maxAge: number): boolean {
+  return Date.now() - timestamp >= maxAge;
+}
+
 // ============================================================================
-// 位置情報キャッシュ
+// 位置情報キャッシュ（1時間TTL）
 // ============================================================================
 
 export const locationCache = {
@@ -103,8 +115,8 @@ export const locationCache = {
     const data = safeGetItem<LocationCacheData>(CACHE_KEYS.LOCATION);
     if (!data) return null;
     
-    const age = Date.now() - data.timestamp;
-    if (age >= CACHE_MAX_AGE.LOCATION) {
+    // 1時間経過していたらキャッシュを破棄
+    if (isCacheExpired(data.timestamp, CACHE_MAX_AGE.LOCATION)) {
       this.clear();
       return null;
     }
@@ -126,7 +138,27 @@ export const locationCache = {
   isExpired(): boolean {
     const data = safeGetItem<LocationCacheData>(CACHE_KEYS.LOCATION);
     if (!data) return true;
-    return Date.now() - data.timestamp >= CACHE_MAX_AGE.LOCATION;
+    return isCacheExpired(data.timestamp, CACHE_MAX_AGE.LOCATION);
+  },
+
+  /**
+   * キャッシュの残り有効時間を取得（ミリ秒）
+   */
+  getRemainingTime(): number {
+    const data = safeGetItem<LocationCacheData>(CACHE_KEYS.LOCATION);
+    if (!data) return 0;
+    
+    const elapsed = Date.now() - data.timestamp;
+    const remaining = CACHE_MAX_AGE.LOCATION - elapsed;
+    return Math.max(0, remaining);
+  },
+
+  /**
+   * キャッシュのタイムスタンプを取得
+   */
+  getTimestamp(): number | null {
+    const data = safeGetItem<LocationCacheData>(CACHE_KEYS.LOCATION);
+    return data?.timestamp || null;
   },
 };
 
@@ -139,8 +171,7 @@ export const storesCache = {
     const data = safeGetItem<StoresCacheData>(CACHE_KEYS.STORES);
     if (!data) return null;
     
-    const age = Date.now() - data.timestamp;
-    if (age >= CACHE_MAX_AGE.STORES) {
+    if (isCacheExpired(data.timestamp, CACHE_MAX_AGE.STORES)) {
       this.clear();
       return null;
     }
@@ -216,12 +247,12 @@ export const storesCache = {
   isExpired(): boolean {
     const data = safeGetItem<StoresCacheData>(CACHE_KEYS.STORES);
     if (!data) return true;
-    return Date.now() - data.timestamp >= CACHE_MAX_AGE.STORES;
+    return isCacheExpired(data.timestamp, CACHE_MAX_AGE.STORES);
   },
 };
 
 // ============================================================================
-// コンパス許可キャッシュ
+// コンパス許可キャッシュ（1時間TTL）
 // ============================================================================
 
 export const compassCache = {
@@ -229,8 +260,8 @@ export const compassCache = {
     const data = safeGetItem<CompassCacheData>(CACHE_KEYS.COMPASS);
     if (!data) return null;
     
-    const age = Date.now() - data.timestamp;
-    if (age >= CACHE_MAX_AGE.COMPASS) {
+    // 1時間経過していたらキャッシュを破棄
+    if (isCacheExpired(data.timestamp, CACHE_MAX_AGE.COMPASS)) {
       this.clear();
       return null;
     }
@@ -248,6 +279,24 @@ export const compassCache = {
 
   clear(): void {
     safeRemoveItem(CACHE_KEYS.COMPASS);
+  },
+
+  isExpired(): boolean {
+    const data = safeGetItem<CompassCacheData>(CACHE_KEYS.COMPASS);
+    if (!data) return true;
+    return isCacheExpired(data.timestamp, CACHE_MAX_AGE.COMPASS);
+  },
+
+  /**
+   * キャッシュの残り有効時間を取得（ミリ秒）
+   */
+  getRemainingTime(): number {
+    const data = safeGetItem<CompassCacheData>(CACHE_KEYS.COMPASS);
+    if (!data) return 0;
+    
+    const elapsed = Date.now() - data.timestamp;
+    const remaining = CACHE_MAX_AGE.COMPASS - elapsed;
+    return Math.max(0, remaining);
   },
 };
 
@@ -271,6 +320,30 @@ export const cacheManager = {
   clearExpired(): void {
     if (locationCache.isExpired()) locationCache.clear();
     if (storesCache.isExpired()) storesCache.clear();
+    if (compassCache.isExpired()) compassCache.clear();
+  },
+
+  /**
+   * キャッシュの有効期限情報を取得
+   */
+  getCacheStatus(): {
+    location: { expired: boolean; remainingMs: number };
+    compass: { expired: boolean; remainingMs: number };
+    stores: { expired: boolean };
+  } {
+    return {
+      location: {
+        expired: locationCache.isExpired(),
+        remainingMs: locationCache.getRemainingTime(),
+      },
+      compass: {
+        expired: compassCache.isExpired(),
+        remainingMs: compassCache.getRemainingTime(),
+      },
+      stores: {
+        expired: storesCache.isExpired(),
+      },
+    };
   },
 };
 
