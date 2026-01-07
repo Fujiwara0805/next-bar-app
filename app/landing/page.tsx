@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import {
   MapPin,
@@ -20,6 +20,13 @@ import {
   MapPinned,
   Building2,
   Loader2,
+  Search,
+  Clock,
+  Users,
+  Heart,
+  AlertCircle,
+  Sparkles,
+  MessageCircle,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -58,6 +65,180 @@ const DEFAULT_LOCATION = {
   isDefault: true,
 };
 
+// ===== コピーライティング（翻訳耐性を考慮した平易な日本語） =====
+const copy = {
+  ja: {
+    hero: {
+      catchphrase: '楽しみは、ここから',
+      subcopy: 'The Next Spot is Ready',
+      body: 'NIKENME+は、大分の夜を\n 案内するNight Spot Mapです。',
+    },
+    problems: {
+      title: 'こんなお悩み、ありませんか？',
+      subtitle: 'Common Concerns',
+      items: [
+        {
+          icon: Search,
+          text: '土地勘がなく、どのお店に\n 行けばいいかわからない',
+        },
+        {
+          icon: Phone,
+          text: '電話で予約するのが面倒、または苦手',
+        },
+        {
+          icon: Heart,
+          text: '一人や女性でも入りやすいお店を探している',
+        },
+        {
+          icon: Clock,
+          text: '混んでいるか空いているか、\n 行く前に知りたい',
+        },
+      ],
+    },
+    solution: {
+      title: 'だから、NIKENME+',
+      subtitle: 'Our Solution',
+      body: 'あなたの不安を解消し、\n 夜の街を楽しむためのサービスです。',
+      features: [
+        {
+          icon: Sparkles,
+          title: '雰囲気がわかる',
+          titleEn: 'See the Vibe',
+          description: 'お店の雰囲気を画像にて事前に確認できます。\n 初めてのお店でも安心して入れます。',
+        },
+        {
+          icon: Radio,
+          title: '空席がわかる',
+          titleEn: 'Live Availability',
+          description: 'リアルタイムの空席情報を確認できます。\n 満席のお店を避けられます。',
+        },
+        {
+          icon: Shield,
+          title: '安心の情報',
+          titleEn: 'Safe & Clear',
+          description: '料金目安や客層など、入る前に知りたい情報が揃っています。女性や観光客も安心です。',
+        },
+      ],
+    },
+    howto: {
+      title: '使い方は、とてもシンプル',
+      subtitle: '3 Easy Steps',
+      steps: [
+        {
+          step: '01',
+          title: 'マップで探す',
+          titleEn: 'Find',
+          description: '現在地周辺の空席があるお店をマップで確認します。「空席あり」のアイコンが表示されているお店が今すぐ入れるお店です。',
+        },
+        {
+          step: '02',
+          title: '詳細を見る',
+          titleEn: 'Check',
+          description: 'お店の雰囲気、メニュー、料金目安をチェック。気になるお店が見つかったら次へ進みます。',
+        },
+        {
+          step: '03',
+          title: '席をキープ',
+          titleEn: 'Reserve',
+          description: '到着時間と人数、電話番号、名前を入力するだけ。自動音声があなたの代わりにお店へ電話します。',
+          highlight: true,
+        },
+      ],
+    },
+    cta: {
+      title: '今夜の2軒目、ここで見つかる。',
+      body: '大分の夜は、まだ終わらない。\n NIKENME+で、次のお店を探しましょう。',
+      buttonPrimary: 'お店を探す',
+      buttonSecondary: '加盟店募集中',
+    },
+  },
+  en: {
+    hero: {
+      catchphrase: 'Your Next Spot is Ready.',
+      subcopy: 'Find it now',
+      body: 'NIKENME+ is a night spot map for Oita. Find available venues instantly and reserve your seat with auto-voice call.',
+    },
+    problems: {
+      title: 'Sound Familiar?',
+      subtitle: 'Common Concerns',
+      items: [
+        {
+          icon: Search,
+          text: "Don't know the area or where to go next",
+        },
+        {
+          icon: Phone,
+          text: 'Calling to reserve feels awkward or troublesome',
+        },
+        {
+          icon: Heart,
+          text: 'Looking for a place comfortable for solo or female guests',
+        },
+        {
+          icon: Clock,
+          text: 'Want to know if a place is busy before going',
+        },
+      ],
+    },
+    solution: {
+      title: "That's Why NIKENME+",
+      subtitle: 'Our Solution',
+      body: 'A service designed to ease your concerns and help you enjoy the night.',
+      features: [
+        {
+          icon: Sparkles,
+          title: 'See the Vibe',
+          titleEn: 'See the Vibe',
+          description: 'Check photos and menus before you go. Feel confident entering a new place.',
+        },
+        {
+          icon: Radio,
+          title: 'Live Availability',
+          titleEn: 'Live Availability',
+          description: 'Venues update their status in real-time. Avoid crowded spots easily.',
+        },
+        {
+          icon: Shield,
+          title: 'Safe & Clear',
+          titleEn: 'Safe & Clear',
+          description: 'Price range, crowd type, and more info available upfront. Safe for women and tourists.',
+        },
+      ],
+    },
+    howto: {
+      title: 'Simple to Use',
+      subtitle: '3 Easy Steps',
+      steps: [
+        {
+          step: '01',
+          title: 'Find on Map',
+          titleEn: 'Find',
+          description: 'Check available venues near you on the map. Green pins mean "seats available now".',
+        },
+        {
+          step: '02',
+          title: 'Check Details',
+          titleEn: 'Check',
+          description: 'Review the vibe, menu, and price range. Found a place you like? Move to the next step.',
+        },
+        {
+          step: '03',
+          title: 'Reserve Seat',
+          titleEn: 'Reserve',
+          description: 'Just enter arrival time and party size. Auto-voice will call the venue for you.',
+          highlight: true,
+        },
+      ],
+    },
+    cta: {
+      title: 'Find Your Next Spot Tonight.',
+      body: "The night isn't over yet. Discover your next venue with NIKENME+.",
+      buttonPrimary: 'View Map',
+      buttonSecondary: 'Partner With Us',
+    },
+  },
+};
+
 export default function LandingPage() {
   const router = useRouter();
   const { t, language, setLanguage } = useLanguage();
@@ -71,6 +252,19 @@ export default function LandingPage() {
   const carouselRef = useRef<HTMLDivElement>(null);
   const locationAttemptRef = useRef(false);
 
+  // 現在の言語のコピーを取得
+  const currentCopy = language === 'ja' ? copy.ja : copy.en;
+
+  // 改行対応ヘルパー関数
+  const renderWithLineBreaks = (text: string) => {
+    return text.split('\n').map((line, index, array) => (
+      <React.Fragment key={index}>
+        {line}
+        {index < array.length - 1 && <br />}
+      </React.Fragment>
+    ));
+  };
+
   // Parallax effect for hero
   const { scrollY } = useScroll();
   const heroOpacity = useTransform(scrollY, [0, 400], [1, 0]);
@@ -79,25 +273,21 @@ export default function LandingPage() {
   // ===== 位置情報取得の最適化 =====
   const getLocationWithFallback = useCallback((): Promise<{ lat: number; lng: number; isDefault?: boolean }> => {
     return new Promise((resolve) => {
-      // すでに試行中なら早期リターン
       if (locationAttemptRef.current) {
         resolve(DEFAULT_LOCATION);
         return;
       }
       locationAttemptRef.current = true;
 
-      // ブラウザが位置情報をサポートしていない場合
       if (!navigator.geolocation) {
         resolve(DEFAULT_LOCATION);
         return;
       }
 
-      // キャッシュされた位置情報をまず確認
       const cached = localStorage.getItem('userLocation');
       if (cached) {
         try {
           const parsed = JSON.parse(cached);
-          // 5分以内のキャッシュなら即座に使用
           if (Date.now() - parsed.timestamp < 5 * 60 * 1000) {
             resolve({ lat: parsed.lat, lng: parsed.lng, isDefault: parsed.isDefault });
             return;
@@ -109,16 +299,13 @@ export default function LandingPage() {
 
       let resolved = false;
 
-      // タイムアウト処理（5秒で強制的にデフォルト値を使用）
       const timeoutId = setTimeout(() => {
         if (!resolved) {
           resolved = true;
-          console.log('Location timeout - using default');
           resolve(DEFAULT_LOCATION);
         }
       }, 5000);
 
-      // 位置情報取得（低精度モードで高速取得）
       navigator.geolocation.getCurrentPosition(
         (position) => {
           if (!resolved) {
@@ -130,24 +317,23 @@ export default function LandingPage() {
             });
           }
         },
-        (error) => {
+        () => {
           if (!resolved) {
             resolved = true;
             clearTimeout(timeoutId);
-            console.log('Geolocation error:', error.message);
             resolve(DEFAULT_LOCATION);
           }
         },
         {
           enableHighAccuracy: false,
           timeout: 4000,
-          maximumAge: 300000, // 5分間のキャッシュを許容
+          maximumAge: 300000,
         }
       );
     });
   }, []);
 
-  // Partner stores - 店舗データを取得
+  // Partner stores fetch
   useEffect(() => {
     const fetchPartnerStores = async () => {
       try {
@@ -157,10 +343,7 @@ export default function LandingPage() {
           .not('image_urls', 'is', null)
           .limit(10);
 
-        if (error) {
-          console.error('Error fetching partner stores:', error);
-          return;
-        }
+        if (error) return;
 
         if (data) {
           const storesWithImages = (data as PartnerStore[]).filter(
@@ -206,7 +389,7 @@ export default function LandingPage() {
     };
   }, []);
 
-  // Partner stores carousel auto-slide
+  // Partner stores carousel
   useEffect(() => {
     if (partnerStores.length === 0) return;
     const interval = setInterval(() => {
@@ -214,34 +397,6 @@ export default function LandingPage() {
     }, 5000);
     return () => clearInterval(interval);
   }, [partnerStores.length]);
-
-  // ===== Features =====
-  const features = [
-    {
-      icon: Zap,
-      title: language === 'ja' ? '今すぐ入れる' : 'Instant Entry',
-      titleEn: 'Instant Entry',
-      description: language === 'ja' 
-        ? '待ち時間なしで入れるお店を瞬時に発見。' 
-        : 'Discover spots with no wait instantly.',
-    },
-    {
-      icon: Radio,
-      title: language === 'ja' ? 'リアルタイム更新' : 'Live Updates',
-      titleEn: 'Live Status',
-      description: language === 'ja' 
-        ? '店舗が更新する最新の空席状況を確認。' 
-        : 'Check real-time availability from venues.',
-    },
-    {
-      icon: MapPinned,
-      title: language === 'ja' ? '距離と時間' : 'Distance & Time',
-      titleEn: 'Nearby',
-      description: language === 'ja' 
-        ? '徒歩時間と距離をリアルタイムで表示。' 
-        : 'View walking time and distance live.',
-    },
-  ];
 
   const menuItems = [
     { icon: FileText, label: t('menu.terms'), href: '/terms' },
@@ -261,7 +416,6 @@ export default function LandingPage() {
     setShowLocationModal(true);
   };
 
-  // ===== 位置情報許可ハンドラー（最適化版） =====
   const handleLocationPermission = async (allow: boolean) => {
     if (allow) {
       setLocationPermission('loading');
@@ -277,14 +431,12 @@ export default function LandingPage() {
         localStorage.setItem('userLocation', JSON.stringify(locationData));
         setLocationPermission(location.isDefault ? 'denied' : 'granted');
         
-        // 即座に遷移（ローディング表示後）
         setTimeout(() => {
           setShowLocationModal(false);
           router.push('/map?from=landing');
         }, 300);
         
       } catch {
-        // エラー時もデフォルト位置で続行
         localStorage.setItem('userLocation', JSON.stringify({
           ...DEFAULT_LOCATION,
           timestamp: Date.now(),
@@ -297,7 +449,6 @@ export default function LandingPage() {
         }, 300);
       }
     } else {
-      // 拒否時は即座にデフォルト位置で遷移
       localStorage.setItem('userLocation', JSON.stringify({
         ...DEFAULT_LOCATION,
         timestamp: Date.now(),
@@ -314,7 +465,6 @@ export default function LandingPage() {
     window.location.reload();
   };
 
-  // ===== Partner Store カードクリック処理（遷移先変更） =====
   const handleStoreCardClick = (storeId: string) => {
     router.push(`/store/${storeId}`);
   };
@@ -646,31 +796,28 @@ export default function LandingPage() {
               </span>
             </motion.div>
 
-            {/* H1 */}
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight">
+            {/* H1 - キャッチコピー */}
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 leading-tight">
               <span style={{ color: colors.text }}>
-                楽しみは、これから
-              </span>
-              <br />
-              <span
-                className="text-lg sm:text-xl md:text-2xl font-normal"
-                style={{ color: colors.textMuted }}
-              >
-                The Night Continues From Here
+                {currentCopy.hero.catchphrase}
               </span>
             </h1>
-
-            {/* Subtitle */}
             <p
-              className="text-lg sm:text-xl md:text-2xl mb-10 max-w-2xl mx-auto leading-relaxed"
+              className="text-lg sm:text-xl md:text-2xl mb-6"
               style={{ color: colors.textMuted }}
             >
-              大分の二軒目探しは <span style={{ color: colors.accent, fontWeight: 600 }}>NIKENME+</span>
-              <br />
-              次のお店を今すぐマップで探そう。
+              {currentCopy.hero.subcopy}
             </p>
 
-            {/* CTAs */}
+            {/* Body - 導入文 */}
+            <p
+              className="text-base sm:text-lg mb-10 max-w-2xl mx-auto leading-relaxed"
+              style={{ color: colors.textMuted }}
+            >
+              {renderWithLineBreaks(currentCopy.hero.body)}
+            </p>
+
+            {/* CTA - ヒーローでは「お店を探す」のみ */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <motion.div
                 whileHover={{ scale: 1.03 }}
@@ -689,30 +836,10 @@ export default function LandingPage() {
                     color: colors.background,
                   }}
                 >
-                  <MapPin className="w-5 h-5 mr-2" />
-                  {t('hero.cta')}
+                  <Store className="w-5 h-5 mr-2" />
+                  {currentCopy.cta.buttonPrimary}
                 </Button>
               </motion.div>
-
-              <a
-                href="https://forms.gle/18LmBfyJAJ1txmF56"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Button
-                  size="lg"
-                  variant="ghost"
-                  className="text-base px-8 py-6 rounded-full font-medium border transition-all hover:scale-105"
-                  style={{
-                    borderColor: colors.accentDark,
-                    color: colors.textMuted,
-                    background: `${colors.accent}05`,
-                  }}
-                >
-                  <Store className="w-4 h-4 mr-2" />
-                  {t('cta.recruiting_stores')}
-                </Button>
-              </a>
             </div>
           </motion.div>
         </div>
@@ -728,8 +855,80 @@ export default function LandingPage() {
         />
       </section>
 
-      {/* ===== Features Section ===== */}
+      {/* ===== 課題提起セクション（新規追加） ===== */}
       <section className="relative py-24 px-4 overflow-hidden" style={{ background: colors.surface }}>
+        <div className="container mx-auto max-w-4xl">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <motion.div
+              className="inline-block mb-4"
+              initial={{ width: 0 }}
+              whileInView={{ width: 60 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+            >
+              <div className="h-px" style={{ background: colors.accent }} />
+            </motion.div>
+            <span
+              className="block text-xs font-medium tracking-[0.3em] uppercase mb-4"
+              style={{ color: colors.accent }}
+            >
+              {currentCopy.problems.subtitle}
+            </span>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold" style={{ color: colors.text }}>
+              {currentCopy.problems.title}
+            </h2>
+          </motion.div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {currentCopy.problems.items.map((item, index) => {
+              const Icon = item.icon;
+              return (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.1 }}
+                >
+                  <div
+                    className="flex items-start gap-4 p-5 rounded-xl"
+                    style={{
+                      background: `${colors.background}60`,
+                      border: `1px solid ${colors.accentDark}20`,
+                    }}
+                  >
+                    <div
+                      className="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center"
+                      style={{
+                        background: `${colors.accent}15`,
+                        border: `1px solid ${colors.accentDark}40`,
+                      }}
+                    >
+                      <Icon className="w-5 h-5" style={{ color: colors.accent }} />
+                    </div>
+                    <p className="text-base leading-relaxed pt-1.5" style={{ color: colors.textMuted }}>
+                      {renderWithLineBreaks(item.text)}
+                    </p>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
+
+        <motion.div
+          className="absolute bottom-0 left-0 right-0 h-px"
+          style={{ background: `linear-gradient(90deg, transparent, ${colors.accentDark}60, transparent)` }}
+        />
+      </section>
+
+      {/* ===== 解決策・サービスの強みセクション ===== */}
+      <section className="relative py-24 px-4 overflow-hidden">
         <div className="container mx-auto max-w-5xl">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -750,19 +949,19 @@ export default function LandingPage() {
               className="block text-xs font-medium tracking-[0.3em] uppercase mb-4"
               style={{ color: colors.accent }}
             >
-              Features
+              {currentCopy.solution.subtitle}
             </span>
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4" style={{ color: colors.text }}>
-              {t('features.title')}
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4" style={{ color: colors.text }}>
+              {currentCopy.solution.title}
             </h2>
             <p className="text-lg max-w-xl mx-auto" style={{ color: colors.textMuted }}>
-              {language === 'ja' ? '二軒目探しをスマートに' : 'Find your next spot smartly'}
+              {renderWithLineBreaks(currentCopy.solution.body)}
             </p>
           </motion.div>
 
           {/* Feature Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {features.map((feature, index) => {
+            {currentCopy.solution.features.map((feature, index) => {
               const Icon = feature.icon;
 
               return (
@@ -776,7 +975,7 @@ export default function LandingPage() {
                   <Card
                     className="h-full p-8 group cursor-pointer transition-all duration-500 hover:translate-y-[-4px] relative overflow-hidden text-center"
                     style={{
-                      background: `${colors.background}80`,
+                      background: `${colors.surface}80`,
                       backdropFilter: 'blur(10px)',
                       border: `1px solid ${colors.accentDark}30`,
                     }}
@@ -809,8 +1008,8 @@ export default function LandingPage() {
                       >
                         {feature.titleEn}
                       </p>
-                      <p style={{ color: colors.textMuted }} className="leading-relaxed">
-                        {feature.description}
+                      <p style={{ color: colors.textMuted }} className="leading-relaxed text-sm">
+                        {renderWithLineBreaks(feature.description)}
                       </p>
                     </div>
 
@@ -827,15 +1026,10 @@ export default function LandingPage() {
             })}
           </div>
         </div>
-
-        <motion.div
-          className="absolute bottom-0 left-0 right-0 h-px"
-          style={{ background: `linear-gradient(90deg, transparent, ${colors.accentDark}60, transparent)` }}
-        />
       </section>
 
       {/* ===== How to Use Section ===== */}
-      <section className="relative py-24 px-4 overflow-hidden">
+      <section className="relative py-24 px-4 overflow-hidden" style={{ background: colors.surface }}>
         <div className="container mx-auto max-w-6xl">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -856,47 +1050,23 @@ export default function LandingPage() {
               className="block text-xs font-medium tracking-[0.3em] uppercase mb-4"
               style={{ color: colors.accent }}
             >
-              How to Use
+              {currentCopy.howto.subtitle}
             </span>
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4" style={{ color: colors.text }}>
-              {t('how_to.title')}
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold" style={{ color: colors.text }}>
+              {currentCopy.howto.title}
             </h2>
-            <p className="text-lg" style={{ color: colors.textMuted }}>
-              {t('how_to.subtitle')}
-            </p>
           </motion.div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {[
-              {
-                step: '01',
-                icon: MapPin,
-                title: t('how_to.step1_title'),
-                titleEn: 'Check',
-                description: t('how_to.step1_desc'),
-                image: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1767761406/26ef2985-e460-4b06-a245-8e5e0f65a459_lk9q5d.png',
-              },
-              {
-                step: '02',
-                icon: Store,
-                title: t('how_to.step2_title'),
-                titleEn: 'Details',
-                description: t('how_to.step2_desc'),
-                image: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1767762176/Gemini_Generated_Image_4tiamt4tiamt4tia_bnxmn9.png',
-              },
-              {
-                step: '03',
-                icon: Phone,
-                title: language === 'ja' ? '席をキープ' : 'Reserve',
-                titleEn: 'Reserve',
-                description: language === 'ja'
-                  ? '自動音声で予約。10・20・30分後から選択可能。'
-                  : 'Auto-voice reserves. Choose 10, 20, or 30 min.',
-                image: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1767763441/Gemini_Generated_Image_3qcvnq3qcvnq3qcv_acv91j.png',
-                highlight: true,
-              },
-            ].map((item, index) => {
-              const Icon = item.icon;
+            {currentCopy.howto.steps.map((item, index) => {
+              const stepIcons = [MapPin, Store, Phone];
+              const Icon = stepIcons[index];
+              const images = [
+                'https://res.cloudinary.com/dz9trbwma/image/upload/v1767761406/26ef2985-e460-4b06-a245-8e5e0f65a459_lk9q5d.png',
+                'https://res.cloudinary.com/dz9trbwma/image/upload/v1767762176/Gemini_Generated_Image_4tiamt4tiamt4tia_bnxmn9.png',
+                'https://res.cloudinary.com/dz9trbwma/image/upload/v1767763441/Gemini_Generated_Image_3qcvnq3qcvnq3qcv_acv91j.png',
+              ];
+
               return (
                 <motion.div
                   key={index}
@@ -908,7 +1078,7 @@ export default function LandingPage() {
                   <Card
                     className="h-full overflow-hidden group relative"
                     style={{
-                      background: item.highlight ? `${colors.accent}08` : colors.surface,
+                      background: item.highlight ? `${colors.accent}08` : colors.background,
                       border: item.highlight 
                         ? `1px solid ${colors.accent}60` 
                         : `1px solid ${colors.accentDark}30`,
@@ -946,7 +1116,7 @@ export default function LandingPage() {
                               border: `1px solid ${colors.accent}40`,
                             }}
                           >
-                            Recommended
+                            {language === 'ja' ? '自動音声' : 'Auto Voice'}
                           </span>
                         )}
                       </div>
@@ -960,8 +1130,8 @@ export default function LandingPage() {
                       >
                         {item.titleEn}
                       </p>
-                      <p className="mb-6 leading-relaxed" style={{ color: colors.textMuted }}>
-                        {item.description}
+                      <p className="mb-6 leading-relaxed text-sm" style={{ color: colors.textMuted }}>
+                        {renderWithLineBreaks(item.description)}
                       </p>
 
                       <div
@@ -971,7 +1141,7 @@ export default function LandingPage() {
                         }}
                       >
                         <img
-                          src={item.image}
+                          src={images[index]}
                           alt={item.title}
                           className="w-full h-auto object-cover"
                         />
@@ -985,9 +1155,9 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ===== Partner Stores Section（空席表示削除・遷移先変更） ===== */}
+      {/* ===== Partner Stores Section ===== */}
       {partnerStores.length > 0 && (
-        <section className="relative py-24 px-4 overflow-hidden" style={{ background: colors.surface }}>
+        <section className="relative py-24 px-4 overflow-hidden">
           <div className="container mx-auto max-w-6xl relative z-10">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -1010,7 +1180,7 @@ export default function LandingPage() {
               >
                 Partner Stores
               </span>
-              <h2 className="text-3xl sm:text-4xl font-bold mb-4" style={{ color: colors.text }}>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4" style={{ color: colors.text }}>
                 {language === 'ja' ? '加盟店の様子' : 'Partner Store Gallery'}
               </h2>
               <p className="text-lg max-w-xl mx-auto" style={{ color: colors.textMuted }}>
@@ -1026,7 +1196,7 @@ export default function LandingPage() {
                 ref={carouselRef}
                 className="overflow-hidden rounded-2xl cursor-pointer group"
                 style={{
-                  background: `${colors.background}80`,
+                  background: `${colors.surface}80`,
                   border: `1px solid ${colors.accentDark}40`,
                   touchAction: 'pan-x pan-y',
                 }}
@@ -1049,7 +1219,6 @@ export default function LandingPage() {
                           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                         />
                         
-                        {/* Dark overlay */}
                         <div
                           className="absolute inset-0"
                           style={{
@@ -1057,7 +1226,6 @@ export default function LandingPage() {
                           }}
                         />
                         
-                        {/* Store name - top left */}
                         <div className="absolute top-4 left-4 sm:top-6 sm:left-6">
                           <h3 
                             className="text-xl sm:text-2xl md:text-3xl font-bold"
@@ -1070,7 +1238,6 @@ export default function LandingPage() {
                           </h3>
                         </div>
 
-                        {/* Tap to view hint - bottom center */}
                         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 sm:bottom-6">
                           <motion.span 
                             className="text-sm font-medium px-4 py-2.5 rounded-full flex items-center gap-2"
@@ -1083,7 +1250,7 @@ export default function LandingPage() {
                             whileHover={{ scale: 1.05 }}
                           >
                             <ChevronRight className="w-4 h-4" />
-                            {language === 'ja' ? 'タップして詳細を見る' : 'Tap to view details'}
+                            {language === 'ja' ? '詳細をみる' : 'Tap to find a store'}
                           </motion.span>
                         </div>
                       </motion.div>
@@ -1136,7 +1303,7 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Map CTA */}
+            {/* お店を探すボタン */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -1152,7 +1319,7 @@ export default function LandingPage() {
                   color: colors.accent,
                 }}
               >
-                <MapPin className="w-5 h-5" />
+                <Store className="w-5 h-5" />
                 {language === 'ja' ? 'すべての加盟店を見る' : 'View All Partner Stores'}
               </Button>
             </motion.div>
@@ -1160,8 +1327,8 @@ export default function LandingPage() {
         </section>
       )}
 
-      {/* ===== CTA Section ===== */}
-      <section className="relative py-28 px-4 overflow-hidden">
+      {/* ===== CTA Section（加盟店募集ボタンはここのみ） ===== */}
+      <section className="relative py-28 px-4 overflow-hidden" style={{ background: colors.surface }}>
         <div
           className="absolute inset-0 z-0"
           style={{
@@ -1185,11 +1352,11 @@ export default function LandingPage() {
               <div className="h-px" style={{ background: colors.accent }} />
             </motion.div>
 
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6" style={{ color: colors.text }}>
-              {t('cta.title')}
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-6" style={{ color: colors.text }}>
+              {currentCopy.cta.title}
             </h2>
-            <p className="text-lg sm:text-xl mb-10" style={{ color: colors.textMuted }}>
-              {t('cta.subtitle')}
+            <p className="text-lg sm:text-xl mb-10 max-w-2xl mx-auto" style={{ color: colors.textMuted }}>
+              {renderWithLineBreaks(currentCopy.cta.body)}
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -1209,10 +1376,11 @@ export default function LandingPage() {
                   }}
                 >
                   <MapPin className="w-6 h-6 mr-3" />
-                  {t('cta.button')}
+                  {currentCopy.cta.buttonPrimary}
                 </Button>
               </motion.div>
 
+              {/* 加盟店募集ボタン - CTAセクションのみに配置 */}
               <a
                 href="https://forms.gle/18LmBfyJAJ1txmF56"
                 target="_blank"
@@ -1228,7 +1396,8 @@ export default function LandingPage() {
                     background: `${colors.accent}05`,
                   }}
                 >
-                  {t('cta.recruiting_stores')}
+                  <Store className="w-5 h-5 mr-2" />
+                  {currentCopy.cta.buttonSecondary}
                 </Button>
               </a>
             </div>
@@ -1240,7 +1409,7 @@ export default function LandingPage() {
       <footer
         className="py-12 px-4"
         style={{
-          background: colors.surface,
+          background: colors.background,
           borderTop: `1px solid ${colors.accentDark}30`,
         }}
       >
@@ -1262,7 +1431,7 @@ export default function LandingPage() {
                   href={link.href}
                   className="flex items-center justify-center gap-2 px-4 py-4 rounded-xl transition-all hover:scale-105 active:scale-95 min-h-[56px] group"
                   style={{
-                    background: `${colors.background}60`,
+                    background: `${colors.surface}60`,
                     border: `1px solid ${colors.accentDark}30`,
                   }}
                 >
@@ -1280,19 +1449,19 @@ export default function LandingPage() {
 
           <div className="text-center">
             <p className="text-sm mb-2" style={{ color: colors.textSubtle }}>
-              {t('footer.copyright')}
+              © 2025 NIKENME+ All rights reserved.
             </p>
             <p
               className="text-lg font-bold"
               style={{ color: colors.accent }}
             >
-              いますぐ、2軒目へ
+              {language === 'ja' ? 'いますぐ、2軒目へ' : 'Find Your Next Spot Now'}
             </p>
           </div>
         </div>
       </footer>
 
-      {/* ===== Location Permission Modal（ローディング状態追加） ===== */}
+      {/* ===== Location Permission Modal ===== */}
       <CustomModal
         isOpen={showLocationModal}
         onClose={() => setShowLocationModal(false)}
