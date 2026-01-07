@@ -406,7 +406,7 @@ export default function LandingPage() {
   ];
 
   const footerLinks = [
-    { icon: Building2, label: language === 'ja' ? '会社概要' : 'About Us', href: '/about' },
+    { icon: Building2, label: language === 'ja' ? '会社概要' : 'About Us', href: 'https://www.nobody-inc.jp/' },
     { icon: FileText, label: language === 'ja' ? '利用規約' : 'Terms', href: '/terms' },
     { icon: HelpCircle, label: language === 'ja' ? 'よくある質問' : 'FAQ', href: '/faq' },
     { icon: FileText, label: language === 'ja' ? 'リリースノート' : 'Release Notes', href: '/release-notes' },
