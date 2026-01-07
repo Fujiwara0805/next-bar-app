@@ -34,6 +34,7 @@ import { supabase } from '@/lib/supabase/client';
 import type { Database } from '@/lib/supabase/types';
 import { useLanguage } from '@/lib/i18n/context';
 import { InstantReservationButton } from '@/components/instant-reservation-button';
+import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 
 type Store = Database['public']['Tables']['stores']['Row'];
 
@@ -286,6 +287,10 @@ export default function StoreDetailPage() {
           >
             <X className="w-5 h-5" />
           </Button>
+        </div>
+        {/* パンくずリスト */}
+        <div className="px-4 pb-2">
+          <Breadcrumbs storeName={store.name} />
         </div>
       </header>
 

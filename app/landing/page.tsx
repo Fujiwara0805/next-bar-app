@@ -715,41 +715,6 @@ export default function LandingPage() {
               </a>
             </div>
           </motion.div>
-
-          {/* Demo Screen */}
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.5 }}
-            className="mt-16 relative"
-          >
-            <div
-              className="rounded-2xl overflow-hidden"
-              style={{
-                background: `${colors.surface}80`,
-                border: `1px solid ${colors.accentDark}40`,
-                boxShadow: `0 25px 80px rgba(0,0,0,0.5), 0 0 40px ${colors.accent}10`,
-              }}
-            >
-              <div className="relative aspect-video">
-                <img
-                  src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761800365/79FA3ECA-EEF6-4627-808B-E157EA37FBF4_1_201_a_atzbik.jpg"
-                  alt="App Demo"
-                  className="w-full h-full object-cover"
-                />
-                <div
-                  className="absolute inset-0 flex items-end justify-center pb-10"
-                  style={{
-                    background: `linear-gradient(to top, ${colors.background} 0%, ${colors.background}80 30%, transparent 60%)`,
-                  }}
-                >
-                  <p className="text-xl sm:text-2xl md:text-3xl font-bold text-center px-4" style={{ color: colors.text }}>
-                    {t('hero.demo_text')}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </motion.div>
         </div>
 
         {/* Gold line divider */}
@@ -909,7 +874,7 @@ export default function LandingPage() {
                 title: t('how_to.step1_title'),
                 titleEn: 'Check',
                 description: t('how_to.step1_desc'),
-                image: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1761800378/27F4F4F4-749D-4141-BEDC-5B93091BA278_1_102_o_juxfgv.jpg',
+                image: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1767761406/26ef2985-e460-4b06-a245-8e5e0f65a459_lk9q5d.png',
               },
               {
                 step: '02',
@@ -917,7 +882,7 @@ export default function LandingPage() {
                 title: t('how_to.step2_title'),
                 titleEn: 'Details',
                 description: t('how_to.step2_desc'),
-                image: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1761802358/%E5%90%8D%E7%A7%B0%E6%9C%AA%E8%A8%AD%E5%AE%9A%E3%81%AE%E3%83%86%E3%82%99%E3%82%B5%E3%82%99%E3%82%A4%E3%83%B3_ekfjbe.png',
+                image: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1767762176/Gemini_Generated_Image_4tiamt4tiamt4tia_bnxmn9.png',
               },
               {
                 step: '03',
@@ -927,7 +892,7 @@ export default function LandingPage() {
                 description: language === 'ja'
                   ? '自動音声で予約。10・20・30分後から選択可能。'
                   : 'Auto-voice reserves. Choose 10, 20, or 30 min.',
-                image: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1763549853/%E3%82%B9%E3%82%AF%E3%83%AA%E3%83%BC%E3%83%B3%E3%82%B7%E3%83%A7%E3%83%83%E3%83%88_2025-11-19_19.56.23_slrq2t.png',
+                image: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1767763441/Gemini_Generated_Image_3qcvnq3qcvnq3qcv_acv91j.png',
                 highlight: true,
               },
             ].map((item, index) => {

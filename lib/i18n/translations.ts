@@ -19,7 +19,7 @@ export const translations = {
     hero: {
       title: '大分の二軒目探しは',
       title_app: 'NIKENME+（ニケンメプラス）',
-      subtitle: '「夜の続きは、ここから」',
+      subtitle: '「楽しみは、これから」',
       subtitle2: '次のお店を今すぐマップで探そう',
       cta: 'マップを見る',
       demo_text: '地図上で空席状況を確認',
