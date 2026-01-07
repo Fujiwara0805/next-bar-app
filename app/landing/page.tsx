@@ -534,7 +534,7 @@ export default function LandingPage() {
                 style={{ background: '#4ADE80', boxShadow: '0 0 10px #4ADE80' }}
               />
               <span className="text-sm font-medium" style={{ color: colors.text }}>
-                {language === 'ja' ? '空席のお店があります' : 'Seats available now'}
+                {language === 'ja' ? '空席があります' : 'Seats available now'}
               </span>
             </div>
           </motion.div>
