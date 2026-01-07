@@ -3,13 +3,14 @@
  * ファイルパス: app/(main)/map/page.tsx
  * 
  * 機能: マップページ
- *       【最適化】初回ロード時のみis_open更新APIを呼び出す
+ *       【最適化】位置情報取得の高パフォーマンス化
+ *       【デザイン】LP統一カラーパレット適用
  * ============================================
  */
 
 'use client';
 
-import { useEffect, useState, Suspense, useRef } from 'react';
+import { useEffect, useState, Suspense, useRef, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, List, ExternalLink, Building2, RefreshCw, Home, Star } from 'lucide-react';
@@ -22,15 +23,193 @@ import { useLanguage } from '@/lib/i18n/context';
 
 type Store = Database['public']['Tables']['stores']['Row'];
 
+// ============================================================================
+// デザイントークン（LP統一）
+// ============================================================================
+
+const colors = {
+  background: '#2B1F1A',
+  surface: '#1C1C1C',
+  accent: '#C89B3C',
+  accentDark: '#8A6A2F',
+  text: '#F2EBDD',
+  textMuted: 'rgba(242, 235, 221, 0.6)',
+  textSubtle: 'rgba(242, 235, 221, 0.4)',
+};
+
+// ============================================================================
+// 定数
+// ============================================================================
+
+const LOCATION_CACHE_KEY = 'nikenme_user_location';
+const LOCATION_CACHE_MAX_AGE = 5 * 60 * 1000; // 5分
+
+const DEFAULT_LOCATION = {
+  lat: 33.2382,
+  lng: 131.6126,
+};
+
+// ============================================================================
+// 位置情報キャッシュヘルパー
+// ============================================================================
+
+interface LocationCacheData {
+  lat: number;
+  lng: number;
+  accuracy?: number;
+  timestamp: number;
+  isDefault?: boolean;
+}
+
+function getLocationCache(): LocationCacheData | null {
+  if (typeof window === 'undefined') return null;
+  
+  try {
+    const data = localStorage.getItem(LOCATION_CACHE_KEY);
+    if (!data) return null;
+    
+    const parsed: LocationCacheData = JSON.parse(data);
+    const age = Date.now() - parsed.timestamp;
+    
+    if (age < LOCATION_CACHE_MAX_AGE) {
+      return parsed;
+    }
+    
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function setLocationCache(lat: number, lng: number, accuracy?: number, isDefault?: boolean): void {
+  if (typeof window === 'undefined') return;
+  
+  try {
+    const data: LocationCacheData = {
+      lat,
+      lng,
+      accuracy,
+      timestamp: Date.now(),
+      isDefault,
+    };
+    localStorage.setItem(LOCATION_CACHE_KEY, JSON.stringify(data));
+  } catch {
+    // ignore
+  }
+}
+
+// ============================================================================
+// 最適化された位置情報取得フック（無限ループ修正版）
+// ============================================================================
+
+function useOptimizedLocation() {
+  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const isInitializedRef = useRef(false);
+  const isUpdatingRef = useRef(false);
+
+  // バックグラウンドで位置を更新する関数（依存なし）
+  const updateLocationInBackground = useCallback(() => {
+    if (isUpdatingRef.current) return;
+    if (!navigator.geolocation) {
+      setLocationCache(DEFAULT_LOCATION.lat, DEFAULT_LOCATION.lng, undefined, true);
+      return;
+    }
+
+    isUpdatingRef.current = true;
+
+    let resolved = false;
+
+    // 3秒で強制タイムアウト
+    const timeoutId = setTimeout(() => {
+      if (!resolved) {
+        resolved = true;
+        isUpdatingRef.current = false;
+        console.log('Location background update timeout');
+      }
+    }, 3000);
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        if (!resolved) {
+          resolved = true;
+          clearTimeout(timeoutId);
+          isUpdatingRef.current = false;
+          
+          const newLocation = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          };
+          
+          setLocation(newLocation);
+          setLocationCache(newLocation.lat, newLocation.lng, position.coords.accuracy, false);
+        }
+      },
+      (error) => {
+        if (!resolved) {
+          resolved = true;
+          clearTimeout(timeoutId);
+          isUpdatingRef.current = false;
+          console.warn('Background location error:', error.message);
+          
+          // エラー時はデフォルト位置をキャッシュ（現在の位置がなければ）
+          setLocationCache(DEFAULT_LOCATION.lat, DEFAULT_LOCATION.lng, undefined, true);
+        }
+      },
+      {
+        enableHighAccuracy: false,
+        timeout: 2500,
+        maximumAge: 300000,
+      }
+    );
+  }, []);
+
+  // 初回マウント時のみ実行
+  useEffect(() => {
+    if (isInitializedRef.current) return;
+    isInitializedRef.current = true;
+
+    // 1. キャッシュから即座に位置を設定
+    const cached = getLocationCache();
+    if (cached && !cached.isDefault) {
+      setLocation({ lat: cached.lat, lng: cached.lng });
+      setIsLoading(false);
+      // バックグラウンドで更新を試みる
+      updateLocationInBackground();
+      return;
+    }
+
+    // 2. キャッシュがない場合はデフォルト位置を即座に設定
+    setLocation(DEFAULT_LOCATION);
+    setIsLoading(false);
+
+    // 3. バックグラウンドで実際の位置を取得
+    updateLocationInBackground();
+  }, [updateLocationInBackground]);
+
+  // 強制リフレッシュ関数
+  const refreshLocation = useCallback(() => {
+    updateLocationInBackground();
+  }, [updateLocationInBackground]);
+
+  return { location, isLoading, refreshLocation };
+}
+
+// ============================================================================
+// メインコンポーネント
+// ============================================================================
+
 function MapPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t } = useLanguage();
   const [stores, setStores] = useState<Store[]>([]);
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);
-  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+
+  // 最適化された位置情報フック
+  const { location: userLocation, refreshLocation } = useOptimizedLocation();
 
   // 初回ロード完了フラグ（is_open更新の重複防止）
   const isOpenUpdatedRef = useRef(false);
@@ -66,11 +245,9 @@ function MapPageContent() {
     const shouldRefresh = searchParams?.get('refresh') === 'true';
     const fromLanding = searchParams?.get('from') === 'landing';
     
-    // 初回ロードまたはLPからの遷移時にデータ取得
     const loadData = async () => {
       setLoading(true);
       
-      // LPからの遷移時は強制更新を実行（更新ボタン押下と同じ挙動）
       if (fromLanding || shouldRefresh) {
         try {
           const res = await fetch('/api/stores/update-is-open', {
@@ -86,9 +263,7 @@ function MapPageContent() {
       }
       
       await fetchStoresOnly();
-      loadUserLocation();
       
-      // クエリパラメータをクリア
       if (shouldRefresh || fromLanding) {
         router.replace('/map', { scroll: false });
       }
@@ -117,10 +292,11 @@ function MapPageContent() {
     };
   }, [searchParams, router]);
 
+  // ページ復帰時の処理
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
-        loadUserLocation();
+        refreshLocation();
         fetchStoresOnly();
       }
     };
@@ -130,7 +306,7 @@ function MapPageContent() {
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, []);
+  }, [refreshLocation]);
 
   const fetchStoresOnly = async () => {
     try {
@@ -148,57 +324,11 @@ function MapPageContent() {
     }
   };
 
-  const loadUserLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const location = {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          };
-          setUserLocation(location);
-          localStorage.setItem('userLocation', JSON.stringify(location));
-        },
-        (error) => {
-          console.error('Error getting location:', error);
-          const savedLocation = localStorage.getItem('userLocation');
-          if (savedLocation) {
-            try {
-              const location = JSON.parse(savedLocation);
-              setUserLocation(location);
-              return;
-            } catch (e) {
-              console.error('Failed to parse saved location');
-            }
-          }
-          setUserLocation({ lat: 33.2382, lng: 131.6126 });
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 0,
-        }
-      );
-    } else {
-      const savedLocation = localStorage.getItem('userLocation');
-      if (savedLocation) {
-        try {
-          const location = JSON.parse(savedLocation);
-          setUserLocation(location);
-          return;
-        } catch (e) {
-          console.error('Failed to parse saved location');
-        }
-      }
-      setUserLocation({ lat: 33.2382, lng: 131.6126 });
-    }
-  };
-
-  // 更新ボタン押下時: forceUpdate: true で強制更新
+  // 更新ボタン押下時
   const handleRefresh = async () => {
     setRefreshing(true);
     try {
-      loadUserLocation();
+      refreshLocation();
 
       const res = await fetch('/api/stores/update-is-open', {
         method: 'POST',
@@ -267,8 +397,11 @@ function MapPageContent() {
   };
 
   return (
-    <div className="relative h-screen flex flex-col touch-manipulation">
-      {/* ヘッダー */}
+    <div 
+      className="relative h-screen flex flex-col touch-manipulation"
+      style={{ background: colors.background }}
+    >
+      {/* ヘッダー（LP統一デザイン） */}
       <header className="absolute top-0 left-0 right-0 z-10 pt-4 sm:pt-6 px-3 sm:px-4 safe-top pointer-events-none">
         <motion.div
           initial={{ y: -20, opacity: 0 }}
@@ -285,19 +418,19 @@ function MapPageContent() {
               >
                 <Button
                   onClick={() => router.push('/landing')}
-                  className="flex flex-col items-center justify-center gap-1 px-3 py-2 mt-12 touch-manipulation active:scale-95 rounded-lg"
+                  className="flex flex-col items-center justify-center gap-1 px-3 py-2 mt-12 touch-manipulation active:scale-95 rounded-xl"
                   style={{
-                    background: 'rgba(5,5,5,0.7)',
+                    background: colors.surface,
                     backdropFilter: 'blur(20px)',
-                    border: '1px solid rgba(245,158,11,0.3)',
-                    boxShadow: '0 0 20px rgba(245,158,11,0.2)',
+                    border: `1px solid ${colors.accentDark}60`,
+                    boxShadow: `0 4px 20px rgba(0,0,0,0.4), 0 0 15px ${colors.accent}15`,
                     minWidth: '56px',
                     minHeight: '56px',
                   }}
                   title={t('map.home')}
                 >
-                  <Home className="w-5 h-5" style={{ color: '#F59E0B' }} />
-                  <span className="text-[10px] font-bold" style={{ color: '#F59E0B' }}>
+                  <Home className="w-5 h-5" style={{ color: colors.accent }} />
+                  <span className="text-[10px] font-bold" style={{ color: colors.accent }}>
                     {t('map.home')}
                   </span>
                 </Button>
@@ -311,19 +444,19 @@ function MapPageContent() {
               >
                 <Button
                   onClick={() => router.push('/store-list')}
-                  className="flex flex-col items-center justify-center gap-1 px-3 py-2 touch-manipulation active:scale-95 rounded-lg"
+                  className="flex flex-col items-center justify-center gap-1 px-3 py-2 touch-manipulation active:scale-95 rounded-xl"
                   style={{
-                    background: 'rgba(5,5,5,0.7)',
+                    background: colors.surface,
                     backdropFilter: 'blur(20px)',
-                    border: '1px solid rgba(245,158,11,0.3)',
-                    boxShadow: '0 0 20px rgba(245,158,11,0.2)',
+                    border: `1px solid ${colors.accentDark}60`,
+                    boxShadow: `0 4px 20px rgba(0,0,0,0.4), 0 0 15px ${colors.accent}15`,
                     minWidth: '56px',
                     minHeight: '56px',
                   }}
                   title={t('map.store_list')}
                 >
-                  <List className="w-5 h-5" style={{ color: '#F59E0B' }} />
-                  <span className="text-[10px] font-bold" style={{ color: '#F59E0B' }}>
+                  <List className="w-5 h-5" style={{ color: colors.accent }} />
+                  <span className="text-[10px] font-bold" style={{ color: colors.accent }}>
                     {t('map.store_list')}
                   </span>
                 </Button>
@@ -338,12 +471,12 @@ function MapPageContent() {
                 <Button
                   onClick={handleRefresh}
                   disabled={refreshing}
-                  className="flex flex-col items-center justify-center gap-1 px-3 py-2 touch-manipulation active:scale-95 rounded-lg"
+                  className="flex flex-col items-center justify-center gap-1 px-3 py-2 touch-manipulation active:scale-95 rounded-xl"
                   style={{
-                    background: 'rgba(5,5,5,0.7)',
+                    background: colors.surface,
                     backdropFilter: 'blur(20px)',
-                    border: '1px solid rgba(245,158,11,0.3)',
-                    boxShadow: '0 0 20px rgba(245,158,11,0.2)',
+                    border: `1px solid ${colors.accentDark}60`,
+                    boxShadow: `0 4px 20px rgba(0,0,0,0.4), 0 0 15px ${colors.accent}15`,
                     minWidth: '56px',
                     minHeight: '56px',
                     opacity: refreshing ? 0.6 : 1,
@@ -352,9 +485,9 @@ function MapPageContent() {
                 >
                   <RefreshCw 
                     className={`w-5 h-5 ${refreshing ? 'animate-spin' : ''}`}
-                    style={{ color: '#F59E0B' }}
+                    style={{ color: colors.accent }}
                   />
-                  <span className="text-[10px] font-bold" style={{ color: '#F59E0B' }}>
+                  <span className="text-[10px] font-bold" style={{ color: colors.accent }}>
                     {t('map.refresh')}
                   </span>
                 </Button>
@@ -371,7 +504,7 @@ function MapPageContent() {
         onStoreClick={setSelectedStore}
       />
 
-      {/* 店舗詳細カード */}
+      {/* 店舗詳細カード（LP統一デザイン） */}
       <AnimatePresence>
         {selectedStore && (
           <motion.div
@@ -379,10 +512,14 @@ function MapPageContent() {
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 100, opacity: 0 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="fixed bottom-0 left-0 right-0 z-30 bg-card shadow-lg border-t safe-bottom touch-manipulation"
+            className="fixed bottom-0 left-0 right-0 z-30 safe-bottom touch-manipulation"
           >
             <Card 
-              className="rounded-t-3xl rounded-b-none border-0 cursor-pointer active:bg-muted/50 transition-colors"
+              className="rounded-t-3xl rounded-b-none border-0 cursor-pointer transition-colors"
+              style={{
+                background: colors.surface,
+                borderTop: `1px solid ${colors.accentDark}40`,
+              }}
               onClick={() => router.push(`/store/${selectedStore.id}`)}
             >
               <div className="p-4 space-y-3">
@@ -391,21 +528,31 @@ function MapPageContent() {
                     <img
                       src={selectedStore.image_urls[0]}
                       alt={selectedStore.name}
-                      className="w-24 h-24 rounded-lg object-cover flex-shrink-0"
+                      className="w-24 h-24 rounded-xl object-cover flex-shrink-0"
+                      style={{ border: `1px solid ${colors.accentDark}40` }}
                     />
                   ) : (
-                    <div className="w-24 h-24 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
-                      <Building2 className="w-12 h-12 text-muted-foreground" />
+                    <div 
+                      className="w-24 h-24 rounded-xl flex items-center justify-center flex-shrink-0"
+                      style={{ background: colors.background }}
+                    >
+                      <Building2 className="w-12 h-12" style={{ color: colors.textMuted }} />
                     </div>
                   )}
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
-                      <h3 className="font-bold text-lg line-clamp-1">{selectedStore.name}</h3>
+                      <h3 
+                        className="font-bold text-lg line-clamp-1"
+                        style={{ color: colors.text }}
+                      >
+                        {selectedStore.name}
+                      </h3>
                       <Button
                         variant="ghost"
                         size="icon"
                         className="flex-shrink-0 -mt-1"
+                        style={{ color: colors.textMuted }}
                         onClick={(e) => {
                           e.stopPropagation();
                           setSelectedStore(null);
@@ -423,17 +570,27 @@ function MapPageContent() {
                               key={star}
                               className={`w-4 h-4 ${
                                 star <= Math.round(selectedStore.google_rating!)
-                                  ? 'fill-yellow-400 text-yellow-400'
-                                  : 'fill-gray-300 text-gray-300'
+                                  ? 'fill-amber-400 text-amber-400'
+                                  : 'text-gray-600'
                               }`}
+                              style={{
+                                fill: star <= Math.round(selectedStore.google_rating!) ? colors.accent : 'transparent',
+                                color: star <= Math.round(selectedStore.google_rating!) ? colors.accent : colors.textSubtle,
+                              }}
                             />
                           ))}
                         </div>
-                        <span className="text-sm font-bold">
+                        <span 
+                          className="text-sm font-bold"
+                          style={{ color: colors.text }}
+                        >
                           {selectedStore.google_rating.toFixed(1)}
                         </span>
                         {selectedStore.google_reviews_count && (
-                          <span className="text-xs text-muted-foreground">
+                          <span 
+                            className="text-xs"
+                            style={{ color: colors.textMuted }}
+                          >
                             ({selectedStore.google_reviews_count})
                           </span>
                         )}
@@ -441,7 +598,10 @@ function MapPageContent() {
                     )}
 
                     {userLocation && (
-                      <p className="text-sm text-muted-foreground font-bold">
+                      <p 
+                        className="text-sm font-bold"
+                        style={{ color: colors.textMuted }}
+                      >
                         徒歩およそ{calculateWalkingTime(calculateDistance(
                           userLocation.lat,
                           userLocation.lng,
@@ -451,12 +611,13 @@ function MapPageContent() {
                       </p>
                     )}
 
-                    {/* Googleマップで開く - <a>タグ修正 */}
+                    {/* Googleマップで開く */}
                     <a
                       href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedStore.name)}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-sm text-primary hover:underline font-bold"
+                      className="inline-flex items-center gap-1 text-sm hover:underline font-bold"
+                      style={{ color: colors.accent }}
                       onClick={(e) => e.stopPropagation()}
                     >
                       {t('map.open_in_google_maps')}
@@ -469,7 +630,10 @@ function MapPageContent() {
                         alt={getVacancyLabel(selectedStore.vacancy_status)}
                         className="w-6 h-6"
                       />
-                      <span className="text-xl font-bold">
+                      <span 
+                        className="text-xl font-bold"
+                        style={{ color: colors.text }}
+                      >
                         {getVacancyLabel(selectedStore.vacancy_status)}
                       </span>
                     </div>
@@ -477,8 +641,14 @@ function MapPageContent() {
                 </div>
 
                 {selectedStore.status_message && (
-                  <div className="pt-2 border-t border-gray-800">
-                    <p className="text-sm text-muted-foreground font-bold line-clamp-2">
+                  <div 
+                    className="pt-2"
+                    style={{ borderTop: `1px solid ${colors.accentDark}30` }}
+                  >
+                    <p 
+                      className="text-sm font-bold line-clamp-2"
+                      style={{ color: colors.textMuted }}
+                    >
                       {selectedStore.status_message}
                     </p>
                   </div>
@@ -491,8 +661,12 @@ function MapPageContent() {
                     e.stopPropagation();
                     router.push(`/store/${selectedStore.id}`);
                   }}
-                  className="w-full py-3 px-4 rounded-lg font-bold text-white transition-colors touch-manipulation"
-                  style={{ backgroundColor: '#2c5f6f' }}
+                  className="w-full py-3.5 px-4 rounded-xl font-bold transition-colors touch-manipulation"
+                  style={{ 
+                    background: `linear-gradient(135deg, ${colors.accent}, ${colors.accentDark})`,
+                    color: colors.background,
+                    boxShadow: `0 4px 15px ${colors.accent}30`,
+                  }}
                 >
                   {t('map.view_details')}
                 </motion.button>
@@ -502,8 +676,15 @@ function MapPageContent() {
         )}
       </AnimatePresence>
 
-      {/* 凡例 */}
-      <div className="fixed bottom-24 left-4 z-20 bg-card/90 backdrop-blur-sm rounded-lg shadow-lg p-3 safe-bottom pointer-events-auto">
+      {/* 凡例（LP統一デザイン） */}
+      <div 
+        className="fixed bottom-24 left-4 z-20 rounded-xl shadow-lg p-3 safe-bottom pointer-events-auto"
+        style={{
+          background: `${colors.surface}F0`,
+          backdropFilter: 'blur(12px)',
+          border: `1px solid ${colors.accentDark}40`,
+        }}
+      >
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <img
@@ -511,7 +692,7 @@ function MapPageContent() {
               alt={t('map.vacant')}
               className="w-6 h-6"
             />
-            <span className="text-sm font-bold" style={{ color: '#2a505f' }}>{t('map.vacant')}</span>
+            <span className="text-sm font-bold" style={{ color: colors.text }}>{t('map.vacant')}</span>
           </div>
           <div className="flex items-center gap-2">
             <img
@@ -519,7 +700,7 @@ function MapPageContent() {
               alt={t('map.moderate')}
               className="w-6 h-6"
             />
-            <span className="text-sm font-bold" style={{ color: '#2a505f' }}>{t('map.moderate')}</span>
+            <span className="text-sm font-bold" style={{ color: colors.text }}>{t('map.moderate')}</span>
           </div>
           <div className="flex items-center gap-2">
             <img
@@ -527,7 +708,7 @@ function MapPageContent() {
               alt={t('map.full')}
               className="w-6 h-6"
             />
-            <span className="text-sm font-bold" style={{ color: '#2a505f' }}>{t('map.full')}</span>
+            <span className="text-sm font-bold" style={{ color: colors.text }}>{t('map.full')}</span>
           </div>
           <div className="flex items-center gap-2">
             <img
@@ -535,7 +716,7 @@ function MapPageContent() {
               alt={t('map.closed')}
               className="w-6 h-6"
             />
-            <span className="text-sm font-bold" style={{ color: '#2a505f' }}>{t('map.closed')}</span>
+            <span className="text-sm font-bold" style={{ color: colors.text }}>{t('map.closed')}</span>
           </div>
         </div>
       </div>
@@ -543,16 +724,49 @@ function MapPageContent() {
   );
 }
 
+// ============================================================================
+// ローディングフォールバック（LP統一デザイン）
+// ============================================================================
+
+function MapPageLoading() {
+  return (
+    <div 
+      className="flex items-center justify-center h-screen"
+      style={{ background: colors.background }}
+    >
+      <div className="text-center">
+        <div className="relative w-14 h-14 mx-auto mb-5">
+          <div 
+            className="absolute inset-0 rounded-full"
+            style={{ border: `2px solid ${colors.accentDark}40` }}
+          />
+          <div 
+            className="absolute inset-0 rounded-full animate-spin"
+            style={{ 
+              border: '2px solid transparent',
+              borderTopColor: colors.accent,
+            }}
+          />
+          <div 
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full"
+            style={{ background: colors.accent }}
+          />
+        </div>
+        <p style={{ color: colors.textMuted }} className="text-sm font-medium">
+          読み込み中...
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// エクスポート
+// ============================================================================
+
 export default function MapPage() {
   return (
-    <Suspense fallback={
-      <div className="flex items-center justify-center h-screen bg-gray-900">
-        <div className="text-center">
-          <div className="w-12 h-12 border-3 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-400 text-sm">読み込み中...</p>
-        </div>
-      </div>
-    }>
+    <Suspense fallback={<MapPageLoading />}>
       <MapPageContent />
     </Suspense>
   );
