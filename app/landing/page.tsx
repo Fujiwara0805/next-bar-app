@@ -41,7 +41,7 @@ const colors = {
   background: '#2B1F1A',
   surface: '#1C1C1C',
   accent: '#C89B3C',
-  accentDark: '#8A6A2F',
+  accentDark: '#595b5a',
   text: '#F2EBDD',
   textMuted: 'rgba(242, 235, 221, 0.6)',
   textSubtle: 'rgba(242, 235, 221, 0.4)',
@@ -455,7 +455,6 @@ export default function LandingPage() {
       }));
       setLocationPermission('denied');
       setShowLocationModal(false);
-      router.push('/map?from=landing');
     }
   };
 
@@ -1311,7 +1310,7 @@ export default function LandingPage() {
               className="text-center mt-10"
             >
               <Button
-                onClick={handleMapClick}
+                onClick={() => router.push('/store-list')}
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-full font-medium transition-all hover:scale-105 min-h-[48px]"
                 style={{
                   background: `${colors.accent}15`,
@@ -1485,7 +1484,7 @@ export default function LandingPage() {
               disabled={locationPermission === 'loading'}
               className="w-full py-6 text-lg font-semibold rounded-xl transition-all hover:scale-[1.02] disabled:opacity-70 disabled:cursor-not-allowed"
               style={{
-                background: `linear-gradient(135deg, ${colors.accent}, ${colors.accentDark})`,
+                background: `linear-gradient(135deg, #E8CB6C, #B29A5F)`,
                 color: colors.background,
                 boxShadow: `0 0 30px ${colors.accent}30`,
               }}
