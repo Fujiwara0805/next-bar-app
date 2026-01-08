@@ -83,10 +83,10 @@ function determineOpenStatusAndVacancy(
   }
 
   // 3. 営業中の場合
-  // 現在が 'closed' の場合は 'vacant' に戻すが、それ以外（混雑中など）は維持する
+  // 現在が 'closed' または null の場合は 'open' に設定し、それ以外（'vacant'、'full'など）は維持する
   const newVacancyStatus = 
     (currentVacancyStatus === 'closed' || !currentVacancyStatus)
-      ? 'vacant'
+      ? 'open'
       : currentVacancyStatus;
 
   return {
