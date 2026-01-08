@@ -814,8 +814,6 @@ export function MapView({
   
   // 現在地マーカー関連
   const userMarkerRef = useRef<google.maps.Marker | null>(null);
-  const userAccuracyCircleRef = useRef<google.maps.Circle | null>(null);
-  const userBeamRef = useRef<google.maps.Polygon | null>(null);
   
   const boundsChangeTimerRef = useRef<NodeJS.Timeout | null>(null);
   const isMountedRef = useRef(true);
@@ -1163,90 +1161,43 @@ export function MapView({
   }, [stores, onStoreClick, mapReady]);
 
   // ============================================================================
-  // 【修正】Google純正ライクな現在地マーカー（青いドット）
+  // 方角付きユーザー位置マーカー（コンパス有効時のみ方角を表示）
   // ============================================================================
 
   useEffect(() => {
     if (!mapInstanceRef.current || !mapReady || !currentPosition) return;
 
     const map = mapInstanceRef.current;
-    const accuracy = geoLocation?.accuracy || 30;
-    const heading = orientation.permissionGranted ? orientation.alpha : 0;
-    const showBeam = compassEnabled && orientation.permissionGranted;
-
-    // 精度サークルの更新または作成
-    if (userAccuracyCircleRef.current) {
-      userAccuracyCircleRef.current.setCenter(currentPosition);
-      userAccuracyCircleRef.current.setRadius(Math.min(Math.max(accuracy, 20), 100));
-    } else {
-      userAccuracyCircleRef.current = new google.maps.Circle({
-        map,
-        center: currentPosition,
-        radius: Math.min(Math.max(accuracy, 20), 100),
-        fillColor: colors.googleBlue,
-        fillOpacity: 0.15,
-        strokeColor: colors.googleBlue,
-        strokeOpacity: 0.3,
-        strokeWeight: 1,
-        zIndex: 998,
-      });
-    }
-
-    // 方向ビームの更新または作成/削除
-    if (showBeam) {
-      const beamPoints = calculateBeamPoints(currentPosition, heading);
-      
-      if (userBeamRef.current) {
-        userBeamRef.current.setPath(beamPoints);
-        userBeamRef.current.setMap(map);
-      } else {
-        userBeamRef.current = new google.maps.Polygon({
-          map,
-          paths: beamPoints,
-          fillColor: colors.googleBlue,
-          fillOpacity: 0.25,
-          strokeWeight: 0,
-          zIndex: 999,
-        });
-      }
-    } else {
-      if (userBeamRef.current) {
-        userBeamRef.current.setMap(null);
-      }
-    }
-
-    // 【修正】Google純正ライクな青いドットマーカー
+    const userPosition = new google.maps.LatLng(currentPosition.lat, currentPosition.lng);
+    
+    // コンパスが有効な場合のみ方角を表示、それ以外はnull（方角なし）
+    const headingForIcon = compassEnabled && orientation.permissionGranted ? orientation.alpha : null;
+    const directionalIcon = createDirectionalLocationIcon(headingForIcon);
+    
     if (userMarkerRef.current) {
-      userMarkerRef.current.setPosition(currentPosition);
+      userMarkerRef.current.setPosition(userPosition);
+      userMarkerRef.current.setIcon(directionalIcon);
+      userMarkerRef.current.setMap(map);
+      userMarkerRef.current.setZIndex(9999);
     } else {
-      // Google純正の現在地マーカーを再現するSVGアイコン
-      userMarkerRef.current = new google.maps.Marker({
-        position: currentPosition,
-        map,
-        icon: {
-          path: google.maps.SymbolPath.CIRCLE,
-          scale: 8,
-          fillColor: colors.googleBlue,
-          fillOpacity: 1,
-          strokeColor: colors.white,
-          strokeWeight: 2.5,
-        },
-        zIndex: 1000,
-        clickable: false,
-        title: '現在地',
-      });
+      try {
+        const marker = new google.maps.Marker({
+          position: userPosition,
+          map,
+          title: "あなたの現在地",
+          icon: directionalIcon,
+          zIndex: 9999,
+        });
+        userMarkerRef.current = marker;
+      } catch (error) {
+        console.error('Failed to create user location marker:', error);
+      }
     }
-
-    // Cleanup
-    return () => {
-      // コンポーネントがアンマウントされる時のみ削除
-    };
   }, [
     currentPosition,
-    orientation.permissionGranted,
-    geoLocation?.accuracy,
     mapReady,
     compassEnabled,
+    orientation.permissionGranted,
     orientation.alpha,
   ]);
 
@@ -1267,14 +1218,6 @@ export function MapView({
       if (userMarkerRef.current) {
         userMarkerRef.current.setMap(null);
         userMarkerRef.current = null;
-      }
-      if (userAccuracyCircleRef.current) {
-        userAccuracyCircleRef.current.setMap(null);
-        userAccuracyCircleRef.current = null;
-      }
-      if (userBeamRef.current) {
-        userBeamRef.current.setMap(null);
-        userBeamRef.current = null;
       }
     };
   }, []);
@@ -1415,5 +1358,42 @@ function calculateBeamPoints(
 
   return [centerPoint, leftPoint, rightPoint];
 }
+
+// ============================================================================
+// 方角付き現在地マーカーアイコンを作成
+// ============================================================================
+
+const createDirectionalLocationIcon = (heading: number | null): google.maps.Icon => {
+  const size = 48;
+  const centerX = size / 2;
+  const centerY = size / 2;
+  const outerRadius = 20;
+  const innerRadius = 10;
+  const angle = heading !== null ? heading : 0;
+  const angleRad = (angle - 90) * Math.PI / 180;
+  const tipX = centerX + Math.cos(angleRad) * outerRadius;
+  const tipY = centerY + Math.sin(angleRad) * outerRadius;
+  const baseAngle1 = angleRad + Math.PI * 0.75;
+  const baseAngle2 = angleRad - Math.PI * 0.75;
+  const baseRadius = innerRadius + 4;
+  const base1X = centerX + Math.cos(baseAngle1) * baseRadius;
+  const base1Y = centerY + Math.sin(baseAngle1) * baseRadius;
+  const base2X = centerX + Math.cos(baseAngle2) * baseRadius;
+  const base2Y = centerY + Math.sin(baseAngle2) * baseRadius;
+  
+  const svgIcon = `<svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">
+    <defs><filter id="shadow" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="0" dy="1" stdDeviation="2" flood-opacity="0.3"/></filter></defs>
+    <polygon points="${tipX},${tipY} ${base1X},${base1Y} ${base2X},${base2Y}" fill="#4285F4" fill-opacity="0.4" filter="url(#shadow)"/>
+    <circle cx="${centerX}" cy="${centerY}" r="${innerRadius + 6}" fill="#4285F4" fill-opacity="0.2"/>
+    <circle cx="${centerX}" cy="${centerY}" r="${innerRadius}" fill="white" filter="url(#shadow)"/>
+    <circle cx="${centerX}" cy="${centerY}" r="${innerRadius - 3}" fill="#4285F4"/>
+  </svg>`;
+  
+  return {
+    url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svgIcon),
+    scaledSize: new google.maps.Size(size, size),
+    anchor: new google.maps.Point(size / 2, size / 2),
+  };
+};
 
 export default MapView;
