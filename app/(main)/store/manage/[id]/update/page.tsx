@@ -63,21 +63,21 @@ const VACANCY_OPTIONS = [
     icon: null,
   },
   {
-    value: 'moderate',
-    label: 'やや混雑',
-    description: '席は空いていますが混んでいます',
-    color: 'text-yellow-600',
-    bgColor: 'bg-yellow-50',
-    borderColor: 'border-yellow-200',
-    icon: null,
-  },
-  {
     value: 'full',
     label: '満席',
     description: '現在満席です',
     color: 'text-red-600',
     bgColor: 'bg-red-50',
     borderColor: 'border-red-200',
+    icon: null,
+  },
+  {
+    value: 'open',
+    label: '営業中',
+    description: '営業中です。',
+    color: 'text-yellow-600',
+    bgColor: 'bg-yellow-50',
+    borderColor: 'border-yellow-200',
     icon: null,
   },
   {
@@ -100,7 +100,7 @@ export default function StoreUpdatePage() {
   const [store, setStore] = useState<Store | null>(null);
   
   // 店舗状況フォーム
-  const [vacancyStatus, setVacancyStatus] = useState<'vacant' | 'moderate' | 'full' | 'closed'>('closed');
+  const [vacancyStatus, setVacancyStatus] = useState<'vacant' | 'open' | 'full' | 'closed'>('closed');
   const [statusMessage, setStatusMessage] = useState('');
   const [maleCount, setMaleCount] = useState(0);
   const [femaleCount, setFemaleCount] = useState(0);
@@ -167,7 +167,7 @@ export default function StoreUpdatePage() {
           setVacancyStatus('closed');
           setIsManualClosed(true);
         } else {
-          setVacancyStatus(storeData.vacancy_status as 'vacant' | 'moderate' | 'full' | 'closed');
+          setVacancyStatus(storeData.vacancy_status as 'vacant' | 'open' | 'full' | 'closed');
           setIsManualClosed(false);
         }
         

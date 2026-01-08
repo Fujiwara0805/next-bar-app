@@ -21,16 +21,16 @@ if (!supabaseUrl || !supabaseAnonKey) {
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // 有効なvacancy_statusの値
-const VALID_VACANCY_STATUSES = ['vacant', 'moderate', 'full', 'closed'] as const;
+const VALID_VACANCY_STATUSES = ['vacant', 'open', 'full', 'closed'] as const;
 type VacancyStatus = (typeof VALID_VACANCY_STATUSES)[number];
 
 /**
  * 店舗のvacancy_statusを更新
  * PATCH /api/stores/[id]/vacancy-status
- * Body: { vacancy_status: 'vacant' | 'moderate' | 'full' | 'closed' }
+ * Body: { vacancy_status: 'vacant' | 'open' | 'full' | 'closed' }
  * 
  * ルール:
- * - is_open: true の場合 → vacant, moderate, full に設定可能
+ * - is_open: true の場合 → vacant, open, full に設定可能
  * - is_open: false の場合 → closed のみ設定可能（変更不可）
  */
 export async function PATCH(

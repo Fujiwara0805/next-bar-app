@@ -54,7 +54,7 @@ interface PartnerStore {
   image_urls: string[] | null;
   website_url: string | null;
   description: string | null;
-  vacancy_status: 'vacant' | 'moderate' | 'full' | 'closed';
+  vacancy_status: 'vacant' | 'open' | 'full' | 'closed';
 }
 
 // ===== 位置情報のデフォルト値（大分市中心部） =====

@@ -65,7 +65,7 @@ export interface Database {
           facilities: string[] | null
           image_urls: string[] | null
           is_open: boolean
-          vacancy_status: 'vacant' | 'moderate' | 'full' | 'closed'
+          vacancy_status: 'vacant' | 'open' | 'full' | 'closed'
           status_message: string | null
           male_ratio: number
           female_ratio: number
@@ -111,7 +111,7 @@ export interface Database {
           facilities?: string[] | null
           image_urls?: string[] | null
           is_open?: boolean
-          vacancy_status?: 'vacant' | 'moderate' | 'full' | 'closed'
+          vacancy_status?: 'vacant' | 'open' | 'full' | 'closed'
           status_message?: string | null
           male_ratio?: number
           female_ratio?: number
@@ -149,7 +149,7 @@ export interface Database {
           facilities?: string[] | null
           image_urls?: string[] | null
           is_open?: boolean
-          vacancy_status?: 'vacant' | 'moderate' | 'full' | 'closed'
+          vacancy_status?: 'vacant' | 'open' | 'full' | 'closed'
           status_message?: string | null
           male_ratio?: number
           female_ratio?: number
@@ -276,7 +276,7 @@ export interface ManualCloseDetails {
  */
 export function getDisplayStatus(
   isOpen: boolean,
-  vacancyStatus: 'vacant' | 'moderate' | 'full' | 'closed',
+  vacancyStatus: 'vacant' | 'open' | 'full' | 'closed',
   manualClosed: boolean,
   closedReason: ClosedReason
 ): DisplayStatus {
@@ -310,17 +310,17 @@ export function getDisplayStatus(
       color: '#22c55e', // green-500
       icon: 'check-circle',
     },
-    moderate: {
-      label: 'やや混雑',
-      labelEn: 'Moderate',
-      color: '#f59e0b', // amber-500
-      icon: 'minus-circle',
-    },
     full: {
       label: '満席',
       labelEn: 'Full',
       color: '#ef4444', // red-500
       icon: 'x-circle',
+    },
+    open: {
+      label: '営業中',
+      labelEn: 'Open',
+      color: '#f59e0b', // amber-500
+      icon: 'minus-circle',
     },
   };
 
