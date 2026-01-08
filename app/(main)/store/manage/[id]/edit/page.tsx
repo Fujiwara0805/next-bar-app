@@ -44,6 +44,9 @@ export default function StoreEditPage() {
   const [fetchingStore, setFetchingStore] = useState(true);
   const [geocoding, setGeocoding] = useState(false);
 
+  // 認証チェック完了フラグ
+  const [authChecked, setAuthChecked] = useState(false);
+
   // フォームステート
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -68,7 +71,10 @@ export default function StoreEditPage() {
   const [mapsLoaded, setMapsLoaded] = useState(false);
 
   const fetchStore = useCallback(async () => {
-    if (!user || !params.id) return;
+    // 認証情報が揃っていない場合は早期リターン
+    if (!user || !params.id || !accountType) {
+      return;
+    }
 
     try {
       let query = supabase
@@ -78,20 +84,32 @@ export default function StoreEditPage() {
 
       if (accountType === 'platform') {
         query = query.eq('owner_id', user.id);
-      } else if (accountType === 'store') {
-        if (params.id !== user.id) {
-          toast.error('アクセス権限がありません', { position: 'top-center' });
-          router.push('/login');
-          return;
-        }
       }
+      // 店舗アカウントの場合は、クエリ後にemailで認証チェックを行う
 
       const { data, error } = await query.single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching store:', error);
+        throw error;
+      }
 
       if (data) {
         const storeData = data as Store;
+        
+        // 店舗アカウントの場合、emailで認証ユーザーと店舗を紐づけ確認
+        if (accountType === 'store') {
+          if (storeData.email !== user.email) {
+            console.error('Access denied: email mismatch', {
+              storeEmail: storeData.email,
+              userEmail: user.email,
+            });
+            toast.error('アクセス権限がありません', { position: 'top-center' });
+            router.push('/login');
+            return;
+          }
+        }
+        
         setName(storeData.name);
         setDescription(storeData.description || '');
         setAddress(storeData.address);
@@ -111,39 +129,65 @@ export default function StoreEditPage() {
     } catch (error) {
       console.error('Error fetching store:', error);
       toast.error('店舗情報の取得に失敗しました', { position: 'top-center' });
-      router.push('/store/manage');
+      if (accountType === 'platform') {
+        router.push('/store/manage');
+      } else {
+        router.push('/login');
+      }
     } finally {
       setFetchingStore(false);
     }
   }, [user, params.id, accountType, router]);
 
+  // 認証状態のチェック
   useEffect(() => {
+    // accountTypeがまだ未確定（undefined）の場合は待機
+    if (accountType === undefined) {
+      return;
+    }
+
+    // 認証状態が確定した
+    setAuthChecked(true);
+
+    // 未ログインまたは不正なアカウントタイプの場合はリダイレクト
     if (!accountType || (accountType !== 'platform' && accountType !== 'store')) {
       router.push('/login');
       return;
     }
+  }, [accountType, router]);
+
+  // Google Maps APIの初期化とsessionStorageからのデータ読み込み
+  useEffect(() => {
+    if (!authChecked) return;
 
     // sessionStorageからデータを読み込む（高速化のため）
     try {
       const cachedStore = sessionStorage.getItem(`store_${params.id}`);
       if (cachedStore) {
         const storeData = JSON.parse(cachedStore) as Store;
-        setName(storeData.name);
-        setDescription(storeData.description || '');
-        setAddress(storeData.address);
-        setPhone(storeData.phone || '');
-        setWebsiteUrl(storeData.website_url || '');
-        setEmail(storeData.email);
-        setBusinessHours(storeData.business_hours as string || '');
-        setRegularHoliday(storeData.regular_holiday || '');
-        setBudgetMin(storeData.budget_min || 0);
-        setBudgetMax(storeData.budget_max || 0);
-        setPaymentMethods(storeData.payment_methods || []);
-        setFacilities(storeData.facilities || []);
-        setImageUrls(storeData.image_urls || []);
-        setLatitude(String(storeData.latitude || ''));
-        setLongitude(String(storeData.longitude || ''));
-        setFetchingStore(false);
+        
+        // 店舗アカウントの場合、emailチェック
+        if (accountType === 'store' && storeData.email !== user?.email) {
+          // emailが一致しない場合はキャッシュを使用せず、fetchStoreで再確認
+          console.warn('Cached store email does not match user email, will fetch fresh data');
+        } else {
+          setName(storeData.name);
+          setDescription(storeData.description || '');
+          setAddress(storeData.address);
+          setPhone(storeData.phone || '');
+          setWebsiteUrl(storeData.website_url || '');
+          setEmail(storeData.email);
+          setBusinessHours(storeData.business_hours as string || '');
+          setRegularHoliday(storeData.regular_holiday || '');
+          setBudgetMin(storeData.budget_min || 0);
+          setBudgetMax(storeData.budget_max || 0);
+          setPaymentMethods(storeData.payment_methods || []);
+          setFacilities(storeData.facilities || []);
+          setImageUrls(storeData.image_urls || []);
+          setLatitude(String(storeData.latitude || ''));
+          setLongitude(String(storeData.longitude || ''));
+          setFetchingStore(false);
+        }
       }
     } catch (e) {
       console.error('Failed to load store data from sessionStorage:', e);
@@ -168,12 +212,23 @@ export default function StoreEditPage() {
       script.onload = () => initMaps();
       document.head.appendChild(script);
     }
+  }, [authChecked, accountType, user?.email, params.id]);
 
-    // sessionStorageにデータがない場合のみfetchStoreを実行
-    if (!sessionStorage.getItem(`store_${params.id}`)) {
-      fetchStore();
+  // 認証チェック完了後にデータを取得（sessionStorageにデータがない場合）
+  useEffect(() => {
+    if (!authChecked || !user || !accountType || !params.id) {
+      return;
     }
-  }, [accountType, router, params.id, fetchStore]);
+
+    // アカウントタイプが有効で、まだデータを取得していない場合
+    if ((accountType === 'platform' || accountType === 'store') && fetchingStore) {
+      // sessionStorageにデータがない場合のみfetchStoreを実行
+      const cachedStore = sessionStorage.getItem(`store_${params.id}`);
+      if (!cachedStore) {
+        fetchStore();
+      }
+    }
+  }, [authChecked, user, accountType, params.id, fetchStore, fetchingStore]);
 
   const handleGeocodeAddress = async (): Promise<boolean> => {
     if (!address.trim()) {
@@ -416,16 +471,9 @@ export default function StoreEditPage() {
 
       if (accountType === 'platform') {
         query = query.eq('owner_id', user.id);
-      } else if (accountType === 'store') {
-        if (params.id !== user.id) {
-          toast.error('アクセス権限がありません', { 
-            position: 'top-center',
-            duration: 3000,
-            className: 'bg-gray-100'
-          });
-          return;
-        }
       }
+      // 店舗アカウントの場合、emailでの追加チェックは行わない
+      // （すでにfetchStoreでアクセス権限を確認済み）
 
       const { error } = await query;
 
@@ -464,7 +512,8 @@ export default function StoreEditPage() {
     }
   };
 
-  if (fetchingStore) {
+  // 認証チェック中またはデータ取得中のローディング表示
+  if (!authChecked || fetchingStore) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="text-center">
@@ -944,4 +993,3 @@ export default function StoreEditPage() {
     </div>
   );
 }
-

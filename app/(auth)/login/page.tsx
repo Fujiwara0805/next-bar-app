@@ -45,11 +45,20 @@ export default function LoginPage() {
         router.push('/store/manage');
       } else if (accountType === 'store') {
         // 店舗アカウント
-        router.push(`/store/manage/${store?.id}/update`);
+        // store?.id が取得できない場合はフォールバック
+        if (store?.id) {
+          router.push(`/store/manage/${store.id}/update`);
+        } else {
+          // storeが取得できない場合はログインページに留まるか、エラーハンドリング
+          console.error('Store information not found for store account');
+          toast.error('店舗情報の取得に失敗しました。再度ログインしてください。');
+          return;
+        }
       } else {
         router.push('/map');
       }
     } catch (error) {
+      console.error('Login error:', error);
       toast.error('エラーが発生しました');
     } finally {
       setLoading(false);

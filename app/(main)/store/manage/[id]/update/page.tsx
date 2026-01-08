@@ -7,7 +7,7 @@
  * ============================================
  */
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import {
@@ -99,6 +99,9 @@ export default function StoreUpdatePage() {
   const [fetchingStore, setFetchingStore] = useState(true);
   const [store, setStore] = useState<Store | null>(null);
   
+  // 認証チェック完了フラグ
+  const [authChecked, setAuthChecked] = useState(false);
+  
   // 店舗状況フォーム
   const [vacancyStatus, setVacancyStatus] = useState<'vacant' | 'open' | 'full' | 'closed'>('closed');
   const [statusMessage, setStatusMessage] = useState('');
@@ -120,20 +123,11 @@ export default function StoreUpdatePage() {
   // 臨時休業中かどうかを表示するためのstate
   const [isManualClosed, setIsManualClosed] = useState(false);
 
-  useEffect(() => {
-    // 運営会社アカウントまたは店舗アカウントのみアクセス可能
-    if (!accountType || (accountType !== 'platform' && accountType !== 'store')) {
-      router.push('/login');
+  const fetchStore = useCallback(async () => {
+    // 認証情報が揃っていない場合は早期リターン
+    if (!user || !params.id || !accountType) {
       return;
     }
-
-    fetchStore();
-    fetchReservations();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [accountType, router, params.id]);
-
-  const fetchStore = async () => {
-    if (!user || !params.id) return;
 
     try {
       let query = supabase
@@ -144,21 +138,33 @@ export default function StoreUpdatePage() {
       // 運営会社アカウントの場合はowner_idでフィルタ
       if (accountType === 'platform') {
         query = query.eq('owner_id', user.id);
-      } else if (accountType === 'store') {
-        // 店舗アカウントは自分の店舗のみアクセス可能
-        if (params.id !== user.id) {
-          toast.error('アクセス権限がありません', { position: 'top-center' });
-          router.push('/login');
-          return;
-        }
       }
+      // 店舗アカウントの場合は、クエリ後にemailで認証チェックを行う
 
       const { data, error } = await query.single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching store:', error);
+        throw error;
+      }
 
       if (data) {
         const storeData = data as Store;
+        
+        // 店舗アカウントの場合、emailで認証ユーザーと店舗を紐づけ確認
+        if (accountType === 'store') {
+          // emailが一致しない場合はアクセス権限なし
+          if (storeData.email !== user.email) {
+            console.error('Access denied: email mismatch', {
+              storeEmail: storeData.email,
+              userEmail: user.email,
+            });
+            toast.error('アクセス権限がありません', { position: 'top-center' });
+            router.push('/login');
+            return;
+          }
+        }
+        
         setStore(storeData);
         
         // フォームに値を設定
@@ -188,11 +194,72 @@ export default function StoreUpdatePage() {
     } catch (error) {
       console.error('Error fetching store:', error);
       toast.error('店舗情報の取得に失敗しました', { position: 'top-center' });
-      router.push('/store/manage');
+      if (accountType === 'platform') {
+        router.push('/store/manage');
+      } else {
+        router.push('/login');
+      }
     } finally {
       setFetchingStore(false);
     }
-  };
+  }, [user, params.id, accountType, router]);
+
+  const fetchReservations = useCallback(async () => {
+    if (!params.id) return;
+
+    setLoadingReservations(true);
+    try {
+      const { data, error } = await supabase
+        .from('quick_reservations')
+        .select('*')
+        .eq('store_id', params.id as string)
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (error) throw error;
+      setReservations(data || []);
+    } catch (error) {
+      console.error('Error fetching reservations:', error);
+      toast.error('予約データの取得に失敗しました', { 
+        position: 'top-center',
+        duration: 3000,
+        className: 'bg-gray-100'
+      });
+    } finally {
+      setLoadingReservations(false);
+    }
+  }, [params.id]);
+
+  // 認証状態のチェック
+  useEffect(() => {
+    // accountTypeがまだ未確定（undefined）の場合は待機
+    if (accountType === undefined) {
+      return;
+    }
+
+    // 認証状態が確定した
+    setAuthChecked(true);
+
+    // 未ログインまたは不正なアカウントタイプの場合はリダイレクト
+    if (!accountType || (accountType !== 'platform' && accountType !== 'store')) {
+      router.push('/login');
+      return;
+    }
+  }, [accountType, router]);
+
+  // 認証チェック完了後にデータを取得
+  useEffect(() => {
+    // 認証チェックが完了し、ユーザー情報が揃っている場合のみ実行
+    if (!authChecked || !user || !accountType || !params.id) {
+      return;
+    }
+
+    // アカウントタイプが有効な場合のみデータ取得
+    if (accountType === 'platform' || accountType === 'store') {
+      fetchStore();
+      fetchReservations();
+    }
+  }, [authChecked, user, accountType, params.id, fetchStore, fetchReservations]);
 
   const handleStatusSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -250,11 +317,9 @@ export default function StoreUpdatePage() {
       // セキュリティチェック（念のため）
       if (accountType === 'platform') {
         query = query.eq('owner_id', user.id);
-      } else if (accountType === 'store') {
-        if (params.id !== user.id) {
-          throw new Error('Unauthorized');
-        }
       }
+      // 店舗アカウントの場合、emailでの追加チェックは行わない
+      // （すでにfetchStoreでアクセス権限を確認済み）
 
       const { error } = await query;
 
@@ -292,32 +357,6 @@ export default function StoreUpdatePage() {
       });
     } finally {
       setLoading(false);
-    }
-  };
-
-  const fetchReservations = async () => {
-    if (!params.id) return;
-
-    setLoadingReservations(true);
-    try {
-      const { data, error } = await supabase
-        .from('quick_reservations')
-        .select('*')
-        .eq('store_id', params.id as string)
-        .order('created_at', { ascending: false })
-        .limit(50);
-
-      if (error) throw error;
-      setReservations(data || []);
-    } catch (error) {
-      console.error('Error fetching reservations:', error);
-      toast.error('予約データの取得に失敗しました', { 
-        position: 'top-center',
-        duration: 3000,
-        className: 'bg-gray-100'
-      });
-    } finally {
-      setLoadingReservations(false);
     }
   };
 
@@ -445,7 +484,8 @@ export default function StoreUpdatePage() {
     }
   };
 
-  if (fetchingStore) {
+  // 認証チェック中またはデータ取得中のローディング表示
+  if (!authChecked || fetchingStore) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="text-center">
