@@ -4,12 +4,14 @@
  * 
  * 機能: 店舗詳細ページ
  *       画面表示時に該当店舗のis_open更新APIを呼び出す
+ *       Google Mapsの口コミ投稿フォームへ直接誘導する機能
+ *       複数画像の自動スライド機能（3秒間隔）
  * ============================================
  */
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import {
@@ -25,6 +27,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Star,
+  PenLine,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -38,6 +41,18 @@ import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 
 type Store = Database['public']['Tables']['stores']['Row'];
 
+/** 自動スライドの間隔（ミリ秒） */
+const AUTO_SLIDE_INTERVAL = 3000;
+
+/**
+ * Google Maps口コミ投稿URLを生成する関数
+ * @param placeId - Google Place ID
+ * @returns 口コミ投稿ページのURL
+ */
+const generateReviewUrl = (placeId: string): string => {
+  return `https://search.google.com/local/writereview?placeid=${encodeURIComponent(placeId)}`;
+};
+
 export default function StoreDetailPage() {
   const router = useRouter();
   const params = useParams();
@@ -48,6 +63,11 @@ export default function StoreDetailPage() {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [distance, setDistance] = useState<number | null>(null);
+  
+  // 自動スライド用のタイマーRef
+  const autoSlideTimerRef = useRef<NodeJS.Timeout | null>(null);
+  // ユーザーがホバー中かどうか（ホバー中は自動スライドを一時停止）
+  const [isHovering, setIsHovering] = useState(false);
 
   useEffect(() => {
     if (params.id) {
@@ -175,6 +195,44 @@ export default function StoreDetailPage() {
     }
   }, [store, userLocation]);
 
+  // ============================================
+  // 自動スライド機能
+  // ============================================
+  
+  /**
+   * 自動スライドタイマーをリセットする関数
+   * ユーザーが手動操作した際にタイマーをリセットし、
+   * 操作後から再度3秒後にスライドが始まるようにする
+   */
+  const resetAutoSlideTimer = useCallback(() => {
+    if (autoSlideTimerRef.current) {
+      clearInterval(autoSlideTimerRef.current);
+    }
+    
+    if (imageUrls.length > 1 && !isHovering) {
+      autoSlideTimerRef.current = setInterval(() => {
+        setSelectedImageIndex((prev) => (prev + 1) % imageUrls.length);
+      }, AUTO_SLIDE_INTERVAL);
+    }
+  }, [imageUrls.length, isHovering]);
+
+  // 自動スライドのセットアップ
+  useEffect(() => {
+    // 画像が2枚以上あり、ホバー中でない場合のみ自動スライド
+    if (imageUrls.length > 1 && !isHovering) {
+      autoSlideTimerRef.current = setInterval(() => {
+        setSelectedImageIndex((prev) => (prev + 1) % imageUrls.length);
+      }, AUTO_SLIDE_INTERVAL);
+    }
+
+    // クリーンアップ
+    return () => {
+      if (autoSlideTimerRef.current) {
+        clearInterval(autoSlideTimerRef.current);
+      }
+    };
+  }, [imageUrls.length, isHovering]);
+
   const getVacancyLabel = (status: string) => {
     switch (status) {
       case 'vacant':
@@ -266,12 +324,22 @@ export default function StoreDetailPage() {
     );
   }
 
+  // 次の画像へ（手動操作時はタイマーリセット）
   const nextImage = () => {
     setSelectedImageIndex((prev) => (prev + 1) % imageUrls.length);
+    resetAutoSlideTimer();
   };
 
+  // 前の画像へ（手動操作時はタイマーリセット）
   const prevImage = () => {
     setSelectedImageIndex((prev) => (prev - 1 + imageUrls.length) % imageUrls.length);
+    resetAutoSlideTimer();
+  };
+
+  // インジケータークリック時（手動操作時はタイマーリセット）
+  const goToImage = (index: number) => {
+    setSelectedImageIndex(index);
+    resetAutoSlideTimer();
   };
 
   return (
@@ -302,7 +370,16 @@ export default function StoreDetailPage() {
         >
           {/* 店舗画像カルーセル */}
           {imageUrls.length > 0 && (
-            <div className="relative w-full h-80 mb-4 rounded-lg overflow-hidden">
+            <div 
+              className="relative w-full h-80 mb-4 rounded-lg overflow-hidden"
+              onMouseEnter={() => setIsHovering(true)}
+              onMouseLeave={() => setIsHovering(false)}
+              onTouchStart={() => setIsHovering(true)}
+              onTouchEnd={() => {
+                // タッチ終了後、少し遅延してから自動スライド再開
+                setTimeout(() => setIsHovering(false), 1000);
+              }}
+            >
               <motion.img
                 key={selectedImageIndex}
                 initial={{ opacity: 0 }}
@@ -339,15 +416,32 @@ export default function StoreDetailPage() {
                     {imageUrls.map((_, index) => (
                       <button
                         key={index}
-                        onClick={() => setSelectedImageIndex(index)}
-                        className={`w-2 h-2 rounded-full transition-all ${
+                        onClick={() => goToImage(index)}
+                        className={`h-2 rounded-full transition-all duration-300 ${
                           index === selectedImageIndex 
                             ? 'bg-white w-6' 
-                            : 'bg-white/50'
+                            : 'bg-white/50 w-2 hover:bg-white/70'
                         }`}
+                        aria-label={`画像 ${index + 1} を表示`}
                       />
                     ))}
                   </div>
+                  
+                  {/* 自動スライド進捗インジケーター（オプション） */}
+                  {!isHovering && (
+                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/20">
+                      <motion.div
+                        key={selectedImageIndex}
+                        className="h-full bg-white/80"
+                        initial={{ width: '0%' }}
+                        animate={{ width: '100%' }}
+                        transition={{ 
+                          duration: AUTO_SLIDE_INTERVAL / 1000, 
+                          ease: 'linear' 
+                        }}
+                      />
+                    </div>
+                  )}
                 </>
               )}
             </div>
@@ -359,7 +453,7 @@ export default function StoreDetailPage() {
               
               {/* Google評価 */}
               {store.google_rating && (
-                <div className="flex items-center gap-3 mb-3">
+                <div className="flex items-center gap-3 mb-3 flex-wrap">
                   {/* 星アイコン表示 */}
                   <div className="flex items-center gap-1">
                     {[1, 2, 3, 4, 5].map((star) => (
@@ -390,18 +484,57 @@ export default function StoreDetailPage() {
                     </span>
                   )}
                   
-                  {/* 口コミを見るリンク */}
-                  <a
-                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.name)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-xs text-primary hover:underline font-bold ml-auto"
-                  >
-                    <ExternalLink className="w-3 h-3" />
-                    口コミを見る
-                  </a>
+                  {/* 口コミリンク群 */}
+                  <div className="flex items-center gap-3 ml-auto">
+                    {/* 口コミを見るリンク */}
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.name)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-xs text-primary hover:underline font-bold"
+                    >
+                      <ExternalLink className="w-3 h-3" />
+                      口コミを見る
+                    </a>
+                    
+                    {/* 口コミを記入ボタン - google_place_idがある場合のみ表示 */}
+                    {store.google_place_id && (
+                      <motion.a
+                        href={generateReviewUrl(store.google_place_id)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 rounded-full shadow-sm hover:shadow-md transition-all duration-200"
+                        whileHover={{ scale: 1.03 }}
+                        whileTap={{ scale: 0.97 }}
+                        aria-label={`${store.name}の口コミを記入`}
+                      >
+                        <PenLine className="w-3.5 h-3.5" />
+                        口コミを記入
+                      </motion.a>
+                    )}
+                  </div>
                 </div>
               )}
+              
+              {/* Google評価がない場合でも口コミ記入ボタンを表示 */}
+              {!store.google_rating && store.google_place_id && (
+                <div className="flex items-center gap-3 mb-3">
+                  <span className="text-sm text-muted-foreground">まだ評価がありません</span>
+                  <motion.a
+                    href={generateReviewUrl(store.google_place_id)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 rounded-full shadow-sm hover:shadow-md transition-all duration-200 ml-auto"
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    aria-label={`${store.name}の口コミを記入`}
+                  >
+                    <PenLine className="w-3.5 h-3.5" />
+                    最初の口コミを記入
+                  </motion.a>
+                </div>
+              )}
+              
               <div className="flex gap-2 mb-3 items-center flex-wrap justify-between">
                 {/* 空席情報アイコン */}
                 <motion.div 
