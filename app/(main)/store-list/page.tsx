@@ -6,16 +6,18 @@
  *       【最適化】初回ロード時のみis_open更新APIを呼び出す
  *       【追加】コンシェルジュ機能による店舗提案
  *       【追加】空席ありフィルター機能
+ *       【追加】営業中フィルター機能
  *       【修正】おすすめバッジをカード内部に配置
+ *       【修正】コンシェルジュ結果を上位3件に制限
  * ============================================
  */
 
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapIcon, ExternalLink, Star, Filter, Check, Sparkles, X } from 'lucide-react';
+import { MapIcon, ExternalLink, Star, Filter, Check, Sparkles, X, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { supabase } from '@/lib/supabase/client';
@@ -24,6 +26,84 @@ import { useLanguage } from '@/lib/i18n/context';
 import { ConciergeModal } from '@/components/concierge-modal';
 
 type Store = Database['public']['Tables']['stores']['Row'];
+
+// コンシェルジュが提案する店舗数
+const CONCIERGE_RECOMMENDATION_LIMIT = 3;
+
+/**
+ * 営業時間判定ユーティリティ
+ * 様々な形式の営業時間データに対応
+ */
+interface BusinessHours {
+  [key: string]: {
+    open: string;
+    close: string;
+    isOpen?: boolean;
+  } | string | null;
+}
+
+/**
+ * 現在時刻が営業時間内かどうかを判定
+ * @param store - 店舗データ
+ * @returns boolean - 営業中ならtrue
+ */
+const isStoreCurrentlyOpen = (store: Store): boolean => {
+  // is_openフィールドがある場合はそれを優先
+  if (typeof store.is_open === 'boolean') {
+    return store.is_open;
+  }
+
+  // business_hoursフィールドから判定
+  const businessHours = store.business_hours as BusinessHours | null;
+  if (!businessHours) return false;
+
+  const now = new Date();
+  const currentDay = now.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+  const currentTime = now.getHours() * 100 + now.getMinutes();
+
+  // 曜日別の営業時間を取得
+  const todayHours = businessHours[currentDay];
+  
+  if (!todayHours) return false;
+  
+  // 文字列形式の場合（例: "18:00-02:00"）
+  if (typeof todayHours === 'string') {
+    return parseTimeRange(todayHours, currentTime);
+  }
+  
+  // オブジェクト形式の場合
+  if (typeof todayHours === 'object' && todayHours !== null) {
+    if (todayHours.isOpen === false) return false;
+    return parseTimeRange(`${todayHours.open}-${todayHours.close}`, currentTime);
+  }
+
+  return false;
+};
+
+/**
+ * 時間範囲文字列をパースして現在時刻が範囲内かチェック
+ * 深夜営業（日をまたぐ場合）にも対応
+ */
+const parseTimeRange = (timeRange: string, currentTime: number): boolean => {
+  const match = timeRange.match(/(\d{1,2}):?(\d{2})?\s*[-~～]\s*(\d{1,2}):?(\d{2})?/);
+  if (!match) return false;
+
+  const openHour = parseInt(match[1], 10);
+  const openMin = parseInt(match[2] || '0', 10);
+  const closeHour = parseInt(match[3], 10);
+  const closeMin = parseInt(match[4] || '0', 10);
+
+  const openTime = openHour * 100 + openMin;
+  let closeTime = closeHour * 100 + closeMin;
+
+  // 深夜営業（翌日にまたがる場合）
+  if (closeTime < openTime) {
+    // 現在時刻が開店時間以降、または閉店時間より前
+    return currentTime >= openTime || currentTime < closeTime;
+  }
+
+  return currentTime >= openTime && currentTime < closeTime;
+};
 
 export default function StoreListPage() {
   const router = useRouter();
@@ -35,6 +115,7 @@ export default function StoreListPage() {
   
   // フィルター状態
   const [vacantOnly, setVacantOnly] = useState(false);
+  const [openNowOnly, setOpenNowOnly] = useState(false);
   const [showFilterMenu, setShowFilterMenu] = useState(false);
   
   // コンシェルジュ状態
@@ -44,6 +125,9 @@ export default function StoreListPage() {
 
   // 初回ロード完了フラグ
   const isOpenUpdatedRef = useRef(false);
+
+  // アクティブなフィルター数
+  const activeFilterCount = [vacantOnly, openNowOnly].filter(Boolean).length;
 
   // 位置情報の読み込み
   useEffect(() => {
@@ -115,6 +199,11 @@ export default function StoreListPage() {
       result = result.filter(store => store.vacancy_status === 'vacant');
     }
 
+    // 営業中フィルター
+    if (openNowOnly) {
+      result = result.filter(store => isStoreCurrentlyOpen(store));
+    }
+
     // コンシェルジュフィルター（facilitiesベース）
     if (isConciergeActive && conciergeFilters.length > 0) {
       result = result.filter(store => {
@@ -127,6 +216,7 @@ export default function StoreListPage() {
         return matchCount > 0;
       });
 
+      // マッチ度でソート（高い順）
       result.sort((a, b) => {
         const matchA = conciergeFilters.filter(f => a.facilities?.includes(f) || false).length;
         const matchB = conciergeFilters.filter(f => b.facilities?.includes(f) || false).length;
@@ -137,10 +227,13 @@ export default function StoreListPage() {
         
         return 0;
       });
+
+      // ★ 上位3件のみに制限
+      result = result.slice(0, CONCIERGE_RECOMMENDATION_LIMIT);
     }
 
     setFilteredStores(result);
-  }, [stores, vacantOnly, conciergeFilters, isConciergeActive]);
+  }, [stores, vacantOnly, openNowOnly, conciergeFilters, isConciergeActive]);
 
   const loadUserLocation = () => {
     const savedLocation = localStorage.getItem('userLocation');
@@ -287,6 +380,12 @@ export default function StoreListPage() {
     setIsConciergeActive(false);
   };
 
+  const clearAllFilters = useCallback(() => {
+    setVacantOnly(false);
+    setOpenNowOnly(false);
+    clearConciergeFilter();
+  }, []);
+
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
@@ -303,6 +402,15 @@ export default function StoreListPage() {
       document.removeEventListener('click', handleClickOutside);
     };
   }, [showFilterMenu]);
+
+  // フィルター状態のテキスト生成
+  const getFilterStatusText = (): string => {
+    const statuses: string[] = [];
+    if (vacantOnly) statuses.push('空席あり');
+    if (openNowOnly) statuses.push('営業中');
+    if (isConciergeActive) statuses.push('厳選3件');
+    return statuses.length > 0 ? `（${statuses.join('・')}）` : '';
+  };
 
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: '#1C1E26' }}>
@@ -321,16 +429,16 @@ export default function StoreListPage() {
             className="w-full py-3 px-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all"
             style={{
               background: isConciergeActive 
-                ? 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)'
-                : 'linear-gradient(135deg, #1C1E26 0%, #2D3748 100%)',
-              color: isConciergeActive ? '#000' : '#F59E0B',
-              border: '1px solid rgba(245, 158, 11, 0.3)',
-              boxShadow: '0 4px 15px rgba(245, 158, 11, 0.2)',
+                ? 'linear-gradient(135deg, #C9A86C 0%, #B8956E 100%)'
+                : 'linear-gradient(135deg, #0A1628 0%, #162447 100%)',
+              color: isConciergeActive ? '#0A1628' : '#C9A86C',
+              border: '1px solid rgba(201, 168, 108, 0.4)',
+              boxShadow: '0 4px 15px rgba(201, 168, 108, 0.25)',
             }}
           >
             <Sparkles className="w-5 h-5" />
             <span>
-              {isConciergeActive ? 'コンシェルジュが提案中' : 'コンシェルジュに相談する'}
+              {isConciergeActive ? '厳選3件をご案内中' : 'コンシェルジュに相談する'}
             </span>
           </motion.button>
           
@@ -338,20 +446,12 @@ export default function StoreListPage() {
           <div className="flex items-center justify-between mt-3">
             <p className="text-sm text-card-foreground/70 font-bold">
               {filteredStores.length}{t('store_list.results_count')}
-              {vacantOnly && (
-                <span className="ml-2 text-green-600">（空席ありのみ）</span>
-              )}
-              {isConciergeActive && (
-                <span className="ml-2 text-amber-600">（おすすめ順）</span>
-              )}
+              <span className="ml-2 text-amber-600">{getFilterStatusText()}</span>
             </p>
             
-            {(vacantOnly || isConciergeActive) && (
+            {(vacantOnly || openNowOnly || isConciergeActive) && (
               <button
-                onClick={() => {
-                  setVacantOnly(false);
-                  clearConciergeFilter();
-                }}
+                onClick={clearAllFilters}
                 className="text-sm text-blue-600 hover:underline font-bold flex items-center gap-1"
               >
                 <X className="w-3 h-3" />
@@ -376,17 +476,14 @@ export default function StoreListPage() {
             <p className="text-white font-bold">
               {isConciergeActive
                 ? '条件に合う店舗が見つかりませんでした'
-                : vacantOnly 
-                  ? '空席ありの店舗が見つかりませんでした'
+                : vacantOnly || openNowOnly
+                  ? '条件に合う店舗が見つかりませんでした'
                   : t('store_list.no_stores')
               }
             </p>
-            {(vacantOnly || isConciergeActive) && (
+            {(vacantOnly || openNowOnly || isConciergeActive) && (
               <button
-                onClick={() => {
-                  setVacantOnly(false);
-                  clearConciergeFilter();
-                }}
+                onClick={clearAllFilters}
                 className="mt-4 text-amber-500 hover:underline font-bold"
               >
                 すべての店舗を表示
@@ -394,144 +491,198 @@ export default function StoreListPage() {
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <AnimatePresence mode="popLayout">
-              {filteredStores.map((store, index) => {
-                const matchScore = getMatchScore(store);
-                
-                return (
-                  <motion.div
-                    key={store.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    transition={{ delay: index * 0.05 }}
-                  >
-                    <Card 
-                      className="p-4 cursor-pointer hover:shadow-lg transition-shadow h-full bg-white relative overflow-hidden"
-                      onClick={() => router.push(`/store/${store.id}`)}
+          <>
+            {/* コンシェルジュ提案時のヘッダーメッセージ */}
+            {isConciergeActive && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-6 p-4 rounded-xl text-center"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(201, 168, 108, 0.15) 0%, rgba(184, 149, 110, 0.1) 100%)',
+                  border: '1px solid rgba(201, 168, 108, 0.3)',
+                }}
+              >
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <Sparkles className="w-5 h-5" style={{ color: '#C9A86C' }} />
+                  <span className="text-lg font-light tracking-wide" style={{ color: '#C9A86C' }}>
+                    Concierge Selection
+                  </span>
+                </div>
+                <p className="text-sm text-white/80">
+                  お客様のご希望に基づき、厳選した{filteredStores.length}件をご案内いたします
+                </p>
+              </motion.div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <AnimatePresence mode="popLayout">
+                {filteredStores.map((store, index) => {
+                  const matchScore = getMatchScore(store);
+                  const isOpen = isStoreCurrentlyOpen(store);
+                  
+                  return (
+                    <motion.div
+                      key={store.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                      transition={{ delay: index * 0.1 }}
                     >
-                      {/* マッチ度バッジ - カード内部の右上に配置 */}
-                      {isConciergeActive && matchScore > 0 && (
-                        <motion.div
-                          initial={{ scale: 0, opacity: 0 }}
-                          animate={{ scale: 1, opacity: 1 }}
-                          className="absolute top-2 right-2 z-10 px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1"
-                          style={{
-                            background: matchScore >= 3 
-                              ? 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)'
-                              : 'linear-gradient(135deg, #6B7280 0%, #4B5563 100%)',
-                            color: '#fff',
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-                          }}
-                        >
-                          <Sparkles className="w-3 h-3" />
-                          {matchScore >= 3 ? 'おすすめ' : `${matchScore}マッチ`}
-                        </motion.div>
-                      )}
-                      
-                      <div className="flex gap-3 h-full">
-                        {/* 店舗画像 */}
-                        {store.image_urls && store.image_urls.length > 0 && (
-                          <motion.img
-                            whileHover={{ scale: 1.05 }}
-                            src={store.image_urls[0]}
-                            alt={store.name}
-                            className="w-24 h-24 object-cover rounded-lg flex-shrink-0"
-                          />
+                      <Card 
+                        className={`p-4 cursor-pointer hover:shadow-lg transition-shadow h-full bg-white relative overflow-hidden ${
+                          isConciergeActive ? 'ring-2 ring-amber-400/30' : ''
+                        }`}
+                        onClick={() => router.push(`/store/${store.id}`)}
+                      >
+                        {/* コンシェルジュおすすめバッジ */}
+                        {isConciergeActive && (
+                          <motion.div
+                            initial={{ scale: 0, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ delay: index * 0.1 + 0.2 }}
+                            className="absolute top-2 right-2 z-10 px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5"
+                            style={{
+                              background: 'linear-gradient(135deg, #C9A86C 0%, #E8D5B7 50%, #B8956E 100%)',
+                              color: '#0A1628',
+                              boxShadow: '0 4px 12px rgba(201, 168, 108, 0.4)',
+                            }}
+                          >
+                            <Sparkles className="w-3.5 h-3.5" />
+                            <span>No.{index + 1}</span>
+                          </motion.div>
+                        )}
+
+                        {/* 営業中バッジ（コンシェルジュ非アクティブ時） */}
+                        {!isConciergeActive && isOpen && (
+                          <motion.div
+                            initial={{ scale: 0, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            className="absolute top-2 right-2 z-10 px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1 bg-green-500 text-white"
+                            style={{
+                              boxShadow: '0 2px 8px rgba(34, 197, 94, 0.3)',
+                            }}
+                          >
+                            <Clock className="w-3 h-3" />
+                            営業中
+                          </motion.div>
                         )}
                         
-                        <div className="flex-1 min-w-0 flex flex-col">
-                          <div className="flex-1">
-                            {/* 店舗名 - バッジと重ならないようにpr追加 */}
-                            <h3 className={`text-lg font-bold text-card-foreground truncate ${isConciergeActive && matchScore > 0 ? 'pr-20' : ''}`}>
-                              {store.name}
-                            </h3>
-                            
-                            {/* Google評価表示 */}
-                            {store.google_rating && (
-                              <div className="flex items-center gap-2 -mt-1 mb-1">
-                                <div className="flex items-center gap-0.5">
-                                  {[1, 2, 3, 4, 5].map((star) => (
-                                    <Star
-                                      key={star}
-                                      className={`w-4 h-4 ${
-                                        star <= Math.round(store.google_rating!)
-                                          ? 'fill-yellow-400 text-yellow-400'
-                                          : 'fill-gray-300 text-gray-300'
-                                      }`}
-                                    />
-                                  ))}
-                                </div>
-                                <span className="text-sm font-bold text-card-foreground">
-                                  {store.google_rating.toFixed(1)}
-                                </span>
-                                {store.google_reviews_count && (
-                                  <span className="text-xs text-card-foreground/70">
-                                    ({store.google_reviews_count})
+                        <div className="flex gap-3 h-full">
+                          {/* 店舗画像 */}
+                          {store.image_urls && store.image_urls.length > 0 && (
+                            <motion.img
+                              whileHover={{ scale: 1.05 }}
+                              src={store.image_urls[0]}
+                              alt={store.name}
+                              className="w-24 h-24 object-cover rounded-lg flex-shrink-0"
+                            />
+                          )}
+                          
+                          <div className="flex-1 min-w-0 flex flex-col">
+                            <div className="flex-1">
+                              {/* 店舗名 - バッジと重ならないようにpr追加 */}
+                              <h3 className={`text-lg font-bold text-card-foreground truncate ${isConciergeActive || isOpen ? 'pr-16' : ''}`}>
+                                {store.name}
+                              </h3>
+                              
+                              {/* Google評価表示 */}
+                              {store.google_rating && (
+                                <div className="flex items-center gap-2 -mt-1 mb-1">
+                                  <div className="flex items-center gap-0.5">
+                                    {[1, 2, 3, 4, 5].map((star) => (
+                                      <Star
+                                        key={star}
+                                        className={`w-4 h-4 ${
+                                          star <= Math.round(store.google_rating!)
+                                            ? 'fill-yellow-400 text-yellow-400'
+                                            : 'fill-gray-300 text-gray-300'
+                                        }`}
+                                      />
+                                    ))}
+                                  </div>
+                                  <span className="text-sm font-bold text-card-foreground">
+                                    {store.google_rating.toFixed(1)}
                                   </span>
-                                )}
-                              </div>
-                            )}
-                            
-                            {/* 距離表示 */}
-                            {userLocation && (
-                              <p className="text-sm text-card-foreground/70 font-bold">
-                                徒歩およそ{calculateWalkingTime(calculateDistance(
-                                  userLocation.lat,
-                                  userLocation.lng,
-                                  Number(store.latitude),
-                                  Number(store.longitude)
-                                ))}分
-                              </p>
-                            )}
-                            
-                            {/* Googleマップで開くリンク */}
-                            <motion.button
-                              whileHover={{ scale: 1.02 }}
-                              whileTap={{ scale: 0.98 }}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.name || '')}`;
-                                window.open(mapsUrl, '_blank');
-                              }}
-                              className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 hover:underline font-bold"
-                            >
-                              <span>{t('store_list.open_in_google_maps')}</span>
-                              <ExternalLink className="w-3 h-3" />
-                            </motion.button>
-                            
-                            {/* 空席情報 */}
-                            <motion.div 
-                              className="flex items-center gap-2 pt-1"
-                              initial={{ opacity: 0, scale: 0.9 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                            >
-                              <img 
-                                src={getVacancyIcon(store.vacancy_status)}
-                                alt={getVacancyLabel(store.vacancy_status)}
-                                className="w-6 h-6 object-contain"
-                              />
-                              <span className="text-xl font-bold text-card-foreground">
-                                {getVacancyLabel(store.vacancy_status)}
-                              </span>
-                            </motion.div>
-                            
-                            {/* 一言メッセージ */}
-                            {store.status_message && (
-                              <p className="text-sm text-card-foreground/80 font-bold line-clamp-2 pt-1">
-                                {store.status_message}
-                              </p>
-                            )}
+                                  {store.google_reviews_count && (
+                                    <span className="text-xs text-card-foreground/70">
+                                      ({store.google_reviews_count})
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                              
+                              {/* 距離表示 */}
+                              {userLocation && (
+                                <p className="text-sm text-card-foreground/70 font-bold">
+                                  徒歩およそ{calculateWalkingTime(calculateDistance(
+                                    userLocation.lat,
+                                    userLocation.lng,
+                                    Number(store.latitude),
+                                    Number(store.longitude)
+                                  ))}分
+                                </p>
+                              )}
+                              
+                              {/* Googleマップで開くリンク */}
+                              <motion.button
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.name || '')}`;
+                                  window.open(mapsUrl, '_blank');
+                                }}
+                                className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 hover:underline font-bold"
+                              >
+                                <span>{t('store_list.open_in_google_maps')}</span>
+                                <ExternalLink className="w-3 h-3" />
+                              </motion.button>
+                              
+                              {/* 空席情報 */}
+                              <motion.div 
+                                className="flex items-center gap-2 pt-1"
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                              >
+                                <img 
+                                  src={getVacancyIcon(store.vacancy_status)}
+                                  alt={getVacancyLabel(store.vacancy_status)}
+                                  className="w-6 h-6 object-contain"
+                                />
+                                <span className="text-xl font-bold text-card-foreground">
+                                  {getVacancyLabel(store.vacancy_status)}
+                                </span>
+                              </motion.div>
+                              
+                              {/* 一言メッセージ */}
+                              {store.status_message && (
+                                <p className="text-sm text-card-foreground/80 font-bold line-clamp-2 pt-1">
+                                  {store.status_message}
+                                </p>
+                              )}
+
+                              {/* コンシェルジュマッチ情報 */}
+                              {isConciergeActive && matchScore > 0 && (
+                                <p className="text-xs mt-2 px-2 py-1 rounded-md inline-block"
+                                  style={{
+                                    backgroundColor: 'rgba(201, 168, 108, 0.1)',
+                                    color: '#B8956E',
+                                  }}
+                                >
+                                  {matchScore}項目がご希望にマッチ
+                                </p>
+                              )}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </Card>
-                  </motion.div>
-                );
-              })}
-            </AnimatePresence>
-          </div>
+                      </Card>
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
+            </div>
+          </>
         )}
 
         {/* フローティングボタン群（画面右下） */}
@@ -554,10 +705,10 @@ export default function StoreListPage() {
                   }}
                   className="flex flex-col items-center justify-center gap-1 px-3 py-2 touch-manipulation active:scale-95 rounded-lg relative"
                   style={{
-                    background: vacantOnly ? '#F59E0B' : 'rgba(5,5,5,0.7)',
+                    background: activeFilterCount > 0 ? '#C9A86C' : 'rgba(5,5,5,0.7)',
                     backdropFilter: 'blur(20px)',
-                    border: vacantOnly ? '1px solid #F59E0B' : '1px solid rgba(245,158,11,0.3)',
-                    boxShadow: '0 0 20px rgba(245,158,11,0.2)',
+                    border: activeFilterCount > 0 ? '1px solid #C9A86C' : '1px solid rgba(201,168,108,0.3)',
+                    boxShadow: '0 0 20px rgba(201,168,108,0.2)',
                     minWidth: '56px',
                     minHeight: '56px',
                   }}
@@ -565,17 +716,17 @@ export default function StoreListPage() {
                 >
                   <Filter 
                     className="w-5 h-5" 
-                    style={{ color: vacantOnly ? '#000' : '#F59E0B' }} 
+                    style={{ color: activeFilterCount > 0 ? '#0A1628' : '#C9A86C' }} 
                   />
                   <span 
                     className="text-[10px] font-bold" 
-                    style={{ color: vacantOnly ? '#000' : '#F59E0B' }}
+                    style={{ color: activeFilterCount > 0 ? '#0A1628' : '#C9A86C' }}
                   >
                     絞込
                   </span>
-                  {vacantOnly && (
-                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
-                      <Check className="w-3 h-3 text-white" />
+                  {activeFilterCount > 0 && (
+                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center text-xs font-bold text-white">
+                      {activeFilterCount}
                     </span>
                   )}
                 </Button>
@@ -590,7 +741,7 @@ export default function StoreListPage() {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 10, scale: 0.95 }}
                   transition={{ duration: 0.15 }}
-                  className="absolute bottom-full right-0 mb-2 w-48"
+                  className="absolute bottom-full right-0 mb-2 w-56"
                 >
                   <div
                     className="rounded-xl overflow-hidden"
@@ -603,13 +754,37 @@ export default function StoreListPage() {
                   >
                     <div className="p-2">
                       <p className="text-xs text-gray-400 px-3 py-2 font-bold">
-                        空席状況で絞り込み
+                        店舗を絞り込み
                       </p>
                       
+                      {/* 営業中フィルター */}
+                      <button
+                        onClick={() => {
+                          setOpenNowOnly(!openNowOnly);
+                        }}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
+                          openNowOnly 
+                            ? 'bg-blue-500/20 text-blue-400' 
+                            : 'hover:bg-white/10 text-white'
+                        }`}
+                      >
+                    <img
+src="https://res.cloudinary.com/dz9trbwma/image/upload/v1767848645/icons8-%E9%96%8B%E5%BA%97%E3%82%B5%E3%82%A4%E3%83%B3-94_a4tmzn.png"
+                          alt="営業中"
+                          className="w-5 h-5"
+                        />
+                        <span className="font-bold text-sm flex-1 text-left">
+                          営業中
+                        </span>
+                        {openNowOnly && (
+                          <Check className="w-4 h-4 text-blue-400" />
+                        )}
+                      </button>
+
+                      {/* 空席ありフィルター */}
                       <button
                         onClick={() => {
                           setVacantOnly(!vacantOnly);
-                          setShowFilterMenu(false);
                         }}
                         className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
                           vacantOnly 
@@ -630,13 +805,18 @@ export default function StoreListPage() {
                         )}
                       </button>
 
+                      {/* 区切り線 */}
+                      <div className="my-2 border-t border-white/10" />
+
+                      {/* すべて表示 */}
                       <button
                         onClick={() => {
                           setVacantOnly(false);
+                          setOpenNowOnly(false);
                           setShowFilterMenu(false);
                         }}
                         className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
-                          !vacantOnly 
+                          !vacantOnly && !openNowOnly
                             ? 'bg-amber-500/20 text-amber-400' 
                             : 'hover:bg-white/10 text-white'
                         }`}
@@ -647,7 +827,7 @@ export default function StoreListPage() {
                         <span className="font-bold text-sm flex-1 text-left">
                           すべて表示
                         </span>
-                        {!vacantOnly && (
+                        {!vacantOnly && !openNowOnly && (
                           <Check className="w-4 h-4 text-amber-400" />
                         )}
                       </button>
@@ -673,15 +853,15 @@ export default function StoreListPage() {
                 style={{
                   background: 'rgba(5,5,5,0.7)',
                   backdropFilter: 'blur(20px)',
-                  border: '1px solid rgba(245,158,11,0.3)',
-                  boxShadow: '0 0 20px rgba(245,158,11,0.2)',
+                  border: '1px solid rgba(201,168,108,0.3)',
+                  boxShadow: '0 0 20px rgba(201,168,108,0.2)',
                   minWidth: '56px',
                   minHeight: '56px',
                 }}
                 title="Map"
               >
-                <MapIcon className="w-5 h-5" style={{ color: '#F59E0B' }} />
-                <span className="text-[10px] font-bold" style={{ color: '#F59E0B' }}>
+                <MapIcon className="w-5 h-5" style={{ color: '#C9A86C' }} />
+                <span className="text-[10px] font-bold" style={{ color: '#C9A86C' }}>
                   Map
                 </span>
               </Button>
