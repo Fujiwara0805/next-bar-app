@@ -142,7 +142,7 @@ const copy = {
       ],
     },
     cta: {
-      title: '今夜の2軒目、ここで見つかる。',
+      title: '今夜の二軒目、ここで見つかる。',
       body: '大分の夜は、まだ終わらない。\n NIKENME+で、次のお店を探しましょう。',
       buttonPrimary: 'お店を探す',
       buttonSecondary: '加盟店募集中',

@@ -93,7 +93,7 @@ export default function LoginPage() {
               />
             </div>
             <h1 className="text-4xl leading-tight font-bold mb-4">
-              2軒目がすぐ見つかる、<br />空席マップ
+              二軒目がすぐ見つかる、<br />空席マップ
             </h1>
             <p className="text-muted-foreground text-lg font-semibold">
               『いま入れるバー・スナック』だけを地図で表示。<br />

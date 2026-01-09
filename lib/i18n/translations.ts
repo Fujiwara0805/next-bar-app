@@ -27,7 +27,7 @@ export const translations = {
     // Features Section
     features: {
       title: 'こんな時に便利',
-      subtitle: '2軒目のお店探しをもっとスマートに',
+      subtitle: '二軒目のお店探しをもっとスマートに',
       feature1_title: '今すぐ入れるお店が見つかる',
       feature1_desc: '待たずに入れるお店がすぐ分かります。',
       feature2_title: '加盟店のリアルタイム情報',
@@ -55,8 +55,8 @@ export const translations = {
     },
     // Footer
     footer: {
-      copyright: '© 2025 2軒目. All rights reserved.',
-      slogan: 'いますぐ、2軒目へ',
+      copyright: '© 2025 二軒目. All rights reserved.',
+      slogan: 'いますぐ、二軒目へ',
     },
     // Modal
     modal: {
