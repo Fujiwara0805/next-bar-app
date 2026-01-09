@@ -510,7 +510,7 @@ export default function StoreListPage() {
                   </span>
                 </div>
                 <p className="text-sm text-white/80">
-                  お客様のご希望に基づき、厳選した{filteredStores.length}件をご案内いたします
+                  お客様のご希望に基づき、厳選した{filteredStores.length}件を<br />ご案内いたします
                 </p>
               </motion.div>
             )}
