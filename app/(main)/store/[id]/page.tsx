@@ -30,6 +30,7 @@ import {
   PenLine,
   User,
   Image as ImageIcon,
+  Ticket,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -40,6 +41,8 @@ import type { Database } from '@/lib/supabase/types';
 import { useLanguage } from '@/lib/i18n/context';
 import { InstantReservationButton } from '@/components/instant-reservation-button';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { CouponDisplayModal } from '@/components/store/CouponDisplayModal';
+import { isCouponValid, type CouponData } from '@/lib/types/coupon';
 
 type Store = Database['public']['Tables']['stores']['Row'];
 
@@ -68,6 +71,7 @@ export default function StoreDetailPage() {
   const [placePhotos, setPlacePhotos] = useState<string[]>([]);
   const [loadingPhotos, setLoadingPhotos] = useState(false);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
+  const [showCouponModal, setShowCouponModal] = useState(false);
   
   // 自動スライド用のタイマーRef
   const autoSlideTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -607,7 +611,7 @@ export default function StoreDetailPage() {
                 </div>
               )}
               
-              <div className="flex gap-2 mb-3 items-center flex-wrap">
+              <div className="flex gap-2 mb-3 items-center flex-wrap justify-between">
                 {/* 空席情報アイコン */}
                 <motion.div 
                   className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2"
@@ -623,6 +627,23 @@ export default function StoreDetailPage() {
                     {getVacancyLabel(store.vacancy_status)}
                   </span>
                 </motion.div>
+
+                {/* クーポン発行ボタン */}
+                {store.coupon_is_active && store.coupon_title && isCouponValid(store as Partial<CouponData>) && (
+                  <motion.div
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <Button
+                      onClick={() => setShowCouponModal(true)}
+                      className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold"
+                      size="default"
+                    >
+                      <Ticket className="w-4 h-4 mr-2" />
+                      クーポン
+                    </Button>
+                  </motion.div>
+                )}
               </div>
             </div>
 
@@ -979,6 +1000,16 @@ export default function StoreDetailPage() {
           </Card>
         </motion.div>
       </div>
+
+      {/* クーポンモーダル */}
+      {store && (
+        <CouponDisplayModal
+          isOpen={showCouponModal}
+          onClose={() => setShowCouponModal(false)}
+          coupon={store as Partial<CouponData>}
+          storeName={store.name}
+        />
+      )}
     </div>
   );
 }
