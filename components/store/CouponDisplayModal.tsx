@@ -1,10 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
   Ticket,
-  X,
   Clock,
   AlertCircle,
   Copy,
@@ -12,13 +11,7 @@ import {
   Gift,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog';
+import { CustomModal } from '@/components/ui/custom-modal';
 import {
   CouponData,
   isCouponValid,
@@ -26,13 +19,16 @@ import {
   CouponDiscountType,
 } from '@/lib/types/coupon';
 import { toast } from 'sonner';
+import { supabase } from '@/lib/supabase/client';
+import type { Database } from '@/lib/supabase/types';
 
 interface CouponDisplayModalProps {
   isOpen: boolean;
   onClose: () => void;
   coupon: Partial<CouponData>;
   storeName: string;
-  onUse?: () => void;
+  storeId: string;
+  onCouponUsed?: () => void;
 }
 
 export function CouponDisplayModal({
@@ -40,9 +36,13 @@ export function CouponDisplayModal({
   onClose,
   coupon,
   storeName,
-  onUse,
+  storeId,
+  onCouponUsed,
 }: CouponDisplayModalProps) {
   const [copied, setCopied] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [isUsing, setIsUsing] = useState(false);
+  const [isUsed, setIsUsed] = useState(false);
 
   const isValid = isCouponValid(coupon);
 
@@ -78,47 +78,95 @@ export function CouponDisplayModal({
 
   const remainingDays = getRemainingDays();
 
+  // クーポン使用処理
+  const handleUseCoupon = async () => {
+    setIsUsing(true);
+    try {
+      // coupon_current_usesをインクリメント
+      const currentUses = coupon.coupon_current_uses || 0;
+      const { error } = await supabase
+        .from('stores')
+        // @ts-ignore - Supabaseの型推論の問題を回避
+        .update({ coupon_current_uses: currentUses + 1 })
+        .eq('id', storeId);
+
+      if (error) throw error;
+
+      setIsUsed(true);
+      setShowConfirmModal(false);
+      toast.success('クーポンを使用しました', {
+        position: 'top-center',
+        duration: 2000,
+      });
+      
+      // 親コンポーネントに通知
+      if (onCouponUsed) {
+        onCouponUsed();
+      }
+    } catch (error) {
+      console.error('Error using coupon:', error);
+      toast.error('クーポンの使用に失敗しました', {
+        position: 'top-center',
+        duration: 3000,
+      });
+    } finally {
+      setIsUsing(false);
+    }
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md p-0 overflow-hidden">
-        {/* ヘッダー（グラデーション背景） */}
-        <div className="bg-gradient-to-br from-amber-400 via-orange-500 to-red-500 p-6 text-white">
-          <DialogHeader>
+    <>
+      <CustomModal
+        isOpen={isOpen}
+        onClose={onClose}
+        title=""
+        description=""
+        showCloseButton={true}
+      >
+        <div className="space-y-4">
+          {/* ヘッダー（グラデーション背景） */}
+          <div className="bg-gradient-to-br from-amber-400 via-orange-500 to-red-500 p-6 text-white rounded-lg -m-6 mb-4">
             <div className="flex items-center gap-2 mb-2">
               <Ticket className="w-6 h-6" />
               <span className="text-sm font-medium opacity-90">クーポン</span>
             </div>
-            <DialogTitle className="text-2xl font-bold text-white">
+            <h2 className="text-2xl font-bold text-white">
               {coupon.coupon_title || 'お得なクーポン'}
-            </DialogTitle>
-            <DialogDescription className="text-white/90 mt-1">
-              {storeName}
-            </DialogDescription>
-          </DialogHeader>
+            </h2>
+            <p className="text-white/90 mt-1 text-sm font-bold">{storeName}</p>
 
-          {/* 割引表示 */}
-          <div className="mt-4 text-center">
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.1 }}
-              className="inline-block bg-white/20 backdrop-blur-sm rounded-2xl px-8 py-4"
-            >
-              <p className="text-4xl font-bold">
-                {coupon.coupon_discount_type === 'free_item' 
-                  ? '無料サービス'
-                  : formatDiscountValue(
-                      coupon.coupon_discount_type as CouponDiscountType,
-                      coupon.coupon_discount_value || 0
-                    )
-                }
-              </p>
-            </motion.div>
+            {/* 割引表示 */}
+            <div className="mt-4 text-center">
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.1 }}
+                className="inline-block bg-white/20 backdrop-blur-sm rounded-2xl px-8 py-4"
+              >
+                <p className="text-4xl font-bold">
+                  {coupon.coupon_discount_type === 'free_item' 
+                    ? '無料サービス'
+                    : formatDiscountValue(
+                        coupon.coupon_discount_type as CouponDiscountType,
+                        coupon.coupon_discount_value || 0
+                      )
+                  }
+                </p>
+              </motion.div>
+            </div>
           </div>
-        </div>
 
-        {/* コンテンツ */}
-        <div className="p-6 space-y-4">
+          {/* 使用済み表示 */}
+          {isUsed && (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+              <p className="text-green-600 font-bold text-sm">
+                このクーポンは使用済みです
+              </p>
+            </div>
+          )}
+
+          {/* コンテンツ */}
+          <div className="space-y-4">
           {/* クーポン画像 */}
           {coupon.coupon_image_url && (
             <div className="rounded-lg overflow-hidden">
@@ -243,18 +291,52 @@ export function CouponDisplayModal({
           )}
 
           {/* 使用ボタン */}
-          {onUse && isValid && (
+          {!isUsed && isValid && (
             <Button
               className="w-full font-bold bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
-              onClick={onUse}
+              onClick={() => setShowConfirmModal(true)}
+              disabled={isUsing}
             >
               <Gift className="w-4 h-4 mr-2" />
-              このクーポンを使用する
+              クーポンを使う
             </Button>
           )}
+          </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </CustomModal>
+
+      {/* 確認モーダル */}
+      <CustomModal
+        isOpen={showConfirmModal}
+        onClose={() => setShowConfirmModal(false)}
+        title="クーポンを使用しますか？"
+        description="クーポンを使うを押すと、このクーポンは使用済みになります"
+        showCloseButton={true}
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-gray-700 font-bold">
+            この操作は取り消せません。クーポンを使用しますか？
+          </p>
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setShowConfirmModal(false)}
+              className="flex-1 font-bold"
+              disabled={isUsing}
+            >
+              キャンセル
+            </Button>
+            <Button
+              onClick={handleUseCoupon}
+              disabled={isUsing}
+              className="flex-1 font-bold bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
+            >
+              {isUsing ? '処理中...' : 'OK'}
+            </Button>
+          </div>
+        </div>
+      </CustomModal>
+    </>
   );
 }
 

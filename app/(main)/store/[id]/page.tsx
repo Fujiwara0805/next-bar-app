@@ -1008,6 +1008,11 @@ export default function StoreDetailPage() {
           onClose={() => setShowCouponModal(false)}
           coupon={store as Partial<CouponData>}
           storeName={store.name}
+          storeId={store.id}
+          onCouponUsed={() => {
+            // クーポン使用後、店舗情報を再取得
+            fetchStore(store.id);
+          }}
         />
       )}
     </div>
