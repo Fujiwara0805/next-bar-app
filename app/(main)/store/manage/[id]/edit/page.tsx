@@ -32,7 +32,21 @@ import { toast } from 'sonner';
 import type { Database } from '@/lib/supabase/types';
 import { Upload } from 'lucide-react';
 
+// クーポン関連のインポート
+import { StoreCouponForm } from '@/components/store/StoreCouponForm';
+import {
+  CouponFormValues,
+  CouponData,
+  getDefaultCouponFormValues,
+  couponFormToDbData,
+  dbDataToCouponForm,
+  couponFormSchema,
+} from '@/lib/types/coupon';
+
 type Store = Database['public']['Tables']['stores']['Row'];
+
+// Store型を拡張してクーポンフィールドを追加
+type StoreWithCoupon = Store & Partial<CouponData>;
 
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
@@ -67,6 +81,11 @@ export default function StoreEditPage() {
   const [mainImageIndex, setMainImageIndex] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // クーポン関連のステート
+  const [couponValues, setCouponValues] = useState<CouponFormValues>(getDefaultCouponFormValues());
+  const [couponErrors, setCouponErrors] = useState<Record<string, string>>({});
+  const [couponCurrentUses, setCouponCurrentUses] = useState(0);
+
   const geocoderRef = useRef<google.maps.Geocoder | null>(null);
   const [mapsLoaded, setMapsLoaded] = useState(false);
 
@@ -95,7 +114,7 @@ export default function StoreEditPage() {
       }
 
       if (data) {
-        const storeData = data as Store;
+        const storeData = data as StoreWithCoupon;
         
         // 店舗アカウントの場合、emailで認証ユーザーと店舗を紐づけ確認
         if (accountType === 'store') {
@@ -125,6 +144,10 @@ export default function StoreEditPage() {
         setImageUrls(storeData.image_urls || []);
         setLatitude(String(storeData.latitude || ''));
         setLongitude(String(storeData.longitude || ''));
+
+        // クーポンデータの読み込み
+        setCouponValues(dbDataToCouponForm(storeData));
+        setCouponCurrentUses(storeData.coupon_current_uses || 0);
       }
     } catch (error) {
       console.error('Error fetching store:', error);
@@ -164,7 +187,7 @@ export default function StoreEditPage() {
     try {
       const cachedStore = sessionStorage.getItem(`store_${params.id}`);
       if (cachedStore) {
-        const storeData = JSON.parse(cachedStore) as Store;
+        const storeData = JSON.parse(cachedStore) as StoreWithCoupon;
         
         // 店舗アカウントの場合、emailチェック
         if (accountType === 'store' && storeData.email !== user?.email) {
@@ -186,6 +209,11 @@ export default function StoreEditPage() {
           setImageUrls(storeData.image_urls || []);
           setLatitude(String(storeData.latitude || ''));
           setLongitude(String(storeData.longitude || ''));
+          
+          // クーポンデータの読み込み
+          setCouponValues(dbDataToCouponForm(storeData));
+          setCouponCurrentUses(storeData.coupon_current_uses || 0);
+          
           setFetchingStore(false);
         }
       }
@@ -404,6 +432,23 @@ export default function StoreEditPage() {
     }
   };
 
+  // クーポンバリデーション
+  const validateCoupon = (): boolean => {
+    const result = couponFormSchema.safeParse(couponValues);
+    if (!result.success) {
+      const errors: Record<string, string> = {};
+      result.error.errors.forEach((err) => {
+        if (err.path[0]) {
+          errors[err.path[0] as string] = err.message;
+        }
+      });
+      setCouponErrors(errors);
+      return false;
+    }
+    setCouponErrors({});
+    return true;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -434,6 +479,16 @@ export default function StoreEditPage() {
       return;
     }
 
+    // クーポンバリデーション
+    if (!validateCoupon()) {
+      toast.error('クーポン設定に誤りがあります', { 
+        position: 'top-center',
+        duration: 3000,
+        className: 'bg-gray-100'
+      });
+      return;
+    }
+
     if (!latitude || !longitude) {
       const ok = await handleGeocodeAddress();
       if (!ok) {
@@ -449,6 +504,9 @@ export default function StoreEditPage() {
     setLoading(true);
 
     try {
+      // クーポンデータをDB形式に変換
+      const couponDbData = couponFormToDbData(couponValues);
+
       let query = (supabase.from('stores') as any)
         .update({
           name: name.trim(),
@@ -466,6 +524,8 @@ export default function StoreEditPage() {
           latitude: parseFloat(latitude),
           longitude: parseFloat(longitude),
           updated_at: new Date().toISOString(),
+          // クーポン関連カラム
+          ...couponDbData,
         })
         .eq('id', params.id as string);
 
@@ -960,6 +1020,17 @@ export default function StoreEditPage() {
                     画像がアップロードされていません
                   </p>
                 )}
+              </div>
+
+              {/* クーポン設定セクション */}
+              <div className="pt-4">
+                <StoreCouponForm
+                  values={couponValues}
+                  onChange={setCouponValues}
+                  disabled={loading}
+                  errors={couponErrors}
+                  currentUses={couponCurrentUses}
+                />
               </div>
 
               {/* 送信ボタン */}

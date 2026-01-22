@@ -135,7 +135,7 @@ export function InstantReservationButton({
       <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
         <Button
           onClick={() => setShowDialog(true)}
-          className="bg-blue-500 hover:bg-blue-600 text-white font-bold"
+          className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold"
           size="default"
         >
           <Clock className="w-3 h-3 mr-2" />
@@ -277,7 +277,7 @@ export function InstantReservationButton({
             <Button
               onClick={handleRequest}
               disabled={requesting}
-              className="flex-1 bg-blue-500 hover:bg-blue-600"
+              className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               {requesting ? (
                 <>

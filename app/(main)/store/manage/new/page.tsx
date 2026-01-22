@@ -32,6 +32,15 @@ import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/auth/context';
 import { toast } from 'sonner';
 
+// クーポン関連のインポート
+import { StoreCouponForm } from '@/components/store/StoreCouponForm';
+import {
+  CouponFormValues,
+  getDefaultCouponFormValues,
+  couponFormToDbData,
+  couponFormSchema,
+} from '@/lib/types/coupon';
+
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
 export default function NewStorePage() {
@@ -59,6 +68,10 @@ export default function NewStorePage() {
   const [budgetMax, setBudgetMax] = useState<number>(0);
   const [paymentMethods, setPaymentMethods] = useState<string[]>([]);
   const [facilities, setFacilities] = useState<string[]>([]);
+
+  // クーポン関連のステート
+  const [couponValues, setCouponValues] = useState<CouponFormValues>(getDefaultCouponFormValues());
+  const [couponErrors, setCouponErrors] = useState<Record<string, string>>({});
 
   // 店舗名候補
   const [suggestions, setSuggestions] = useState<google.maps.places.AutocompletePrediction[]>([]);
@@ -305,6 +318,23 @@ export default function NewStorePage() {
     );
   };
 
+  // クーポンバリデーション
+  const validateCoupon = (): boolean => {
+    const result = couponFormSchema.safeParse(couponValues);
+    if (!result.success) {
+      const errors: Record<string, string> = {};
+      result.error.errors.forEach((err) => {
+        if (err.path[0]) {
+          errors[err.path[0] as string] = err.message;
+        }
+      });
+      setCouponErrors(errors);
+      return false;
+    }
+    setCouponErrors({});
+    return true;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -346,6 +376,16 @@ export default function NewStorePage() {
 
     if (!password || password.length < 6) {
       toast.error('パスワードは6文字以上で入力してください', { 
+        position: 'top-center',
+        duration: 3000,
+        className: 'bg-gray-100'
+      });
+      return;
+    }
+
+    // クーポンバリデーション
+    if (!validateCoupon()) {
+      toast.error('クーポン設定に誤りがあります', { 
         position: 'top-center',
         duration: 3000,
         className: 'bg-gray-100'
@@ -408,6 +448,9 @@ export default function NewStorePage() {
         });
       }
 
+      // クーポンデータをDB形式に変換
+      const couponDbData = couponFormToDbData(couponValues);
+
       const { error: storeError } = await supabase
         .from('stores')
         .insert({
@@ -434,6 +477,8 @@ export default function NewStorePage() {
           google_place_id: googlePlaceId,
           google_rating: googleRating,
           google_reviews_count: googleReviewsCount,
+          // クーポン関連カラム
+          ...couponDbData,
         } as any);
 
       if (storeError) {
@@ -801,6 +846,16 @@ export default function NewStorePage() {
                     </div>
                   ))}
                 </div>
+              </div>
+
+              {/* クーポン設定セクション */}
+              <div className="pt-4">
+                <StoreCouponForm
+                  values={couponValues}
+                  onChange={setCouponValues}
+                  disabled={loading}
+                  errors={couponErrors}
+                />
               </div>
 
               {/* セパレーター */}

@@ -90,6 +90,35 @@ export interface Database {
           estimated_reopen_at: string | null
           /** 最後にis_openをチェックした日時（キャッシュ用） */
           last_is_open_check_at: string | null
+          // ============================================
+          // クーポン関連のカラム
+          // ============================================
+          /** クーポンタイトル */
+          coupon_title: string | null
+          /** クーポン説明 */
+          coupon_description: string | null
+          /** クーポン割引タイプ */
+          coupon_discount_type: 'percentage' | 'fixed' | 'free_item' | null
+          /** クーポン割引値 */
+          coupon_discount_value: number | null
+          /** クーポン利用条件 */
+          coupon_conditions: string | null
+          /** クーポン開始日時 */
+          coupon_start_date: string | null
+          /** クーポン有効期限 */
+          coupon_expiry_date: string | null
+          /** クーポン画像URL */
+          coupon_image_url: string | null
+          /** クーポン有効フラグ */
+          coupon_is_active: boolean
+          /** クーポン最大利用回数 */
+          coupon_max_uses: number | null
+          /** クーポン現在の利用回数 */
+          coupon_current_uses: number
+          /** クーポンコード */
+          coupon_code: string | null
+          /** クーポンバーコードURL */
+          coupon_barcode_url: string | null
         }
         Insert: {
           id?: string
@@ -128,6 +157,20 @@ export interface Database {
           manual_closed_at?: string | null
           estimated_reopen_at?: string | null
           last_is_open_check_at?: string | null
+          // クーポン関連（すべてオプショナル）
+          coupon_title?: string | null
+          coupon_description?: string | null
+          coupon_discount_type?: 'percentage' | 'fixed' | 'free_item' | null
+          coupon_discount_value?: number | null
+          coupon_conditions?: string | null
+          coupon_start_date?: string | null
+          coupon_expiry_date?: string | null
+          coupon_image_url?: string | null
+          coupon_is_active?: boolean
+          coupon_max_uses?: number | null
+          coupon_current_uses?: number
+          coupon_code?: string | null
+          coupon_barcode_url?: string | null
         }
         Update: {
           id?: string
@@ -166,6 +209,20 @@ export interface Database {
           manual_closed_at?: string | null
           estimated_reopen_at?: string | null
           last_is_open_check_at?: string | null
+          // クーポン関連（すべてオプショナル）
+          coupon_title?: string | null
+          coupon_description?: string | null
+          coupon_discount_type?: 'percentage' | 'fixed' | 'free_item' | null
+          coupon_discount_value?: number | null
+          coupon_conditions?: string | null
+          coupon_start_date?: string | null
+          coupon_expiry_date?: string | null
+          coupon_image_url?: string | null
+          coupon_is_active?: boolean
+          coupon_max_uses?: number | null
+          coupon_current_uses?: number
+          coupon_code?: string | null
+          coupon_barcode_url?: string | null
         }
       }
       quick_reservations: {
@@ -236,6 +293,13 @@ export type BusinessHours = {
     closed?: boolean;
   };
 };
+
+// ============================================
+// クーポン関連の型定義
+// ============================================
+
+/** クーポン割引タイプ */
+export type CouponDiscountType = 'percentage' | 'fixed' | 'free_item' | null;
 
 // ============================================
 // 臨時休業関連の型定義
