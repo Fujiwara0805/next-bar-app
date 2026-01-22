@@ -28,6 +28,8 @@ import {
   ChevronRight,
   Star,
   PenLine,
+  User,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -63,11 +65,16 @@ export default function StoreDetailPage() {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [distance, setDistance] = useState<number | null>(null);
+  const [placePhotos, setPlacePhotos] = useState<string[]>([]);
+  const [loadingPhotos, setLoadingPhotos] = useState(false);
+  const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
   
   // 自動スライド用のタイマーRef
   const autoSlideTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const photoCarouselTimerRef = useRef<NodeJS.Timeout | null>(null);
   // ユーザーがホバー中かどうか（ホバー中は自動スライドを一時停止）
   const [isHovering, setIsHovering] = useState(false);
+  const [isPhotoHovering, setIsPhotoHovering] = useState(false);
 
   useEffect(() => {
     if (params.id) {
@@ -137,6 +144,25 @@ export default function StoreDetailPage() {
     return Math.round(walkingTimeMinutes);
   };
 
+  // Google Place Photosを取得
+  const fetchPlacePhotos = async (placeId: string) => {
+    setLoadingPhotos(true);
+    try {
+      const response = await fetch(`/api/stores/place-photos?placeId=${encodeURIComponent(placeId)}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch place photos');
+      }
+      const data = await response.json();
+      if (data.photos && Array.isArray(data.photos)) {
+        setPlacePhotos(data.photos);
+      }
+    } catch (error) {
+      console.error('Error fetching place photos:', error);
+    } finally {
+      setLoadingPhotos(false);
+    }
+  };
+
   const fetchStore = async (id: string) => {
     try {
       const { data, error } = await supabase
@@ -174,6 +200,9 @@ export default function StoreDetailPage() {
             .catch((err) => {
               console.warn('Failed to update is_open:', err);
             });
+          
+          // Google Place Photosを取得
+          fetchPlacePhotos(storeData.google_place_id);
         }
       }
     } catch (error) {
@@ -232,6 +261,64 @@ export default function StoreDetailPage() {
       }
     };
   }, [imageUrls.length, isHovering]);
+
+  // ============================================
+  // 写真カルーセル機能
+  // ============================================
+  
+  /**
+   * 写真カルーセルの自動スライドタイマーをリセットする関数
+   */
+  const resetPhotoCarouselTimer = useCallback(() => {
+    if (photoCarouselTimerRef.current) {
+      clearInterval(photoCarouselTimerRef.current);
+    }
+    
+    // 一列2枚表示なので、2枚ずつ進める
+    const pairsCount = Math.ceil(placePhotos.length / 2);
+    if (pairsCount > 1 && !isPhotoHovering) {
+      photoCarouselTimerRef.current = setInterval(() => {
+        setSelectedPhotoIndex((prev) => (prev + 1) % pairsCount);
+      }, AUTO_SLIDE_INTERVAL);
+    }
+  }, [placePhotos.length, isPhotoHovering]);
+
+  // 写真カルーセルの自動スライドのセットアップ
+  useEffect(() => {
+    const pairsCount = Math.ceil(placePhotos.length / 2);
+    if (pairsCount > 1 && !isPhotoHovering) {
+      photoCarouselTimerRef.current = setInterval(() => {
+        setSelectedPhotoIndex((prev) => (prev + 1) % pairsCount);
+      }, AUTO_SLIDE_INTERVAL);
+    }
+
+    // クリーンアップ
+    return () => {
+      if (photoCarouselTimerRef.current) {
+        clearInterval(photoCarouselTimerRef.current);
+      }
+    };
+  }, [placePhotos.length, isPhotoHovering]);
+
+  // 写真カルーセルの次のペアへ
+  const nextPhotoPair = () => {
+    const pairsCount = Math.ceil(placePhotos.length / 2);
+    setSelectedPhotoIndex((prev) => (prev + 1) % pairsCount);
+    resetPhotoCarouselTimer();
+  };
+
+  // 写真カルーセルの前のペアへ
+  const prevPhotoPair = () => {
+    const pairsCount = Math.ceil(placePhotos.length / 2);
+    setSelectedPhotoIndex((prev) => (prev - 1 + pairsCount) % pairsCount);
+    resetPhotoCarouselTimer();
+  };
+
+  // 写真カルーセルの指定ペアへ
+  const goToPhotoPair = (index: number) => {
+    setSelectedPhotoIndex(index);
+    resetPhotoCarouselTimer();
+  };
 
   const getVacancyLabel = (status: string) => {
     switch (status) {
@@ -427,21 +514,6 @@ export default function StoreDetailPage() {
                     ))}
                   </div>
                   
-                  {/* 自動スライド進捗インジケーター（オプション） */}
-                  {!isHovering && (
-                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/20">
-                      <motion.div
-                        key={selectedImageIndex}
-                        className="h-full bg-white/80"
-                        initial={{ width: '0%' }}
-                        animate={{ width: '100%' }}
-                        transition={{ 
-                          duration: AUTO_SLIDE_INTERVAL / 1000, 
-                          ease: 'linear' 
-                        }}
-                      />
-                    </div>
-                  )}
                 </>
               )}
             </div>
@@ -535,7 +607,7 @@ export default function StoreDetailPage() {
                 </div>
               )}
               
-              <div className="flex gap-2 mb-3 items-center flex-wrap justify-between">
+              <div className="flex gap-2 mb-3 items-center flex-wrap">
                 {/* 空席情報アイコン */}
                 <motion.div 
                   className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2"
@@ -551,12 +623,6 @@ export default function StoreDetailPage() {
                     {getVacancyLabel(store.vacancy_status)}
                   </span>
                 </motion.div>
-
-                {/* 10分後来店予約ボタン */}
-                <InstantReservationButton
-                  storeId={store.id}
-                  storeName={store.name}
-                />
               </div>
             </div>
 
@@ -586,7 +652,6 @@ export default function StoreDetailPage() {
                 <div className="flex-1">
                   <p className="text-sm font-bold mb-1">{t('store_detail.address')}</p>
                   <div className="space-y-2">
-                    <p className="text-sm text-muted-foreground font-bold">{store.address}</p>
                     <motion.button
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
@@ -662,9 +727,112 @@ export default function StoreDetailPage() {
                     >
                       {store.phone}
                     </motion.a>
-                    <p className="text-xs text-muted-foreground font-bold">
+                    <p className="text-xs text-muted-foreground font-bold mb-3">
                       {t('store_detail.phone_note')}
                     </p>
+                  </div>
+                </div>
+              )}
+
+              {/* 席をキープする */}
+              <div className="flex items-start gap-3">
+                <User className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-sm font-bold mb-1">席をキープする</p>
+                  <InstantReservationButton
+                    storeId={store.id}
+                    storeName={store.name}
+                  />
+                </div>
+              </div>
+
+              {/* 写真 */}
+              {store.google_place_id && (
+                <div className="flex items-start gap-3">
+                  <ImageIcon className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm font-bold mb-3">写真</p>
+                    {loadingPhotos ? (
+                      <div className="flex items-center justify-center py-8">
+                        <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                      </div>
+                    ) : placePhotos.length > 0 ? (
+                      <div 
+                        className="relative"
+                        onMouseEnter={() => setIsPhotoHovering(true)}
+                        onMouseLeave={() => setIsPhotoHovering(false)}
+                        onTouchStart={() => setIsPhotoHovering(true)}
+                        onTouchEnd={() => {
+                          setTimeout(() => setIsPhotoHovering(false), 1000);
+                        }}
+                      >
+                        <div className="grid grid-cols-2 gap-2 overflow-hidden">
+                          {(() => {
+                            const pairsCount = Math.ceil(placePhotos.length / 2);
+                            const startIndex = selectedPhotoIndex * 2;
+                            const currentPair = placePhotos.slice(startIndex, startIndex + 2);
+                            
+                            return currentPair.map((photoUrl, index) => (
+                              <motion.div
+                                key={`${selectedPhotoIndex}-${index}`}
+                                initial={{ opacity: 0, x: 20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: -20 }}
+                                transition={{ duration: 0.3 }}
+                                className="relative aspect-square rounded-lg overflow-hidden"
+                              >
+                                <img
+                                  src={photoUrl}
+                                  alt={`${store.name}の写真 ${startIndex + index + 1}`}
+                                  className="w-full h-full object-cover"
+                                />
+                              </motion.div>
+                            ));
+                          })()}
+                        </div>
+                        
+                        {/* カルーセルコントロール */}
+                        {Math.ceil(placePhotos.length / 2) > 1 && (
+                          <>
+                            <Button
+                              size="icon"
+                              variant="secondary"
+                              className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white z-10"
+                              onClick={prevPhotoPair}
+                            >
+                              <ChevronLeft className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="secondary"
+                              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white z-10"
+                              onClick={nextPhotoPair}
+                            >
+                              <ChevronRight className="w-4 h-4" />
+                            </Button>
+                            
+                            {/* インジケーター */}
+                            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-2 mt-2">
+                              {Array.from({ length: Math.ceil(placePhotos.length / 2) }).map((_, index) => (
+                                <button
+                                  key={index}
+                                  onClick={() => goToPhotoPair(index)}
+                                  className={`h-2 rounded-full transition-all duration-300 ${
+                                    index === selectedPhotoIndex 
+                                      ? 'bg-white w-6' 
+                                      : 'bg-white/50 w-2 hover:bg-white/70'
+                                  }`}
+                                  aria-label={`写真ペア ${index + 1} を表示`}
+                                />
+                              ))}
+                            </div>
+                            
+                          </>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground font-bold">写真がありません</p>
+                    )}
                   </div>
                 </div>
               )}
