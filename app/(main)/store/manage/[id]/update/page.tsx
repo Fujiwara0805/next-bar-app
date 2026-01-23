@@ -3,11 +3,11 @@
 /**
  * ============================================
  * ファイルパス: app/store/manage/[id]/page.tsx
- * * 店舗管理ページ
+ * 店舗管理ページ（来店チェック機能付き）
  * ============================================
  */
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import {
@@ -32,6 +32,7 @@ import {
   Clock,
   X,
   Phone,
+  UserCheck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -44,10 +45,12 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { useAuth } from '@/lib/auth/context';
 import { supabase } from '@/lib/supabase/client';
 import { toast } from 'sonner';
+import { ArrivalToggleButton, ArrivalStatusBadge } from '@/components/reservation/ArrivalToggleButton';
 import type { Database } from '@/lib/supabase/types';
 
 type Store = Database['public']['Tables']['stores']['Row'];
 type StoreUpdate = Database['public']['Tables']['stores']['Update'];
+type QuickReservation = Database['public']['Tables']['quick_reservations']['Row'];
 
 /**
  * 空席状況の選択肢
@@ -113,7 +116,7 @@ export default function StoreUpdatePage() {
   const [mainImageIndex, setMainImageIndex] = useState(0);
 
   // 予約管理関連のstate
-  const [reservations, setReservations] = useState<Database['public']['Tables']['quick_reservations']['Row'][]>([]);
+  const [reservations, setReservations] = useState<QuickReservation[]>([]);
   const [loadingReservations, setLoadingReservations] = useState(false);
   const [activeTab, setActiveTab] = useState('status');
   
@@ -217,7 +220,7 @@ export default function StoreUpdatePage() {
         .limit(50);
 
       if (error) throw error;
-      setReservations(data || []);
+      setReservations((data || []) as QuickReservation[]);
     } catch (error) {
       console.error('Error fetching reservations:', error);
       toast.error('予約データの取得に失敗しました', { 
@@ -360,6 +363,16 @@ export default function StoreUpdatePage() {
     }
   };
 
+  /**
+   * 予約の来店ステータス更新ハンドラー
+   * ArrivalToggleButton からのコールバック
+   */
+  const handleReservationUpdate = useCallback((updatedReservation: QuickReservation) => {
+    setReservations(prev => 
+      prev.map(r => r.id === updatedReservation.id ? updatedReservation : r)
+    );
+  }, []);
+
   const handleDeleteReservation = (reservationId: string) => {
     setReservations(prev => prev.filter(r => r.id !== reservationId));
     toast.success('予約カードを削除しました', { 
@@ -389,7 +402,7 @@ export default function StoreUpdatePage() {
 
       if (error) throw error;
 
-      const reservations: Database['public']['Tables']['quick_reservations']['Row'][] = monthlyReservations || [];
+      const reservationsData = (monthlyReservations || []) as QuickReservation[];
 
       const statusLabels: Record<string, string> = {
         pending: '保留中',
@@ -399,11 +412,21 @@ export default function StoreUpdatePage() {
         expired: '期限切れ',
       };
 
-      const headers = ['No', '受付時刻', '名前', '電話番号', '人数', '到着予定', 'ステータス'];
+      // CSV ヘッダーに来店状況を追加
+      const headers = ['No', '受付時刻', '名前', '電話番号', '人数', '到着予定', 'ステータス', '来店状況', '来店時刻'];
       
-      const csvRows = reservations.map((reservation, index) => {
+      const csvRows = reservationsData.map((reservation, index) => {
         const createdAt = new Date(reservation.created_at);
         const arrivalTime = new Date(reservation.arrival_time);
+        const arrivedAt = reservation.arrived_at ? new Date(reservation.arrived_at) : null;
+        
+        // 来店状況の判定
+        let arrivalStatus = '未来店';
+        if (reservation.arrived_at) {
+          arrivalStatus = '来店済';
+        } else if (reservation.no_show_at) {
+          arrivalStatus = '無断キャンセル';
+        }
         
         return [
           (index + 1).toString(),
@@ -425,6 +448,14 @@ export default function StoreUpdatePage() {
             minute: '2-digit',
           }),
           statusLabels[reservation.status] || reservation.status,
+          arrivalStatus,
+          arrivedAt ? arrivedAt.toLocaleString('ja-JP', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+          }) : '-',
         ];
       });
 
@@ -740,6 +771,19 @@ export default function StoreUpdatePage() {
             {/* 予約管理タブ */}
             <TabsContent value="reservations">
               <div className="space-y-4">
+                {/* 来店確認の説明カード */}
+                <Card className="p-4 bg-gradient-to-r from-amber-50 to-yellow-50 border-amber-200">
+                  <div className="flex items-start gap-3">
+                    <UserCheck className="w-5 h-5 mt-0.5" style={{ color: '#D4AF37' }} />
+                    <div>
+                      <p className="text-sm font-bold text-amber-800">来店確認機能</p>
+                      <p className="text-xs text-amber-700 mt-1">
+                        承認済みの予約に対して「来店確認」ボタンをタップすると、来店済みとして記録されます。
+                      </p>
+                    </div>
+                  </div>
+                </Card>
+
                 {loadingReservations ? (
                   <div className="flex items-center justify-center py-12">
                     <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
@@ -844,6 +888,42 @@ export default function StoreUpdatePage() {
                                     })}
                                   </p>
                                 </div>
+                              </div>
+
+                              {/* ============================================ */}
+                              {/* 来店確認セクション */}
+                              {/* ============================================ */}
+                              <div className="pt-3 mt-3 border-t border-gray-100">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <UserCheck className="w-4 h-4 text-muted-foreground" />
+                                    <span className="text-sm font-bold text-muted-foreground">来店状況</span>
+                                  </div>
+                                  
+                                  {/* 来店チェックトグルボタン */}
+                                  <ArrivalToggleButton
+                                    reservation={reservation}
+                                    onUpdate={handleReservationUpdate}
+                                  />
+                                </div>
+                                
+                                {/* 来店済みの場合、来店時刻を表示 */}
+                                {reservation.arrived_at && (
+                                  <motion.div
+                                    initial={{ opacity: 0, y: -10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="mt-2 text-right"
+                                  >
+                                    <span className="text-xs text-amber-700 font-bold">
+                                      来店時刻: {new Date(reservation.arrived_at).toLocaleString('ja-JP', {
+                                        month: '2-digit',
+                                        day: '2-digit',
+                                        hour: '2-digit',
+                                        minute: '2-digit',
+                                      })}
+                                    </span>
+                                  </motion.div>
+                                )}
                               </div>
 
                               {/* 拒否理由 */}

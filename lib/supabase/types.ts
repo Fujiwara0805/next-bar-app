@@ -242,6 +242,17 @@ export interface Database {
           expires_at: string
           created_at: string
           updated_at: string
+          // ============================================
+          // 来店管理関連のカラム
+          // ============================================
+          /** 店舗名（キャッシュ用） */
+          store_name: string | null
+          /** 来店日時。値があれば来店済み */
+          arrived_at: string | null
+          /** ノーショー（無断キャンセル）日時 */
+          no_show_at: string | null
+          /** キャンセル日時 */
+          cancelled_at: string | null
         }
         Insert: {
           id?: string
@@ -259,6 +270,11 @@ export interface Database {
           expires_at: string
           created_at?: string
           updated_at?: string
+          // 来店管理関連（すべてオプショナル）
+          store_name?: string | null
+          arrived_at?: string | null
+          no_show_at?: string | null
+          cancelled_at?: string | null
         }
         Update: {
           id?: string
@@ -276,6 +292,11 @@ export interface Database {
           expires_at?: string
           created_at?: string
           updated_at?: string
+          // 来店管理関連（すべてオプショナル）
+          store_name?: string | null
+          arrived_at?: string | null
+          no_show_at?: string | null
+          cancelled_at?: string | null
         }
       }
     }
@@ -283,6 +304,70 @@ export interface Database {
     Functions: {}
     Enums: {}
   }
+}
+
+// ============================================
+// 予約ステータス関連の型定義
+// ============================================
+
+/** 予約ステータス */
+export type ReservationStatus = 'pending' | 'confirmed' | 'rejected' | 'cancelled' | 'expired';
+
+/** 来店ステータス */
+export type ArrivalStatus = 'not_arrived' | 'arrived' | 'no_show';
+
+/**
+ * 来店ステータスを取得するユーティリティ関数
+ */
+export function getArrivalStatus(
+  arrivedAt: string | null,
+  noShowAt: string | null
+): ArrivalStatus {
+  if (arrivedAt) return 'arrived';
+  if (noShowAt) return 'no_show';
+  return 'not_arrived';
+}
+
+/**
+ * 来店ステータスの表示情報
+ */
+export interface ArrivalStatusDisplay {
+  label: string;
+  labelEn: string;
+  color: string;
+  bgColor: string;
+  borderColor: string;
+}
+
+/**
+ * 来店ステータスの表示情報を取得
+ */
+export function getArrivalStatusDisplay(status: ArrivalStatus): ArrivalStatusDisplay {
+  const statusMap: Record<ArrivalStatus, ArrivalStatusDisplay> = {
+    not_arrived: {
+      label: '未来店',
+      labelEn: 'Not Arrived',
+      color: 'text-gray-600',
+      bgColor: 'bg-gray-50',
+      borderColor: 'border-gray-200',
+    },
+    arrived: {
+      label: '来店済',
+      labelEn: 'Arrived',
+      color: 'text-amber-700',
+      bgColor: 'bg-amber-50',
+      borderColor: 'border-amber-300',
+    },
+    no_show: {
+      label: '無断キャンセル',
+      labelEn: 'No Show',
+      color: 'text-red-600',
+      bgColor: 'bg-red-50',
+      borderColor: 'border-red-200',
+    },
+  };
+
+  return statusMap[status];
 }
 
 // 営業時間の型定義
