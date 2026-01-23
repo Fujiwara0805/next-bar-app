@@ -84,7 +84,7 @@ export const translations = {
       view_details: '詳細を見る',
     },
     store_list: {
-      title: '店舗一覧',
+      title: '店舗一覧画面',
       search_placeholder: '店舗名で検索...',
       results_count: '件の店舗',
       loading: '読み込み中...',

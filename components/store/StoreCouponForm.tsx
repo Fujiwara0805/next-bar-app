@@ -244,9 +244,9 @@ export function StoreCouponForm({
                   step={values.discountType === 'fixed' ? 100 : 1}
                   value={values.discountValue}
                   onChange={(e) => handleChange('discountValue', e.target.value)}
-                  placeholder={values.discountType === 'percentage' ? '10' : '500'}
+                  placeholder={values.discountType === 'percentage' ? '例: 10' : '例: 500'}
                   disabled={disabled || values.discountType === 'free_item'}
-                  className="font-bold bg-white text-gray-700 border-2 border-gray-300"
+                  className="font-bold bg-white text-gray-700 border-2 border-gray-300 placeholder:text-gray-400"
                   style={{ fontSize: '16px' }}
                 />
                 {errors.discountValue && (

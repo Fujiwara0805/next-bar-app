@@ -888,6 +888,7 @@ export default function StoreUpdatePage() {
                               style={{ 
                                 fontSize: '16px',
                                 borderColor: 'rgba(201, 168, 108, 0.3)',
+                                backgroundColor: '#ffffff',
                               }}
                             />
                           </div>
@@ -910,6 +911,7 @@ export default function StoreUpdatePage() {
                               style={{ 
                                 fontSize: '16px',
                                 borderColor: 'rgba(201, 168, 108, 0.3)',
+                                backgroundColor: '#ffffff',
                               }}
                             />
                           </div>

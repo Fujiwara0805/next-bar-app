@@ -27,6 +27,32 @@ import { ConciergeModal } from '@/components/concierge-modal';
 
 type Store = Database['public']['Tables']['stores']['Row'];
 
+// ============================================
+// カラーパレット定義（店舗詳細画面準拠）
+// ============================================
+const COLORS = {
+  // プライマリ
+  deepNavy: '#0A1628',
+  midnightBlue: '#162447',
+  royalNavy: '#1F4068',
+  
+  // アクセント
+  champagneGold: '#C9A86C',
+  paleGold: '#E8D5B7',
+  antiqueGold: '#B8956E',
+  
+  // ニュートラル
+  charcoal: '#2D3436',
+  warmGray: '#636E72',
+  platinum: '#DFE6E9',
+  ivory: '#FDFBF7',
+  
+  // グラデーション
+  luxuryGradient: 'linear-gradient(165deg, #0A1628 0%, #162447 50%, #1F4068 100%)',
+  goldGradient: 'linear-gradient(135deg, #C9A86C 0%, #E8D5B7 50%, #B8956E 100%)',
+  cardGradient: 'linear-gradient(145deg, #FDFBF7 0%, #F5F1EB 100%)',
+};
+
 // コンシェルジュが提案する店舗数
 const CONCIERGE_RECOMMENDATION_LIMIT = 3;
 
@@ -418,7 +444,7 @@ export default function StoreListPage() {
       <header className="sticky top-0 z-30 bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="mb-4">
-            <h1 className="text-xl font-bold text-card-foreground text-center">{t('store_list.title')}</h1>
+            <h1 className="text-xl font-bold text-center" style={{ color: COLORS.deepNavy }}>{t('store_list.title')}</h1>
           </div>
           
           {/* コンシェルジュボタン */}
@@ -444,15 +470,16 @@ export default function StoreListPage() {
           
           {/* フィルター状態表示 */}
           <div className="flex items-center justify-between mt-3">
-            <p className="text-sm text-card-foreground/70 font-bold">
+            <p className="text-sm font-bold" style={{ color: COLORS.warmGray }}>
               {filteredStores.length}{t('store_list.results_count')}
-              <span className="ml-2 text-amber-600">{getFilterStatusText()}</span>
+              <span className="ml-2" style={{ color: COLORS.champagneGold }}>{getFilterStatusText()}</span>
             </p>
             
             {(vacantOnly || openNowOnly || isConciergeActive) && (
               <button
                 onClick={clearAllFilters}
-                className="text-sm text-blue-600 hover:underline font-bold flex items-center gap-1"
+                className="text-sm font-bold hover:underline flex items-center gap-1"
+                style={{ color: COLORS.royalNavy }}
               >
                 <X className="w-3 h-3" />
                 フィルター解除
@@ -468,12 +495,12 @@ export default function StoreListPage() {
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
               <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-              <p className="text-sm text-white font-bold">{t('store_list.loading')}</p>
+              <p className="text-sm font-bold" style={{ color: COLORS.warmGray }}>{t('store_list.loading')}</p>
             </div>
           </div>
         ) : filteredStores.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-white font-bold">
+            <p className="font-bold" style={{ color: COLORS.deepNavy }}>
               {isConciergeActive
                 ? '条件に合う店舗が見つかりませんでした'
                 : vacantOnly || openNowOnly
@@ -484,7 +511,8 @@ export default function StoreListPage() {
             {(vacantOnly || openNowOnly || isConciergeActive) && (
               <button
                 onClick={clearAllFilters}
-                className="mt-4 text-amber-500 hover:underline font-bold"
+                className="mt-4 font-bold hover:underline"
+                style={{ color: COLORS.champagneGold }}
               >
                 すべての店舗を表示
               </button>
@@ -509,7 +537,7 @@ export default function StoreListPage() {
                     Concierge Selection
                   </span>
                 </div>
-                <p className="text-sm text-white/80">
+                <p className="text-sm font-medium" style={{ color: COLORS.warmGray }}>
                   お客様のご希望に基づき、厳選した{filteredStores.length}件を<br />ご案内いたします
                 </p>
               </motion.div>
@@ -582,7 +610,10 @@ export default function StoreListPage() {
                           <div className="flex-1 min-w-0 flex flex-col">
                             <div className="flex-1">
                               {/* 店舗名 - バッジと重ならないようにpr追加 */}
-                              <h3 className={`text-lg font-bold text-card-foreground truncate ${isConciergeActive || isOpen ? 'pr-16' : ''}`}>
+                              <h3 
+                                className={`text-lg font-bold truncate ${isConciergeActive || isOpen ? 'pr-16' : ''}`}
+                                style={{ color: COLORS.deepNavy }}
+                              >
                                 {store.name}
                               </h3>
                               
@@ -596,17 +627,17 @@ export default function StoreListPage() {
                                         className={`w-4 h-4 ${
                                           star <= Math.round(store.google_rating!)
                                             ? 'fill-yellow-400 text-yellow-400'
-                                            : 'fill-gray-300 text-gray-300'
+                                            : 'fill-gray-200 text-gray-200'
                                         }`}
                                       />
                                     ))}
                                   </div>
-                                  <span className="text-sm font-bold text-card-foreground">
+                                  <span className="text-sm font-bold" style={{ color: COLORS.charcoal }}>
                                     {store.google_rating.toFixed(1)}
                                   </span>
                                   {store.google_reviews_count && (
-                                    <span className="text-xs text-card-foreground/70">
-                                      ({store.google_reviews_count})
+                                    <span className="text-xs" style={{ color: COLORS.warmGray }}>
+                                      ({store.google_reviews_count.toLocaleString()}件)
                                     </span>
                                   )}
                                 </div>
@@ -614,7 +645,7 @@ export default function StoreListPage() {
                               
                               {/* 距離表示 */}
                               {userLocation && (
-                                <p className="text-sm text-card-foreground/70 font-bold">
+                                <p className="text-sm font-bold" style={{ color: COLORS.warmGray }}>
                                   徒歩およそ{calculateWalkingTime(calculateDistance(
                                     userLocation.lat,
                                     userLocation.lng,
@@ -633,7 +664,8 @@ export default function StoreListPage() {
                                   const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.name || '')}`;
                                   window.open(mapsUrl, '_blank');
                                 }}
-                                className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 hover:underline font-bold"
+                                className="flex items-center gap-1 text-xs font-bold hover:underline"
+                                style={{ color: COLORS.royalNavy }}
                               >
                                 <span>{t('store_list.open_in_google_maps')}</span>
                                 <ExternalLink className="w-3 h-3" />
@@ -650,14 +682,14 @@ export default function StoreListPage() {
                                   alt={getVacancyLabel(store.vacancy_status)}
                                   className="w-6 h-6 object-contain"
                                 />
-                                <span className="text-xl font-bold text-card-foreground">
+                                <span className="text-lg font-bold" style={{ color: COLORS.deepNavy }}>
                                   {getVacancyLabel(store.vacancy_status)}
                                 </span>
                               </motion.div>
                               
                               {/* 一言メッセージ */}
                               {store.status_message && (
-                                <p className="text-sm text-card-foreground/80 font-bold line-clamp-2 pt-1">
+                                <p className="text-sm font-bold line-clamp-2 pt-1" style={{ color: COLORS.deepNavy }}>
                                   {store.status_message}
                                 </p>
                               )}
