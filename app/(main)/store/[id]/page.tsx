@@ -374,23 +374,36 @@ export default function StoreDetailPage() {
     };
   }, [imageUrls.length, isHovering]);
 
-  // 写真カルーセル
+  // 写真カルーセル（2枚表示、1枚ずつ移動）
+  // selectedPhotoIndexを基準に、indexとindex+1の2枚を表示
+  // 最大スライド数は placePhotos.length - 1（最後の写真まで）
+  const maxPhotoIndex = useMemo(() => {
+    return placePhotos.length > 1 ? placePhotos.length - 1 : 0;
+  }, [placePhotos.length]);
+  
   const resetPhotoCarouselTimer = useCallback(() => {
     if (photoCarouselTimerRef.current) clearInterval(photoCarouselTimerRef.current);
     
-    const pairsCount = Math.ceil(placePhotos.length / 2);
-    if (pairsCount > 1 && !isPhotoHovering) {
+    if (placePhotos.length > 1 && !isPhotoHovering) {
       photoCarouselTimerRef.current = setInterval(() => {
-        setSelectedPhotoIndex((prev) => (prev + 1) % pairsCount);
+        setSelectedPhotoIndex((prev) => {
+          // 最後のインデックスに達したら最初に戻る
+          const maxIdx = placePhotos.length > 1 ? placePhotos.length - 1 : 0;
+          if (prev >= maxIdx) return 0;
+          return prev + 1;
+        });
       }, AUTO_SLIDE_INTERVAL);
     }
   }, [placePhotos.length, isPhotoHovering]);
 
   useEffect(() => {
-    const pairsCount = Math.ceil(placePhotos.length / 2);
-    if (pairsCount > 1 && !isPhotoHovering) {
+    if (placePhotos.length > 1 && !isPhotoHovering) {
       photoCarouselTimerRef.current = setInterval(() => {
-        setSelectedPhotoIndex((prev) => (prev + 1) % pairsCount);
+        setSelectedPhotoIndex((prev) => {
+          const maxIdx = placePhotos.length > 1 ? placePhotos.length - 1 : 0;
+          if (prev >= maxIdx) return 0;
+          return prev + 1;
+        });
       }, AUTO_SLIDE_INTERVAL);
     }
     return () => {
@@ -398,20 +411,27 @@ export default function StoreDetailPage() {
     };
   }, [placePhotos.length, isPhotoHovering]);
 
-  const nextPhotoPair = () => {
-    const pairsCount = Math.ceil(placePhotos.length / 2);
-    setSelectedPhotoIndex((prev) => (prev + 1) % pairsCount);
+  const nextPhoto = () => {
+    setSelectedPhotoIndex((prev) => {
+      const maxIdx = placePhotos.length > 1 ? placePhotos.length - 1 : 0;
+      if (prev >= maxIdx) return 0;
+      return prev + 1;
+    });
     resetPhotoCarouselTimer();
   };
 
-  const prevPhotoPair = () => {
-    const pairsCount = Math.ceil(placePhotos.length / 2);
-    setSelectedPhotoIndex((prev) => (prev - 1 + pairsCount) % pairsCount);
+  const prevPhoto = () => {
+    setSelectedPhotoIndex((prev) => {
+      const maxIdx = placePhotos.length > 1 ? placePhotos.length - 1 : 0;
+      if (prev <= 0) return maxIdx;
+      return prev - 1;
+    });
     resetPhotoCarouselTimer();
   };
 
-  const goToPhotoPair = (index: number) => {
-    setSelectedPhotoIndex(index);
+  const goToPhoto = (index: number) => {
+    const maxIdx = placePhotos.length > 1 ? placePhotos.length - 1 : 0;
+    setSelectedPhotoIndex(Math.min(index, maxIdx));
     resetPhotoCarouselTimer();
   };
 
@@ -520,7 +540,7 @@ export default function StoreDetailPage() {
     >
       {/* ヘッダー */}
       <header 
-        className="sticky top-0 z-10 safe-top"
+        className="sticky top-0 z-20 safe-top"
         style={{ 
           background: COLORS.luxuryGradient,
           borderBottom: `1px solid rgba(201, 168, 108, 0.2)`,
@@ -604,7 +624,7 @@ export default function StoreDetailPage() {
                 <>
                   <Button
                     size="icon"
-                    className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full z-10"
+                    className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full z-0"
                     onClick={(e) => {
                       e.stopPropagation();
                       prevImage();
@@ -619,7 +639,7 @@ export default function StoreDetailPage() {
                   </Button>
                   <Button
                     size="icon"
-                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full z-10"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full z-0"
                     onClick={(e) => {
                       e.stopPropagation();
                       nextImage();
@@ -633,7 +653,7 @@ export default function StoreDetailPage() {
                     <ChevronRight className="w-5 h-5" />
                   </Button>
                   
-                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-0">
                     {imageUrls.map((_, index) => (
                       <button
                         key={index}
@@ -938,7 +958,7 @@ export default function StoreDetailPage() {
                       <PhotoGridSkeleton />
                     )}
                     
-                    {/* 写真カルーセル */}
+                    {/* 写真カルーセル（2枚表示、1枚ずつ移動） */}
                     {!loadingPhotos && placePhotos.length > 0 && (
                       <div 
                         className="relative"
@@ -949,62 +969,72 @@ export default function StoreDetailPage() {
                       >
                         <div className="grid grid-cols-2 gap-2 overflow-hidden">
                           {(() => {
-                            const startIndex = selectedPhotoIndex * 2;
-                            const currentPair = placePhotos.slice(startIndex, startIndex + 2);
+                            // selectedPhotoIndexとselectedPhotoIndex+1の2枚を表示
+                            const photos: string[] = [];
+                            if (placePhotos[selectedPhotoIndex]) {
+                              photos.push(placePhotos[selectedPhotoIndex]);
+                            }
+                            if (placePhotos[selectedPhotoIndex + 1]) {
+                              photos.push(placePhotos[selectedPhotoIndex + 1]);
+                            }
                             
-                            return currentPair.map((photoUrl, index) => (
-                              <motion.div
-                                key={`${selectedPhotoIndex}-${index}`}
-                                initial={{ opacity: 0, x: 20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ duration: 0.3 }}
-                                className="relative aspect-square rounded-xl overflow-hidden cursor-pointer group"
-                                style={{ border: `1px solid rgba(201, 168, 108, 0.2)` }}
-                                onClick={() => openLightbox(placePhotos, startIndex + index)}
-                                role="button"
-                                tabIndex={0}
-                                aria-label={`写真 ${startIndex + index + 1} を拡大表示`}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter' || e.key === ' ') {
-                                    e.preventDefault();
-                                    openLightbox(placePhotos, startIndex + index);
-                                  }
-                                }}
-                              >
-                                <img
-                                  src={photoUrl}
-                                  alt={`${store.name}の写真 ${startIndex + index + 1}`}
-                                  className="w-full h-full object-cover"
-                                  loading="lazy"
-                                />
-                                {/* 拡大アイコンオーバーレイ */}
-                                <div 
-                                  className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                                  style={{ backgroundColor: 'rgba(10, 22, 40, 0.3)' }}
+                            return photos.map((photoUrl, index) => {
+                              const photoIndex = selectedPhotoIndex + index;
+                              return (
+                                <motion.div
+                                  key={`${selectedPhotoIndex}-${index}`}
+                                  initial={{ opacity: 0, x: 20 }}
+                                  animate={{ opacity: 1, x: 0 }}
+                                  exit={{ opacity: 0, x: -20 }}
+                                  transition={{ duration: 0.3 }}
+                                  className="relative aspect-square rounded-xl overflow-hidden cursor-pointer group"
+                                  style={{ border: `1px solid rgba(201, 168, 108, 0.2)` }}
+                                  onClick={() => openLightbox(placePhotos, photoIndex)}
+                                  role="button"
+                                  tabIndex={0}
+                                  aria-label={`写真 ${photoIndex + 1} を拡大表示`}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                      e.preventDefault();
+                                      openLightbox(placePhotos, photoIndex);
+                                    }
+                                  }}
                                 >
+                                  <img
+                                    src={photoUrl}
+                                    alt={`${store.name}の写真 ${photoIndex + 1}`}
+                                    className="w-full h-full object-cover"
+                                    loading="lazy"
+                                  />
+                                  {/* 拡大アイコンオーバーレイ */}
                                   <div 
-                                    className="p-2 rounded-full"
-                                    style={{ 
-                                      backgroundColor: 'rgba(10, 22, 40, 0.8)',
-                                      border: `1px solid rgba(201, 168, 108, 0.3)`,
-                                    }}
+                                    className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                                    style={{ backgroundColor: 'rgba(10, 22, 40, 0.3)' }}
                                   >
-                                    <Expand className="w-4 h-4" style={{ color: COLORS.champagneGold }} />
+                                    <div 
+                                      className="p-2 rounded-full"
+                                      style={{ 
+                                        backgroundColor: 'rgba(10, 22, 40, 0.8)',
+                                        border: `1px solid rgba(201, 168, 108, 0.3)`,
+                                      }}
+                                    >
+                                      <Expand className="w-4 h-4" style={{ color: COLORS.champagneGold }} />
+                                    </div>
                                   </div>
-                                </div>
-                              </motion.div>
-                            ));
+                                </motion.div>
+                              );
+                            });
                           })()}
                         </div>
                         
-                        {Math.ceil(placePhotos.length / 2) > 1 && (
+                        {placePhotos.length > 1 && (
                           <>
                             <Button
                               size="icon"
-                              className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full z-10"
+                              className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full z-0"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                prevPhotoPair();
+                                prevPhoto();
                               }}
                               style={{ 
                                 backgroundColor: 'rgba(10, 22, 40, 0.8)',
@@ -1016,10 +1046,10 @@ export default function StoreDetailPage() {
                             </Button>
                             <Button
                               size="icon"
-                              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full z-10"
+                              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full z-0"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                nextPhotoPair();
+                                nextPhoto();
                               }}
                               style={{ 
                                 backgroundColor: 'rgba(10, 22, 40, 0.8)',
@@ -1030,13 +1060,13 @@ export default function StoreDetailPage() {
                               <ChevronRight className="w-4 h-4" />
                             </Button>
                             
-                            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-2">
-                              {Array.from({ length: Math.ceil(placePhotos.length / 2) }).map((_, index) => (
+                            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-2 z-0">
+                              {Array.from({ length: maxPhotoIndex + 1 }).map((_, index) => (
                                 <button
                                   key={index}
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    goToPhotoPair(index);
+                                    goToPhoto(index);
                                   }}
                                   className="h-2 rounded-full transition-all duration-300"
                                   style={{
