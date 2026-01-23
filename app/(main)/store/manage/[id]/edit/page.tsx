@@ -19,6 +19,9 @@ import {
   CreditCard,
   Settings,
   X,
+  Upload,
+  Sparkles,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,7 +33,6 @@ import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/auth/context';
 import { toast } from 'sonner';
 import type { Database } from '@/lib/supabase/types';
-import { Upload } from 'lucide-react';
 
 // クーポン関連のインポート
 import { StoreCouponForm } from '@/components/store/StoreCouponForm';
@@ -49,6 +51,109 @@ type Store = Database['public']['Tables']['stores']['Row'];
 type StoreWithCoupon = Store & Partial<CouponData>;
 
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+
+// ============================================
+// カラーパレット定義（店舗詳細画面準拠）
+// ============================================
+const COLORS = {
+  // プライマリ
+  deepNavy: '#0A1628',
+  midnightBlue: '#162447',
+  royalNavy: '#1F4068',
+  
+  // アクセント
+  champagneGold: '#C9A86C',
+  paleGold: '#E8D5B7',
+  antiqueGold: '#B8956E',
+  
+  // ニュートラル
+  charcoal: '#2D3436',
+  warmGray: '#636E72',
+  platinum: '#DFE6E9',
+  ivory: '#FDFBF7',
+  
+  // グラデーション
+  luxuryGradient: 'linear-gradient(165deg, #0A1628 0%, #162447 50%, #1F4068 100%)',
+  goldGradient: 'linear-gradient(135deg, #C9A86C 0%, #E8D5B7 50%, #B8956E 100%)',
+  cardGradient: 'linear-gradient(145deg, #FDFBF7 0%, #F5F1EB 100%)',
+};
+
+/**
+ * セクションヘッダーコンポーネント
+ */
+const SectionHeader = ({ icon: Icon, title, description }: { 
+  icon: React.ElementType; 
+  title: string; 
+  description?: string;
+}) => (
+  <div className="flex items-start gap-3 mb-6">
+    <div 
+      className="p-2.5 rounded-xl shrink-0"
+      style={{ 
+        background: COLORS.goldGradient,
+        boxShadow: '0 4px 12px rgba(201, 168, 108, 0.25)',
+      }}
+    >
+      <Icon className="w-5 h-5" style={{ color: COLORS.deepNavy }} />
+    </div>
+    <div>
+      <h3 
+        className="text-lg font-bold"
+        style={{ color: COLORS.deepNavy }}
+      >
+        {title}
+      </h3>
+      {description && (
+        <p className="text-sm mt-0.5" style={{ color: COLORS.warmGray }}>
+          {description}
+        </p>
+      )}
+    </div>
+  </div>
+);
+
+/**
+ * ゴールド装飾ディバイダー
+ */
+const GoldDivider = () => (
+  <div className="flex items-center justify-center gap-3 my-6">
+    <div 
+      className="h-px flex-1"
+      style={{ background: `linear-gradient(90deg, transparent, ${COLORS.champagneGold}40)` }}
+    />
+    <div 
+      className="w-1.5 h-1.5 rotate-45"
+      style={{ backgroundColor: COLORS.champagneGold }}
+    />
+    <div 
+      className="h-px flex-1"
+      style={{ background: `linear-gradient(90deg, ${COLORS.champagneGold}40, transparent)` }}
+    />
+  </div>
+);
+
+/**
+ * カスタム入力フィールドスタイル
+ */
+const inputStyles = {
+  base: `
+    w-full px-4 py-3 rounded-xl
+    bg-white border-2 
+    transition-all duration-200
+    font-medium
+    placeholder:text-gray-400
+    focus:outline-none
+  `,
+  focus: `
+    focus:border-[#C9A86C] 
+    focus:ring-2 
+    focus:ring-[#C9A86C]/20
+  `,
+  default: 'border-gray-200 hover:border-gray-300',
+};
+
+const getInputClassName = (disabled?: boolean) => 
+  `${inputStyles.base} ${inputStyles.focus} ${inputStyles.default} ${disabled ? 'opacity-60 cursor-not-allowed' : ''}`;
 
 export default function StoreEditPage() {
   const router = useRouter();
@@ -572,43 +677,119 @@ export default function StoreEditPage() {
     }
   };
 
+  // 設備カテゴリ
+  const facilityCategories = {
+    newcomer: {
+      title: '✨ 新規・一人客向け',
+      items: ['一人客歓迎', 'おひとり様大歓迎', 'カウンター充実', '常連さんが優しい'],
+      bgColor: 'rgba(31, 64, 104, 0.05)',
+      borderColor: 'rgba(31, 64, 104, 0.15)',
+    },
+    women: {
+      title: '💕 女性向け',
+      items: ['女性客多め', '女性一人でも安心', '女性スタッフ在籍', 'レディースデー有'],
+      bgColor: 'rgba(201, 168, 108, 0.05)',
+      borderColor: 'rgba(201, 168, 108, 0.15)',
+    },
+    pricing: {
+      title: '💰 料金関連',
+      items: ['チャージなし', '席料なし', 'お通しなし', '明朗会計', '価格表示あり', '予算相談OK'],
+      bgColor: 'rgba(34, 197, 94, 0.05)',
+      borderColor: 'rgba(34, 197, 94, 0.15)',
+    },
+  };
+
+  const otherFacilities = [
+    'Wi-Fi', '喫煙可', '分煙', '禁煙', '駐車場', 'カウンター席', '個室', 'テラス席', 'ソファ席',
+    'カラオケ完備', 'ダーツ', 'ビリヤード', 'ボードゲーム', '生演奏', 'DJ', 'スポーツ観戦可',
+    '日本酒充実', 'ウイスキー充実', 'ワイン充実', 'カクテル豊富', 'クラフトビール', '焼酎充実',
+    'フード充実', 'おつまみ豊富', '英語対応可', '外国語メニューあり', '観光客歓迎', 'ホテル近く',
+    '駅近', '深夜営業', '朝まで営業', 'ボトルキープ可', 'セット料金あり', '静かな雰囲気',
+    'ワイワイ系', 'オーセンティック', 'カジュアル', '隠れ家的', '大人の雰囲気', '昭和レトロ',
+    'スタイリッシュ', 'アットホーム', 'ママ・マスター人気', '美味しいお酒', 'こだわりの一杯',
+  ];
+
   // 認証チェック中またはデータ取得中のローディング表示
   if (!authChecked || fetchingStore) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-center">
-          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-          <p className="text-sm text-muted-foreground font-bold">読み込み中...</p>
-        </div>
+      <div 
+        className="min-h-screen flex items-center justify-center"
+        style={{ background: COLORS.luxuryGradient }}
+      >
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+        >
+          <Sparkles className="w-10 h-10" style={{ color: COLORS.champagneGold }} />
+        </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background pb-20">
-      <header className="sticky top-0 z-10 bg-background border-b safe-top">
+    <div 
+      className="min-h-screen pb-20"
+      style={{ background: COLORS.cardGradient }}
+    >
+      {/* ヘッダー */}
+      <header 
+        className="sticky top-0 z-10 safe-top"
+        style={{ 
+          background: COLORS.luxuryGradient,
+          borderBottom: `1px solid rgba(201, 168, 108, 0.2)`,
+        }}
+      >
         <div className="flex items-center justify-center p-4 relative">
-          <h1 className="text-xl font-bold">店舗編集画面</h1>
+          <div className="flex items-center gap-2">
+            <h1 
+              className="text-lg font-light tracking-widest"
+              style={{ color: COLORS.ivory }}
+            >
+              店舗編集画面
+            </h1>
+          </div>
           <Button
             size="icon"
             variant="ghost"
             onClick={() => router.push(`/store/manage/${params.id}/update`)}
             className="rounded-full absolute right-4"
+            style={{ color: COLORS.warmGray }}
           >
             <X className="w-5 h-5" />
           </Button>
         </div>
       </header>
 
-      <div className="max-w-2xl mx-auto p-4">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <Card className="p-6">
-            <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="max-w-2xl mx-auto p-4 space-y-6">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }} 
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+        >
+          <form onSubmit={handleSubmit} className="space-y-6">
+            
+            {/* ========== 基本情報セクション ========== */}
+            <Card 
+              className="p-6 rounded-2xl shadow-lg"
+              style={{ 
+                background: '#FFFFFF',
+                border: `1px solid rgba(201, 168, 108, 0.15)`,
+              }}
+            >
+              <SectionHeader 
+                icon={Building2} 
+                title="基本情報" 
+                description="店舗の基本的な情報を編集してください"
+              />
+              
               {/* 店舗名 */}
-              <div className="space-y-2">
-                <Label htmlFor="name" className="font-bold flex items-center gap-2">
-                  <Building2 className="w-4 h-4" />
-                  店舗名 <span className="text-red-500">*</span>
+              <div className="space-y-2 mb-5">
+                <Label 
+                  htmlFor="name" 
+                  className="text-sm font-bold flex items-center gap-2"
+                  style={{ color: COLORS.deepNavy }}
+                >
+                  店舗名 <span style={{ color: COLORS.champagneGold }}>*</span>
                 </Label>
                 <Input
                   id="name"
@@ -616,33 +797,45 @@ export default function StoreEditPage() {
                   onChange={(e) => setName(e.target.value)}
                   required
                   disabled={loading}
-                  className="font-bold bg-white text-gray-700 border-2 border-gray-300"
+                  placeholder="例: Bar NIKENME"
+                  className={getInputClassName(loading)}
                   style={{ fontSize: '16px' }}
                 />
               </div>
 
               {/* 説明 */}
-              <div className="space-y-2">
-                <Label htmlFor="description" className="font-bold flex items-center gap-2">
-                  <FileText className="w-4 h-4" />
+              <div className="space-y-2 mb-5">
+                <Label 
+                  htmlFor="description" 
+                  className="text-sm font-bold flex items-center gap-2"
+                  style={{ color: COLORS.deepNavy }}
+                >
+                  <FileText className="w-4 h-4" style={{ color: COLORS.champagneGold }} />
                   店舗説明
                 </Label>
                 <Textarea
                   id="description"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  rows={3}
+                  rows={4}
                   disabled={loading}
-                  className="font-bold bg-white text-gray-700 border-2 border-gray-300"
-                  style={{ fontSize: '16px' }}
+                  placeholder="お店の特徴、雰囲気、おすすめポイントなどを自由にご記入ください"
+                  className={getInputClassName(loading)}
+                  style={{ fontSize: '16px', minHeight: '120px', resize: 'vertical' }}
                 />
               </div>
 
+              <GoldDivider />
+
               {/* 住所 */}
-              <div className="space-y-2">
-                <Label htmlFor="address" className="font-bold flex items-center gap-2">
-                  <MapPin className="w-4 h-4" />
-                  住所 <span className="text-red-500">*</span>
+              <div className="space-y-2 mb-5">
+                <Label 
+                  htmlFor="address" 
+                  className="text-sm font-bold flex items-center gap-2"
+                  style={{ color: COLORS.deepNavy }}
+                >
+                  <MapPin className="w-4 h-4" style={{ color: COLORS.champagneGold }} />
+                  住所 <span style={{ color: COLORS.champagneGold }}>*</span>
                 </Label>
                 <Input
                   id="address"
@@ -650,43 +843,46 @@ export default function StoreEditPage() {
                   onChange={(e) => setAddress(e.target.value)}
                   required
                   disabled={loading}
-                  className="font-bold bg-white text-gray-700 border-2 border-gray-300"
+                  placeholder="例: 大分県大分市都町1-2-3"
+                  className={getInputClassName(loading)}
                   style={{ fontSize: '16px' }}
                 />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleGeocodeAddress}
-                  disabled={loading || geocoding || !address.trim()}
-                  className="w-full font-bold"
-                >
-                  {geocoding ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      取得中...
-                    </>
-                  ) : (
-                    <>
-                      住所から位置情報を取得
-                    </>
-                  )}
-                </Button>
+                <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleGeocodeAddress}
+                    disabled={loading || geocoding || !address.trim()}
+                    className="w-full mt-2 rounded-xl font-bold py-3"
+                    style={{ 
+                      borderColor: COLORS.champagneGold,
+                      backgroundColor: 'rgba(201, 168, 108, 0.15)',
+                      color: COLORS.deepNavy,
+                    }}
+                  >
+                    {geocoding ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        取得中...
+                      </>
+                    ) : (
+                      <>
+                        住所から位置情報を取得
+                      </>
+                    )}
+                  </Button>
+                </motion.div>
               </div>
 
-              {/* 位置情報表示 */}
-              {latitude && longitude && (
-                <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                  <p className="text-sm text-green-800 font-bold">
-                    ✓ 位置情報取得済み
-                  </p>
-                </div>
-              )}
 
               {/* 電話番号 */}
-              <div className="space-y-2">
-                <Label htmlFor="phone" className="font-bold flex items-center gap-2">
-                  <Phone className="w-4 h-4" />
+              <div className="space-y-2 mb-5">
+                <Label 
+                  htmlFor="phone" 
+                  className="text-sm font-bold flex items-center gap-2"
+                  style={{ color: COLORS.deepNavy }}
+                >
+                  <Phone className="w-4 h-4" style={{ color: COLORS.champagneGold }} />
                   電話番号
                 </Label>
                 <Input
@@ -695,16 +891,21 @@ export default function StoreEditPage() {
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   disabled={loading}
-                  className="font-bold bg-white text-gray-700 border-2 border-gray-300"
+                  placeholder="例: 097-123-4567"
+                  className={getInputClassName(loading)}
                   style={{ fontSize: '16px' }}
                 />
               </div>
 
-              {/* URL */}
-              <div className="space-y-2">
-                <Label htmlFor="website" className="font-bold flex items-center gap-2">
-                  <Globe className="w-4 h-4" />
-                  メディア情報（公式サイト、Instagram、Twitterなど）
+              {/* ウェブサイト */}
+              <div className="space-y-2 mb-5">
+                <Label 
+                  htmlFor="website" 
+                  className="text-sm font-bold flex items-center gap-2"
+                  style={{ color: COLORS.deepNavy }}
+                >
+                  <Globe className="w-4 h-4" style={{ color: COLORS.champagneGold }} />
+                  メディア情報
                 </Label>
                 <Input
                   id="website"
@@ -712,15 +913,20 @@ export default function StoreEditPage() {
                   value={websiteUrl}
                   onChange={(e) => setWebsiteUrl(e.target.value)}
                   disabled={loading}
-                  className="font-bold bg-white text-gray-700 border-2 border-gray-300"
+                  placeholder="公式サイト、Instagram、Twitterなど"
+                  className={getInputClassName(loading)}
                   style={{ fontSize: '16px' }}
                 />
               </div>
 
               {/* メールアドレス（読み取り専用） */}
               <div className="space-y-2">
-                <Label htmlFor="email" className="font-bold flex items-center gap-2">
-                  <Mail className="w-4 h-4" />
+                <Label 
+                  htmlFor="email" 
+                  className="text-sm font-bold flex items-center gap-2"
+                  style={{ color: COLORS.deepNavy }}
+                >
+                  <Mail className="w-4 h-4" style={{ color: COLORS.champagneGold }} />
                   ログイン用メールアドレス
                 </Label>
                 <Input
@@ -728,18 +934,36 @@ export default function StoreEditPage() {
                   type="email"
                   value={email}
                   disabled
-                  className="bg-muted font-bold border-2 border-gray-300"
-                  style={{ fontSize: '16px' }}
+                  className="w-full px-4 py-3 rounded-xl bg-gray-100 border-2 border-gray-200 font-medium cursor-not-allowed"
+                  style={{ fontSize: '16px', color: COLORS.warmGray }}
                 />
-                <p className="text-xs text-muted-foreground font-bold">
+                <p className="text-xs" style={{ color: COLORS.warmGray }}>
                   ログイン用のメールアドレスは変更できません
                 </p>
               </div>
+            </Card>
+
+            {/* ========== 営業情報セクション ========== */}
+            <Card 
+              className="p-6 rounded-2xl shadow-lg"
+              style={{ 
+                background: '#FFFFFF',
+                border: `1px solid rgba(201, 168, 108, 0.15)`,
+              }}
+            >
+              <SectionHeader 
+                icon={Clock} 
+                title="営業情報" 
+                description="営業時間や予算などを設定してください"
+              />
 
               {/* 営業時間 */}
-              <div className="space-y-2">
-                <Label htmlFor="businessHours" className="font-bold flex items-center gap-2">
-                  <Clock className="w-4 h-4" />
+              <div className="space-y-2 mb-5">
+                <Label 
+                  htmlFor="businessHours" 
+                  className="text-sm font-bold"
+                  style={{ color: COLORS.deepNavy }}
+                >
                   営業時間
                 </Label>
                 <Textarea
@@ -748,18 +972,23 @@ export default function StoreEditPage() {
                   onChange={(e) => setBusinessHours(e.target.value)}
                   rows={3}
                   disabled={loading}
-                  className="font-bold bg-white text-gray-700 border-2 border-gray-300"
-                  style={{ fontSize: '16px' }}
+                  placeholder="例: 月〜木 18:00〜翌2:00、金土 18:00〜翌4:00"
+                  className={getInputClassName(loading)}
+                  style={{ fontSize: '16px', minHeight: '100px', resize: 'vertical' }}
                 />
-                <p className="text-xs text-muted-foreground font-bold">
+                <p className="text-xs" style={{ color: COLORS.warmGray }}>
                   営業時間を自由な形式で入力してください
                 </p>
               </div>
 
               {/* 定休日 */}
-              <div className="space-y-2">
-                <Label htmlFor="regularHoliday" className="font-bold flex items-center gap-2">
-                  <Calendar className="w-4 h-4" />
+              <div className="space-y-2 mb-5">
+                <Label 
+                  htmlFor="regularHoliday" 
+                  className="text-sm font-bold flex items-center gap-2"
+                  style={{ color: COLORS.deepNavy }}
+                >
+                  <Calendar className="w-4 h-4" style={{ color: COLORS.champagneGold }} />
                   定休日
                 </Label>
                 <Input
@@ -767,18 +996,21 @@ export default function StoreEditPage() {
                   value={regularHoliday}
                   onChange={(e) => setRegularHoliday(e.target.value)}
                   disabled={loading}
-                  className="font-bold bg-white text-gray-700 border-2 border-gray-300"
+                  placeholder="例: 日曜日、祝日"
+                  className={getInputClassName(loading)}
                   style={{ fontSize: '16px' }}
                 />
-                <p className="text-xs text-muted-foreground font-bold">
-                  定休日や特別な休業日などを記載
-                </p>
               </div>
 
+              <GoldDivider />
+
               {/* 予算 */}
-              <div className="space-y-2">
-                <Label className="font-bold flex items-center gap-2">
-                  <DollarSign className="w-4 h-4" />
+              <div className="space-y-2 mb-5">
+                <Label 
+                  className="text-sm font-bold flex items-center gap-2"
+                  style={{ color: COLORS.deepNavy }}
+                >
+                  <DollarSign className="w-4 h-4" style={{ color: COLORS.champagneGold }} />
                   予算（円）
                 </Label>
                 <div className="grid grid-cols-2 gap-4">
@@ -791,7 +1023,7 @@ export default function StoreEditPage() {
                       value={budgetMin || ''}
                       onChange={(e) => setBudgetMin(parseInt(e.target.value) || 0)}
                       disabled={loading}
-                      className="font-bold bg-white text-gray-700 border-2 border-gray-300"
+                      className={getInputClassName(loading)}
                       style={{ fontSize: '16px' }}
                     />
                   </div>
@@ -804,261 +1036,330 @@ export default function StoreEditPage() {
                       value={budgetMax || ''}
                       onChange={(e) => setBudgetMax(parseInt(e.target.value) || 0)}
                       disabled={loading}
-                      className="font-bold bg-white text-gray-700 border-2 border-gray-300"
+                      className={getInputClassName(loading)}
                       style={{ fontSize: '16px' }}
                     />
                   </div>
                 </div>
                 {budgetMin > 0 && budgetMax > 0 && (
-                  <p className="text-sm text-muted-foreground font-bold">
+                  <p className="text-sm mt-2" style={{ color: COLORS.warmGray }}>
                     予算目安: ¥{budgetMin.toLocaleString()} 〜 ¥{budgetMax.toLocaleString()}
                   </p>
                 )}
               </div>
 
               {/* 支払い方法 */}
-              <div className="space-y-2">
-                <Label className="font-bold flex items-center gap-2">
-                  <CreditCard className="w-4 h-4" />
+              <div className="space-y-3">
+                <Label 
+                  className="text-sm font-bold flex items-center gap-2"
+                  style={{ color: COLORS.deepNavy }}
+                >
+                  <CreditCard className="w-4 h-4" style={{ color: COLORS.champagneGold }} />
                   支払い方法
                 </Label>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {['現金', 'クレジットカード', '電子マネー', 'QRコード決済', 'デビットカード', '交通系IC'].map((method) => (
-                    <div key={method} className="flex items-center space-x-2">
+                    <label 
+                      key={method} 
+                      className="flex items-center space-x-2 cursor-pointer p-3 rounded-xl transition-all duration-200"
+                      style={{ 
+                        backgroundColor: paymentMethods.includes(method) 
+                          ? 'rgba(201, 168, 108, 0.1)' 
+                          : 'rgba(0, 0, 0, 0.02)',
+                        border: paymentMethods.includes(method)
+                          ? `1px solid ${COLORS.champagneGold}`
+                          : '1px solid rgba(0, 0, 0, 0.05)',
+                      }}
+                    >
                       <Checkbox
                         id={`payment-${method}`}
                         checked={paymentMethods.includes(method)}
                         onCheckedChange={() => handlePaymentMethodToggle(method)}
                       />
-                      <Label htmlFor={`payment-${method}`} className="text-sm font-bold">
+                      <span className="text-sm font-medium" style={{ color: COLORS.charcoal }}>
                         {method}
-                      </Label>
-                    </div>
+                      </span>
+                    </label>
                   ))}
                 </div>
               </div>
+            </Card>
 
-              {/* 設備 */}
-              <div className="space-y-2">
-                <Label className="font-bold flex items-center gap-2">
-                  <Settings className="w-4 h-4" />
-                  設備・サービス
-                </Label>
-                <div className="grid grid-cols-2 gap-3 max-h-96 overflow-y-auto p-2 border rounded-lg">
-                  {[
-                    'Wi-Fi',
-                    '喫煙可',
-                    '分煙',
-                    '禁煙',
-                    '駐車場',
-                    'カウンター席',
-                    '個室',
-                    'テラス席',
-                    'ソファ席',
-                    '一人客歓迎',
-                    'おひとり様大歓迎',
-                    'カウンター充実',
-                    '常連さんが優しい',
-                    '女性客多め',
-                    '女性一人でも安心',
-                    '女性スタッフ在籍',
-                    'レディースデー有',
-                    'カラオケ完備',
-                    'ダーツ',
-                    'ビリヤード',
-                    'ボードゲーム',
-                    '生演奏',
-                    'DJ',
-                    'スポーツ観戦可',
-                    '日本酒充実',
-                    'ウイスキー充実',
-                    'ワイン充実',
-                    'カクテル豊富',
-                    'クラフトビール',
-                    '焼酎充実',
-                    'フード充実',
-                    'おつまみ豊富',
-                    '英語対応可',
-                    '外国語メニューあり',
-                    '観光客歓迎',
-                    'ホテル近く',
-                    '駅近',
-                    '深夜営業',
-                    '朝まで営業',
-                    'チャージなし',
-                    '席料なし',
-                    'お通しなし',
-                    '明朗会計',
-                    '価格表示あり',
-                    '予算相談OK',
-                    'ボトルキープ可',
-                    'セット料金あり',
-                    '静かな雰囲気',
-                    'ワイワイ系',
-                    'オーセンティック',
-                    'カジュアル',
-                    '隠れ家的',
-                    '大人の雰囲気',
-                    '昭和レトロ',
-                    'スタイリッシュ',
-                    'アットホーム',
-                    'ママ・マスター人気',
-                    '美味しいお酒',
-                    'こだわりの一杯',
-                  ].map((facility) => (
-                    <div key={facility} className="flex items-center space-x-2">
+            {/* ========== 設備・サービスセクション ========== */}
+            <Card 
+              className="p-6 rounded-2xl shadow-lg"
+              style={{ 
+                background: '#FFFFFF',
+                border: `1px solid rgba(201, 168, 108, 0.15)`,
+              }}
+            >
+              <SectionHeader 
+                icon={Settings} 
+                title="設備・サービス" 
+                description="お店の特徴をアピールしましょう"
+              />
+
+              {/* カテゴリ別設備 */}
+              {Object.entries(facilityCategories).map(([key, category]) => (
+                <div 
+                  key={key}
+                  className="mb-4 p-4 rounded-xl"
+                  style={{ 
+                    backgroundColor: category.bgColor,
+                    border: `1px solid ${category.borderColor}`,
+                  }}
+                >
+                  <p className="text-sm font-bold mb-3" style={{ color: COLORS.charcoal }}>
+                    {category.title}
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {category.items.map((facility) => (
+                      <label 
+                        key={facility} 
+                        className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg transition-all duration-200 hover:bg-white/50"
+                      >
+                        <Checkbox
+                          id={`facility-${facility}`}
+                          checked={facilities.includes(facility)}
+                          onCheckedChange={() => handleFacilityToggle(facility)}
+                        />
+                        <span className="text-sm font-medium" style={{ color: COLORS.charcoal }}>
+                          {facility}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              ))}
+
+              {/* その他の設備 */}
+              <div className="mt-4">
+                <p className="text-sm font-bold mb-3" style={{ color: COLORS.charcoal }}>
+                  🏢 その他の設備・特徴
+                </p>
+                <div 
+                  className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-64 overflow-y-auto p-3 rounded-xl"
+                  style={{ 
+                    backgroundColor: 'rgba(0, 0, 0, 0.02)',
+                    border: '1px solid rgba(0, 0, 0, 0.05)',
+                  }}
+                >
+                  {otherFacilities.map((facility) => (
+                    <label 
+                      key={facility} 
+                      className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg transition-all duration-200 hover:bg-white"
+                    >
                       <Checkbox
                         id={`facility-${facility}`}
                         checked={facilities.includes(facility)}
                         onCheckedChange={() => handleFacilityToggle(facility)}
                       />
-                      <Label htmlFor={`facility-${facility}`} className="text-sm font-bold">
+                      <span className="text-sm font-medium" style={{ color: COLORS.charcoal }}>
                         {facility}
-                      </Label>
-                    </div>
+                      </span>
+                    </label>
                   ))}
                 </div>
               </div>
+            </Card>
 
-              {/* 店舗画像 */}
-              <div className="space-y-2">
-                <Label className="font-bold flex items-center gap-2">
-                  店舗画像
-                </Label>
-                <p className="text-sm text-muted-foreground font-bold mb-4">
-                  最大5枚まで画像をアップロードできます（1枚あたり最大5MB）
-                </p>
+            {/* ========== 店舗画像セクション ========== */}
+            <Card 
+              className="p-6 rounded-2xl shadow-lg"
+              style={{ 
+                background: '#FFFFFF',
+                border: `1px solid rgba(201, 168, 108, 0.15)`,
+              }}
+            >
+              <SectionHeader 
+                icon={ImageIcon} 
+                title="店舗画像" 
+                description="最大5枚まで画像をアップロードできます（1枚あたり最大5MB）"
+              />
 
-                <div className="grid grid-cols-3 gap-4 mb-4">
-                  {imageUrls.map((url, index) => (
-                    <motion.div
-                      key={url}
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      className="relative aspect-square rounded-lg overflow-hidden border-2 border-border group"
+              <div className="grid grid-cols-3 gap-4 mb-4">
+                {imageUrls.map((url, index) => (
+                  <motion.div
+                    key={url}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="relative aspect-square rounded-xl overflow-hidden group"
+                    style={{ border: `2px solid ${index === mainImageIndex ? COLORS.champagneGold : 'rgba(201, 168, 108, 0.2)'}` }}
+                  >
+                    <img
+                      src={url}
+                      alt={`店舗画像 ${index + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                    
+                    {index === mainImageIndex && (
+                      <div 
+                        className="absolute top-2 left-2 px-2 py-1 rounded-lg text-xs font-bold"
+                        style={{ 
+                          background: COLORS.goldGradient,
+                          color: COLORS.deepNavy,
+                        }}
+                      >
+                        メイン
+                      </div>
+                    )}
+
+                    <div 
+                      className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2"
+                      style={{ backgroundColor: 'rgba(10, 22, 40, 0.7)' }}
                     >
-                      <img
-                        src={url}
-                        alt={`店舗画像 ${index + 1}`}
-                        className="w-full h-full object-cover"
-                      />
-                      
-                      {index === mainImageIndex && (
-                        <div className="absolute top-2 left-2 bg-primary text-primary-foreground px-2 py-1 rounded text-xs font-bold">
-                          メイン
-                        </div>
-                      )}
-
-                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
-                        {index !== mainImageIndex && (
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="secondary"
-                            onClick={() => setMainImageIndex(index)}
-                            disabled={uploadingImage}
-                            className="font-bold"
-                          >
-                            メイン
-                          </Button>
-                        )}
+                      {index !== mainImageIndex && (
                         <Button
                           type="button"
                           size="sm"
-                          variant="destructive"
-                          onClick={() => {
-                            if (confirm('この画像を削除しますか？')) {
-                              handleImageDelete(url, index);
-                            }
-                          }}
+                          onClick={() => setMainImageIndex(index)}
                           disabled={uploadingImage}
-                          className="font-bold"
+                          className="font-bold text-xs rounded-lg"
+                          style={{ 
+                            background: COLORS.goldGradient,
+                            color: COLORS.deepNavy,
+                          }}
                         >
-                          <X className="w-4 h-4 mr-1" />
-                          削除
+                          メインに設定
                         </Button>
-                      </div>
-                    </motion.div>
-                  ))}
-
-                  {imageUrls.length < 5 && (
-                    <motion.div
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <label
-                        htmlFor="image-upload"
-                        className="aspect-square rounded-lg border-2 border-dashed border-muted-foreground/25 flex flex-col items-center justify-center bg-muted/50 cursor-pointer hover:bg-muted transition-colors"
-                      >
-                        {uploadingImage ? (
-                          <Loader2 className="w-8 h-8 text-muted-foreground animate-spin" />
-                        ) : (
-                          <>
-                            <Upload className="w-8 h-8 text-muted-foreground/50 mb-2" />
-                            <span className="text-xs text-muted-foreground font-bold">
-                              画像を追加
-                            </span>
-                          </>
-                        )}
-                      </label>
-                      <input
-                        ref={fileInputRef}
-                        id="image-upload"
-                        type="file"
-                        accept="image/jpeg,image/jpg,image/png,image/webp"
-                        multiple
-                        onChange={handleImageUpload}
+                      )}
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => {
+                          if (confirm('この画像を削除しますか？')) {
+                            handleImageDelete(url, index);
+                          }
+                        }}
                         disabled={uploadingImage}
-                        className="hidden"
-                      />
-                    </motion.div>
-                  )}
-                </div>
+                        className="font-bold text-xs rounded-lg"
+                      >
+                        <X className="w-3 h-3 mr-1" />
+                        削除
+                      </Button>
+                    </div>
+                  </motion.div>
+                ))}
 
-                {imageUrls.length === 0 && (
-                  <p className="text-center text-sm text-muted-foreground font-bold py-8">
-                    画像がアップロードされていません
-                  </p>
+                {imageUrls.length < 5 && (
+                  <motion.div
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <label
+                      htmlFor="image-upload"
+                      className="aspect-square rounded-xl flex flex-col items-center justify-center cursor-pointer transition-all duration-200"
+                      style={{ 
+                        backgroundColor: 'rgba(201, 168, 108, 0.05)',
+                        border: `2px dashed rgba(201, 168, 108, 0.3)`,
+                      }}
+                    >
+                      {uploadingImage ? (
+                        <Loader2 className="w-8 h-8 animate-spin" style={{ color: COLORS.champagneGold }} />
+                      ) : (
+                        <>
+                          <Upload className="w-8 h-8 mb-2" style={{ color: COLORS.champagneGold }} />
+                          <span className="text-xs font-bold" style={{ color: COLORS.warmGray }}>
+                            画像を追加
+                          </span>
+                        </>
+                      )}
+                    </label>
+                    <input
+                      ref={fileInputRef}
+                      id="image-upload"
+                      type="file"
+                      accept="image/jpeg,image/jpg,image/png,image/webp"
+                      multiple
+                      onChange={handleImageUpload}
+                      disabled={uploadingImage}
+                      className="hidden"
+                    />
+                  </motion.div>
                 )}
               </div>
 
-              {/* クーポン設定セクション */}
-              <div className="pt-4">
-                <StoreCouponForm
-                  values={couponValues}
-                  onChange={setCouponValues}
-                  disabled={loading}
-                  errors={couponErrors}
-                  currentUses={couponCurrentUses}
-                />
-              </div>
+              {imageUrls.length === 0 && (
+                <div 
+                  className="text-center py-8 rounded-xl"
+                  style={{ 
+                    backgroundColor: 'rgba(0, 0, 0, 0.02)',
+                    border: '1px solid rgba(0, 0, 0, 0.05)',
+                  }}
+                >
+                  <ImageIcon className="w-12 h-12 mx-auto mb-3" style={{ color: COLORS.warmGray }} />
+                  <p className="text-sm font-medium" style={{ color: COLORS.warmGray }}>
+                    画像がアップロードされていません
+                  </p>
+                  <p className="text-xs mt-1" style={{ color: COLORS.warmGray }}>
+                    上のボタンから画像を追加してください
+                  </p>
+                </div>
+              )}
+            </Card>
 
-              {/* 送信ボタン */}
-              <div className="flex gap-3">
+            {/* ========== クーポン設定セクション ========== */}
+            <Card 
+              className="p-6 rounded-2xl shadow-lg"
+              style={{ 
+                background: '#FFFFFF',
+                border: `1px solid rgba(201, 168, 108, 0.15)`,
+              }}
+            >
+              <StoreCouponForm
+                values={couponValues}
+                onChange={setCouponValues}
+                disabled={loading}
+                errors={couponErrors}
+                currentUses={couponCurrentUses}
+              />
+            </Card>
+
+            {/* ========== 送信ボタン ========== */}
+            <div className="flex gap-3 pt-2">
+              <motion.div className="flex-1" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                 <Button
                   type="button"
-                  className="flex-1 font-bold"
+                  variant="outline"
+                  className="w-full py-4 rounded-xl font-bold text-base"
                   onClick={() => router.push(`/store/manage/${params.id}/update`)}
                   disabled={loading}
+                  style={{ 
+                    borderColor: COLORS.warmGray,
+                    backgroundColor: 'rgba(99, 110, 114, 0.15)',
+                    color: COLORS.charcoal,
+                  }}
                 >
                   キャンセル
                 </Button>
-                <Button type="submit" className="flex-1 font-bold" disabled={loading || geocoding}>
+              </motion.div>
+              <motion.div className="flex-1" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                <Button 
+                  type="submit" 
+                  className="w-full py-4 rounded-xl font-bold text-base shadow-lg"
+                  disabled={loading || geocoding}
+                  style={{ 
+                    background: COLORS.goldGradient,
+                    color: COLORS.deepNavy,
+                    boxShadow: '0 8px 25px rgba(201, 168, 108, 0.35)',
+                  }}
+                >
                   {loading ? (
                     <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                       更新中...
                     </>
                   ) : (
                     <>
-                      <Save className="w-4 h-4 mr-2" />
+                      <Save className="w-5 h-5 mr-2" />
                       更新
                     </>
                   )}
                 </Button>
-              </div>
-            </form>
-          </Card>
+              </motion.div>
+            </div>
+          </form>
         </motion.div>
       </div>
     </div>

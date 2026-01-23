@@ -4,6 +4,7 @@
  * ============================================
  * ファイルパス: app/store/manage/[id]/page.tsx
  * 店舗管理ページ（来店チェック機能付き）
+ * ラグジュアリーデザイン版
  * ============================================
  */
 
@@ -33,6 +34,8 @@ import {
   X,
   Phone,
   UserCheck,
+  Sparkles,
+  Store as StoreIcon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -52,6 +55,32 @@ type Store = Database['public']['Tables']['stores']['Row'];
 type StoreUpdate = Database['public']['Tables']['stores']['Update'];
 type QuickReservation = Database['public']['Tables']['quick_reservations']['Row'];
 
+// ============================================
+// カラーパレット定義（店舗詳細画面準拠）
+// ============================================
+const COLORS = {
+  // プライマリ
+  deepNavy: '#0A1628',
+  midnightBlue: '#162447',
+  royalNavy: '#1F4068',
+  
+  // アクセント
+  champagneGold: '#C9A86C',
+  paleGold: '#E8D5B7',
+  antiqueGold: '#B8956E',
+  
+  // ニュートラル
+  charcoal: '#2D3436',
+  warmGray: '#636E72',
+  platinum: '#DFE6E9',
+  ivory: '#FDFBF7',
+  
+  // グラデーション
+  luxuryGradient: 'linear-gradient(165deg, #0A1628 0%, #162447 50%, #1F4068 100%)',
+  goldGradient: 'linear-gradient(135deg, #C9A86C 0%, #E8D5B7 50%, #B8956E 100%)',
+  cardGradient: 'linear-gradient(145deg, #FDFBF7 0%, #F5F1EB 100%)',
+};
+
 /**
  * 空席状況の選択肢
  */
@@ -60,39 +89,79 @@ const VACANCY_OPTIONS = [
     value: 'vacant',
     label: '空席あり',
     description: 'すぐに入店できます',
-    color: 'text-green-600',
-    bgColor: 'bg-green-50',
-    borderColor: 'border-green-200',
-    icon: null,
+    color: '#16a34a',
+    bgColor: 'rgba(34, 197, 94, 0.08)',
+    borderColor: 'rgba(34, 197, 94, 0.3)',
+    icon: CheckCircle2,
   },
   {
     value: 'full',
     label: '満席',
     description: '現在満席です',
-    color: 'text-red-600',
-    bgColor: 'bg-red-50',
-    borderColor: 'border-red-200',
-    icon: null,
+    color: '#dc2626',
+    bgColor: 'rgba(239, 68, 68, 0.08)',
+    borderColor: 'rgba(239, 68, 68, 0.3)',
+    icon: XCircle,
   },
   {
     value: 'open',
     label: '営業中',
     description: '営業中です。',
-    color: 'text-yellow-600',
-    bgColor: 'bg-yellow-50',
-    borderColor: 'border-yellow-200',
-    icon: null,
+    color: COLORS.champagneGold,
+    bgColor: 'rgba(201, 168, 108, 0.08)',
+    borderColor: 'rgba(201, 168, 108, 0.3)',
+    icon: StoreIcon,
   },
   {
     value: 'closed',
     label: '閉店',
     description: '営業時間外または臨時休業（12時間後に自動解除）',
-    color: 'text-gray-600',
-    bgColor: 'bg-purple-50',
-    borderColor: 'border-purple-200',
+    color: COLORS.warmGray,
+    bgColor: 'rgba(99, 110, 114, 0.08)',
+    borderColor: 'rgba(99, 110, 114, 0.3)',
     icon: PauseCircle,
   },
 ] as const;
+
+/**
+ * セクションヘッダーコンポーネント
+ */
+const SectionHeader = ({ icon: Icon, title }: { icon: React.ElementType; title: string }) => (
+  <div className="flex items-center gap-3 mb-4">
+    <div 
+      className="p-2 rounded-lg"
+      style={{ 
+        background: COLORS.goldGradient,
+        boxShadow: '0 2px 8px rgba(201, 168, 108, 0.25)',
+      }}
+    >
+      <Icon className="w-4 h-4" style={{ color: COLORS.deepNavy }} />
+    </div>
+    <h2 className="text-lg font-bold" style={{ color: COLORS.deepNavy }}>
+      {title}
+    </h2>
+  </div>
+);
+
+/**
+ * ゴールド装飾ディバイダー
+ */
+const GoldDivider = () => (
+  <div className="flex items-center justify-center gap-3 my-4">
+    <div 
+      className="h-px flex-1"
+      style={{ background: `linear-gradient(90deg, transparent, ${COLORS.champagneGold}40)` }}
+    />
+    <div 
+      className="w-1.5 h-1.5 rotate-45"
+      style={{ backgroundColor: COLORS.champagneGold }}
+    />
+    <div 
+      className="h-px flex-1"
+      style={{ background: `linear-gradient(90deg, ${COLORS.champagneGold}40, transparent)` }}
+    />
+  </div>
+);
 
 export default function StoreUpdatePage() {
   const router = useRouter();
@@ -518,11 +587,16 @@ export default function StoreUpdatePage() {
   // 認証チェック中またはデータ取得中のローディング表示
   if (!authChecked || fetchingStore) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-center">
-          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-          <p className="text-sm text-muted-foreground font-bold">読み込み中...</p>
-        </div>
+      <div 
+        className="min-h-screen flex items-center justify-center"
+        style={{ background: COLORS.luxuryGradient }}
+      >
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+        >
+          <Sparkles className="w-10 h-10" style={{ color: COLORS.champagneGold }} />
+        </motion.div>
       </div>
     );
   }
@@ -532,10 +606,27 @@ export default function StoreUpdatePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-20">
-      <header className="sticky top-0 z-10 bg-background border-b safe-top">
+    <div 
+      className="min-h-screen pb-20"
+      style={{ background: COLORS.cardGradient }}
+    >
+      {/* ヘッダー */}
+      <header 
+        className="sticky top-0 z-10 safe-top"
+        style={{ 
+          background: COLORS.luxuryGradient,
+          borderBottom: `1px solid rgba(201, 168, 108, 0.2)`,
+        }}
+      >
         <div className="flex items-center justify-center p-4">
-          <h1 className="text-xl font-bold">店舗管理画面</h1>
+          <div className="flex items-center gap-2">
+            <h1 
+              className="text-lg font-light tracking-widest"
+              style={{ color: COLORS.ivory }}
+            >
+              店舗管理画面
+            </h1>
+          </div>
         </div>
       </header>
 
@@ -545,44 +636,78 @@ export default function StoreUpdatePage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <Card className="p-6 mb-6">
+          <Card 
+            className="p-6 mb-6 rounded-2xl shadow-lg"
+            style={{ 
+              background: '#FFFFFF',
+              border: `1px solid rgba(201, 168, 108, 0.15)`,
+            }}
+          >
             <div className="flex items-start gap-4">
               {imageUrls.length > 0 ? (
                 <img
                   src={imageUrls[mainImageIndex]}
                   alt={store.name}
-                  className="w-24 h-24 rounded-lg object-cover"
+                  className="w-24 h-24 rounded-xl object-cover shadow-md"
+                  style={{ border: `2px solid rgba(201, 168, 108, 0.2)` }}
                 />
               ) : (
-                <div className="w-24 h-24 rounded-lg bg-muted flex items-center justify-center">
-                  <ImageIcon className="w-8 h-8 text-muted-foreground" />
+                <div 
+                  className="w-24 h-24 rounded-xl flex items-center justify-center"
+                  style={{ 
+                    background: 'rgba(201, 168, 108, 0.1)',
+                    border: `2px solid rgba(201, 168, 108, 0.2)`,
+                  }}
+                >
+                  <ImageIcon className="w-8 h-8" style={{ color: COLORS.champagneGold }} />
                 </div>
               )}
               <div className="flex-1">
-                <h2 className="text-2xl font-bold mb-1">{store.name}</h2>
-                <p className="text-sm text-muted-foreground font-bold mb-2">{store.address}</p>
-                <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    variant="default"
-                    size="sm"
-                    onClick={() => router.push(`/store/manage/${store.id}/edit`)}
-                    className="bg-blue-500 hover:bg-blue-600 text-white"
-                  >
-                    <Edit className="w-4 h-4 mr-2" />
-                    <span className="font-bold">編集</span>
-                  </Button>
-                  {accountType === 'store' && (
+                <h2 
+                  className="text-2xl font-bold mb-1"
+                  style={{ color: COLORS.deepNavy }}
+                >
+                  {store.name}
+                </h2>
+                <p 
+                  className="text-sm font-medium mb-3"
+                  style={{ color: COLORS.warmGray }}
+                >
+                  {store.address}
+                </p>
+                <div className="flex gap-2 flex-wrap">
+                  <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
                     <Button
                       type="button"
-                      variant="ghost"
                       size="sm"
-                      onClick={() => router.push(`/store/manage/${store.id}/change-password`)}
-                      className="bg-gray-100 border-2 border-gray-300"
+                      onClick={() => router.push(`/store/manage/${store.id}/edit`)}
+                      className="rounded-xl font-bold shadow-md"
+                      style={{ 
+                        background: COLORS.goldGradient,
+                        color: COLORS.deepNavy,
+                      }}
                     >
-                      <Key className="w-4 h-4 mr-2" />
-                      <span className="font-bold">変更</span>
+                      <Edit className="w-4 h-4 mr-2" />
+                      編集
                     </Button>
+                  </motion.div>
+                  {accountType === 'store' && (
+                    <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => router.push(`/store/manage/${store.id}/change-password`)}
+                        className="rounded-xl font-bold"
+                        style={{ 
+                          borderColor: 'rgba(201, 168, 108, 0.3)',
+                          color: COLORS.charcoal,
+                        }}
+                      >
+                        <Key className="w-4 h-4 mr-2" />
+                        パスワード変更
+                      </Button>
+                    </motion.div>
                   )}
                 </div>
               </div>
@@ -597,19 +722,44 @@ export default function StoreUpdatePage() {
           transition={{ delay: 0.1 }}
         >
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="status" className="font-bold">店舗状況</TabsTrigger>
-              <TabsTrigger value="reservations" className="font-bold">予約管理</TabsTrigger>
+            <TabsList 
+              className="grid w-full grid-cols-2 rounded-xl p-1 mb-6"
+              style={{ 
+                background: 'rgba(10, 22, 40, 0.05)',
+                border: `1px solid rgba(201, 168, 108, 0.15)`,
+              }}
+            >
+              <TabsTrigger 
+                value="status" 
+                className="rounded-lg font-bold transition-all duration-200 data-[state=active]:!bg-[rgba(201,168,108,0.15)] data-[state=active]:shadow-md"
+                style={{ 
+                  color: activeTab === 'status' ? COLORS.deepNavy : COLORS.warmGray,
+                }}
+              >
+                店舗状況
+              </TabsTrigger>
+              <TabsTrigger 
+                value="reservations" 
+                className="rounded-lg font-bold transition-all duration-200 data-[state=active]:!bg-[rgba(201,168,108,0.15)] data-[state=active]:shadow-md"
+                style={{ 
+                  color: activeTab === 'reservations' ? COLORS.deepNavy : COLORS.warmGray,
+                }}
+              >
+                予約管理
+              </TabsTrigger>
             </TabsList>
 
             {/* 店舗状況タブ */}
             <TabsContent value="status">
               <form onSubmit={handleStatusSubmit} className="space-y-6">
-                <Card className="p-6">
-                  <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
-                    <CircleDot className="w-5 h-5" />
-                    空席状況
-                  </h2>
+                <Card 
+                  className="p-6 rounded-2xl shadow-lg"
+                  style={{ 
+                    background: '#FFFFFF',
+                    border: `1px solid rgba(201, 168, 108, 0.15)`,
+                  }}
+                >
+                  <SectionHeader icon={CircleDot} title="空席状況" />
 
                   <RadioGroup
                     value={vacancyStatus}
@@ -618,6 +768,7 @@ export default function StoreUpdatePage() {
                   >
                     {VACANCY_OPTIONS.map((option) => {
                       const IconComponent = option.icon;
+                      const isSelected = vacancyStatus === option.value;
                       return (
                         <motion.div
                           key={option.value}
@@ -625,11 +776,13 @@ export default function StoreUpdatePage() {
                         >
                           <Label
                             htmlFor={option.value}
-                            className={`flex items-start gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                              vacancyStatus === option.value
-                                ? `${option.bgColor} ${option.borderColor}`
-                                : 'bg-gray-100 border-2 border-gray-300'
-                            }`}
+                            className="flex items-start gap-3 p-4 rounded-xl cursor-pointer transition-all duration-200"
+                            style={{ 
+                              backgroundColor: isSelected ? option.bgColor : 'rgba(0, 0, 0, 0.02)',
+                              border: isSelected 
+                                ? `2px solid ${option.borderColor.replace('0.3', '0.6')}` 
+                                : '2px solid rgba(0, 0, 0, 0.05)',
+                            }}
                           >
                             <RadioGroupItem
                               value={option.value}
@@ -637,11 +790,17 @@ export default function StoreUpdatePage() {
                               className="mt-1"
                             />
                             <div className="flex-1">
-                              <div className={`font-bold mb-1 ${option.color} flex items-center gap-2`}>
+                              <div 
+                                className="font-bold mb-1 flex items-center gap-2"
+                                style={{ color: option.color }}
+                              >
                                 {IconComponent && <IconComponent className="w-4 h-4" />}
                                 {option.label}
                               </div>
-                              <div className="text-sm text-muted-foreground font-bold">
+                              <div 
+                                className="text-sm font-medium"
+                                style={{ color: COLORS.warmGray }}
+                              >
                                 {option.description}
                               </div>
                             </div>
@@ -656,13 +815,17 @@ export default function StoreUpdatePage() {
                     <motion.div
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: 'auto' }}
-                      className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg"
+                      className="mt-4 p-4 rounded-xl"
+                      style={{ 
+                        backgroundColor: 'rgba(201, 168, 108, 0.08)',
+                        border: `1px solid rgba(201, 168, 108, 0.2)`,
+                      }}
                     >
                       <div className="flex items-start gap-2">
-                        <Info className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-                        <div className="text-sm text-amber-800">
-                          <p className="font-bold mb-1">閉店について</p>
-                          <ul className="list-disc list-inside space-y-1 text-amber-700">
+                        <Info className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: COLORS.champagneGold }} />
+                        <div className="text-sm">
+                          <p className="font-bold mb-1" style={{ color: COLORS.deepNavy }}>閉店について</p>
+                          <ul className="list-disc list-inside space-y-1" style={{ color: COLORS.charcoal }}>
                             <li>12時間後に自動的に解除されます</li>
                             <li>営業を再開するには、他のステータスを選択してください</li>
                           </ul>
@@ -672,15 +835,34 @@ export default function StoreUpdatePage() {
                   )}
                 </Card>
 
-                <Card className="p-6">
+                <Card 
+                  className="p-6 rounded-2xl shadow-lg"
+                  style={{ 
+                    background: '#FFFFFF',
+                    border: `1px solid rgba(201, 168, 108, 0.15)`,
+                  }}
+                >
                   <Collapsible open={isGenderCountOpen} onOpenChange={setIsGenderCountOpen}>
                     <CollapsibleTrigger className="w-full">
                       <div className="flex items-center justify-between">
-                        <h2 className="text-lg font-bold">男女数</h2>
+                        <div className="flex items-center gap-3">
+                          <div 
+                            className="p-2 rounded-lg"
+                            style={{ 
+                              background: COLORS.goldGradient,
+                              boxShadow: '0 2px 8px rgba(201, 168, 108, 0.25)',
+                            }}
+                          >
+                            <Users className="w-4 h-4" style={{ color: COLORS.deepNavy }} />
+                          </div>
+                          <h2 className="text-lg font-bold" style={{ color: COLORS.deepNavy }}>
+                            男女数
+                          </h2>
+                        </div>
                         {isGenderCountOpen ? (
-                          <ChevronUp className="w-5 h-5" />
+                          <ChevronUp className="w-5 h-5" style={{ color: COLORS.warmGray }} />
                         ) : (
-                          <ChevronDown className="w-5 h-5" />
+                          <ChevronDown className="w-5 h-5" style={{ color: COLORS.warmGray }} />
                         )}
                       </div>
                     </CollapsibleTrigger>
@@ -688,7 +870,13 @@ export default function StoreUpdatePage() {
                       <div className="space-y-4 mt-4">
                         <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-2">
-                            <Label htmlFor="maleCount" className="font-bold">男性数</Label>
+                            <Label 
+                              htmlFor="maleCount" 
+                              className="font-bold text-sm"
+                              style={{ color: COLORS.deepNavy }}
+                            >
+                              男性数
+                            </Label>
                             <Input
                               id="maleCount"
                               type="text"
@@ -696,12 +884,21 @@ export default function StoreUpdatePage() {
                               onChange={(e) => setMaleCount(parseInt(e.target.value) || 0)}
                               placeholder="0"
                               disabled={loading}
-                              className="font-bold bg-white text-gray-700 border-2 border-gray-300"
-                              style={{ fontSize: '16px' }}
+                              className="rounded-xl border-2 font-medium transition-all duration-200 focus:border-[#C9A86C] focus:ring-2 focus:ring-[#C9A86C]/20"
+                              style={{ 
+                                fontSize: '16px',
+                                borderColor: 'rgba(201, 168, 108, 0.3)',
+                              }}
                             />
                           </div>
                           <div className="space-y-2">
-                            <Label htmlFor="femaleCount" className="font-bold">女性数</Label>
+                            <Label 
+                              htmlFor="femaleCount" 
+                              className="font-bold text-sm"
+                              style={{ color: COLORS.deepNavy }}
+                            >
+                              女性数
+                            </Label>
                             <Input
                               id="femaleCount"
                               type="text"
@@ -709,28 +906,48 @@ export default function StoreUpdatePage() {
                               onChange={(e) => setFemaleCount(parseInt(e.target.value) || 0)}
                               placeholder="0"
                               disabled={loading}
-                              className="font-bold bg-white text-gray-700 border-2 border-gray-300"
-                              style={{ fontSize: '16px' }}
+                              className="rounded-xl border-2 font-medium transition-all duration-200 focus:border-[#C9A86C] focus:ring-2 focus:ring-[#C9A86C]/20"
+                              style={{ 
+                                fontSize: '16px',
+                                borderColor: 'rgba(201, 168, 108, 0.3)',
+                              }}
                             />
                           </div>
                         </div>
-                        <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                          <span className="text-sm font-bold">合計人数</span>
-                          <span className="text-lg font-bold">{maleCount + femaleCount}人</span>
+                        <div 
+                          className="flex items-center justify-between p-4 rounded-xl"
+                          style={{ 
+                            backgroundColor: 'rgba(201, 168, 108, 0.08)',
+                            border: `1px solid rgba(201, 168, 108, 0.2)`,
+                          }}
+                        >
+                          <span className="text-sm font-bold" style={{ color: COLORS.charcoal }}>合計人数</span>
+                          <span className="text-xl font-bold" style={{ color: COLORS.deepNavy }}>
+                            {maleCount + femaleCount}人
+                          </span>
                         </div>
                       </div>
                     </CollapsibleContent>
                   </Collapsible>
                 </Card>
 
-                <Card className="p-6">
-                  <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
-                    <MessageSquare className="w-5 h-5" />
-                    一言メッセージ
-                  </h2>
+                <Card 
+                  className="p-6 rounded-2xl shadow-lg"
+                  style={{ 
+                    background: '#FFFFFF',
+                    border: `1px solid rgba(201, 168, 108, 0.15)`,
+                  }}
+                >
+                  <SectionHeader icon={MessageSquare} title="一言メッセージ" />
 
                   <div className="space-y-2">
-                    <Label htmlFor="message" className="font-bold">お客様へのメッセージ（任意）</Label>
+                    <Label 
+                      htmlFor="message" 
+                      className="font-bold text-sm"
+                      style={{ color: COLORS.deepNavy }}
+                    >
+                      お客様へのメッセージ（任意）
+                    </Label>
                     <Textarea
                       id="message"
                       value={statusMessage}
@@ -738,33 +955,49 @@ export default function StoreUpdatePage() {
                       placeholder="例: 本日のおすすめは生ビール半額です！"
                       rows={4}
                       maxLength={200}
-                      className="font-bold bg-white text-gray-700 border-2 border-gray-300"
-                      style={{ fontSize: '16px' }}
+                      className="rounded-xl border-2 font-medium transition-all duration-200 focus:border-[#C9A86C] focus:ring-2 focus:ring-[#C9A86C]/20"
+                      style={{ 
+                        fontSize: '16px',
+                        borderColor: 'rgba(201, 168, 108, 0.3)',
+                        backgroundColor: '#ffffff',
+                        minHeight: '100px',
+                        resize: 'vertical',
+                      }}
                     />
-                    <p className="text-xs text-muted-foreground text-right font-bold">
+                    <p 
+                      className="text-xs text-right font-medium"
+                      style={{ color: COLORS.warmGray }}
+                    >
                       {statusMessage.length} / 200文字
                     </p>
                   </div>
                 </Card>
 
-                <Button
-                  type="submit"
-                  className="w-full font-bold"
-                  disabled={loading}
-                  size="lg"
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      更新中...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="w-4 h-4 mr-2" />
-                      店舗状況を更新
-                    </>
-                  )}
-                </Button>
+                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                  <Button
+                    type="submit"
+                    className="w-full py-4 rounded-xl font-bold text-base shadow-lg"
+                    disabled={loading}
+                    size="lg"
+                    style={{ 
+                      background: COLORS.goldGradient,
+                      color: COLORS.deepNavy,
+                      boxShadow: '0 8px 25px rgba(201, 168, 108, 0.35)',
+                    }}
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                        更新中...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-5 h-5 mr-2" />
+                        店舗状況を更新
+                      </>
+                    )}
+                  </Button>
+                </motion.div>
               </form>
             </TabsContent>
 
@@ -772,12 +1005,20 @@ export default function StoreUpdatePage() {
             <TabsContent value="reservations">
               <div className="space-y-4">
                 {/* 来店確認の説明カード */}
-                <Card className="p-4 bg-gradient-to-r from-amber-50 to-yellow-50 border-amber-200">
+                <Card 
+                  className="p-4 rounded-xl"
+                  style={{ 
+                    background: 'rgba(201, 168, 108, 0.08)',
+                    border: `1px solid rgba(201, 168, 108, 0.2)`,
+                  }}
+                >
                   <div className="flex items-start gap-3">
-                    <UserCheck className="w-5 h-5 mt-0.5" style={{ color: '#D4AF37' }} />
+                    <UserCheck className="w-5 h-5 mt-0.5" style={{ color: COLORS.champagneGold }} />
                     <div>
-                      <p className="text-sm font-bold text-amber-800">来店確認機能</p>
-                      <p className="text-xs text-amber-700 mt-1">
+                      <p className="text-sm font-bold" style={{ color: COLORS.deepNavy }}>
+                        来店確認機能
+                      </p>
+                      <p className="text-xs mt-1" style={{ color: COLORS.charcoal }}>
                         承認済みの予約に対して「来店確認」ボタンをタップすると、来店済みとして記録されます。
                       </p>
                     </div>
@@ -786,11 +1027,20 @@ export default function StoreUpdatePage() {
 
                 {loadingReservations ? (
                   <div className="flex items-center justify-center py-12">
-                    <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+                    <Loader2 className="w-8 h-8 animate-spin" style={{ color: COLORS.champagneGold }} />
                   </div>
                 ) : reservations.length === 0 ? (
-                  <Card className="p-6">
-                    <p className="text-center text-muted-foreground font-bold">
+                  <Card 
+                    className="p-6 rounded-2xl"
+                    style={{ 
+                      background: '#FFFFFF',
+                      border: `1px solid rgba(201, 168, 108, 0.15)`,
+                    }}
+                  >
+                    <p 
+                      className="text-center font-bold"
+                      style={{ color: COLORS.warmGray }}
+                    >
                       予約データがありません
                     </p>
                   </Card>
@@ -799,12 +1049,37 @@ export default function StoreUpdatePage() {
                     {reservations.map((reservation) => {
                       const createdAt = new Date(reservation.created_at);
                       const arrivalTime = new Date(reservation.arrival_time);
-                      const statusLabels: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
-                        pending: { label: '保留中', color: 'text-yellow-600 bg-yellow-50 border-yellow-200', icon: <Clock className="w-4 h-4" /> },
-                        confirmed: { label: '承認', color: 'text-green-600 bg-green-50 border-green-200', icon: <CheckCircle2 className="w-4 h-4" /> },
-                        rejected: { label: '拒否', color: 'text-red-600 bg-red-50 border-red-200', icon: <XCircle className="w-4 h-4" /> },
-                        cancelled: { label: 'キャンセル', color: 'text-gray-600 bg-gray-50 border-gray-200', icon: <X className="w-4 h-4" /> },
-                        expired: { label: '期限切れ', color: 'text-gray-600 bg-gray-50 border-gray-200', icon: <Clock className="w-4 h-4" /> },
+                      const statusLabels: Record<string, { label: string; color: string; bgColor: string; icon: React.ReactNode }> = {
+                        pending: { 
+                          label: '保留中', 
+                          color: COLORS.champagneGold, 
+                          bgColor: 'rgba(201, 168, 108, 0.08)', 
+                          icon: <Clock className="w-4 h-4" /> 
+                        },
+                        confirmed: { 
+                          label: '承認', 
+                          color: '#16a34a', 
+                          bgColor: 'rgba(34, 197, 94, 0.08)', 
+                          icon: <CheckCircle2 className="w-4 h-4" /> 
+                        },
+                        rejected: { 
+                          label: '拒否', 
+                          color: '#dc2626', 
+                          bgColor: 'rgba(239, 68, 68, 0.08)', 
+                          icon: <XCircle className="w-4 h-4" /> 
+                        },
+                        cancelled: { 
+                          label: 'キャンセル', 
+                          color: COLORS.warmGray, 
+                          bgColor: 'rgba(99, 110, 114, 0.08)', 
+                          icon: <X className="w-4 h-4" /> 
+                        },
+                        expired: { 
+                          label: '期限切れ', 
+                          color: COLORS.warmGray, 
+                          bgColor: 'rgba(99, 110, 114, 0.08)', 
+                          icon: <Clock className="w-4 h-4" /> 
+                        },
                       };
                       const statusInfo = statusLabels[reservation.status] || statusLabels.pending;
 
@@ -814,27 +1089,41 @@ export default function StoreUpdatePage() {
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
                         >
-                          <Card className="p-6 relative">
+                          <Card 
+                            className="p-6 relative rounded-2xl shadow-lg"
+                            style={{ 
+                              background: '#FFFFFF',
+                              border: `1px solid rgba(201, 168, 108, 0.15)`,
+                            }}
+                          >
                             {/* 削除ボタン */}
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="absolute top-4 right-4 text-red-600 hover:text-red-700"
+                              className="absolute top-4 right-4 rounded-lg hover:bg-red-50"
                               onClick={() => handleDeleteReservation(reservation.id)}
                               title="削除"
+                              style={{ color: '#dc2626' }}
                             >
                               <Trash2 className="w-4 h-4" />
                             </Button>
                             <div className="space-y-3">
                               {/* 1行目: ステータスバッジ + 電話受付時刻 */}
                               <div className="flex items-center justify-between pr-10">
-                                <div className={`flex items-center gap-2 px-3 py-1 rounded-full border ${statusInfo.color}`}>
+                                <div 
+                                  className="flex items-center gap-2 px-3 py-1.5 rounded-full"
+                                  style={{ 
+                                    backgroundColor: statusInfo.bgColor,
+                                    color: statusInfo.color,
+                                    border: `1px solid ${statusInfo.color}30`,
+                                  }}
+                                >
                                   {statusInfo.icon}
                                   <span className="text-sm font-bold">{statusInfo.label}</span>
                                 </div>
                                 <div className="text-right">
-                                  <p className="text-xs text-muted-foreground font-bold">電話受付時刻</p>
-                                  <p className="text-sm font-bold">
+                                  <p className="text-xs font-medium" style={{ color: COLORS.warmGray }}>電話受付時刻</p>
+                                  <p className="text-sm font-bold" style={{ color: COLORS.deepNavy }}>
                                     {createdAt.toLocaleString('ja-JP', {
                                       month: '2-digit',
                                       day: '2-digit',
@@ -845,41 +1134,49 @@ export default function StoreUpdatePage() {
                                 </div>
                               </div>
 
+                              <GoldDivider />
+
                               {/* 2行目: 名前 + 電話番号 */}
                               <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
+                                <div className="space-y-1">
                                   <div className="flex items-center gap-2">
-                                    <User className="w-4 h-4 text-muted-foreground" />
-                                    <span className="text-sm font-bold text-muted-foreground">名前</span>
+                                    <User className="w-4 h-4" style={{ color: COLORS.champagneGold }} />
+                                    <span className="text-xs font-medium" style={{ color: COLORS.warmGray }}>名前</span>
                                   </div>
-                                  <p className="text-base font-bold">{reservation.caller_name || '未入力'}</p>
+                                  <p className="text-base font-bold" style={{ color: COLORS.deepNavy }}>
+                                    {reservation.caller_name || '未入力'}
+                                  </p>
                                 </div>
 
-                                <div className="space-y-2">
+                                <div className="space-y-1">
                                   <div className="flex items-center gap-2">
-                                    <Phone className="w-4 h-4 text-muted-foreground" />
-                                    <span className="text-sm font-bold text-muted-foreground">電話番号</span>
+                                    <Phone className="w-4 h-4" style={{ color: COLORS.champagneGold }} />
+                                    <span className="text-xs font-medium" style={{ color: COLORS.warmGray }}>電話番号</span>
                                   </div>
-                                  <p className="text-base font-bold">{reservation.caller_phone}</p>
+                                  <p className="text-base font-bold" style={{ color: COLORS.deepNavy }}>
+                                    {reservation.caller_phone}
+                                  </p>
                                 </div>
                               </div>
 
                               {/* 3行目: 人数 + 到着予定時刻 */}
                               <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
+                                <div className="space-y-1">
                                   <div className="flex items-center gap-2">
-                                    <Users className="w-4 h-4 text-muted-foreground" />
-                                    <span className="text-sm font-bold text-muted-foreground">人数</span>
+                                    <Users className="w-4 h-4" style={{ color: COLORS.champagneGold }} />
+                                    <span className="text-xs font-medium" style={{ color: COLORS.warmGray }}>人数</span>
                                   </div>
-                                  <p className="text-base font-bold">{reservation.party_size}名</p>
+                                  <p className="text-base font-bold" style={{ color: COLORS.deepNavy }}>
+                                    {reservation.party_size}名
+                                  </p>
                                 </div>
 
-                                <div className="space-y-2">
+                                <div className="space-y-1">
                                   <div className="flex items-center gap-2">
-                                    <Clock className="w-4 h-4 text-muted-foreground" />
-                                    <span className="text-sm font-bold text-muted-foreground">到着予定時刻</span>
+                                    <Clock className="w-4 h-4" style={{ color: COLORS.champagneGold }} />
+                                    <span className="text-xs font-medium" style={{ color: COLORS.warmGray }}>到着予定時刻</span>
                                   </div>
-                                  <p className="text-base font-bold">
+                                  <p className="text-base font-bold" style={{ color: COLORS.deepNavy }}>
                                     {arrivalTime.toLocaleString('ja-JP', {
                                       month: '2-digit',
                                       day: '2-digit',
@@ -890,14 +1187,18 @@ export default function StoreUpdatePage() {
                                 </div>
                               </div>
 
-                              {/* ============================================ */}
                               {/* 来店確認セクション */}
-                              {/* ============================================ */}
-                              <div className="pt-3 mt-3 border-t border-gray-100">
+                              <div 
+                                className="pt-3 mt-3 rounded-xl p-3"
+                                style={{ 
+                                  backgroundColor: 'rgba(201, 168, 108, 0.05)',
+                                  border: `1px solid rgba(201, 168, 108, 0.1)`,
+                                }}
+                              >
                                 <div className="flex items-center justify-between">
                                   <div className="flex items-center gap-2">
-                                    <UserCheck className="w-4 h-4 text-muted-foreground" />
-                                    <span className="text-sm font-bold text-muted-foreground">来店状況</span>
+                                    <UserCheck className="w-4 h-4" style={{ color: COLORS.champagneGold }} />
+                                    <span className="text-sm font-bold" style={{ color: COLORS.charcoal }}>来店状況</span>
                                   </div>
                                   
                                   {/* 来店チェックトグルボタン */}
@@ -914,7 +1215,7 @@ export default function StoreUpdatePage() {
                                     animate={{ opacity: 1, y: 0 }}
                                     className="mt-2 text-right"
                                   >
-                                    <span className="text-xs text-amber-700 font-bold">
+                                    <span className="text-xs font-bold" style={{ color: COLORS.champagneGold }}>
                                       来店時刻: {new Date(reservation.arrived_at).toLocaleString('ja-JP', {
                                         month: '2-digit',
                                         day: '2-digit',
@@ -928,9 +1229,11 @@ export default function StoreUpdatePage() {
 
                               {/* 拒否理由 */}
                               {reservation.status === 'rejected' && reservation.rejection_reason && (
-                                <div className="pt-2 border-t">
-                                  <p className="text-sm text-muted-foreground font-bold">拒否理由</p>
-                                  <p className="text-sm font-bold mt-1">{reservation.rejection_reason}</p>
+                                <div className="pt-2 border-t" style={{ borderColor: 'rgba(201, 168, 108, 0.2)' }}>
+                                  <p className="text-sm font-medium" style={{ color: COLORS.warmGray }}>拒否理由</p>
+                                  <p className="text-sm font-bold mt-1" style={{ color: COLORS.charcoal }}>
+                                    {reservation.rejection_reason}
+                                  </p>
                                 </div>
                               )}
                             </div>
@@ -954,25 +1257,36 @@ export default function StoreUpdatePage() {
             className="mt-6 space-y-3"
           >
             {activeTab === 'reservations' && (
+              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                <Button
+                  type="button"
+                  className="w-full py-4 rounded-xl font-bold text-white shadow-lg"
+                  style={{ 
+                    background: COLORS.luxuryGradient,
+                    boxShadow: '0 4px 15px rgba(10, 22, 40, 0.3)',
+                  }}
+                  onClick={handleExportCSV}
+                >
+                  <Download className="w-5 h-5 mr-2" />
+                  データ出力（CSV）
+                </Button>
+              </motion.div>
+            )}
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
               <Button
                 type="button"
-                className="w-full font-bold text-white hover:opacity-90"
-                style={{ backgroundColor: '#2c5c6e' }}
-                onClick={handleExportCSV}
+                variant="outline"
+                className="w-full py-4 rounded-xl font-bold"
+                style={{ 
+                  borderColor: '#dc2626',
+                  color: '#dc2626',
+                }}
+                onClick={handleSignOut}
               >
-                <Download className="w-4 h-4 mr-2" />
-                データ出力（CSV）
+                <LogOut className="w-5 h-5 mr-2" />
+                ログアウト
               </Button>
-            )}
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full text-destructive font-bold bg-gray-100"
-              onClick={handleSignOut}
-            >
-              <LogOut className="w-4 h-4 mr-2" />
-              ログアウト
-            </Button>
+            </motion.div>
           </motion.div>
         )}
       </div>

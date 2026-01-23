@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Mail, Lock, Loader2 } from 'lucide-react';
+import { Mail, Lock, Loader2, Sparkles, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,6 +11,52 @@ import { Label } from '@/components/ui/label';
 import { useAuth } from '@/lib/auth/context';
 import { toast } from 'sonner';
 import { PasswordInput } from '@/components/ui/password-input';
+
+// ============================================
+// カラーパレット定義（店舗詳細画面準拠）
+// ============================================
+const COLORS = {
+  // プライマリ
+  deepNavy: '#0A1628',
+  midnightBlue: '#162447',
+  royalNavy: '#1F4068',
+  
+  // アクセント
+  champagneGold: '#C9A86C',
+  paleGold: '#E8D5B7',
+  antiqueGold: '#B8956E',
+  
+  // ニュートラル
+  charcoal: '#2D3436',
+  warmGray: '#636E72',
+  platinum: '#DFE6E9',
+  ivory: '#FDFBF7',
+  
+  // グラデーション
+  luxuryGradient: 'linear-gradient(165deg, #0A1628 0%, #162447 50%, #1F4068 100%)',
+  goldGradient: 'linear-gradient(135deg, #C9A86C 0%, #E8D5B7 50%, #B8956E 100%)',
+  cardGradient: 'linear-gradient(145deg, #FDFBF7 0%, #F5F1EB 100%)',
+};
+
+/**
+ * ゴールド装飾ディバイダー
+ */
+const GoldDivider = () => (
+  <div className="flex items-center justify-center gap-3 my-6">
+    <div 
+      className="h-px flex-1"
+      style={{ background: `linear-gradient(90deg, transparent, ${COLORS.champagneGold}40)` }}
+    />
+    <div 
+      className="w-1.5 h-1.5 rotate-45"
+      style={{ backgroundColor: COLORS.champagneGold }}
+    />
+    <div 
+      className="h-px flex-1"
+      style={{ background: `linear-gradient(90deg, ${COLORS.champagneGold}40, transparent)` }}
+    />
+  </div>
+);
 
 export default function LoginPage() {
   const router = useRouter();
@@ -66,24 +112,47 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
-      {/* 背景：グラデーション＋装飾（ぼかしなし） */}
-      <div className="absolute inset-0 -z-10">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-primary/5" />
-        <div className="pointer-events-none absolute -top-24 -left-24 h-[40rem] w-[40rem] rounded-full bg-primary/20 opacity-40" />
-        <div className="pointer-events-none absolute -bottom-24 -right-24 h-[40rem] w-[40rem] rounded-full bg-blue-400/20 opacity-30" />
+    <div 
+      className="min-h-screen relative overflow-hidden"
+      style={{ background: COLORS.luxuryGradient }}
+    >
+      {/* 背景装飾 */}
+      <div className="absolute inset-0 -z-10 overflow-hidden">
+        <div 
+          className="pointer-events-none absolute -top-40 -left-40 h-[50rem] w-[50rem] rounded-full opacity-20"
+          style={{ background: `radial-gradient(circle, ${COLORS.champagneGold}30 0%, transparent 70%)` }}
+        />
+        <div 
+          className="pointer-events-none absolute -bottom-40 -right-40 h-[50rem] w-[50rem] rounded-full opacity-15"
+          style={{ background: `radial-gradient(circle, ${COLORS.royalNavy} 0%, transparent 70%)` }}
+        />
+        {/* ゴールドのアクセントライン */}
+        <div 
+          className="absolute top-0 left-0 right-0 h-1"
+          style={{ background: COLORS.goldGradient }}
+        />
       </div>
 
-      {/* レスポンシブ2カラム：左=ブランド/右=フォーム */}
+      {/* レスポンシブ2カラム */}
       <div className="mx-auto grid w-full max-w-6xl grid-cols-1 md:grid-cols-2 gap-0 md:gap-8 px-4 sm:px-6 py-8 sm:py-12 md:py-16">
         {/* 左：ブランド・ベネフィット（md以上で表示） */}
         <motion.aside
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6 }}
-          className="hidden md:flex flex-col justify-between rounded-2xl border bg-card/60 p-8 relative overflow-hidden"
+          className="hidden md:flex flex-col justify-between rounded-2xl p-8 relative overflow-hidden"
+          style={{ 
+            background: 'rgba(255, 255, 255, 0.05)',
+            backdropFilter: 'blur(10px)',
+            border: `1px solid rgba(201, 168, 108, 0.2)`,
+          }}
         >
-          <div className="absolute inset-0 bg-[radial-gradient(1200px_400px_at_20%_-10%,rgba(59,130,246,0.15),transparent)]" />
+          <div 
+            className="absolute inset-0 opacity-30"
+            style={{ 
+              background: `radial-gradient(ellipse at 20% -10%, ${COLORS.champagneGold}20, transparent 50%)` 
+            }}
+          />
           <div className="relative">
             <div className="flex items-center gap-3 mb-8">
               <img
@@ -92,64 +161,123 @@ export default function LoginPage() {
                 className="w-16 h-16 object-contain"
               />
             </div>
-            <h1 className="text-4xl leading-tight font-bold mb-4">
-              二軒目がすぐ見つかる、<br />空席マップ
+            <h1 
+              className="text-4xl leading-tight font-bold mb-4"
+              style={{ color: COLORS.ivory }}
+            >
+              二軒目がすぐ見つかる、<br />
+              <span style={{ color: COLORS.champagneGold }}>空席マップ</span>
             </h1>
-            <p className="text-muted-foreground text-lg font-semibold">
+            <p 
+              className="text-lg font-medium"
+              style={{ color: COLORS.platinum }}
+            >
               『いま入れるバー・スナック』だけを地図で表示。<br />
               ログイン不要、位置情報を許可してマップを開くだけ。
             </p>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 mt-10">
+          <GoldDivider />
+
+          <div className="grid grid-cols-1 gap-4">
             {/* ベネフィットカード */}
-            <div className="rounded-xl border bg-background/60 p-4">
-              <p className="font-semibold">ひと目で空席チェック</p>
-              <p className="text-base font-semibold">最寄りのバー・スナックを最短で。</p>
-            </div>
-            <div className="rounded-xl border bg-background/60 p-4">
-              <p className="font-semibold">経路案内・電話もワンタップ</p>
-              <p className="text-base font-semibold">迷わず到着、すぐ確認。</p>
-            </div>
+            <motion.div 
+              className="rounded-xl p-4"
+              style={{ 
+                background: 'rgba(201, 168, 108, 0.1)',
+                border: `1px solid rgba(201, 168, 108, 0.2)`,
+              }}
+              whileHover={{ scale: 1.02 }}
+              transition={{ duration: 0.2 }}
+            >
+              <p className="font-bold" style={{ color: COLORS.champagneGold }}>
+                ひと目で空席チェック
+              </p>
+              <p className="text-sm font-medium mt-1" style={{ color: COLORS.platinum }}>
+                最寄りのバー・スナックを最短で。
+              </p>
+            </motion.div>
+            <motion.div 
+              className="rounded-xl p-4"
+              style={{ 
+                background: 'rgba(201, 168, 108, 0.1)',
+                border: `1px solid rgba(201, 168, 108, 0.2)`,
+              }}
+              whileHover={{ scale: 1.02 }}
+              transition={{ duration: 0.2 }}
+            >
+              <p className="font-bold" style={{ color: COLORS.champagneGold }}>
+                経路案内・電話もワンタップ
+              </p>
+              <p className="text-sm font-medium mt-1" style={{ color: COLORS.platinum }}>
+                迷わず到着、すぐ確認。
+              </p>
+            </motion.div>
           </div>
 
-          <div className="text-base font-semibold mt-4">
+          <div className="text-sm font-medium mt-6" style={{ color: COLORS.warmGray }}>
             © {new Date().getFullYear()} NIKENME+
           </div>
         </motion.aside>
 
         {/* 右：ログインフォーム */}
         <motion.section
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
           className="flex items-center"
         >
           <div className="w-full">
             <div className="mx-auto w-full max-w-md">
-              <div className="mb-6 md:mb-8 flex items-center justify-center md:hidden">
+              {/* モバイル用ロゴ */}
+              <div className="mb-6 md:mb-8 flex flex-col items-center justify-center md:hidden">
                 <img
                   src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%83%BC%E3%83%92%E3%82%99%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png"
                   alt="NIKENME+"
-                  className="w-24 h-24 object-contain"
+                  className="w-20 h-20 object-contain mb-3"
                 />
               </div>
 
-              <div className="rounded-2xl border bg-white p-6 sm:p-8 shadow-lg">
+              {/* ログインカード */}
+              <div 
+                className="rounded-2xl p-6 sm:p-8 shadow-2xl"
+                style={{ 
+                  background: '#FFFFFF',
+                  border: `1px solid rgba(201, 168, 108, 0.15)`,
+                }}
+              >
                 <div className="text-center mb-6 sm:mb-8">
-                  <h2 className="text-2xl sm:text-3xl font-bold mb-2 text-card-foreground">おかえりなさい</h2>
-                  <p className="text-card-foreground text-base font-semibold">
+                  <div className="flex items-center justify-center gap-2 mb-3">
+                    <Sparkles className="w-5 h-5" style={{ color: COLORS.champagneGold }} />
+                    <h2 
+                      className="text-2xl sm:text-3xl font-bold"
+                      style={{ color: COLORS.deepNavy }}
+                    >
+                      おかえりなさい
+                    </h2>
+                  </div>
+                  <p 
+                    className="text-sm font-medium"
+                    style={{ color: COLORS.warmGray }}
+                  >
                     店舗アカウントにログインしてください
                   </p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="text-card-foreground font-semibold">
+                    <Label 
+                      htmlFor="email" 
+                      className="text-sm font-bold"
+                      style={{ color: COLORS.deepNavy }}
+                    >
                       メールアドレス
                     </Label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-card-foreground/60 pointer-events-none" />
+                      <Mail 
+                        className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none" 
+                        style={{ color: COLORS.champagneGold }}
+                      />
                       <Input
                         id="email"
                         type="email"
@@ -158,8 +286,11 @@ export default function LoginPage() {
                         placeholder="you@example.com"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="pl-10 h-11 sm:h-12 text-base"
-                        style={{ fontSize: '16px' }}
+                        className="pl-10 h-12 text-base rounded-xl border-2 transition-all duration-200 focus:border-[#C9A86C] focus:ring-2 focus:ring-[#C9A86C]/20"
+                        style={{ 
+                          fontSize: '16px',
+                          borderColor: 'rgba(201, 168, 108, 0.3)',
+                        }}
                         aria-label="メールアドレス"
                         required
                       />
@@ -167,18 +298,28 @@ export default function LoginPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="password" className="text-card-foreground font-semibold">
+                    <Label 
+                      htmlFor="password" 
+                      className="text-sm font-bold"
+                      style={{ color: COLORS.deepNavy }}
+                    >
                       パスワード
                     </Label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-card-foreground/60 z-10 pointer-events-none" />
+                      <Lock 
+                        className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 z-10 pointer-events-none" 
+                        style={{ color: COLORS.champagneGold }}
+                      />
                       <PasswordInput
                         id="password"
                         placeholder="••••••••"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="pl-10 h-11 sm:h-12 text-base"
-                        style={{ fontSize: '16px' }}
+                        className="pl-10 h-12 text-base rounded-xl border-2 transition-all duration-200 focus:border-[#C9A86C] focus:ring-2 focus:ring-[#C9A86C]/20"
+                        style={{ 
+                          fontSize: '16px',
+                          borderColor: 'rgba(201, 168, 108, 0.3)',
+                        }}
                         autoComplete="current-password"
                         aria-label="パスワード"
                         required
@@ -186,28 +327,42 @@ export default function LoginPage() {
                     </div>
                   </div>
 
-                  <Button
-                    type="submit"
-                    className="w-full h-11 sm:h-12 text-base mt-4"
-                    disabled={loading}
-                    aria-busy={loading}
-                  >
-                    {loading ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        ログイン中…
-                      </>
-                    ) : (
-                      'ログイン'
-                    )}
-                  </Button>
+                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                    <Button
+                      type="submit"
+                      className="w-full h-12 text-base mt-4 rounded-xl font-bold shadow-lg transition-all duration-200"
+                      style={{ 
+                        background: COLORS.goldGradient,
+                        color: COLORS.deepNavy,
+                        boxShadow: '0 8px 25px rgba(201, 168, 108, 0.35)',
+                      }}
+                      disabled={loading}
+                      aria-busy={loading}
+                    >
+                      {loading ? (
+                        <>
+                          <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                          ログイン中…
+                        </>
+                      ) : (
+                        <>
+                          ログイン
+                          <ArrowRight className="w-5 h-5 ml-2" />
+                        </>
+                      )}
+                    </Button>
+                  </motion.div>
 
-                  <div className="text-center text-sm">
+                  <GoldDivider />
+
+                  <div className="text-center">
                     <Link 
                       href="/landing" 
-                      className="text-primary hover:underline underline-offset-4 font-semibold"
+                      className="inline-flex items-center gap-1 text-sm font-bold transition-colors hover:opacity-80"
+                      style={{ color: COLORS.royalNavy }}
                     >
                       ホーム画面に戻る
+                      <ArrowRight className="w-4 h-4" />
                     </Link>
                   </div>
                 </form>
