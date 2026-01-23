@@ -1702,7 +1702,7 @@ export default function LandingPage() {
 
                 <div className="p-8">
                   {/* アイコン */}
-                  <div className="flex justify-center mb-6">
+                  {/* <div className="flex justify-center mb-6">
                     <motion.div
                       className="relative"
                       initial={{ scale: 0 }}
@@ -1726,7 +1726,7 @@ export default function LandingPage() {
                         <MapPinned className="w-10 h-10" style={{ color: '#C9A86C' }} />
                       </div>
                     </motion.div>
-                  </div>
+                  </div> */}
 
                   {/* タイトル */}
                   <motion.div
@@ -1835,7 +1835,7 @@ export default function LandingPage() {
                     style={{ color: 'rgba(253, 251, 247, 0.4)' }}
                   >
                     {language === 'ja' 
-                      ? '位置情報は周辺のお店を表示するためだけに使用されます' 
+                      ? '位置情報は周辺のお店を表示する為だけに使用します' 
                       : 'Location is only used to show nearby venues'}
                   </motion.p>
                 </div>
