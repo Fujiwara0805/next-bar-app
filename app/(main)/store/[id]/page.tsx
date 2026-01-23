@@ -6,6 +6,7 @@
  *       - ディープネイビー × シャンパンゴールドの高級感
  *       - Google Place Photos の遅延読み込み・キャッシュ最適化
  *       - スケルトンローディングによるUX向上
+ *       - 画像フルスクリーン表示（ライトボックス）
  * ============================================
  */
 
@@ -32,6 +33,7 @@ import {
   Image as ImageIcon,
   Ticket,
   Sparkles,
+  Expand,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -44,6 +46,7 @@ import { InstantReservationButton } from '@/components/instant-reservation-butto
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { CouponDisplayModal } from '@/components/store/CouponDisplayModal';
 import { isCouponValid, type CouponData } from '@/lib/types/coupon';
+import { ImageLightbox } from '@/components/ui/ImageLightbox';
 
 type Store = Database['public']['Tables']['stores']['Row'];
 
@@ -143,6 +146,11 @@ export default function StoreDetailPage() {
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
   const [showCouponModal, setShowCouponModal] = useState(false);
   
+  // ライトボックス用の状態
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxImages, setLightboxImages] = useState<string[]>([]);
+  const [lightboxInitialIndex, setLightboxInitialIndex] = useState(0);
+  
   // 自動スライド用のタイマーRef
   const autoSlideTimerRef = useRef<NodeJS.Timeout | null>(null);
   const photoCarouselTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -151,6 +159,29 @@ export default function StoreDetailPage() {
   // ホバー状態
   const [isHovering, setIsHovering] = useState(false);
   const [isPhotoHovering, setIsPhotoHovering] = useState(false);
+
+  // ============================================
+  // ライトボックスを開く・閉じる関数
+  // ============================================
+  const openLightbox = useCallback((images: string[], index: number) => {
+    // 先に状態をリセットしてから開く
+    setLightboxOpen(false);
+    // 次のレンダリングサイクルで新しい値をセット
+    setTimeout(() => {
+      setLightboxImages(images);
+      setLightboxInitialIndex(index);
+      setLightboxOpen(true);
+    }, 10);
+  }, []);
+
+  const closeLightbox = useCallback(() => {
+    setLightboxOpen(false);
+    // 閉じた後に状態をリセット
+    setTimeout(() => {
+      setLightboxImages([]);
+      setLightboxInitialIndex(0);
+    }, 300); // アニメーション完了後にリセット
+  }, []);
 
   // ============================================
   // 位置情報の読み込み
@@ -526,12 +557,22 @@ export default function StoreDetailPage() {
           {/* 店舗画像カルーセル */}
           {imageUrls.length > 0 && (
             <div 
-              className="relative w-full h-80 mb-4 rounded-2xl overflow-hidden shadow-xl"
+              className="relative w-full h-80 mb-4 rounded-2xl overflow-hidden shadow-xl group cursor-pointer"
               onMouseEnter={() => setIsHovering(true)}
               onMouseLeave={() => setIsHovering(false)}
               onTouchStart={() => setIsHovering(true)}
               onTouchEnd={() => setTimeout(() => setIsHovering(false), 1000)}
               style={{ border: `1px solid rgba(201, 168, 108, 0.2)` }}
+              onClick={() => openLightbox(imageUrls, selectedImageIndex)}
+              role="button"
+              tabIndex={0}
+              aria-label="画像を拡大表示"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  openLightbox(imageUrls, selectedImageIndex);
+                }
+              }}
             >
               <motion.img
                 key={selectedImageIndex}
@@ -543,12 +584,31 @@ export default function StoreDetailPage() {
                 className="w-full h-full object-cover"
               />
               
+              {/* 拡大アイコンオーバーレイ */}
+              <div 
+                className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+                style={{ backgroundColor: 'rgba(10, 22, 40, 0.3)' }}
+              >
+                <div 
+                  className="p-3 rounded-full"
+                  style={{ 
+                    backgroundColor: 'rgba(10, 22, 40, 0.8)',
+                    border: `1px solid rgba(201, 168, 108, 0.3)`,
+                  }}
+                >
+                  <Expand className="w-6 h-6" style={{ color: COLORS.champagneGold }} />
+                </div>
+              </div>
+              
               {imageUrls.length > 1 && (
                 <>
                   <Button
                     size="icon"
-                    className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full"
-                    onClick={prevImage}
+                    className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full z-10"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      prevImage();
+                    }}
                     style={{ 
                       backgroundColor: 'rgba(10, 22, 40, 0.8)',
                       color: COLORS.champagneGold,
@@ -559,8 +619,11 @@ export default function StoreDetailPage() {
                   </Button>
                   <Button
                     size="icon"
-                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full"
-                    onClick={nextImage}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full z-10"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      nextImage();
+                    }}
                     style={{ 
                       backgroundColor: 'rgba(10, 22, 40, 0.8)',
                       color: COLORS.champagneGold,
@@ -570,11 +633,14 @@ export default function StoreDetailPage() {
                     <ChevronRight className="w-5 h-5" />
                   </Button>
                   
-                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
                     {imageUrls.map((_, index) => (
                       <button
                         key={index}
-                        onClick={() => goToImage(index)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          goToImage(index);
+                        }}
                         className="h-2 rounded-full transition-all duration-300"
                         style={{
                           width: index === selectedImageIndex ? '24px' : '8px',
@@ -864,7 +930,7 @@ export default function StoreDetailPage() {
                   <ImageIcon className="w-5 h-5 shrink-0 mt-0.5" style={{ color: COLORS.champagneGold }} />
                   <div className="flex-1">
                     <p className="text-sm font-bold mb-3" style={{ color: COLORS.deepNavy }}>
-                      写真
+                      お店の雰囲気（写真）
                     </p>
                     
                     {/* ローディング状態 */}
@@ -892,8 +958,18 @@ export default function StoreDetailPage() {
                                 initial={{ opacity: 0, x: 20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ duration: 0.3 }}
-                                className="relative aspect-square rounded-xl overflow-hidden"
+                                className="relative aspect-square rounded-xl overflow-hidden cursor-pointer group"
                                 style={{ border: `1px solid rgba(201, 168, 108, 0.2)` }}
+                                onClick={() => openLightbox(placePhotos, startIndex + index)}
+                                role="button"
+                                tabIndex={0}
+                                aria-label={`写真 ${startIndex + index + 1} を拡大表示`}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    openLightbox(placePhotos, startIndex + index);
+                                  }
+                                }}
                               >
                                 <img
                                   src={photoUrl}
@@ -901,6 +977,21 @@ export default function StoreDetailPage() {
                                   className="w-full h-full object-cover"
                                   loading="lazy"
                                 />
+                                {/* 拡大アイコンオーバーレイ */}
+                                <div 
+                                  className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                                  style={{ backgroundColor: 'rgba(10, 22, 40, 0.3)' }}
+                                >
+                                  <div 
+                                    className="p-2 rounded-full"
+                                    style={{ 
+                                      backgroundColor: 'rgba(10, 22, 40, 0.8)',
+                                      border: `1px solid rgba(201, 168, 108, 0.3)`,
+                                    }}
+                                  >
+                                    <Expand className="w-4 h-4" style={{ color: COLORS.champagneGold }} />
+                                  </div>
+                                </div>
                               </motion.div>
                             ));
                           })()}
@@ -911,7 +1002,10 @@ export default function StoreDetailPage() {
                             <Button
                               size="icon"
                               className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full z-10"
-                              onClick={prevPhotoPair}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                prevPhotoPair();
+                              }}
                               style={{ 
                                 backgroundColor: 'rgba(10, 22, 40, 0.8)',
                                 color: COLORS.champagneGold,
@@ -923,7 +1017,10 @@ export default function StoreDetailPage() {
                             <Button
                               size="icon"
                               className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full z-10"
-                              onClick={nextPhotoPair}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                nextPhotoPair();
+                              }}
                               style={{ 
                                 backgroundColor: 'rgba(10, 22, 40, 0.8)',
                                 color: COLORS.champagneGold,
@@ -937,7 +1034,10 @@ export default function StoreDetailPage() {
                               {Array.from({ length: Math.ceil(placePhotos.length / 2) }).map((_, index) => (
                                 <button
                                   key={index}
-                                  onClick={() => goToPhotoPair(index)}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    goToPhotoPair(index);
+                                  }}
                                   className="h-2 rounded-full transition-all duration-300"
                                   style={{
                                     width: index === selectedPhotoIndex ? '20px' : '8px',
@@ -1181,6 +1281,15 @@ export default function StoreDetailPage() {
           onCouponUsed={() => fetchStore(store.id)}
         />
       )}
+
+      {/* 画像ライトボックス */}
+      <ImageLightbox
+        images={lightboxImages}
+        initialIndex={lightboxInitialIndex}
+        isOpen={lightboxOpen}
+        onClose={closeLightbox}
+        alt={store.name}
+      />
     </div>
   );
 }
