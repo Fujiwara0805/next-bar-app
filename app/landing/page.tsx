@@ -32,7 +32,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { CustomModal } from '@/components/ui/custom-modal';
 import { useLanguage } from '@/lib/i18n/context';
 import { supabase } from '@/lib/supabase/client';
 
@@ -45,6 +44,19 @@ const colors = {
   text: '#F2EBDD',
   textMuted: 'rgba(242, 235, 221, 0.6)',
   textSubtle: 'rgba(242, 235, 221, 0.4)',
+};
+
+// ===== ラグジュアリーカラーパレット（店舗詳細画面準拠） =====
+const luxuryColors = {
+  deepNavy: '#0A1628',
+  midnightBlue: '#162447',
+  royalNavy: '#1F4068',
+  champagneGold: '#C9A86C',
+  paleGold: '#E8D5B7',
+  antiqueGold: '#B8956E',
+  ivory: '#FDFBF7',
+  luxuryGradient: 'linear-gradient(165deg, #0A1628 0%, #162447 50%, #1F4068 100%)',
+  goldGradient: 'linear-gradient(135deg, #C9A86C 0%, #E8D5B7 50%, #B8956E 100%)',
 };
 
 // 店舗データの型定義
@@ -1546,62 +1558,292 @@ export default function LandingPage() {
         </div>
       </footer>
 
-      {/* ===== Location Permission Modal ===== */}
-      <CustomModal
-        isOpen={showLocationModal}
-        onClose={() => setShowLocationModal(false)}
-        title={t('modal.location_title')}
-        description={t('modal.location_desc')}
-        showCloseButton={false}
-      >
-        <div className="space-y-4">
-          {locationPermission === 'denied' && (
+      {/* ===== Location Permission Modal (Luxury Design) ===== */}
+      <AnimatePresence>
+        {showLocationModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            style={{ backgroundColor: 'rgba(10, 22, 40, 0.95)' }}
+            onClick={() => locationPermission !== 'loading' && setShowLocationModal(false)}
+          >
+            {/* 背景のブラー効果 */}
             <div 
-              className="p-3 rounded-lg text-sm"
-              style={{ background: 'rgba(248,113,113,0.15)', color: '#F87171' }}
-            >
-              {t('modal.location_error')}
-            </div>
-          )}
+              className="absolute inset-0 backdrop-blur-md"
+              style={{ backgroundColor: 'rgba(10, 22, 40, 0.5)' }}
+            />
 
-          <div className="flex flex-col gap-3 pt-4">
-            <Button
-              onClick={() => handleLocationPermission(true)}
-              disabled={locationPermission === 'loading'}
-              className="w-full py-6 text-lg font-semibold rounded-xl transition-all hover:scale-[1.02] disabled:opacity-70 disabled:cursor-not-allowed"
+            {/* 装飾的な光の効果 */}
+            <motion.div
+              className="absolute w-[500px] h-[500px] rounded-full pointer-events-none"
               style={{
-                background: `linear-gradient(135deg, #E8CB6C, #B29A5F)`,
-                color: colors.background,
-                boxShadow: `0 0 30px ${colors.accent}30`,
+                background: 'radial-gradient(circle, rgba(201, 168, 108, 0.15) 0%, transparent 70%)',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                filter: 'blur(60px)',
               }}
-            >
-              {locationPermission === 'loading' ? (
-                <>
-                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                  {language === 'ja' ? '位置情報を取得中...' : 'Getting location...'}
-                </>
-              ) : (
-                <>
-                  <CheckCircle className="w-5 h-5 mr-2" />
-                  {t('modal.location_allow')}
-                </>
-              )}
-            </Button>
-            <Button
-              onClick={() => handleLocationPermission(false)}
-              disabled={locationPermission === 'loading'}
-              variant="outline"
-              className="w-full py-6 text-lg font-medium rounded-xl disabled:opacity-50"
-              style={{
-                border: `1px solid ${colors.accentDark}`,
-                color: colors.textMuted,
-              }}
-            >
-              {t('modal.location_deny')}
-            </Button>
-          </div>
-        </div>
-      </CustomModal>
+              animate={{ opacity: [0.3, 0.6, 0.3], scale: [1, 1.1, 1] }}
+              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+            />
+
+            {/* ローディング表示（許可ボタン押下後） */}
+            {locationPermission === 'loading' ? (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                className="relative z-10 flex flex-col items-center justify-center"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* 外側のリング */}
+                <div className="relative">
+                  <motion.div
+                    className="absolute inset-0 -m-4"
+                    animate={{ opacity: [0.3, 0.6, 0.3] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                    style={{
+                      background: 'radial-gradient(circle, rgba(201, 168, 108, 0.4) 0%, transparent 70%)',
+                      filter: 'blur(20px)',
+                    }}
+                  />
+                  
+                  {/* スピナーリング */}
+                  <motion.div
+                    className="w-20 h-20 rounded-full"
+                    style={{
+                      border: '2px solid rgba(201, 168, 108, 0.2)',
+                      borderTopColor: '#C9A86C',
+                    }}
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
+                  />
+                  
+                  {/* 中央のアイコン */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <motion.div
+                      animate={{ scale: [1, 1.2, 1], opacity: [0.8, 1, 0.8] }}
+                      transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                    >
+                      <Sparkles className="w-8 h-8" style={{ color: '#C9A86C' }} />
+                    </motion.div>
+                  </div>
+                </div>
+
+                {/* ローディングテキスト */}
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="mt-8 text-center"
+                >
+                  <p 
+                    className="text-lg font-medium mb-2"
+                    style={{ color: '#FDFBF7' }}
+                  >
+                    {language === 'ja' ? '位置情報を取得中...' : 'Getting your location...'}
+                  </p>
+                  <p 
+                    className="text-sm"
+                    style={{ color: 'rgba(253, 251, 247, 0.6)' }}
+                  >
+                    {language === 'ja' ? 'まもなくマップを表示します' : 'Map will appear shortly'}
+                  </p>
+                </motion.div>
+
+                {/* 装飾的なドット */}
+                <div className="flex gap-2 mt-6">
+                  {[0, 1, 2].map((i) => (
+                    <motion.div
+                      key={i}
+                      className="w-2 h-2 rounded-full"
+                      style={{ backgroundColor: '#C9A86C' }}
+                      animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1, 0.8] }}
+                      transition={{ 
+                        duration: 1.2, 
+                        repeat: Infinity, 
+                        delay: i * 0.2,
+                        ease: 'easeInOut' 
+                      }}
+                    />
+                  ))}
+                </div>
+              </motion.div>
+            ) : (
+              /* モーダルコンテンツ */
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                transition={{ duration: 0.3 }}
+                className="relative z-10 w-full max-w-md rounded-3xl overflow-hidden"
+                style={{
+                  background: 'linear-gradient(165deg, #0A1628 0%, #162447 50%, #1F4068 100%)',
+                  border: '1px solid rgba(201, 168, 108, 0.3)',
+                  boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 60px rgba(201, 168, 108, 0.15)',
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* マーブルテクスチャオーバーレイ */}
+                <div 
+                  className="absolute inset-0 opacity-5 pointer-events-none"
+                  style={{
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+                  }}
+                />
+
+                {/* ヘッダー装飾 */}
+                <div 
+                  className="h-1"
+                  style={{ background: 'linear-gradient(90deg, transparent, #C9A86C, transparent)' }}
+                />
+
+                <div className="p-8">
+                  {/* アイコン */}
+                  <div className="flex justify-center mb-6">
+                    <motion.div
+                      className="relative"
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ delay: 0.1, type: 'spring', stiffness: 200 }}
+                    >
+                      <div 
+                        className="absolute inset-0 -m-3"
+                        style={{
+                          background: 'radial-gradient(circle, rgba(201, 168, 108, 0.3) 0%, transparent 70%)',
+                          filter: 'blur(15px)',
+                        }}
+                      />
+                      <div 
+                        className="relative w-20 h-20 rounded-2xl flex items-center justify-center"
+                        style={{
+                          background: 'linear-gradient(135deg, rgba(201, 168, 108, 0.2) 0%, rgba(201, 168, 108, 0.1) 100%)',
+                          border: '1px solid rgba(201, 168, 108, 0.3)',
+                        }}
+                      >
+                        <MapPinned className="w-10 h-10" style={{ color: '#C9A86C' }} />
+                      </div>
+                    </motion.div>
+                  </div>
+
+                  {/* タイトル */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.15 }}
+                    className="text-center mb-6"
+                  >
+                    <h2 
+                      className="text-2xl font-bold mb-3"
+                      style={{ color: '#FDFBF7' }}
+                    >
+                      {t('modal.location_title')}
+                    </h2>
+                    <p 
+                      className="text-base leading-relaxed"
+                      style={{ color: 'rgba(253, 251, 247, 0.7)' }}
+                    >
+                      {t('modal.location_desc')}
+                    </p>
+                  </motion.div>
+
+                  {/* ゴールドディバイダー */}
+                  <div className="flex items-center justify-center gap-3 my-6">
+                    <div 
+                      className="h-px flex-1 max-w-16"
+                      style={{ background: 'linear-gradient(90deg, transparent, rgba(201, 168, 108, 0.4))' }}
+                    />
+                    <div 
+                      className="w-1.5 h-1.5 rotate-45"
+                      style={{ backgroundColor: '#C9A86C' }}
+                    />
+                    <div 
+                      className="h-px flex-1 max-w-16"
+                      style={{ background: 'linear-gradient(90deg, rgba(201, 168, 108, 0.4), transparent)' }}
+                    />
+                  </div>
+
+                  {/* エラーメッセージ */}
+                  {locationPermission === 'denied' && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="mb-6 p-4 rounded-xl flex items-start gap-3"
+                      style={{ 
+                        background: 'rgba(248, 113, 113, 0.1)',
+                        border: '1px solid rgba(248, 113, 113, 0.3)',
+                      }}
+                    >
+                      <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: '#F87171' }} />
+                      <p className="text-sm" style={{ color: '#F87171' }}>
+                        {t('modal.location_error')}
+                      </p>
+                    </motion.div>
+                  )}
+
+                  {/* ボタン */}
+                  <div className="space-y-3">
+                    <motion.button
+                      whileHover={{ scale: 1.02, y: -2 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => handleLocationPermission(true)}
+                      className="w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all relative overflow-hidden group"
+                      style={{
+                        background: 'linear-gradient(135deg, #C9A86C 0%, #E8D5B7 50%, #B8956E 100%)',
+                        color: '#0A1628',
+                        boxShadow: '0 8px 30px rgba(201, 168, 108, 0.4)',
+                      }}
+                    >
+                      {/* シマーエフェクト */}
+                      <motion.div 
+                        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                        style={{
+                          background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%)',
+                        }}
+                        animate={{ x: ['-100%', '200%'] }}
+                        transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 1 }}
+                      />
+                      <span className="relative z-10 flex items-center justify-center gap-2">
+                        <CheckCircle className="w-5 h-5" />
+                        {t('modal.location_allow')}
+                      </span>
+                    </motion.button>
+
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => handleLocationPermission(false)}
+                      className="w-full py-4 px-6 rounded-xl font-medium text-base transition-all"
+                      style={{
+                        background: 'rgba(201, 168, 108, 0.08)',
+                        border: '1px solid rgba(201, 168, 108, 0.3)',
+                        color: 'rgba(253, 251, 247, 0.8)',
+                      }}
+                    >
+                      {t('modal.location_deny')}
+                    </motion.button>
+                  </div>
+
+                  {/* 補足テキスト */}
+                  <motion.p
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.3 }}
+                    className="text-center mt-6 text-xs"
+                    style={{ color: 'rgba(253, 251, 247, 0.4)' }}
+                  >
+                    {language === 'ja' 
+                      ? '位置情報は周辺のお店を表示するためだけに使用されます' 
+                      : 'Location is only used to show nearby venues'}
+                  </motion.p>
+                </div>
+              </motion.div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
