@@ -612,13 +612,13 @@ export default function StoreUpdatePage() {
     >
       {/* ヘッダー */}
       <header 
-        className="sticky top-0 z-10 safe-top"
+        className="sticky top-0 z-20 safe-top"
         style={{ 
           background: COLORS.luxuryGradient,
           borderBottom: `1px solid rgba(201, 168, 108, 0.2)`,
         }}
       >
-        <div className="flex items-center justify-center p-4">
+        <div className="flex items-center justify-center p-4 relative">
           <div className="flex items-center gap-2">
             <h1 
               className="text-lg font-light tracking-widest"
@@ -627,6 +627,15 @@ export default function StoreUpdatePage() {
               店舗管理画面
             </h1>
           </div>
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={() => router.push('/store-list')}
+            className="rounded-full absolute right-4"
+            style={{ color: COLORS.warmGray }}
+          >
+            <X className="w-5 h-5" />
+          </Button>
         </div>
       </header>
 

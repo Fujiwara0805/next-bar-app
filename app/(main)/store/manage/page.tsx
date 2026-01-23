@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Store as StoreIcon, Edit, Trash2, Loader2, LogOut, Mail, User } from 'lucide-react';
+import { Plus, Store as StoreIcon, Edit, Trash2, Loader2, LogOut, Mail, User, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -24,6 +24,32 @@ import { toast } from 'sonner';
 import type { Database } from '@/lib/supabase/types';
 
 type Store = Database['public']['Tables']['stores']['Row'];
+
+// ============================================
+// カラーパレット定義（店舗詳細画面準拠）
+// ============================================
+const COLORS = {
+  // プライマリ
+  deepNavy: '#0A1628',
+  midnightBlue: '#162447',
+  royalNavy: '#1F4068',
+  
+  // アクセント
+  champagneGold: '#C9A86C',
+  paleGold: '#E8D5B7',
+  antiqueGold: '#B8956E',
+  
+  // ニュートラル
+  charcoal: '#2D3436',
+  warmGray: '#636E72',
+  platinum: '#DFE6E9',
+  ivory: '#FDFBF7',
+  
+  // グラデーション
+  luxuryGradient: 'linear-gradient(165deg, #0A1628 0%, #162447 50%, #1F4068 100%)',
+  goldGradient: 'linear-gradient(135deg, #C9A86C 0%, #E8D5B7 50%, #B8956E 100%)',
+  cardGradient: 'linear-gradient(145deg, #FDFBF7 0%, #F5F1EB 100%)',
+};
 
 export default function StoreManagePage() {
   const router = useRouter();
@@ -179,24 +205,39 @@ export default function StoreManagePage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen" style={{ backgroundColor: '#1C1E26' }}>
+      <div className="flex items-center justify-center h-screen" style={{ background: COLORS.luxuryGradient }}>
         <div className="text-center">
-          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-          <p className="text-sm text-white font-bold">読み込み中...</p>
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+          >
+            <Sparkles className="w-10 h-10 mx-auto mb-2" style={{ color: COLORS.champagneGold }} />
+          </motion.div>
+          <p className="text-sm font-bold" style={{ color: COLORS.ivory }}>読み込み中...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ backgroundColor: '#1C1E26' }}>
+    <div className="min-h-screen flex flex-col" style={{ background: COLORS.cardGradient }}>
       {/* ヘッダー */}
-      <header className="sticky top-0 z-10 bg-white border-b border-gray-200">
+      <header 
+        className="sticky top-0 z-20 safe-top"
+        style={{ 
+          background: COLORS.luxuryGradient,
+          borderBottom: `1px solid rgba(201, 168, 108, 0.2)`,
+        }}
+      >
         <div className="max-w-7xl mx-auto px-4 py-4">
-          <h1 className="text-xl font-bold text-card-foreground text-center">管理者画面</h1>
-          <p className="text-sm text-card-foreground/70 mt-2 font-bold text-center">
-            {stores.length}件の店舗
-          </p>
+          <div className="flex items-center justify-center relative">
+            <div className="text-center">
+              <h1 className="text-xl font-light tracking-widest" style={{ color: COLORS.ivory }}>管理者画面</h1>
+              <p className="text-sm mt-2 font-bold" style={{ color: COLORS.platinum }}>
+                {stores.length}件の店舗
+              </p>
+            </div>
+          </div>
         </div>
       </header>
 
@@ -207,16 +248,29 @@ export default function StoreManagePage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <Card className="p-12 text-center bg-white">
-              <StoreIcon className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-              <h2 className="text-xl font-bold mb-2 text-card-foreground">
+            <Card 
+              className="p-12 text-center rounded-2xl shadow-lg"
+              style={{ 
+                background: '#FFFFFF',
+                border: `1px solid rgba(201, 168, 108, 0.15)`,
+              }}
+            >
+              <StoreIcon className="w-16 h-16 mx-auto mb-4" style={{ color: COLORS.warmGray }} />
+              <h2 className="text-xl font-bold mb-2" style={{ color: COLORS.deepNavy }}>
                 まだ店舗が登録されていません
               </h2>
-              <p className="text-card-foreground/70 mb-6 font-bold">
+              <p className="mb-6 font-bold" style={{ color: COLORS.warmGray }}>
                 最初の店舗を登録して、情報を共有しましょう
               </p>
               <Link href="/store/manage/new">
-                <Button>
+                <Button
+                  className="rounded-xl font-bold shadow-lg"
+                  style={{ 
+                    background: COLORS.goldGradient,
+                    color: COLORS.deepNavy,
+                    boxShadow: '0 8px 25px rgba(201, 168, 108, 0.35)',
+                  }}
+                >
                   <Plus className="w-4 h-4 mr-2" />
                   店舗を登録
                 </Button>
@@ -233,13 +287,28 @@ export default function StoreManagePage() {
             >
               <div className="flex gap-3">
                 <Link href="/store/manage/new">
-                  <Button className="w-full sm:w-auto">
+                  <Button 
+                    className="w-full sm:w-auto rounded-xl font-bold shadow-lg"
+                    style={{ 
+                      background: COLORS.goldGradient,
+                      color: COLORS.deepNavy,
+                      boxShadow: '0 8px 25px rgba(201, 168, 108, 0.35)',
+                    }}
+                  >
                     <Plus className="w-4 h-4 mr-2" />
                     新しい店舗を追加
                   </Button>
                 </Link>
                 <Link href="/profile">
-                  <Button variant="outline" className="w-full sm:w-auto">
+                  <Button 
+                    variant="outline" 
+                    className="w-full sm:w-auto rounded-xl font-bold"
+                    style={{ 
+                      borderColor: 'rgba(201, 168, 108, 0.3)',
+                      backgroundColor: 'rgba(201, 168, 108, 0.08)',
+                      color: COLORS.charcoal,
+                    }}
+                  >
                     <User className="w-4 h-4 mr-2" />
                     プロフィール
                   </Button>
@@ -257,7 +326,13 @@ export default function StoreManagePage() {
                     exit={{ opacity: 0, scale: 0.9 }}
                     transition={{ delay: index * 0.05 }}
                   >
-                    <Card className="overflow-hidden bg-white">
+                    <Card 
+                      className="overflow-hidden rounded-2xl shadow-lg"
+                      style={{ 
+                        background: '#FFFFFF',
+                        border: `1px solid rgba(201, 168, 108, 0.15)`,
+                      }}
+                    >
                       {store.image_urls && store.image_urls.length > 0 && (
                         <motion.div 
                           className="h-40 overflow-hidden"
@@ -273,13 +348,13 @@ export default function StoreManagePage() {
                       <div className="p-4">
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex-1">
-                            <h3 className="font-bold text-lg mb-1 text-card-foreground">
+                            <h3 className="font-bold text-lg mb-1" style={{ color: COLORS.deepNavy }}>
                               {store.name}
                             </h3>
-                            <p className="text-sm text-card-foreground/70 font-bold">
+                            <p className="text-sm font-bold" style={{ color: COLORS.warmGray }}>
                               {store.address}
                             </p>
-                            <p className="text-xs text-card-foreground/60 font-bold mt-1">
+                            <p className="text-xs font-bold mt-1" style={{ color: COLORS.warmGray }}>
                               {store.email}
                             </p>
                           </div>
@@ -331,7 +406,12 @@ export default function StoreManagePage() {
           <Button
             type="button"
             variant="outline"
-            className="w-full text-destructive font-bold bg-white"
+            className="w-full font-bold rounded-xl"
+            style={{ 
+              borderColor: 'rgba(201, 168, 108, 0.3)',
+              backgroundColor: 'rgba(201, 168, 108, 0.08)',
+              color: COLORS.charcoal,
+            }}
             onClick={handleSignOut}
           >
             <LogOut className="w-4 h-4 mr-2" />

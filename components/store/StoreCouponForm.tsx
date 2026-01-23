@@ -276,10 +276,10 @@ export function StoreCouponForm({
               </div>
 
               {/* 期間設定 */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="coupon-start-date" className="font-bold flex items-center gap-2">
-                    <Calendar className="w-4 h-4" />
+                  <Label htmlFor="coupon-start-date" className="font-bold flex items-center gap-2 ">
+                    <Calendar className="w-3 h-3" />
                     配布開始日
                   </Label>
                   <Input
@@ -288,14 +288,14 @@ export function StoreCouponForm({
                     value={values.startDate}
                     onChange={(e) => handleChange('startDate', e.target.value)}
                     disabled={disabled}
-                    className="font-bold bg-white text-gray-700 border-2 border-gray-300"
+                    className="font-bold bg-white text-gray-700 border-2 border-gray-300 h-9"
                     style={{ fontSize: '16px' }}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="coupon-expiry-date" className="font-bold flex items-center gap-2">
-                    <Calendar className="w-4 h-4" />
+                  <Label htmlFor="coupon-expiry-date" className="font-bold flex items-center gap-2 ">
+                    <Calendar className="w-3 h-3" />
                     有効期限
                   </Label>
                   <Input
@@ -304,7 +304,7 @@ export function StoreCouponForm({
                     value={values.expiryDate}
                     onChange={(e) => handleChange('expiryDate', e.target.value)}
                     disabled={disabled}
-                    className="font-bold bg-white text-gray-700 border-2 border-gray-300"
+                    className="font-bold bg-white text-gray-700 border-2 border-gray-300 h-9"
                     style={{ fontSize: '16px' }}
                   />
                   {errors.expiryDate && (
