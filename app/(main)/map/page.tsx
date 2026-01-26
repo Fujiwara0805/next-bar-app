@@ -8,7 +8,7 @@
  *       【最適化】エラーハンドリング + リトライUI
  *       【最適化】メモリリーク対策
  *       【追加】詳細ボタンのローディング表示
- *       【デザイン】LP統一カラーパレット適用
+ *       【デザイン】店舗詳細画面統一カラーパレット適用
  * ============================================
  */
 
@@ -57,17 +57,37 @@ function debugWarn(message: string, data?: unknown): void {
 }
 
 // ============================================================================
-// デザイントークン（LP統一）
+// デザイントークン（店舗詳細画面と統一）
 // ============================================================================
 
 const colors = {
-  background: '#2B1F1A',
-  surface: '#1C1C1C',
-  accent: '#C89B3C',
-  accentDark: '#8A6A2F',
-  text: '#F2EBDD',
-  textMuted: 'rgba(242, 235, 221, 0.6)',
-  textSubtle: 'rgba(242, 235, 221, 0.4)',
+  // ベースカラー（60%）- 背景・余白
+  background: '#0A1628',        // Deep Navy
+  surface: '#162447',           // Midnight Blue
+  surfaceLight: '#1F4068',      // Royal Navy
+  cardBackground: '#FDFBF7',    // Ivory
+  
+  // アクセントカラー（10%）- CTA・重要要素
+  accent: '#C9A86C',            // Champagne Gold
+  accentLight: '#E8D5B7',       // Pale Gold
+  accentDark: '#B8956E',        // Antique Gold
+  
+  // テキストカラー
+  text: '#FDFBF7',              // Ivory
+  textMuted: 'rgba(253, 251, 247, 0.7)',
+  textSubtle: 'rgba(253, 251, 247, 0.5)',
+  
+  // グラデーション
+  luxuryGradient: 'linear-gradient(165deg, #0A1628 0%, #162447 50%, #1F4068 100%)',
+  goldGradient: 'linear-gradient(135deg, #C9A86C 0%, #E8D5B7 50%, #B8956E 100%)',
+  
+  // ボーダー・シャドウ
+  borderGold: 'rgba(201, 168, 108, 0.3)',
+  borderSubtle: 'rgba(201, 168, 108, 0.15)',
+  shadowGold: '0 8px 30px rgba(201, 168, 108, 0.4)',
+  shadowDeep: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+  
+  // エラー
   error: '#EF4444',
   errorBg: 'rgba(239, 68, 68, 0.15)',
   errorBorder: 'rgba(239, 68, 68, 0.3)',
@@ -431,7 +451,6 @@ function useStores(): UseStoresReturn {
         }
 
         default:
-          // 不明なイベントの場合のみ全取得
           debugWarn('Unknown event type, fetching all stores');
           fetchStores(true);
       }
@@ -548,7 +567,6 @@ function MapPageContent() {
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [currentBounds, setCurrentBounds] = useState<ViewportBounds | null>(null);
-  // 【追加】詳細ボタンのローディング状態
   const [isNavigating, setIsNavigating] = useState(false);
 
   const { location: userLocation, refreshLocation } = useOptimizedLocation();
@@ -686,7 +704,7 @@ function MapPageContent() {
     }
   };
 
-  // 【追加】詳細ページへの遷移（ローディング付き）
+  // 詳細ページへの遷移（ローディング付き）
   const handleNavigateToDetail = useCallback((storeId: string) => {
     setIsNavigating(true);
     router.push(`/store/${storeId}`);
@@ -784,7 +802,7 @@ function MapPageContent() {
                   style={{
                     background: colors.surface,
                     backdropFilter: 'blur(20px)',
-                    border: `1px solid ${colors.accentDark}60`,
+                    border: `1px solid ${colors.borderGold}`,
                     boxShadow: `0 4px 20px rgba(0,0,0,0.4), 0 0 15px ${colors.accent}15`,
                     minWidth: '56px',
                     minHeight: '56px',
@@ -810,7 +828,7 @@ function MapPageContent() {
                   style={{
                     background: colors.surface,
                     backdropFilter: 'blur(20px)',
-                    border: `1px solid ${colors.accentDark}60`,
+                    border: `1px solid ${colors.borderGold}`,
                     boxShadow: `0 4px 20px rgba(0,0,0,0.4), 0 0 15px ${colors.accent}15`,
                     minWidth: '56px',
                     minHeight: '56px',
@@ -837,7 +855,7 @@ function MapPageContent() {
                   style={{
                     background: colors.surface,
                     backdropFilter: 'blur(20px)',
-                    border: `1px solid ${colors.accentDark}60`,
+                    border: `1px solid ${colors.borderGold}`,
                     boxShadow: `0 4px 20px rgba(0,0,0,0.4), 0 0 15px ${colors.accent}15`,
                     minWidth: '56px',
                     minHeight: '56px',
@@ -881,7 +899,7 @@ function MapPageContent() {
               className="rounded-t-3xl rounded-b-none border-0 cursor-pointer transition-colors"
               style={{
                 background: colors.surface,
-                borderTop: `1px solid ${colors.accentDark}40`,
+                borderTop: `1px solid ${colors.borderGold}`,
               }}
               onClick={() => handleNavigateToDetail(selectedStore.id)}
             >
@@ -892,7 +910,7 @@ function MapPageContent() {
                       src={selectedStore.image_urls[0]}
                       alt={selectedStore.name}
                       className="w-24 h-24 rounded-xl object-cover flex-shrink-0"
-                      style={{ border: `1px solid ${colors.accentDark}40` }}
+                      style={{ border: `1px solid ${colors.borderGold}` }}
                     />
                   ) : (
                     <div
@@ -1006,7 +1024,7 @@ function MapPageContent() {
                 {selectedStore.status_message && (
                   <div
                     className="pt-2"
-                    style={{ borderTop: `1px solid ${colors.accentDark}30` }}
+                    style={{ borderTop: `1px solid ${colors.borderSubtle}` }}
                   >
                     <p
                       className="text-sm font-bold line-clamp-2"
@@ -1017,7 +1035,7 @@ function MapPageContent() {
                   </div>
                 )}
 
-                {/* 【修正】詳細を見るボタン（ローディング付き） */}
+                {/* 詳細を見るボタン（ローディング付き） */}
                 <motion.button
                   whileHover={{ scale: isNavigating ? 1 : 1.02 }}
                   whileTap={{ scale: isNavigating ? 1 : 0.98 }}
@@ -1031,12 +1049,12 @@ function MapPageContent() {
                   className="w-full py-3.5 px-4 rounded-xl font-bold transition-all touch-manipulation flex items-center justify-center gap-2"
                   style={{
                     background: isNavigating 
-                      ? `linear-gradient(135deg, ${colors.accentDark}, ${colors.accentDark})`
-                      : `linear-gradient(135deg, ${colors.accent}, ${colors.accentDark})`,
+                      ? colors.accentDark
+                      : colors.goldGradient,
                     color: colors.background,
                     boxShadow: isNavigating 
                       ? 'none'
-                      : `0 4px 15px ${colors.accent}30`,
+                      : colors.shadowGold,
                     opacity: isNavigating ? 0.8 : 1,
                     cursor: isNavigating ? 'not-allowed' : 'pointer',
                   }}
@@ -1062,7 +1080,7 @@ function MapPageContent() {
         style={{
           background: `${colors.surface}F0`,
           backdropFilter: 'blur(12px)',
-          border: `1px solid ${colors.accentDark}40`,
+          border: `1px solid ${colors.borderGold}`,
         }}
       >
         <div className="space-y-2">
@@ -1126,7 +1144,7 @@ function MapPageLoading() {
         <div className="relative w-14 h-14 mx-auto mb-5">
           <div
             className="absolute inset-0 rounded-full"
-            style={{ border: `2px solid ${colors.accentDark}40` }}
+            style={{ border: `2px solid ${colors.borderGold}` }}
           />
           <div
             className="absolute inset-0 rounded-full animate-spin"

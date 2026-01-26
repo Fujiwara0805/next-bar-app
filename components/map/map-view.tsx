@@ -6,8 +6,8 @@
  *       【修正】マーカーインスタンス再利用による点滅防止
  *       【修正】Google純正ライクな現在地マーカー（青いドット）
  *       【修正】初期描画時のカメラ位置即時設定
- *       【修正】白色系アクセント追加のマップスタイル
- *       【修正】マップカラーを2トーン明るく調整
+ *       【デザイン】店舗詳細画面統一カラーパレット適用
+ *       【修正】マップカラーをネイビー系に調整
  *       【修正】1時間キャッシュ有効期限管理
  *       【最適化】メモリリーク対策強化
  * ============================================
@@ -46,17 +46,35 @@ function debugWarn(message: string, data?: unknown): void {
 }
 
 // ============================================================================
-// デザイントークン（LP画面と統一 + 白色アクセント追加）
+// デザイントークン（店舗詳細画面と統一）
 // ============================================================================
 
 const colors = {
-  background: '#2B1F1A',
-  surface: '#1C1C1C',
-  accent: '#C89B3C',
-  accentDark: '#8A6A2F',
-  text: '#F2EBDD',
-  textMuted: 'rgba(242, 235, 221, 0.6)',
-  textSubtle: 'rgba(242, 235, 221, 0.4)',
+  // ベースカラー（60%）- 背景・余白
+  background: '#0A1628',        // Deep Navy
+  surface: '#162447',           // Midnight Blue
+  surfaceLight: '#1F4068',      // Royal Navy
+  cardBackground: '#FDFBF7',    // Ivory
+  
+  // アクセントカラー（10%）- CTA・重要要素
+  accent: '#C9A86C',            // Champagne Gold
+  accentLight: '#E8D5B7',       // Pale Gold
+  accentDark: '#B8956E',        // Antique Gold
+  
+  // テキストカラー
+  text: '#FDFBF7',              // Ivory
+  textMuted: 'rgba(253, 251, 247, 0.7)',
+  textSubtle: 'rgba(253, 251, 247, 0.5)',
+  
+  // グラデーション
+  luxuryGradient: 'linear-gradient(165deg, #0A1628 0%, #162447 50%, #1F4068 100%)',
+  goldGradient: 'linear-gradient(135deg, #C9A86C 0%, #E8D5B7 50%, #B8956E 100%)',
+  
+  // ボーダー・シャドウ
+  borderGold: 'rgba(201, 168, 108, 0.3)',
+  borderSubtle: 'rgba(201, 168, 108, 0.15)',
+  shadowGold: '0 8px 30px rgba(201, 168, 108, 0.4)',
+  
   // Google純正マーカー用カラー
   googleBlue: '#4285F4',
   googleBlueDark: '#1A73E8',
@@ -282,7 +300,7 @@ function useOptimizedGeolocation(enabled: boolean = true) {
           {
             enableHighAccuracy: false,
             timeout: 5000,
-            maximumAge: 0, // キャッシュを使わず最新を取得
+            maximumAge: 0,
           }
         );
       }
@@ -362,7 +380,7 @@ function useOptimizedGeolocation(enabled: boolean = true) {
   }, [checkCacheExpiry]);
 
   /**
-   * ポーリングベースの位置取得（依存配列を最小化してメモリリーク対策）
+   * ポーリングベースの位置取得
    */
   useEffect(() => {
     if (!enabled || !navigator.geolocation) {
@@ -449,7 +467,7 @@ function useDeviceOrientation(enabled: boolean = true) {
     [angleDifference]
   );
 
-  // Ref経由でハンドラーを参照（依存配列問題を回避）
+  // Ref経由でハンドラーを参照
   const handleOrientationRef = useRef<(event: DeviceOrientationEvent) => void>();
   
   handleOrientationRef.current = (event: DeviceOrientationEvent) => {
@@ -570,7 +588,7 @@ function MapLoadingScreen() {
         <div className="relative w-14 h-14 mx-auto mb-5">
           <div
             className="absolute inset-0 rounded-full"
-            style={{ border: `2px solid ${colors.accentDark}40` }}
+            style={{ border: `2px solid ${colors.borderGold}` }}
           />
           <div
             className="absolute inset-0 rounded-full animate-spin"
@@ -620,8 +638,8 @@ function DirectionPermissionDialog({
         style={{
           background: colors.surface,
           backdropFilter: 'blur(12px)',
-          border: `1px solid ${colors.accentDark}60`,
-          boxShadow: `0 4px 30px ${colors.accent}20`,
+          border: `1px solid ${colors.borderGold}`,
+          boxShadow: colors.shadowGold,
         }}
       >
         <div className="flex items-center gap-3 mb-3">
@@ -664,7 +682,7 @@ function DirectionPermissionDialog({
             onClick={onRequestPermission}
             className="flex-1 py-2.5 rounded-lg text-sm font-bold transition-colors"
             style={{
-              background: `linear-gradient(135deg, ${colors.accent}, ${colors.accentDark})`,
+              background: colors.goldGradient,
               color: colors.background,
             }}
           >
@@ -677,34 +695,34 @@ function DirectionPermissionDialog({
 }
 
 // ============================================================================
-// マップスタイル（2トーン明るく調整 + 白色アクセント）
+// マップスタイル（ネイビー・ゴールド系に調整）
 // ============================================================================
 
 const luxuryMapStyles: google.maps.MapTypeStyle[] = [
-  // 【2トーン明るく】ベース背景: #3D2E26 → #5A4A40
-  { elementType: 'geometry', stylers: [{ color: '#5A4A40' }] },
+  // ベース背景: Deep Navy系
+  { elementType: 'geometry', stylers: [{ color: '#1A2A40' }] },
   { elementType: 'labels.icon', stylers: [{ visibility: 'off' }] },
   
   // ラベル文字を白系に（視認性向上）
-  { elementType: 'labels.text.fill', stylers: [{ color: '#FFFFFF' }] },
-  { elementType: 'labels.text.stroke', stylers: [{ color: '#3D3530' }, { weight: 2.5 }] },
+  { elementType: 'labels.text.fill', stylers: [{ color: '#FDFBF7' }] },
+  { elementType: 'labels.text.stroke', stylers: [{ color: '#0A1628' }, { weight: 2.5 }] },
   
   // 行政区域
-  { featureType: 'administrative', elementType: 'geometry', stylers: [{ color: '#C4A87C' }] },
+  { featureType: 'administrative', elementType: 'geometry', stylers: [{ color: '#C9A86C' }] },
   {
     featureType: 'administrative.country',
     elementType: 'labels.text.fill',
-    stylers: [{ color: '#FFFFFF' }],
+    stylers: [{ color: '#FDFBF7' }],
   },
   {
     featureType: 'administrative.locality',
     elementType: 'labels.text.fill',
-    stylers: [{ color: '#FFFFFF' }],
+    stylers: [{ color: '#FDFBF7' }],
   },
   {
     featureType: 'administrative.neighborhood',
     elementType: 'labels.text.fill',
-    stylers: [{ color: '#F5F5F5' }],
+    stylers: [{ color: '#E8D5B7' }],
   },
   
   // POI（非表示）
@@ -712,85 +730,81 @@ const luxuryMapStyles: google.maps.MapTypeStyle[] = [
   {
     featureType: 'poi.park',
     elementType: 'geometry',
-    // 【2トーン明るく】#3E4A3A → #5A6A56
-    stylers: [{ color: '#5A6A56' }, { visibility: 'simplified' }],
+    stylers: [{ color: '#1F3A3A' }, { visibility: 'simplified' }],
   },
   { featureType: 'poi.park', elementType: 'labels', stylers: [{ visibility: 'off' }] },
   
-  // 【2トーン明るく】道路
-  // 一般道路: #5C4838 → #7A6858
-  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#7A6858' }] },
-  // ストローク: #3D2E26 → #5A4A40
-  { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#5A4A40' }] },
+  // 道路: ネイビー系グラデーション
+  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#2A4060' }] },
+  { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#162447' }] },
   { 
     featureType: 'road', 
     elementType: 'labels.text.fill', 
-    stylers: [{ color: '#FFFFFF' }] 
+    stylers: [{ color: '#FDFBF7' }] 
   },
   { 
     featureType: 'road', 
     elementType: 'labels.text.stroke', 
-    stylers: [{ color: '#3D3530' }, { weight: 3 }] 
+    stylers: [{ color: '#0A1628' }, { weight: 3 }] 
   },
   
-  // 【2トーン明るく】高速道路: #6E5A48 → #8E7A68
+  // 高速道路: ゴールドアクセント
   { 
     featureType: 'road.highway', 
     elementType: 'geometry', 
-    stylers: [{ color: '#8E7A68' }] 
+    stylers: [{ color: '#3A5070' }] 
   },
   { 
     featureType: 'road.highway', 
     elementType: 'geometry.stroke', 
-    // ゴールドアクセント強調
-    stylers: [{ color: '#D4AC5C' }, { weight: 0.8 }] 
+    stylers: [{ color: '#C9A86C' }, { weight: 0.8 }] 
   },
   { 
     featureType: 'road.highway', 
     elementType: 'labels.text.fill', 
-    stylers: [{ color: '#FFFFFF' }] 
+    stylers: [{ color: '#FDFBF7' }] 
   },
   
-  // 【2トーン明るく】幹線道路: #5C4838 → #7A6858
+  // 幹線道路
   { 
     featureType: 'road.arterial', 
     elementType: 'geometry', 
-    stylers: [{ color: '#7A6858' }] 
+    stylers: [{ color: '#2A4060' }] 
   },
   { 
     featureType: 'road.arterial', 
     elementType: 'labels.text.fill', 
-    stylers: [{ color: '#FFFFFF' }] 
+    stylers: [{ color: '#FDFBF7' }] 
   },
   
-  // 【2トーン明るく】地方道路: #4E3E34 → #6E5E54
+  // 地方道路
   { 
     featureType: 'road.local', 
     elementType: 'geometry', 
-    stylers: [{ color: '#6E5E54' }] 
+    stylers: [{ color: '#1F3555' }] 
   },
   { 
     featureType: 'road.local', 
     elementType: 'labels.text.fill', 
-    stylers: [{ color: '#F5F5F5' }] 
+    stylers: [{ color: '#E8D5B7' }] 
   },
   
-  // 【2トーン明るく】交通機関: #4E3E34 → #6E5E54
-  { featureType: 'transit', elementType: 'geometry', stylers: [{ color: '#6E5E54' }] },
+  // 交通機関
+  { featureType: 'transit', elementType: 'geometry', stylers: [{ color: '#1F3555' }] },
   { featureType: 'transit', elementType: 'labels', stylers: [{ visibility: 'off' }] },
   { 
     featureType: 'transit.station', 
     elementType: 'labels.text.fill', 
-    stylers: [{ color: '#FFFFFF' }] 
+    stylers: [{ color: '#FDFBF7' }] 
   },
   
-  // 【2トーン明るく】水域: #2A3A4A → #4A5A6A
-  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#4A5A6A' }] },
-  { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#AAC4DE' }] },
+  // 水域: 深いネイビーブルー
+  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#0A1628' }] },
+  { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#6B8CAE' }] },
   
-  // 【2トーン明るく】景観: #3D2E26 → #5A4A40
-  { featureType: 'landscape.man_made', elementType: 'geometry', stylers: [{ color: '#5A4A40' }] },
-  { featureType: 'landscape.natural', elementType: 'geometry', stylers: [{ color: '#5A4A40' }] },
+  // 景観
+  { featureType: 'landscape.man_made', elementType: 'geometry', stylers: [{ color: '#1A2A40' }] },
+  { featureType: 'landscape.natural', elementType: 'geometry', stylers: [{ color: '#1A2A40' }] },
 ];
 
 // ============================================================================
@@ -809,7 +823,7 @@ export function MapView({
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
   
-  // 【修正】マーカーをMapで管理（フリッカー防止）
+  // マーカーをMapで管理（フリッカー防止）
   const storeMarkersRef = useRef<Map<string, StoreMarkerData>>(new Map());
   
   // 現在地マーカー関連
@@ -919,7 +933,7 @@ export function MapView({
     const createMap = () => {
       if (!mapRef.current || mapInstanceRef.current || !isMountedRef.current) return;
 
-      // 【修正】キャッシュから初期位置を取得（即座にカメラ設定）
+      // キャッシュから初期位置を取得（即座にカメラ設定）
       let initialCenter = DEFAULT_LOCATION;
       const cached = locationCache.get();
       if (cached && !cached.isDefault) {
@@ -940,8 +954,7 @@ export function MapView({
         gestureHandling: 'greedy',
         clickableIcons: false,
         styles: luxuryMapStyles,
-        // 【2トーン明るく】背景色も調整
-        backgroundColor: '#5A4A40',
+        backgroundColor: '#0A1628',
       });
 
       mapInstanceRef.current = map;
@@ -983,7 +996,7 @@ export function MapView({
   }, []);
 
   // ============================================================================
-  // 【修正】GPS取得後に初回のみカメラを移動
+  // GPS取得後に初回のみカメラを移動
   // ============================================================================
 
   useEffect(() => {
@@ -1034,7 +1047,7 @@ export function MapView({
   }, []);
 
   // ============================================================================
-  // 【修正】店舗マーカーの差分更新（フリッカー防止）
+  // 店舗マーカーの差分更新（フリッカー防止）
   // ============================================================================
 
   useEffect(() => {
@@ -1088,7 +1101,7 @@ export function MapView({
       const existingMarkerData = existingMarkers.get(store.id);
 
       if (existingMarkerData) {
-        // 【修正】既存マーカーを再利用（位置とアイコンのみ更新）
+        // 既存マーカーを再利用（位置とアイコンのみ更新）
         const needsPositionUpdate = 
           existingMarkerData.lastPosition.lat !== position.lat ||
           existingMarkerData.lastPosition.lng !== position.lng;
@@ -1261,13 +1274,13 @@ export function MapView({
           className="w-11 h-11 rounded-full flex items-center justify-center"
           style={{
             background: compassEnabled
-              ? `linear-gradient(135deg, ${colors.accent}, ${colors.accentDark})`
+              ? colors.goldGradient
               : colors.surface,
             border: compassEnabled
               ? `1px solid ${colors.accent}`
-              : `1px solid ${colors.accentDark}60`,
+              : `1px solid ${colors.borderGold}`,
             boxShadow: compassEnabled
-              ? `0 0 15px ${colors.accent}40`
+              ? colors.shadowGold
               : `0 2px 10px rgba(0,0,0,0.3)`,
           }}
           aria-label={compassEnabled ? '方向表示をオフ' : '方向表示をオン'}
@@ -1301,7 +1314,7 @@ export function MapView({
           className="w-11 h-11 rounded-full flex items-center justify-center text-lg font-medium"
           style={{
             background: colors.surface,
-            border: `1px solid ${colors.accentDark}60`,
+            border: `1px solid ${colors.borderGold}`,
             color: colors.text,
             boxShadow: `0 2px 10px rgba(0,0,0,0.3)`,
           }}
@@ -1317,7 +1330,7 @@ export function MapView({
           className="w-11 h-11 rounded-full flex items-center justify-center text-lg font-medium"
           style={{
             background: colors.surface,
-            border: `1px solid ${colors.accentDark}60`,
+            border: `1px solid ${colors.borderGold}`,
             color: colors.text,
             boxShadow: `0 2px 10px rgba(0,0,0,0.3)`,
           }}
@@ -1328,35 +1341,6 @@ export function MapView({
       </div>
     </div>
   );
-}
-
-// ============================================================================
-// ユーティリティ: 方向ビームの座標計算
-// ============================================================================
-
-function calculateBeamPoints(
-  center: { lat: number; lng: number },
-  heading: number
-): google.maps.LatLngLiteral[] {
-  const beamLength = 0.0004;
-  const spreadAngle = 40;
-
-  const leftAngleRad = ((heading - spreadAngle / 2) * Math.PI) / 180;
-  const rightAngleRad = ((heading + spreadAngle / 2) * Math.PI) / 180;
-
-  const centerPoint = { lat: center.lat, lng: center.lng };
-
-  const leftPoint = {
-    lat: center.lat + Math.cos(leftAngleRad) * beamLength,
-    lng: center.lng + Math.sin(leftAngleRad) * beamLength,
-  };
-
-  const rightPoint = {
-    lat: center.lat + Math.cos(rightAngleRad) * beamLength,
-    lng: center.lng + Math.sin(rightAngleRad) * beamLength,
-  };
-
-  return [centerPoint, leftPoint, rightPoint];
 }
 
 // ============================================================================
