@@ -163,7 +163,7 @@ export function StoreCouponForm({
                   placeholder="例: 初回来店限定 20%OFF"
                   maxLength={100}
                   disabled={disabled}
-                  className="font-bold bg-white text-gray-700 border-2 border-gray-300"
+                  className="font-bold bg-white text-gray-700 border-2 border-gray-300 placeholder:text-gray-300"
                   style={{ fontSize: '16px' }}
                 />
                 {errors.title && (
@@ -187,7 +187,7 @@ export function StoreCouponForm({
                   placeholder="クーポンの詳細な説明を入力"
                   rows={5}
                   disabled={disabled}
-                  className="font-bold bg-white text-gray-700 border-2 border-gray-300"
+                  className="font-bold bg-white text-gray-700 border-2 border-gray-300 placeholder:text-gray-300"
                   style={{ fontSize: '16px', minHeight: '120px' }}
                 />
               </div>
@@ -203,7 +203,7 @@ export function StoreCouponForm({
                   onValueChange={(value) => handleChange('discountType', value as CouponFormValues['discountType'])}
                   disabled={disabled}
                 >
-                  <SelectTrigger className="font-bold bg-white border-2 border-gray-300">
+                  <SelectTrigger className="font-bold bg-white border-2 border-gray-300 placeholder:text-gray-300">
                     <SelectValue placeholder="選択してください" />
                   </SelectTrigger>
                   <SelectContent>
@@ -270,14 +270,14 @@ export function StoreCouponForm({
                   placeholder="例: 2名様以上でのご来店時に限る、他クーポンとの併用不可"
                   rows={2}
                   disabled={disabled}
-                  className="font-bold bg-white text-gray-700 border-2 border-gray-300"
+                  className="font-bold bg-white text-gray-700 border-2 border-gray-300 placeholder:text-gray-300"
                   style={{ fontSize: '16px' }}
                 />
               </div>
 
               {/* 期間設定 */}
               <div className="space-y-4">
-                <div className="space-y-2">
+                <div className="space-y-2 max-w-xs">
                   <Label htmlFor="coupon-start-date" className="font-bold flex items-center gap-2 ">
                     <Calendar className="w-3 h-3" />
                     配布開始日
@@ -288,12 +288,12 @@ export function StoreCouponForm({
                     value={values.startDate}
                     onChange={(e) => handleChange('startDate', e.target.value)}
                     disabled={disabled}
-                    className="font-bold bg-white text-gray-700 border-2 border-gray-300 h-9"
+                    className="font-bold bg-white text-gray-700 border-2 border-gray-300 h-9 placeholder:text-gray-300"
                     style={{ fontSize: '16px' }}
                   />
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-2 max-w-xs">
                   <Label htmlFor="coupon-expiry-date" className="font-bold flex items-center gap-2 ">
                     <Calendar className="w-3 h-3" />
                     有効期限
@@ -304,7 +304,7 @@ export function StoreCouponForm({
                     value={values.expiryDate}
                     onChange={(e) => handleChange('expiryDate', e.target.value)}
                     disabled={disabled}
-                    className="font-bold bg-white text-gray-700 border-2 border-gray-300 h-9"
+                    className="font-bold bg-white text-gray-700 border-2 border-gray-300 h-9 placeholder:text-gray-300"
                     style={{ fontSize: '16px' }}
                   />
                   {errors.expiryDate && (
@@ -317,49 +317,27 @@ export function StoreCouponForm({
               </div>
 
               {/* 運用管理 */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="coupon-max-uses" className="font-bold flex items-center gap-2">
-                    <Users className="w-4 h-4" />
-                    発行上限数
-                  </Label>
-                  <Input
-                    id="coupon-max-uses"
-                    type="number"
-                    min="0"
-                    step="1"
-                    value={values.maxUses}
-                    onChange={(e) => handleChange('maxUses', e.target.value)}
-                    placeholder="無制限"
-                    disabled={disabled}
-                    className="font-bold bg-white text-gray-700 border-2 border-gray-300"
-                    style={{ fontSize: '16px' }}
-                  />
-                  <p className="text-xs text-muted-foreground font-bold">
-                    空欄の場合は無制限
-                    {currentUses > 0 && ` (現在の利用数: ${currentUses})`}
-                  </p>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="coupon-code" className="font-bold flex items-center gap-2">
-                    <Hash className="w-4 h-4" />
-                    クーポンコード
-                  </Label>
-                  <Input
-                    id="coupon-code"
-                    value={values.code}
-                    onChange={(e) => handleChange('code', e.target.value.toUpperCase())}
-                    placeholder="WELCOME20"
-                    maxLength={50}
-                    disabled={disabled}
-                    className="font-bold bg-white text-gray-700 border-2 border-gray-300 uppercase"
-                    style={{ fontSize: '16px' }}
-                  />
-                  <p className="text-xs text-muted-foreground font-bold">
-                    店舗での提示用コード
-                  </p>
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="coupon-max-uses" className="font-bold flex items-center gap-2">
+                  <Users className="w-4 h-4" />
+                  発行上限数
+                </Label>
+                <Input
+                  id="coupon-max-uses"
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={values.maxUses}
+                  onChange={(e) => handleChange('maxUses', e.target.value)}
+                  placeholder="無制限"
+                  disabled={disabled}
+                  className="font-bold bg-white text-gray-700 border-2 border-gray-300 placeholder:text-gray-300"
+                  style={{ fontSize: '16px' }}
+                />
+                <p className="text-xs text-muted-foreground font-bold">
+                  空欄の場合は無制限
+                  {currentUses > 0 && ` (現在の利用数: ${currentUses})`}
+                </p>
               </div>
 
               {/* プレビュー */}
