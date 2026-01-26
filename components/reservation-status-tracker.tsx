@@ -119,7 +119,7 @@ export function ReservationStatusTracker({
     
     switch (status?.status) {
       case 'confirmed':
-        return '✅ 予約が確定しました！';
+        return '✅ 予約が確定しました！\n 画面をスクリーンショットで保存してください。';
       case 'rejected':
         return '❌ 予約をお受けできませんでした';
       case 'cancelled':

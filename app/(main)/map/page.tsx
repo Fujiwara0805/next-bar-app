@@ -979,20 +979,23 @@ function MapPageContent() {
                       </div>
                     )}
 
-                    {userLocation && (
-                      <p className="text-sm font-bold" style={{ color: colors.textMuted }}>
-                        徒歩およそ
-                        {calculateWalkingTime(
-                          calculateDistance(
-                            userLocation.lat,
-                            userLocation.lng,
-                            Number(selectedStore.latitude),
-                            Number(selectedStore.longitude)
-                          )
-                        )}
-                        分
-                      </p>
-                    )}
+                    {userLocation && (() => {
+                      const distanceKm = calculateDistance(
+                        userLocation.lat,
+                        userLocation.lng,
+                        Number(selectedStore.latitude),
+                        Number(selectedStore.longitude)
+                      );
+                      const distanceM = Math.round(distanceKm * 1000);
+                      const distanceText = distanceM >= 1000 
+                        ? `${(distanceKm).toFixed(1)}km` 
+                        : `${distanceM}m`;
+                      return (
+                        <p className="text-sm font-bold" style={{ color: colors.textMuted }}>
+                          徒歩およそ{calculateWalkingTime(distanceKm)}分（約{distanceText}）
+                        </p>
+                      );
+                    })()}
 
                     <a
                       href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(

@@ -644,16 +644,23 @@ export default function StoreListPage() {
                               )}
                               
                               {/* 距離表示 */}
-                              {userLocation && (
-                                <p className="text-sm font-bold" style={{ color: COLORS.warmGray }}>
-                                  徒歩およそ{calculateWalkingTime(calculateDistance(
-                                    userLocation.lat,
-                                    userLocation.lng,
-                                    Number(store.latitude),
-                                    Number(store.longitude)
-                                  ))}分
-                                </p>
-                              )}
+                              {userLocation && (() => {
+                                const distanceKm = calculateDistance(
+                                  userLocation.lat,
+                                  userLocation.lng,
+                                  Number(store.latitude),
+                                  Number(store.longitude)
+                                );
+                                const distanceM = Math.round(distanceKm * 1000);
+                                const distanceText = distanceM >= 1000 
+                                  ? `${(distanceKm).toFixed(1)}km` 
+                                  : `${distanceM}m`;
+                                return (
+                                  <p className="text-sm font-bold" style={{ color: COLORS.warmGray }}>
+                                    徒歩およそ{calculateWalkingTime(distanceKm)}分（約{distanceText}）
+                                  </p>
+                                );
+                              })()}
                               
                               {/* Googleマップで開くリンク */}
                               <motion.button

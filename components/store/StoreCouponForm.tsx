@@ -289,7 +289,7 @@ export function StoreCouponForm({
                     onChange={(e) => handleChange('startDate', e.target.value)}
                     disabled={disabled}
                     className="font-bold bg-white text-gray-700 border-2 border-gray-300 h-9 placeholder:text-gray-300"
-                    style={{ fontSize: '16px' }}
+                    style={{ fontSize: '14px' }}
                   />
                 </div>
 
@@ -305,7 +305,7 @@ export function StoreCouponForm({
                     onChange={(e) => handleChange('expiryDate', e.target.value)}
                     disabled={disabled}
                     className="font-bold bg-white text-gray-700 border-2 border-gray-300 h-9 placeholder:text-gray-300"
-                    style={{ fontSize: '16px' }}
+                    style={{ fontSize: '14px' }}
                   />
                   {errors.expiryDate && (
                     <p className="text-xs text-red-500 flex items-center gap-1">

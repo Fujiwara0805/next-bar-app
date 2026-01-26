@@ -330,9 +330,7 @@ export default function LandingPage() {
             <span className="hidden sm:inline-block text-[9px] px-2 py-1 rounded-full font-medium tracking-[0.1em] uppercase" style={{ background: `${colors.accent}15`, border: `1px solid ${colors.borderGold}`, color: colors.accent }}>Night Spot</span>
           </motion.div>
           <div className="flex items-center gap-2 sm:gap-4">
-            <button onClick={handleLanguageToggle} className="flex items-center gap-1 px-2 py-1 rounded transition-colors" style={{ color: colors.textMuted }}>
-              <Globe className="w-4 h-4" /><span className="hidden sm:inline text-sm">{language === 'ja' ? 'EN' : 'JP'}</span>
-            </button>
+
             <Link href="/login"><Button variant="outline" size="sm" className="text-xs font-medium transition-all duration-300 hover:scale-105" style={{ borderColor: colors.borderGold, color: colors.accent, background: `${colors.accent}08` }}>{t('header.store_login')}</Button></Link>
             <Button variant="ghost" size="icon" onClick={() => setShowMenu(!showMenu)} style={{ color: colors.textMuted }}>{showMenu ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}</Button>
           </div>
@@ -681,6 +679,40 @@ export default function LandingPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* フローティングボタン群（画面右下） */}
+      <div className="fixed bottom-6 right-6 z-20 flex flex-col gap-3 items-end safe-bottom">
+        {/* 言語変更ボタン */}
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ delay: 0.1 }}
+        >
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Button
+              onClick={handleLanguageToggle}
+              className="flex flex-col items-center justify-center gap-1 px-3 py-2 touch-manipulation active:scale-95 rounded-lg"
+              style={{
+                background: 'rgba(5,5,5,0.7)',
+                backdropFilter: 'blur(20px)',
+                border: '1px solid rgba(201,168,108,0.3)',
+                boxShadow: '0 0 20px rgba(201,168,108,0.2)',
+                minWidth: '56px',
+                minHeight: '56px',
+              }}
+              title={language === 'ja' ? 'Switch to English' : '日本語に切り替え'}
+            >
+              <Globe className="w-5 h-5" style={{ color: '#C9A86C' }} />
+              <span className="text-[10px] font-bold" style={{ color: '#C9A86C' }}>
+                {language === 'ja' ? '英語' : '日本語'}
+              </span>
+            </Button>
+          </motion.div>
+        </motion.div>
+      </div>
     </div>
   );
 }

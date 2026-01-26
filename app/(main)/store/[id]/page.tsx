@@ -854,11 +854,17 @@ export default function StoreDetailPage() {
                       <span>{t('store_detail.open_in_google_maps')}</span>
                       <ExternalLink className="w-3 h-3" />
                     </motion.button>
-                    {distance !== null && (
-                      <p className="text-sm font-medium" style={{ color: COLORS.warmGray }}>
-                        徒歩およそ{calculateWalkingTime(distance)}分
-                      </p>
-                    )}
+                    {distance !== null && (() => {
+                      const distanceM = Math.round(distance * 1000);
+                      const distanceText = distanceM >= 1000 
+                        ? `${(distance).toFixed(1)}km` 
+                        : `${distanceM}m`;
+                      return (
+                        <p className="text-sm font-medium" style={{ color: COLORS.warmGray }}>
+                          徒歩およそ{calculateWalkingTime(distance)}分（約{distanceText}）
+                        </p>
+                      );
+                    })()}
                   </div>
                 </div>
               </div>
