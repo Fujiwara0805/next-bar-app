@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Ticket,
@@ -11,14 +11,17 @@ import {
   Gift,
   X,
   Instagram,
-  MapPin,
   Star,
-  Sparkles,
   PartyPopper,
-  ExternalLink,
   ChevronRight,
+  ChevronLeft,
+  MapPin,
+  User,
+  Home,
+  Plane,
+  Sparkles,
+  Heart,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { CustomModal } from '@/components/ui/custom-modal';
 import {
   CouponData,
@@ -26,12 +29,17 @@ import {
   formatDiscountValue,
   CouponDiscountType,
 } from '@/lib/types/coupon';
+import {
+  SurveyAnswers,
+  SurveyStep,
+  getOrCreateSessionId,
+  isSurveyComplete,
+} from '@/lib/types/coupon-usage';
+import { recordCouponUsage } from '@/lib/actions/coupon-usage';
 import { toast } from 'sonner';
-import { supabase } from '@/lib/supabase/client';
-import type { Database } from '@/lib/supabase/types';
 
 // ============================================
-// カラーパレット定義（コンシェルジュモーダル準拠）
+// カラーパレット定義（ラグジュアリーテーマ）
 // ============================================
 const COLORS = {
   // プライマリ
@@ -59,9 +67,32 @@ const COLORS = {
   `,
   
   // 追加カラー
-  celebrationGradient: 'linear-gradient(135deg, #FFD700 0%, #FFA500 50%, #FF8C00 100%)',
   instagramGradient: 'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)',
   googleGradient: 'linear-gradient(135deg, #4285F4 0%, #34A853 33%, #FBBC05 66%, #EA4335 100%)',
+};
+
+// ============================================
+// アニメーション設定
+// ============================================
+const slideVariants = {
+  enter: (direction: number) => ({
+    x: direction > 0 ? 300 : -300,
+    opacity: 0,
+  }),
+  center: {
+    x: 0,
+    opacity: 1,
+  },
+  exit: (direction: number) => ({
+    x: direction < 0 ? 300 : -300,
+    opacity: 0,
+  }),
+};
+
+const fadeInUp = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -20 },
 };
 
 // ============================================
@@ -71,9 +102,7 @@ const GoldDivider = () => (
   <div className="flex items-center justify-center gap-4 my-4">
     <div 
       className="h-px flex-1 max-w-16"
-      style={{ 
-        background: `linear-gradient(90deg, transparent, ${COLORS.champagneGold}40)` 
-      }}
+      style={{ background: `linear-gradient(90deg, transparent, ${COLORS.champagneGold}40)` }}
     />
     <div 
       className="w-1.5 h-1.5 rotate-45"
@@ -81,16 +110,12 @@ const GoldDivider = () => (
     />
     <div 
       className="h-px flex-1 max-w-16"
-      style={{ 
-        background: `linear-gradient(90deg, ${COLORS.champagneGold}40, transparent)` 
-      }}
+      style={{ background: `linear-gradient(90deg, ${COLORS.champagneGold}40, transparent)` }}
     />
   </div>
 );
 
-// ============================================
-// 紙吹雪アニメーションコンポーネント
-// ============================================
+// 紙吹雪アニメーション
 const Confetti = () => {
   const confettiColors = ['#FFD700', '#FFA500', '#FF6347', '#9370DB', '#00CED1', '#C9A86C'];
   
@@ -123,9 +148,120 @@ const Confetti = () => {
   );
 };
 
-// ============================================
-// Next Actionカードコンポーネント
-// ============================================
+// ステップインジケーター
+const StepIndicator = ({ currentStep, totalSteps }: { currentStep: number; totalSteps: number }) => (
+  <div className="flex items-center justify-center gap-2 mb-6">
+    {Array.from({ length: totalSteps }).map((_, i) => (
+      <motion.div
+        key={i}
+        className="h-1.5 rounded-full transition-all duration-300"
+        style={{
+          width: i === currentStep ? 24 : 8,
+          backgroundColor: i <= currentStep 
+            ? COLORS.champagneGold 
+            : 'rgba(255, 255, 255, 0.2)',
+        }}
+        animate={{
+          scale: i === currentStep ? [1, 1.1, 1] : 1,
+        }}
+        transition={{ duration: 0.3 }}
+      />
+    ))}
+  </div>
+);
+
+// 選択肢ボタン
+interface ChoiceButtonProps {
+  icon: React.ReactNode;
+  label: string;
+  sublabel?: string;
+  isSelected: boolean;
+  onClick: () => void;
+  delay?: number;
+}
+
+const ChoiceButton = ({ icon, label, sublabel, isSelected, onClick, delay = 0 }: ChoiceButtonProps) => (
+  <motion.button
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ delay }}
+    whileHover={{ scale: 1.02, y: -2 }}
+    whileTap={{ scale: 0.98 }}
+    onClick={onClick}
+    className="w-full p-5 rounded-xl text-left transition-all relative overflow-hidden group"
+    style={{
+      backgroundColor: isSelected 
+        ? 'rgba(201, 168, 108, 0.15)' 
+        : 'rgba(255, 255, 255, 0.05)',
+      border: `2px solid ${isSelected ? COLORS.champagneGold : 'rgba(255, 255, 255, 0.1)'}`,
+      boxShadow: isSelected 
+        ? '0 10px 30px rgba(201, 168, 108, 0.2)' 
+        : 'none',
+    }}
+  >
+    {/* 選択時のグロー効果 */}
+    {isSelected && (
+      <motion.div
+        className="absolute inset-0 pointer-events-none"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        style={{
+          background: 'radial-gradient(circle at center, rgba(201, 168, 108, 0.1) 0%, transparent 70%)',
+        }}
+      />
+    )}
+    
+    <div className="relative flex items-center gap-4">
+      <div 
+        className="flex-shrink-0 w-14 h-14 rounded-xl flex items-center justify-center transition-all"
+        style={{
+          backgroundColor: isSelected 
+            ? 'rgba(201, 168, 108, 0.2)' 
+            : 'rgba(255, 255, 255, 0.08)',
+          border: `1px solid ${isSelected ? COLORS.champagneGold : 'rgba(255, 255, 255, 0.1)'}`,
+        }}
+      >
+        <div style={{ color: isSelected ? COLORS.champagneGold : COLORS.warmGray }}>
+          {icon}
+        </div>
+      </div>
+      
+      <div className="flex-1 min-w-0">
+        <h4 
+          className="font-bold text-base"
+          style={{ color: isSelected ? COLORS.champagneGold : COLORS.ivory }}
+        >
+          {label}
+        </h4>
+        {sublabel && (
+          <p 
+            className="text-sm mt-0.5"
+            style={{ color: isSelected ? COLORS.paleGold : COLORS.warmGray }}
+          >
+            {sublabel}
+          </p>
+        )}
+      </div>
+      
+      {/* チェックマーク */}
+      <AnimatePresence>
+        {isSelected && (
+          <motion.div
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0, opacity: 0 }}
+            className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center"
+            style={{ backgroundColor: COLORS.champagneGold }}
+          >
+            <Check className="w-5 h-5" style={{ color: COLORS.deepNavy }} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  </motion.button>
+);
+
+// Next Actionカード
 interface ActionCardProps {
   icon: React.ReactNode;
   title: string;
@@ -159,7 +295,6 @@ const ActionCard = ({
     }}
   >
     <div className="flex items-start gap-4">
-      {/* アイコン */}
       <div 
         className="flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center"
         style={{ background: gradientStyle }}
@@ -167,7 +302,6 @@ const ActionCard = ({
         {icon}
       </div>
       
-      {/* コンテンツ */}
       <div className="flex-1 min-w-0">
         <h4 
           className="font-bold text-sm mb-1"
@@ -193,6 +327,10 @@ const ActionCard = ({
   </motion.a>
 );
 
+// ============================================
+// メインコンポーネント
+// ============================================
+
 interface CouponDisplayModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -214,18 +352,135 @@ export function CouponDisplayModal({
   googlePlaceId,
   onCouponUsed,
 }: CouponDisplayModalProps) {
+  // ============================================
+  // 状態管理
+  // ============================================
+  
+  // アンケート関連
+  const [surveyStep, setSurveyStep] = useState<SurveyStep>('intro');
+  const [surveyAnswers, setSurveyAnswers] = useState<SurveyAnswers>({
+    isFirstVisit: null,
+    isLocalResident: null,
+  });
+  const [slideDirection, setSlideDirection] = useState(1);
+  
+  // クーポン関連
   const [copied, setCopied] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [isUsing, setIsUsing] = useState(false);
   const [isUsed, setIsUsed] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
 
   const isValid = isCouponValid(coupon);
 
-  // Google Maps口コミURLを生成
-  const generateReviewUrl = (placeId: string): string => {
-    return `https://search.google.com/local/writereview?placeid=${encodeURIComponent(placeId)}`;
+  // ============================================
+  // 効果
+  // ============================================
+  
+  // モーダルを閉じた時にリセット
+  useEffect(() => {
+    if (!isOpen) {
+      // 少し遅延させてアニメーション後にリセット
+      const timer = setTimeout(() => {
+        setSurveyStep('intro');
+        setSurveyAnswers({ isFirstVisit: null, isLocalResident: null });
+        setSlideDirection(1);
+        setIsUsed(false);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
+
+  // ============================================
+  // ハンドラー
+  // ============================================
+
+  // ステップを進める
+  const handleNextStep = useCallback(() => {
+    setSlideDirection(1);
+    
+    switch (surveyStep) {
+      case 'intro':
+        setSurveyStep('first_visit');
+        break;
+      case 'first_visit':
+        if (surveyAnswers.isFirstVisit !== null) {
+          setSurveyStep('residence');
+        }
+        break;
+      case 'residence':
+        if (surveyAnswers.isLocalResident !== null) {
+          handleSurveyComplete();
+        }
+        break;
+    }
+  }, [surveyStep, surveyAnswers]);
+
+  // ステップを戻る
+  const handlePrevStep = useCallback(() => {
+    setSlideDirection(-1);
+    
+    switch (surveyStep) {
+      case 'first_visit':
+        setSurveyStep('intro');
+        break;
+      case 'residence':
+        setSurveyStep('first_visit');
+        break;
+    }
+  }, [surveyStep]);
+
+  // アンケート完了時の処理
+  const handleSurveyComplete = async () => {
+    if (!isSurveyComplete(surveyAnswers)) return;
+    
+    setIsRecording(true);
+    
+    try {
+      const sessionId = getOrCreateSessionId();
+      
+      const result = await recordCouponUsage({
+        storeId,
+        sessionId,
+        isFirstVisit: surveyAnswers.isFirstVisit!,
+        isLocalResident: surveyAnswers.isLocalResident!,
+      });
+
+      if (!result.success) {
+        if (result.error === 'DUPLICATE_USAGE') {
+          toast.error(result.message || '短時間内に同じクーポンが使用されています', {
+            position: 'top-center',
+            duration: 4000,
+          });
+          return;
+        }
+        console.error('Failed to record coupon usage:', result.error);
+        // エラーでも表示は続行（UX優先）
+      }
+      
+      setSlideDirection(1);
+      setSurveyStep('complete');
+    } catch (error) {
+      console.error('Error recording coupon usage:', error);
+      // エラーでも表示は続行
+      setSlideDirection(1);
+      setSurveyStep('complete');
+    } finally {
+      setIsRecording(false);
+    }
   };
 
+  // 初来店の回答
+  const handleFirstVisitAnswer = (isFirst: boolean) => {
+    setSurveyAnswers(prev => ({ ...prev, isFirstVisit: isFirst }));
+  };
+
+  // 居住地の回答
+  const handleResidenceAnswer = (isLocal: boolean) => {
+    setSurveyAnswers(prev => ({ ...prev, isLocalResident: isLocal }));
+  };
+
+  // クーポンコードをコピー
   const handleCopyCode = async () => {
     if (coupon.coupon_code) {
       await navigator.clipboard.writeText(coupon.coupon_code);
@@ -238,39 +493,12 @@ export function CouponDisplayModal({
     }
   };
 
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return '';
-    return new Date(dateString).toLocaleDateString('ja-JP', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
-  };
-
-  const getRemainingDays = () => {
-    if (!coupon.coupon_expiry_date) return null;
-    const expiry = new Date(coupon.coupon_expiry_date);
-    const now = new Date();
-    const diffTime = expiry.getTime() - now.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
-  };
-
-  const remainingDays = getRemainingDays();
-
-  // クーポン使用処理
+  // クーポン使用
   const handleUseCoupon = async () => {
     setIsUsing(true);
     try {
-      const currentUses = coupon.coupon_current_uses || 0;
-      const { error } = await supabase
-        .from('stores')
-        // @ts-ignore
-        .update({ coupon_current_uses: currentUses + 1 })
-        .eq('id', storeId);
-
-      if (error) throw error;
-
+      // 使用回数のインクリメントはサーバーアクションで既に行われているため、
+      // ここでは状態の更新のみ
       setIsUsed(true);
       setShowConfirmModal(false);
       toast.success('クーポンを使用しました', {
@@ -292,6 +520,38 @@ export function CouponDisplayModal({
     }
   };
 
+  // ============================================
+  // ユーティリティ関数
+  // ============================================
+
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return '';
+    return new Date(dateString).toLocaleDateString('ja-JP', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  };
+
+  const getRemainingDays = () => {
+    if (!coupon.coupon_expiry_date) return null;
+    const expiry = new Date(coupon.coupon_expiry_date);
+    const now = new Date();
+    const diffTime = expiry.getTime() - now.getTime();
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  };
+
+  const generateReviewUrl = (placeId: string): string => {
+    return `https://search.google.com/local/writereview?placeid=${encodeURIComponent(placeId)}`;
+  };
+
+  const remainingDays = getRemainingDays();
+  const stepNumber = surveyStep === 'intro' ? 0 : surveyStep === 'first_visit' ? 1 : surveyStep === 'residence' ? 2 : 3;
+
+  // ============================================
+  // レンダリング
+  // ============================================
+
   return (
     <>
       <CustomModal
@@ -301,10 +561,7 @@ export function CouponDisplayModal({
         description=""
         showCloseButton={false}
       >
-        {/* 
-          CustomModalの白背景を完全に覆うため、
-          margin/paddingを大きく取り、絶対配置で全体をカバー 
-        */}
+        {/* 背景 */}
         <div 
           className="absolute inset-0 rounded-2xl overflow-hidden"
           style={{
@@ -312,17 +569,14 @@ export function CouponDisplayModal({
             margin: '-1px',
           }}
         >
-          {/* 大理石風テクスチャオーバーレイ */}
           <div 
             className="absolute inset-0 opacity-50 pointer-events-none"
             style={{ background: COLORS.marbleTexture }}
           />
-          
-          {/* 使用済み時の紙吹雪 */}
           {isUsed && <Confetti />}
         </div>
 
-        {/* コンテンツコンテナ */}
+        {/* コンテンツ */}
         <div className="relative z-10 -m-6">
           {/* 閉じるボタン */}
           <motion.button
@@ -340,204 +594,74 @@ export function CouponDisplayModal({
             <X className="w-5 h-5" />
           </motion.button>
 
-          {/* 使用済み時のコンテンツ */}
-          {isUsed ? (
-            <div className="px-6 py-8">
-              {/* お祝いヘッダー */}
+          <AnimatePresence mode="wait" custom={slideDirection}>
+            {/* ============================================
+                Step 0: イントロ画面
+                ============================================ */}
+            {surveyStep === 'intro' && (
               <motion.div
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-                className="text-center mb-6"
+                key="intro"
+                custom={slideDirection}
+                variants={slideVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ duration: 0.3, ease: 'easeInOut' }}
+                className="px-6 py-8"
               >
-                <div 
-                  className="inline-flex items-center justify-center w-20 h-20 rounded-full mb-4"
-                  style={{
-                    background: COLORS.goldGradient,
-                    boxShadow: '0 10px 40px rgba(201, 168, 108, 0.4)',
-                  }}
-                >
-                  <PartyPopper className="w-10 h-10" style={{ color: COLORS.deepNavy }} />
+                {/* ヘッダー */}
+                <div className="text-center mb-6">
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+                    className="inline-flex items-center justify-center w-20 h-20 rounded-full mb-4"
+                    style={{
+                      background: COLORS.goldGradient,
+                      boxShadow: '0 10px 40px rgba(201, 168, 108, 0.4)',
+                    }}
+                  >
+                    <Gift className="w-10 h-10" style={{ color: COLORS.deepNavy }} />
+                  </motion.div>
+                  
+                  <h2 
+                    className="text-2xl font-bold mb-2"
+                    style={{ 
+                      color: COLORS.ivory,
+                      fontFamily: '"Cormorant Garamond", "Noto Serif JP", serif',
+                    }}
+                  >
+                    特別クーポン
+                  </h2>
+                  <p 
+                    className="text-sm"
+                    style={{ color: COLORS.warmGray }}
+                  >
+                    {storeName}からのおもてなし
+                  </p>
                 </div>
-                
-                <motion.h2
-                  initial={{ y: 20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
+
+                <GoldDivider />
+
+                {/* クーポンプレビュー */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2 }}
-                  className="text-2xl font-bold mb-2"
-                  style={{ 
-                    color: COLORS.champagneGold,
-                    fontFamily: '"Cormorant Garamond", "Noto Serif JP", serif',
-                  }}
-                >
-                  ご来店ありがとうございます！
-                </motion.h2>
-                
-                <motion.p
-                  initial={{ y: 20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.3 }}
-                  className="text-sm"
-                  style={{ color: COLORS.platinum }}
-                >
-                  {storeName}でのひとときをお楽しみください
-                </motion.p>
-              </motion.div>
-
-              <GoldDivider />
-
-              {/* 追加特典案内 */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.4 }}
-                className="mb-6"
-              >
-                <div 
-                  className="rounded-xl p-4 mb-4"
+                  className="rounded-xl p-5 mb-6 text-center"
                   style={{
                     backgroundColor: 'rgba(201, 168, 108, 0.1)',
                     border: `1px solid rgba(201, 168, 108, 0.2)`,
                   }}
                 >
-                  <div className="flex items-start gap-3">
-                    <div 
-                      className="flex-shrink-0 p-2 rounded-full"
-                      style={{ backgroundColor: 'rgba(201, 168, 108, 0.2)' }}
-                    >
-                      <Gift className="w-5 h-5" style={{ color: COLORS.champagneGold }} />
-                    </div>
-                    <div>
-                      <h3 
-                        className="font-bold text-sm mb-1"
-                        style={{ color: COLORS.champagneGold }}
-                      >
-                        さらにお得なチャンス！
-                      </h3>
-                      <p 
-                        className="text-xs leading-relaxed"
-                        style={{ color: COLORS.platinum }}
-                      >
-                        以下のいずれかの画面をスタッフに提示すると、追加特典をプレゼントいたします。
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* アクションカード */}
-                <div className="space-y-3">
-                  {/* Instagramフォロー */}
-                  <ActionCard
-                    icon={<Instagram className="w-6 h-6 text-white" />}
-                    title="Instagram公式アカウントをフォロー"
-                    description="最新情報やお得なキャンペーン情報をお届けします"
-                    buttonText="Instagramを開く"
-                    href={instagramUrl || `https://www.instagram.com/explore/locations/${storeName}`}
-                    gradientStyle={COLORS.instagramGradient}
-                    delay={0}
-                  />
-
-                  {/* Googleクチコミ */}
-                  <ActionCard
-                    icon={<Star className="w-6 h-6 text-white" />}
-                    title="Googleマップでクチコミを投稿"
-                    description="あなたの体験を共有して、お店を応援しましょう"
-                    buttonText="クチコミを書く"
-                    href={googlePlaceId ? generateReviewUrl(googlePlaceId) : `https://www.google.com/maps/search/${encodeURIComponent(storeName)}`}
-                    gradientStyle={COLORS.googleGradient}
-                    delay={0.1}
-                  />
-                </div>
-              </motion.div>
-
-              {/* 閉じるボタン */}
-              <motion.button
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6 }}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={onClose}
-                className="w-full py-4 rounded-xl font-medium tracking-wider transition-all"
-                style={{
-                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                  border: '1px solid rgba(255, 255, 255, 0.15)',
-                  color: COLORS.platinum,
-                }}
-              >
-                閉じる
-              </motion.button>
-            </div>
-          ) : (
-            /* 通常のクーポン表示 */
-            <>
-              {/* ヘッダー */}
-              <div className="relative px-6 pt-8 pb-4">
-                {/* 店舗名バッジ */}
-                <div 
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-4"
-                  style={{
-                    backgroundColor: 'rgba(201, 168, 108, 0.12)',
-                    border: `1px solid rgba(201, 168, 108, 0.25)`,
-                  }}
-                >
-                  <Ticket className="w-4 h-4" style={{ color: COLORS.champagneGold }} />
-                  <span 
-                    className="text-xs font-medium tracking-widest uppercase"
-                    style={{ color: COLORS.champagneGold }}
-                  >
-                    Special Coupon
-                  </span>
-                </div>
-
-                {/* タイトル */}
-                <h2 
-                  className="text-2xl font-light tracking-wide mb-1 pr-8"
-                  style={{ 
-                    color: COLORS.ivory,
-                    fontFamily: '"Cormorant Garamond", "Noto Serif JP", serif',
-                  }}
-                >
-                  {coupon.coupon_title || 'お得なクーポン'}
-                </h2>
-                <p 
-                  className="text-sm tracking-wide"
-                  style={{ color: COLORS.warmGray }}
-                >
-                  {storeName}
-                </p>
-
-                <GoldDivider />
-
-                {/* 割引表示 - エレガントカードスタイル */}
-                <motion.div
-                  initial={{ scale: 0.95, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ delay: 0.1, duration: 0.3 }}
-                  className="relative rounded-xl px-6 py-5 text-center overflow-hidden"
-                  style={{
-                    backgroundColor: 'rgba(201, 168, 108, 0.08)',
-                    border: `1px solid rgba(201, 168, 108, 0.2)`,
-                  }}
-                >
-                  {/* 装飾ライン - 上 */}
-                  <div className="flex items-center gap-4 mb-4">
-                    <div 
-                      className="flex-1 h-px" 
-                      style={{ background: `linear-gradient(to right, transparent, ${COLORS.champagneGold}50, transparent)` }} 
-                    />
-                    <div 
-                      className="w-2 h-2 rotate-45" 
-                      style={{ backgroundColor: COLORS.champagneGold }} 
-                    />
-                    <div 
-                      className="flex-1 h-px" 
-                      style={{ background: `linear-gradient(to right, transparent, ${COLORS.champagneGold}50, transparent)` }} 
-                    />
-                  </div>
-
                   <p 
-                    className="text-4xl font-bold tracking-tight"
+                    className="text-sm mb-2"
+                    style={{ color: COLORS.warmGray }}
+                  >
+                    {coupon.coupon_title || 'お得なクーポン'}
+                  </p>
+                  <p 
+                    className="text-3xl font-bold"
                     style={{ 
                       color: COLORS.champagneGold,
                       textShadow: '0 0 30px rgba(201, 168, 108, 0.3)',
@@ -551,293 +675,684 @@ export function CouponDisplayModal({
                         )
                     }
                   </p>
-
-                  {/* 装飾ライン - 下 */}
-                  <div className="flex items-center gap-4 mt-4">
-                    <div 
-                      className="flex-1 h-px" 
-                      style={{ background: `linear-gradient(to right, transparent, ${COLORS.champagneGold}50, transparent)` }} 
-                    />
-                    <div 
-                      className="w-2 h-2 rotate-45" 
-                      style={{ backgroundColor: COLORS.champagneGold }} 
-                    />
-                    <div 
-                      className="flex-1 h-px" 
-                      style={{ background: `linear-gradient(to right, transparent, ${COLORS.champagneGold}50, transparent)` }} 
-                    />
-                  </div>
                 </motion.div>
-              </div>
 
-              {/* コンテンツ */}
-              <div className="relative space-y-4 px-6 pb-6">
-                {/* クーポン画像 */}
-                {coupon.coupon_image_url && (
-                  <div 
-                    className="rounded-xl overflow-hidden"
+                {/* 説明 */}
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.3 }}
+                  className="text-center text-sm mb-6"
+                  style={{ color: COLORS.platinum }}
+                >
+                  クーポンを受け取るには
+                  <br />
+                  簡単なアンケートにお答えください
+                </motion.p>
+
+                {/* 開始ボタン */}
+                <motion.button
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleNextStep}
+                  className="w-full py-4 rounded-xl font-medium tracking-wider relative overflow-hidden group transition-all"
+                  style={{
+                    background: COLORS.goldGradient,
+                    color: COLORS.deepNavy,
+                    boxShadow: '0 10px 30px rgba(201, 168, 108, 0.3)',
+                  }}
+                >
+                  <span className="relative flex items-center justify-center gap-2">
+                    クーポンを受け取る
+                    <ChevronRight className="w-5 h-5" />
+                  </span>
+                </motion.button>
+              </motion.div>
+            )}
+
+            {/* ============================================
+                Step 1: 初来店確認
+                ============================================ */}
+            {surveyStep === 'first_visit' && (
+              <motion.div
+                key="first_visit"
+                custom={slideDirection}
+                variants={slideVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ duration: 0.3, ease: 'easeInOut' }}
+                className="px-6 py-8"
+              >
+                <StepIndicator currentStep={0} totalSteps={2} />
+                
+                <div className="text-center mb-6">
+                  <h3 
+                    className="text-xl font-bold mb-2"
                     style={{ 
+                      color: COLORS.ivory,
+                      fontFamily: '"Cormorant Garamond", "Noto Serif JP", serif',
+                    }}
+                  >
+                    ご来店ありがとうございます
+                  </h3>
+                  <p 
+                    className="text-sm"
+                    style={{ color: COLORS.warmGray }}
+                  >
+                    {storeName}は初めてですか？
+                  </p>
+                </div>
+
+                <div className="space-y-3 mb-6">
+                  <ChoiceButton
+                    icon={<Sparkles className="w-6 h-6" />}
+                    label="はい、初めてです"
+                    sublabel="Welcome! 初回限定特典をお楽しみください"
+                    isSelected={surveyAnswers.isFirstVisit === true}
+                    onClick={() => handleFirstVisitAnswer(true)}
+                    delay={0.1}
+                  />
+                  <ChoiceButton
+                    icon={<Heart className="w-6 h-6" />}
+                    label="いいえ、以前も来ました"
+                    sublabel="いつもありがとうございます！"
+                    isSelected={surveyAnswers.isFirstVisit === false}
+                    onClick={() => handleFirstVisitAnswer(false)}
+                    delay={0.2}
+                  />
+                </div>
+
+                {/* ナビゲーション */}
+                <div className="flex gap-3">
+                  <motion.button
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.3 }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={handlePrevStep}
+                    className="flex-1 py-3.5 rounded-xl font-medium tracking-wider transition-all flex items-center justify-center gap-2"
+                    style={{
+                      backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      color: COLORS.warmGray,
+                    }}
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    戻る
+                  </motion.button>
+                  <motion.button
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.3 }}
+                    whileHover={{ scale: surveyAnswers.isFirstVisit !== null ? 1.02 : 1 }}
+                    whileTap={{ scale: surveyAnswers.isFirstVisit !== null ? 0.98 : 1 }}
+                    onClick={handleNextStep}
+                    disabled={surveyAnswers.isFirstVisit === null}
+                    className="flex-1 py-3.5 rounded-xl font-medium tracking-wider transition-all flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
+                    style={{
+                      background: surveyAnswers.isFirstVisit !== null 
+                        ? COLORS.goldGradient 
+                        : 'rgba(255, 255, 255, 0.1)',
+                      color: surveyAnswers.isFirstVisit !== null 
+                        ? COLORS.deepNavy 
+                        : COLORS.warmGray,
+                      boxShadow: surveyAnswers.isFirstVisit !== null 
+                        ? '0 10px 30px rgba(201, 168, 108, 0.3)' 
+                        : 'none',
+                    }}
+                  >
+                    次へ
+                    <ChevronRight className="w-4 h-4" />
+                  </motion.button>
+                </div>
+              </motion.div>
+            )}
+
+            {/* ============================================
+                Step 2: 居住地確認
+                ============================================ */}
+            {surveyStep === 'residence' && (
+              <motion.div
+                key="residence"
+                custom={slideDirection}
+                variants={slideVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ duration: 0.3, ease: 'easeInOut' }}
+                className="px-6 py-8"
+              >
+                <StepIndicator currentStep={1} totalSteps={2} />
+                
+                <div className="text-center mb-6">
+                  <h3 
+                    className="text-xl font-bold mb-2"
+                    style={{ 
+                      color: COLORS.ivory,
+                      fontFamily: '"Cormorant Garamond", "Noto Serif JP", serif',
+                    }}
+                  >
+                    お住まいはどちらですか？
+                  </h3>
+                  <p 
+                    className="text-sm"
+                    style={{ color: COLORS.warmGray }}
+                  >
+                    大分県内のお客様ですか？
+                  </p>
+                </div>
+
+                <div className="space-y-3 mb-6">
+                  <ChoiceButton
+                    icon={<Home className="w-6 h-6" />}
+                    label="県内に住んでいます"
+                    sublabel="地元のお客様、ありがとうございます！"
+                    isSelected={surveyAnswers.isLocalResident === true}
+                    onClick={() => handleResidenceAnswer(true)}
+                    delay={0.1}
+                  />
+                  <ChoiceButton
+                    icon={<Plane className="w-6 h-6" />}
+                    label="県外から来ました"
+                    sublabel="遠方からのお越し、嬉しいです！"
+                    isSelected={surveyAnswers.isLocalResident === false}
+                    onClick={() => handleResidenceAnswer(false)}
+                    delay={0.2}
+                  />
+                </div>
+
+                {/* ナビゲーション */}
+                <div className="flex gap-3">
+                  <motion.button
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.3 }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={handlePrevStep}
+                    className="flex-1 py-3.5 rounded-xl font-medium tracking-wider transition-all flex items-center justify-center gap-2"
+                    style={{
+                      backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      color: COLORS.warmGray,
+                    }}
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    戻る
+                  </motion.button>
+                  <motion.button
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.3 }}
+                    whileHover={{ scale: surveyAnswers.isLocalResident !== null ? 1.02 : 1 }}
+                    whileTap={{ scale: surveyAnswers.isLocalResident !== null ? 0.98 : 1 }}
+                    onClick={handleNextStep}
+                    disabled={surveyAnswers.isLocalResident === null || isRecording}
+                    className="flex-1 py-3.5 rounded-xl font-medium tracking-wider transition-all flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
+                    style={{
+                      background: surveyAnswers.isLocalResident !== null 
+                        ? COLORS.goldGradient 
+                        : 'rgba(255, 255, 255, 0.1)',
+                      color: surveyAnswers.isLocalResident !== null 
+                        ? COLORS.deepNavy 
+                        : COLORS.warmGray,
+                      boxShadow: surveyAnswers.isLocalResident !== null 
+                        ? '0 10px 30px rgba(201, 168, 108, 0.3)' 
+                        : 'none',
+                    }}
+                  >
+                    {isRecording ? (
+                      <>
+                        <motion.div
+                          className="w-4 h-4 border-2 rounded-full"
+                          style={{ borderColor: `${COLORS.deepNavy} transparent` }}
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                        />
+                        処理中...
+                      </>
+                    ) : (
+                      <>
+                        クーポンを表示
+                        <Gift className="w-4 h-4" />
+                      </>
+                    )}
+                  </motion.button>
+                </div>
+              </motion.div>
+            )}
+
+            {/* ============================================
+                Step 3: クーポン表示（使用前）
+                ============================================ */}
+            {surveyStep === 'complete' && !isUsed && (
+              <motion.div
+                key="coupon"
+                custom={slideDirection}
+                variants={slideVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ duration: 0.3, ease: 'easeInOut' }}
+              >
+                {/* ヘッダー */}
+                <div className="relative px-6 pt-8 pb-4">
+                  {/* 店舗名バッジ */}
+                  <div 
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-4"
+                    style={{
+                      backgroundColor: 'rgba(201, 168, 108, 0.12)',
+                      border: `1px solid rgba(201, 168, 108, 0.25)`,
+                    }}
+                  >
+                    <Ticket className="w-4 h-4" style={{ color: COLORS.champagneGold }} />
+                    <span 
+                      className="text-xs font-medium tracking-widest uppercase"
+                      style={{ color: COLORS.champagneGold }}
+                    >
+                      Special Coupon
+                    </span>
+                  </div>
+
+                  {/* タイトル */}
+                  <h2 
+                    className="text-2xl font-light tracking-wide mb-1 pr-8"
+                    style={{ 
+                      color: COLORS.ivory,
+                      fontFamily: '"Cormorant Garamond", "Noto Serif JP", serif',
+                    }}
+                  >
+                    {coupon.coupon_title || 'お得なクーポン'}
+                  </h2>
+                  <p 
+                    className="text-sm tracking-wide"
+                    style={{ color: COLORS.warmGray }}
+                  >
+                    {storeName}
+                  </p>
+
+                  <GoldDivider />
+
+                  {/* 割引表示 */}
+                  <motion.div
+                    initial={{ scale: 0.95, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ delay: 0.1, duration: 0.3 }}
+                    className="relative rounded-xl px-6 py-5 text-center overflow-hidden"
+                    style={{
+                      backgroundColor: 'rgba(201, 168, 108, 0.08)',
                       border: `1px solid rgba(201, 168, 108, 0.2)`,
                     }}
                   >
-                    <img
-                      src={coupon.coupon_image_url}
-                      alt="クーポン"
-                      className="w-full h-auto"
-                    />
-                  </div>
-                )}
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="flex-1 h-px" style={{ background: `linear-gradient(to right, transparent, ${COLORS.champagneGold}50, transparent)` }} />
+                      <div className="w-2 h-2 rotate-45" style={{ backgroundColor: COLORS.champagneGold }} />
+                      <div className="flex-1 h-px" style={{ background: `linear-gradient(to right, transparent, ${COLORS.champagneGold}50, transparent)` }} />
+                    </div>
 
-                {/* 説明 */}
-                {coupon.coupon_description && (
+                    <p 
+                      className="text-4xl font-bold tracking-tight"
+                      style={{ 
+                        color: COLORS.champagneGold,
+                        textShadow: '0 0 30px rgba(201, 168, 108, 0.3)',
+                      }}
+                    >
+                      {coupon.coupon_discount_type === 'free_item' 
+                        ? '無料サービス'
+                        : formatDiscountValue(
+                            coupon.coupon_discount_type as CouponDiscountType,
+                            coupon.coupon_discount_value || 0
+                          )
+                      }
+                    </p>
+
+                    <div className="flex items-center gap-4 mt-4">
+                      <div className="flex-1 h-px" style={{ background: `linear-gradient(to right, transparent, ${COLORS.champagneGold}50, transparent)` }} />
+                      <div className="w-2 h-2 rotate-45" style={{ backgroundColor: COLORS.champagneGold }} />
+                      <div className="flex-1 h-px" style={{ background: `linear-gradient(to right, transparent, ${COLORS.champagneGold}50, transparent)` }} />
+                    </div>
+                  </motion.div>
+                </div>
+
+                {/* コンテンツ */}
+                <div className="relative space-y-4 px-6 pb-6">
+                  {/* クーポン画像 */}
+                  {coupon.coupon_image_url && (
+                    <div 
+                      className="rounded-xl overflow-hidden"
+                      style={{ border: `1px solid rgba(201, 168, 108, 0.2)` }}
+                    >
+                      <img
+                        src={coupon.coupon_image_url}
+                        alt="クーポン"
+                        className="w-full h-auto"
+                      />
+                    </div>
+                  )}
+
+                  {/* 説明 */}
+                  {coupon.coupon_description && (
+                    <div 
+                      className="p-4 rounded-xl"
+                      style={{ 
+                        backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                      }}
+                    >
+                      <p className="font-medium text-sm mb-2" style={{ color: COLORS.paleGold }}>
+                        詳細
+                      </p>
+                      <p className="text-sm leading-relaxed" style={{ color: COLORS.platinum }}>
+                        {coupon.coupon_description}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* 利用条件 */}
+                  {coupon.coupon_conditions && (
+                    <div 
+                      className="rounded-xl p-4"
+                      style={{
+                        backgroundColor: 'rgba(201, 168, 108, 0.08)',
+                        border: `1px solid rgba(201, 168, 108, 0.15)`,
+                      }}
+                    >
+                      <div className="flex items-start gap-3">
+                        <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: COLORS.champagneGold }} />
+                        <div>
+                          <p className="font-medium text-sm mb-1" style={{ color: COLORS.champagneGold }}>
+                            ご利用条件
+                          </p>
+                          <p className="text-sm leading-relaxed" style={{ color: COLORS.platinum }}>
+                            {coupon.coupon_conditions}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 有効期限 */}
                   <div 
-                    className="p-4 rounded-xl"
-                    style={{ 
+                    className="flex items-center justify-between p-4 rounded-xl"
+                    style={{
                       backgroundColor: 'rgba(255, 255, 255, 0.03)',
                       border: '1px solid rgba(255, 255, 255, 0.08)',
                     }}
                   >
-                    <p 
-                      className="font-medium text-sm mb-2"
-                      style={{ color: COLORS.paleGold }}
-                    >
-                      詳細
-                    </p>
-                    <p 
-                      className="text-sm leading-relaxed"
-                      style={{ color: COLORS.platinum }}
-                    >
-                      {coupon.coupon_description}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-4 h-4" style={{ color: COLORS.warmGray }} />
+                      <span className="text-sm font-medium" style={{ color: COLORS.warmGray }}>
+                        有効期限
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      {coupon.coupon_expiry_date ? (
+                        <>
+                          <p className="text-sm font-medium" style={{ color: COLORS.ivory }}>
+                            {formatDate(coupon.coupon_expiry_date)}まで
+                          </p>
+                          {remainingDays !== null && remainingDays > 0 && remainingDays <= 7 && (
+                            <p className="text-xs font-medium mt-0.5" style={{ color: COLORS.champagneGold }}>
+                              残り{remainingDays}日
+                            </p>
+                          )}
+                        </>
+                      ) : (
+                        <p className="text-sm" style={{ color: COLORS.warmGray }}>期限なし</p>
+                      )}
+                    </div>
                   </div>
-                )}
 
-                {/* 利用条件 */}
-                {coupon.coupon_conditions && (
+                  {/* クーポンコード */}
+                  {coupon.coupon_code && (
+                    <div 
+                      className="rounded-xl p-5"
+                      style={{
+                        backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                        border: `2px dashed rgba(201, 168, 108, 0.3)`,
+                      }}
+                    >
+                      <p 
+                        className="text-xs font-medium text-center mb-3 tracking-widest uppercase"
+                        style={{ color: COLORS.warmGray }}
+                      >
+                        Coupon Code
+                      </p>
+                      <div className="flex items-center justify-center gap-3">
+                        <code className="text-2xl font-bold tracking-widest" style={{ color: COLORS.paleGold }}>
+                          {coupon.coupon_code}
+                        </code>
+                        <motion.button
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={handleCopyCode}
+                          className="p-2.5 rounded-xl transition-all"
+                          style={{
+                            backgroundColor: copied 
+                              ? 'rgba(34, 197, 94, 0.2)' 
+                              : 'rgba(201, 168, 108, 0.15)',
+                            border: `1px solid ${copied ? 'rgba(34, 197, 94, 0.3)' : 'rgba(201, 168, 108, 0.25)'}`,
+                          }}
+                          aria-label={copied ? 'コピー完了' : 'コードをコピー'}
+                        >
+                          {copied ? (
+                            <Check className="w-4 h-4" style={{ color: '#4ade80' }} />
+                          ) : (
+                            <Copy className="w-4 h-4" style={{ color: COLORS.champagneGold }} />
+                          )}
+                        </motion.button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* バーコード */}
+                  {coupon.coupon_barcode_url && (
+                    <div className="text-center">
+                      <p className="text-xs font-medium mb-3" style={{ color: COLORS.warmGray }}>
+                        店舗でこちらを提示してください
+                      </p>
+                      <div className="inline-block p-4 rounded-xl" style={{ backgroundColor: COLORS.ivory }}>
+                        <img
+                          src={coupon.coupon_barcode_url}
+                          alt="バーコード"
+                          className="max-w-[200px] mx-auto"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 残り枚数 */}
+                  {coupon.coupon_max_uses && (
+                    <div className="text-center text-sm">
+                      <span className="font-medium" style={{ color: COLORS.champagneGold }}>
+                        残り {coupon.coupon_max_uses - (coupon.coupon_current_uses || 0)} 枚
+                      </span>
+                      <span style={{ color: COLORS.warmGray }}> / {coupon.coupon_max_uses} 枚</span>
+                    </div>
+                  )}
+
+                  {/* 無効な場合 */}
+                  {!isValid && (
+                    <div 
+                      className="rounded-xl p-4 text-center"
+                      style={{
+                        backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                        border: '1px solid rgba(239, 68, 68, 0.3)',
+                      }}
+                    >
+                      <p className="font-medium text-sm" style={{ color: '#f87171' }}>
+                        このクーポンは現在ご利用いただけません
+                      </p>
+                    </div>
+                  )}
+
+                  {/* 使用ボタン */}
+                  {isValid && (
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="w-full py-4 rounded-xl font-medium tracking-wider relative overflow-hidden group transition-all"
+                      onClick={() => setShowConfirmModal(true)}
+                      disabled={isUsing}
+                      style={{
+                        background: COLORS.goldGradient,
+                        color: COLORS.deepNavy,
+                        boxShadow: '0 10px 30px rgba(201, 168, 108, 0.3)',
+                      }}
+                    >
+                      <div 
+                        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                        style={{
+                          background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%)',
+                        }}
+                      />
+                      <span className="relative flex items-center justify-center gap-2">
+                        <Gift className="w-5 h-5" />
+                        クーポンを使う
+                      </span>
+                    </motion.button>
+                  )}
+                </div>
+              </motion.div>
+            )}
+
+            {/* ============================================
+                Step 4: 使用後画面
+                ============================================ */}
+            {surveyStep === 'complete' && isUsed && (
+              <motion.div
+                key="used"
+                custom={slideDirection}
+                variants={slideVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ duration: 0.3, ease: 'easeInOut' }}
+                className="px-6 py-8"
+              >
+                {/* お祝いヘッダー */}
+                <motion.div
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+                  className="text-center mb-6"
+                >
                   <div 
-                    className="rounded-xl p-4"
+                    className="inline-flex items-center justify-center w-20 h-20 rounded-full mb-4"
                     style={{
-                      backgroundColor: 'rgba(201, 168, 108, 0.08)',
-                      border: `1px solid rgba(201, 168, 108, 0.15)`,
+                      background: COLORS.goldGradient,
+                      boxShadow: '0 10px 40px rgba(201, 168, 108, 0.4)',
+                    }}
+                  >
+                    <PartyPopper className="w-10 h-10" style={{ color: COLORS.deepNavy }} />
+                  </div>
+                  
+                  <motion.h2
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                    className="text-2xl font-bold mb-2"
+                    style={{ 
+                      color: COLORS.champagneGold,
+                      fontFamily: '"Cormorant Garamond", "Noto Serif JP", serif',
+                    }}
+                  >
+                    ご来店ありがとうございます！
+                  </motion.h2>
+                  
+                  <motion.p
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.3 }}
+                    className="text-sm"
+                    style={{ color: COLORS.platinum }}
+                  >
+                    {storeName}でのひとときをお楽しみください
+                  </motion.p>
+                </motion.div>
+
+                <GoldDivider />
+
+                {/* 追加特典案内 */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.4 }}
+                  className="mb-6"
+                >
+                  <div 
+                    className="rounded-xl p-4 mb-4"
+                    style={{
+                      backgroundColor: 'rgba(201, 168, 108, 0.1)',
+                      border: `1px solid rgba(201, 168, 108, 0.2)`,
                     }}
                   >
                     <div className="flex items-start gap-3">
-                      <AlertCircle 
-                        className="w-4 h-4 mt-0.5 flex-shrink-0" 
-                        style={{ color: COLORS.champagneGold }}
-                      />
+                      <div 
+                        className="flex-shrink-0 p-2 rounded-full"
+                        style={{ backgroundColor: 'rgba(201, 168, 108, 0.2)' }}
+                      >
+                        <Gift className="w-5 h-5" style={{ color: COLORS.champagneGold }} />
+                      </div>
                       <div>
-                        <p 
-                          className="font-medium text-sm mb-1"
-                          style={{ color: COLORS.champagneGold }}
-                        >
-                          ご利用条件
-                        </p>
-                        <p 
-                          className="text-sm leading-relaxed"
-                          style={{ color: COLORS.platinum }}
-                        >
-                          {coupon.coupon_conditions}
+                        <h3 className="font-bold text-sm mb-1" style={{ color: COLORS.champagneGold }}>
+                          さらにお得なチャンス！
+                        </h3>
+                        <p className="text-xs leading-relaxed" style={{ color: COLORS.platinum }}>
+                          以下のいずれかの画面をスタッフに提示すると、追加特典をプレゼントいたします。
                         </p>
                       </div>
                     </div>
                   </div>
-                )}
 
-                {/* 有効期限 */}
-                <div 
-                  className="flex items-center justify-between p-4 rounded-xl"
+                  <div className="space-y-3">
+                    <ActionCard
+                      icon={<Instagram className="w-6 h-6 text-white" />}
+                      title="Instagram公式アカウントをフォロー"
+                      description="最新情報やお得なキャンペーン情報をお届けします"
+                      buttonText="Instagramを開く"
+                      href={instagramUrl || `https://www.instagram.com/explore/locations/${storeName}`}
+                      gradientStyle={COLORS.instagramGradient}
+                      delay={0}
+                    />
+
+                    <ActionCard
+                      icon={<Star className="w-6 h-6 text-white" />}
+                      title="Googleマップでクチコミを投稿"
+                      description="あなたの体験を共有して、お店を応援しましょう"
+                      buttonText="クチコミを書く"
+                      href={googlePlaceId ? generateReviewUrl(googlePlaceId) : `https://www.google.com/maps/search/${encodeURIComponent(storeName)}`}
+                      gradientStyle={COLORS.googleGradient}
+                      delay={0.1}
+                    />
+                  </div>
+                </motion.div>
+
+                {/* 閉じるボタン */}
+                <motion.button
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.6 }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={onClose}
+                  className="w-full py-4 rounded-xl font-medium tracking-wider transition-all"
                   style={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.03)',
-                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                    color: COLORS.platinum,
                   }}
                 >
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4" style={{ color: COLORS.warmGray }} />
-                    <span 
-                      className="text-sm font-medium"
-                      style={{ color: COLORS.warmGray }}
-                    >
-                      有効期限
-                    </span>
-                  </div>
-                  <div className="text-right">
-                    {coupon.coupon_expiry_date ? (
-                      <>
-                        <p 
-                          className="text-sm font-medium"
-                          style={{ color: COLORS.ivory }}
-                        >
-                          {formatDate(coupon.coupon_expiry_date)}まで
-                        </p>
-                        {remainingDays !== null && remainingDays > 0 && remainingDays <= 7 && (
-                          <p 
-                            className="text-xs font-medium mt-0.5"
-                            style={{ color: COLORS.champagneGold }}
-                          >
-                            残り{remainingDays}日
-                          </p>
-                        )}
-                      </>
-                    ) : (
-                      <p 
-                        className="text-sm"
-                        style={{ color: COLORS.warmGray }}
-                      >
-                        期限なし
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                {/* クーポンコード */}
-                {coupon.coupon_code && (
-                  <div 
-                    className="rounded-xl p-5"
-                    style={{
-                      backgroundColor: 'rgba(255, 255, 255, 0.03)',
-                      border: `2px dashed rgba(201, 168, 108, 0.3)`,
-                    }}
-                  >
-                    <p 
-                      className="text-xs font-medium text-center mb-3 tracking-widest uppercase"
-                      style={{ color: COLORS.warmGray }}
-                    >
-                      Coupon Code
-                    </p>
-                    <div className="flex items-center justify-center gap-3">
-                      <code 
-                        className="text-2xl font-bold tracking-widest"
-                        style={{ color: COLORS.paleGold }}
-                      >
-                        {coupon.coupon_code}
-                      </code>
-                      <motion.button
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={handleCopyCode}
-                        className="p-2.5 rounded-xl transition-all"
-                        style={{
-                          backgroundColor: copied 
-                            ? 'rgba(34, 197, 94, 0.2)' 
-                            : 'rgba(201, 168, 108, 0.15)',
-                          border: `1px solid ${copied ? 'rgba(34, 197, 94, 0.3)' : 'rgba(201, 168, 108, 0.25)'}`,
-                        }}
-                        aria-label={copied ? 'コピー完了' : 'コードをコピー'}
-                      >
-                        {copied ? (
-                          <Check className="w-4 h-4" style={{ color: '#4ade80' }} />
-                        ) : (
-                          <Copy className="w-4 h-4" style={{ color: COLORS.champagneGold }} />
-                        )}
-                      </motion.button>
-                    </div>
-                  </div>
-                )}
-
-                {/* バーコード/QRコード */}
-                {coupon.coupon_barcode_url && (
-                  <div className="text-center">
-                    <p 
-                      className="text-xs font-medium mb-3"
-                      style={{ color: COLORS.warmGray }}
-                    >
-                      店舗でこちらを提示してください
-                    </p>
-                    <div 
-                      className="inline-block p-4 rounded-xl"
-                      style={{ backgroundColor: COLORS.ivory }}
-                    >
-                      <img
-                        src={coupon.coupon_barcode_url}
-                        alt="バーコード"
-                        className="max-w-[200px] mx-auto"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {/* 残り枚数表示 */}
-                {coupon.coupon_max_uses && (
-                  <div className="text-center text-sm">
-                    <span 
-                      className="font-medium"
-                      style={{ color: COLORS.champagneGold }}
-                    >
-                      残り {coupon.coupon_max_uses - (coupon.coupon_current_uses || 0)} 枚
-                    </span>
-                    <span style={{ color: COLORS.warmGray }}>
-                      {' / '}
-                      {coupon.coupon_max_uses} 枚
-                    </span>
-                  </div>
-                )}
-
-                {/* 無効な場合の表示 */}
-                {!isValid && (
-                  <div 
-                    className="rounded-xl p-4 text-center"
-                    style={{
-                      backgroundColor: 'rgba(239, 68, 68, 0.15)',
-                      border: '1px solid rgba(239, 68, 68, 0.3)',
-                    }}
-                  >
-                    <p 
-                      className="font-medium text-sm"
-                      style={{ color: '#f87171' }}
-                    >
-                      このクーポンは現在ご利用いただけません
-                    </p>
-                    {coupon.coupon_expiry_date && new Date(coupon.coupon_expiry_date) < new Date() && (
-                      <p 
-                        className="text-xs mt-1"
-                        style={{ color: '#fca5a5' }}
-                      >
-                        有効期限が切れています
-                      </p>
-                    )}
-                    {coupon.coupon_max_uses && 
-                      (coupon.coupon_current_uses || 0) >= coupon.coupon_max_uses && (
-                      <p 
-                        className="text-xs mt-1"
-                        style={{ color: '#fca5a5' }}
-                      >
-                        発行上限に達しました
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                {/* 使用ボタン */}
-                {isValid && (
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="w-full py-4 rounded-xl font-medium tracking-wider relative overflow-hidden group transition-all"
-                    onClick={() => setShowConfirmModal(true)}
-                    disabled={isUsing}
-                    style={{
-                      background: COLORS.goldGradient,
-                      color: COLORS.deepNavy,
-                      boxShadow: '0 10px 30px rgba(201, 168, 108, 0.3)',
-                    }}
-                  >
-                    {/* ホバー時の光沢エフェクト */}
-                    <div 
-                      className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                      style={{
-                        background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%)',
-                      }}
-                    />
-                    <span className="relative flex items-center justify-center gap-2">
-                      <Gift className="w-5 h-5" />
-                      クーポンを使う
-                    </span>
-                  </motion.button>
-                )}
-              </div>
-            </>
-          )}
+                  閉じる
+                </motion.button>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </CustomModal>
 
@@ -849,7 +1364,6 @@ export function CouponDisplayModal({
         description=""
         showCloseButton={false}
       >
-        {/* 背景を完全にカバー */}
         <div 
           className="absolute inset-0 rounded-2xl overflow-hidden"
           style={{
@@ -864,7 +1378,6 @@ export function CouponDisplayModal({
         </div>
 
         <div className="relative z-10 -m-6 p-6">
-          {/* 閉じるボタン */}
           <motion.button
             whileHover={{ scale: 1.1, opacity: 1 }}
             whileTap={{ scale: 0.95 }}
@@ -899,10 +1412,7 @@ export function CouponDisplayModal({
             >
               クーポンを使用しますか？
             </h3>
-            <p 
-              className="text-sm mb-6"
-              style={{ color: COLORS.warmGray }}
-            >
+            <p className="text-sm mb-6" style={{ color: COLORS.warmGray }}>
               この操作は取り消せません
             </p>
           </div>
@@ -941,7 +1451,10 @@ export function CouponDisplayModal({
   );
 }
 
-// クーポンバッジコンポーネント（店舗カードなどで使用）
+// ============================================
+// クーポンバッジコンポーネント
+// ============================================
+
 interface CouponBadgeProps {
   coupon: Partial<CouponData>;
   onClick?: () => void;
@@ -964,11 +1477,7 @@ export function CouponBadge({ coupon, onClick, size = 'md' }: CouponBadgeProps) 
       whileHover={{ scale: 1.05, y: -1 }}
       whileTap={{ scale: 0.95 }}
       onClick={onClick}
-      className={`
-        inline-flex items-center gap-1.5 
-        font-medium rounded-full
-        ${sizeClasses[size]}
-      `}
+      className={`inline-flex items-center gap-1.5 font-medium rounded-full ${sizeClasses[size]}`}
       style={{
         background: COLORS.goldGradient,
         color: COLORS.deepNavy,
