@@ -16,9 +16,10 @@
 
 'use client';
 
-import { useState, useCallback, useEffect, CSSProperties } from 'react';
+import { useState, useCallback, useEffect, CSSProperties, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronRight, ChevronLeft, RotateCcw } from 'lucide-react';
+import { useLanguage } from '@/lib/i18n/context';
 
 // ============================================
 // カラーパレット定義
@@ -67,139 +68,139 @@ interface Question {
 }
 
 // ============================================
-// 洗練された質問データ
+// 質問データを生成する関数（翻訳対応）
 // ============================================
-const questions: Question[] = [
+const getQuestions = (t: (key: string) => string): Question[] => [
   {
     id: 'gender',
-    question: 'お客様について',
-    subtext: '最適なご案内のために',
+    question: t('concierge.q_gender'),
+    subtext: t('concierge.q_gender_sub'),
     options: [
       { 
-        label: '男性のお客様', 
+        label: t('concierge.q_gender_male'), 
         value: 'male', 
         facilities: [],
-        description: '落ち着いた大人の空間を'
+        description: t('concierge.q_gender_male_desc')
       },
       { 
-        label: '女性のお客様', 
+        label: t('concierge.q_gender_female'), 
         value: 'female', 
         facilities: ['女性客多め', '女性一人でも安心', '女性スタッフ在籍', 'レディースデー有'],
-        description: '安心できる洗練された空間を'
+        description: t('concierge.q_gender_female_desc')
       },
     ]
   },
   {
     id: 'visit_type',
-    question: 'この街へのご訪問は',
-    subtext: 'より良いおもてなしのために',
+    question: t('concierge.q_visit'),
+    subtext: t('concierge.q_visit_sub'),
     options: [
       { 
-        label: '地元の方', 
+        label: t('concierge.q_visit_local'), 
         value: 'local', 
         facilities: [],
-        description: '馴染みの空間で寛ぎのひとときを'
+        description: t('concierge.q_visit_local_desc')
       },
       { 
-        label: 'ご旅行中', 
+        label: t('concierge.q_visit_tourist'), 
         value: 'tourist', 
         facilities: ['観光客歓迎', '地元の味', '方言OK'],
-        description: 'この地ならではの特別な体験を'
+        description: t('concierge.q_visit_tourist_desc')
       },
     ]
   },
   {
     id: 'party_size',
-    question: '本日のご来店人数は',
-    subtext: 'お席のご用意のために',
+    question: t('concierge.q_party'),
+    subtext: t('concierge.q_party_sub'),
     options: [
       { 
-        label: 'おひとり様', 
+        label: t('concierge.q_party_solo'), 
         value: 'solo', 
         facilities: ['一人客歓迎', 'おひとり様大歓迎', 'カウンター充実'],
-        description: '静謐な一人の時間をお楽しみに'
+        description: t('concierge.q_party_solo_desc')
       },
       { 
-        label: 'ご一緒の方と', 
+        label: t('concierge.q_party_group'), 
         value: 'group', 
         facilities: ['グループ歓迎', '個室あり', 'テーブル席あり'],
-        description: '大切な方との特別なひとときを'
+        description: t('concierge.q_party_group_desc')
       },
     ]
   },
   {
     id: 'experience',
-    question: 'バーでのご経験は',
-    subtext: 'お客様に合わせたご案内のために',
+    question: t('concierge.q_experience'),
+    subtext: t('concierge.q_experience_sub'),
     options: [
       { 
-        label: '初めてのご訪問', 
+        label: t('concierge.q_experience_beginner'), 
         value: 'beginner', 
         facilities: ['初めての方歓迎', '常連さんが優しい', 'スタッフが親切'],
-        description: '温かくお迎えする店舗をご紹介'
+        description: t('concierge.q_experience_beginner_desc')
       },
       { 
-        label: '馴染みの嗜み', 
+        label: t('concierge.q_experience_experienced'), 
         value: 'experienced', 
         facilities: [],
-        description: '通の方も満足の名店を'
+        description: t('concierge.q_experience_experienced_desc')
       },
     ]
   },
   {
     id: 'budget',
-    question: '料金体系のご希望は',
-    subtext: '安心してお楽しみいただくために',
+    question: t('concierge.q_budget'),
+    subtext: t('concierge.q_budget_sub'),
     options: [
       { 
-        label: '明朗会計を希望', 
+        label: t('concierge.q_budget_no_charge'), 
         value: 'no_charge', 
         facilities: ['チャージなし', '席料なし', 'お通しなし', '明朗会計'],
-        description: 'チャージなしの店舗をご案内'
+        description: t('concierge.q_budget_no_charge_desc')
       },
       { 
-        label: 'こだわりません', 
+        label: t('concierge.q_budget_charge_ok'), 
         value: 'charge_ok', 
         facilities: [],
-        description: '最高のサービスをお求めの方に'
+        description: t('concierge.q_budget_charge_ok_desc')
       },
     ]
   },
   {
     id: 'atmosphere',
-    question: 'お好みの雰囲気は',
-    subtext: '理想の空間をお探しいたします',
+    question: t('concierge.q_atmosphere'),
+    subtext: t('concierge.q_atmosphere_sub'),
     options: [
       { 
-        label: '静寂と落ち着き', 
+        label: t('concierge.q_atmosphere_quiet'), 
         value: 'quiet', 
         facilities: ['落ち着いた雰囲気', '静か', '大人の空間', 'ジャズが流れる'],
-        description: '洗練された大人の隠れ家を'
+        description: t('concierge.q_atmosphere_quiet_desc')
       },
       { 
-        label: '活気と賑わい', 
+        label: t('concierge.q_atmosphere_lively'), 
         value: 'lively', 
         facilities: ['賑やか', 'スポーツ観戦可', 'カラオケあり', 'ダーツあり'],
-        description: '楽しさ溢れる社交の場を'
+        description: t('concierge.q_atmosphere_lively_desc')
       },
     ]
   },
   {
     id: 'drink_preference',
-    question: 'お好みのお酒は',
-    subtext: '最高の一杯をご用意いたします',
+    question: t('concierge.q_drink'),
+    subtext: t('concierge.q_drink_sub'),
     options: [
       { 
-        label: 'カクテル・洋酒', 
+        label: t('concierge.q_drink_cocktail'), 
         value: 'cocktail', 
         facilities: ['カクテル充実', 'ウイスキー豊富', 'ワイン充実', 'オーセンティックバー'],
-        description: '熟練バーテンダーの技を'
+        description: t('concierge.q_drink_cocktail_desc')
       },
       { 
-        label: '日本酒・焼酎', 
+        label: t('concierge.q_drink_japanese'), 
         value: 'japanese', 
         facilities: ['日本酒豊富', '焼酎豊富', '地酒あり', '和風'],
-        description: '日本の伝統の味わいを'
+        description: t('concierge.q_drink_japanese_desc')
       },
     ]
   },
@@ -266,12 +267,16 @@ const LuxuryIcon = ({ className, style }: LuxuryIconProps) => (
 // メインコンポーネント
 // ============================================
 export function ConciergeModal({ isOpen, onClose, onComplete }: ConciergeModalProps) {
+  const { t } = useLanguage();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, QuestionOption>>({});
   const [isCompleting, setIsCompleting] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [selectedFacilities, setSelectedFacilities] = useState<string[]>([]);
 
+  // 翻訳対応した質問を生成
+  const questions = useMemo(() => getQuestions(t), [t]);
+  
   const currentQuestion = questions[currentQuestionIndex];
   const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
 
@@ -436,13 +441,13 @@ export function ConciergeModal({ isOpen, onClose, onComplete }: ConciergeModalPr
                       fontFamily: '"Cormorant Garamond", "Noto Serif JP", serif',
                     }}
                   >
-                    CONCIERGE
+                    {t('concierge.title')}
                   </h2>
                   <p 
                     className="text-xs tracking-wider mt-1 uppercase"
                     style={{ color: COLORS.champagneGold }}
                   >
-                    Personalized Recommendation
+                    {t('concierge.subtitle')}
                   </p>
                 </motion.div>
               </div>
@@ -457,7 +462,7 @@ export function ConciergeModal({ isOpen, onClose, onComplete }: ConciergeModalPr
                       className="text-xs tracking-wider"
                       style={{ color: COLORS.warmGray }}
                     >
-                      Question
+                      {t('concierge.question')}
                     </span>
                     <span 
                       className="text-xs tracking-wider"
@@ -514,7 +519,7 @@ export function ConciergeModal({ isOpen, onClose, onComplete }: ConciergeModalPr
                       fontFamily: '"Cormorant Garamond", "Noto Serif JP", serif',
                     }}
                   >
-                    お客様に最適な店舗を
+                    {t('concierge.loading_title')}
                   </p>
                   <p 
                     className="text-lg tracking-wide font-light mt-1"
@@ -523,7 +528,7 @@ export function ConciergeModal({ isOpen, onClose, onComplete }: ConciergeModalPr
                       fontFamily: '"Cormorant Garamond", "Noto Serif JP", serif',
                     }}
                   >
-                    厳選しております...
+                    {t('concierge.loading_subtitle')}
                   </p>
                 </motion.div>
               ) : showResults ? (
@@ -546,15 +551,15 @@ export function ConciergeModal({ isOpen, onClose, onComplete }: ConciergeModalPr
                         fontFamily: '"Cormorant Garamond", "Noto Serif JP", serif',
                       }}
                     >
-                      ご案内の準備が整いました
+                      {t('concierge.result_title')}
                     </h3>
                     <p 
                       className="text-sm leading-relaxed"
                       style={{ color: COLORS.warmGray }}
                     >
-                      お客様のご希望に基づき、<br />
-                      <span style={{ color: COLORS.champagneGold }}>厳選した上位3件</span>
-                      をご案内いたします
+                      {t('concierge.result_intro')}<br />
+                      <span style={{ color: COLORS.champagneGold }}>{t('concierge.result_highlight')}</span>
+                      {t('concierge.result_outro')}
                     </p>
                   </div>
 
@@ -570,7 +575,7 @@ export function ConciergeModal({ isOpen, onClose, onComplete }: ConciergeModalPr
                       className="text-xs tracking-wider uppercase mb-3"
                       style={{ color: COLORS.champagneGold }}
                     >
-                      Your Preferences
+                      {t('concierge.your_preferences')}
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {Object.values(answers).slice(0, 4).map((answer, idx) => (
@@ -601,7 +606,7 @@ export function ConciergeModal({ isOpen, onClose, onComplete }: ConciergeModalPr
                       boxShadow: '0 10px 30px rgba(201, 168, 108, 0.3)',
                     }}
                   >
-                    厳選された店舗を見る
+                    {t('concierge.view_stores')}
                   </motion.button>
 
                   <button
@@ -609,7 +614,7 @@ export function ConciergeModal({ isOpen, onClose, onComplete }: ConciergeModalPr
                     className="w-full mt-4 py-3 text-sm tracking-wider transition-colors"
                     style={{ color: COLORS.warmGray }}
                   >
-                    最初からやり直す
+                    {t('concierge.restart')}
                   </button>
                 </motion.div>
               ) : (
@@ -715,7 +720,7 @@ export function ConciergeModal({ isOpen, onClose, onComplete }: ConciergeModalPr
                   style={{ color: COLORS.warmGray }}
                 >
                   <ChevronLeft className="w-4 h-4" />
-                  <span className="text-sm tracking-wider">戻る</span>
+                  <span className="text-sm tracking-wider">{t('concierge.back')}</span>
                 </motion.button>
 
                 <motion.button
@@ -726,7 +731,7 @@ export function ConciergeModal({ isOpen, onClose, onComplete }: ConciergeModalPr
                   style={{ color: COLORS.warmGray }}
                 >
                   <RotateCcw className="w-4 h-4" />
-                  <span className="text-sm tracking-wider">最初から</span>
+                  <span className="text-sm tracking-wider">{t('concierge.from_start')}</span>
                 </motion.button>
               </div>
             )}

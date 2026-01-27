@@ -17,7 +17,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapIcon, ExternalLink, Star, Filter, Check, Sparkles, X, Clock } from 'lucide-react';
+import { MapIcon, ExternalLink, Star, Filter, Check, Sparkles, X, Clock, Ticket } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { supabase } from '@/lib/supabase/client';
@@ -142,6 +142,7 @@ export default function StoreListPage() {
   // フィルター状態
   const [vacantOnly, setVacantOnly] = useState(false);
   const [openNowOnly, setOpenNowOnly] = useState(false);
+  const [couponOnly, setCouponOnly] = useState(false);
   const [showFilterMenu, setShowFilterMenu] = useState(false);
   
   // コンシェルジュ状態
@@ -153,7 +154,7 @@ export default function StoreListPage() {
   const isOpenUpdatedRef = useRef(false);
 
   // アクティブなフィルター数
-  const activeFilterCount = [vacantOnly, openNowOnly].filter(Boolean).length;
+  const activeFilterCount = [vacantOnly, openNowOnly, couponOnly].filter(Boolean).length;
 
   // 位置情報の読み込み
   useEffect(() => {
@@ -216,6 +217,16 @@ export default function StoreListPage() {
     };
   }, [userLocation]);
 
+  // クーポンが有効かどうかをチェック
+  const hasCoupon = (store: Store): boolean => {
+    return !!(
+      store.coupon_is_active && 
+      store.coupon_title &&
+      (!store.coupon_expiry_date || new Date(store.coupon_expiry_date) > new Date()) &&
+      (!store.coupon_max_uses || (store.coupon_current_uses || 0) < store.coupon_max_uses)
+    );
+  };
+
   // フィルタリングロジック
   useEffect(() => {
     let result = [...stores];
@@ -228,6 +239,11 @@ export default function StoreListPage() {
     // 営業中フィルター
     if (openNowOnly) {
       result = result.filter(store => isStoreCurrentlyOpen(store));
+    }
+
+    // クーポンありフィルター
+    if (couponOnly) {
+      result = result.filter(store => hasCoupon(store));
     }
 
     // コンシェルジュフィルター（facilitiesベース）
@@ -259,7 +275,7 @@ export default function StoreListPage() {
     }
 
     setFilteredStores(result);
-  }, [stores, vacantOnly, openNowOnly, conciergeFilters, isConciergeActive]);
+  }, [stores, vacantOnly, openNowOnly, couponOnly, conciergeFilters, isConciergeActive]);
 
   const loadUserLocation = () => {
     const savedLocation = localStorage.getItem('userLocation');
@@ -409,6 +425,7 @@ export default function StoreListPage() {
   const clearAllFilters = useCallback(() => {
     setVacantOnly(false);
     setOpenNowOnly(false);
+    setCouponOnly(false);
     clearConciergeFilter();
   }, []);
 
@@ -432,9 +449,10 @@ export default function StoreListPage() {
   // フィルター状態のテキスト生成
   const getFilterStatusText = (): string => {
     const statuses: string[] = [];
-    if (vacantOnly) statuses.push('空席あり');
-    if (openNowOnly) statuses.push('営業中');
-    if (isConciergeActive) statuses.push('厳選3件');
+    if (vacantOnly) statuses.push(t('store_list.vacant'));
+    if (openNowOnly) statuses.push(t('store_list.open'));
+    if (couponOnly) statuses.push(t('store_list.filter_has_coupon'));
+    if (isConciergeActive) statuses.push(t('store_list.concierge_active'));
     return statuses.length > 0 ? `（${statuses.join('・')}）` : '';
   };
 
@@ -464,7 +482,7 @@ export default function StoreListPage() {
           >
             <Sparkles className="w-5 h-5" />
             <span>
-              {isConciergeActive ? '厳選3件をご案内中' : 'コンシェルジュに相談する'}
+              {isConciergeActive ? t('store_list.concierge_active') : t('store_list.concierge_button')}
             </span>
           </motion.button>
           
@@ -475,14 +493,14 @@ export default function StoreListPage() {
               <span className="ml-2" style={{ color: COLORS.champagneGold }}>{getFilterStatusText()}</span>
             </p>
             
-            {(vacantOnly || openNowOnly || isConciergeActive) && (
+            {(vacantOnly || openNowOnly || couponOnly || isConciergeActive) && (
               <button
                 onClick={clearAllFilters}
                 className="text-sm font-bold hover:underline flex items-center gap-1"
                 style={{ color: COLORS.royalNavy }}
               >
                 <X className="w-3 h-3" />
-                フィルター解除
+                {t('store_list.filter_clear')}
               </button>
             )}
           </div>
@@ -501,20 +519,18 @@ export default function StoreListPage() {
         ) : filteredStores.length === 0 ? (
           <div className="text-center py-12">
             <p className="font-bold" style={{ color: COLORS.deepNavy }}>
-              {isConciergeActive
-                ? '条件に合う店舗が見つかりませんでした'
-                : vacantOnly || openNowOnly
-                  ? '条件に合う店舗が見つかりませんでした'
-                  : t('store_list.no_stores')
+              {(isConciergeActive || vacantOnly || openNowOnly || couponOnly)
+                ? t('store_list.no_matching_stores')
+                : t('store_list.no_stores')
               }
             </p>
-            {(vacantOnly || openNowOnly || isConciergeActive) && (
+            {(vacantOnly || openNowOnly || couponOnly || isConciergeActive) && (
               <button
                 onClick={clearAllFilters}
                 className="mt-4 font-bold hover:underline"
                 style={{ color: COLORS.champagneGold }}
               >
-                すべての店舗を表示
+                {t('store_list.show_all_stores')}
               </button>
             )}
           </div>
@@ -534,11 +550,11 @@ export default function StoreListPage() {
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <Sparkles className="w-5 h-5" style={{ color: '#C9A86C' }} />
                   <span className="text-lg font-light tracking-wide" style={{ color: '#C9A86C' }}>
-                    Concierge Selection
+                    {t('store_list.concierge_selection')}
                   </span>
                 </div>
                 <p className="text-sm font-medium" style={{ color: COLORS.warmGray }}>
-                  お客様のご希望に基づき、厳選した{filteredStores.length}件を<br />ご案内いたします
+                  {t('store_list.concierge_intro').replace('{count}', String(filteredStores.length))}
                 </p>
               </motion.div>
             )}
@@ -592,7 +608,7 @@ export default function StoreListPage() {
                             }}
                           >
                             <Clock className="w-3 h-3" />
-                            営業中
+                            {t('store_list.open')}
                           </motion.div>
                         )}
                         
@@ -657,7 +673,9 @@ export default function StoreListPage() {
                                   : `${distanceM}m`;
                                 return (
                                   <p className="text-sm font-bold" style={{ color: COLORS.warmGray }}>
-                                    徒歩およそ{calculateWalkingTime(distanceKm)}分（約{distanceText}）
+                                    {t('store_list.walking_time')
+                                      .replace('{minutes}', String(calculateWalkingTime(distanceKm)))
+                                      .replace('{distance}', distanceText)}
                                   </p>
                                 );
                               })()}
@@ -709,7 +727,7 @@ export default function StoreListPage() {
                                     color: '#B8956E',
                                   }}
                                 >
-                                  {matchScore}項目がご希望にマッチ
+                                  {t('store_list.items_match').replace('{count}', String(matchScore))}
                                 </p>
                               )}
                             </div>
@@ -761,7 +779,7 @@ export default function StoreListPage() {
                     className="text-[10px] font-bold" 
                     style={{ color: activeFilterCount > 0 ? '#0A1628' : '#C9A86C' }}
                   >
-                    絞込
+                    {t('store_list.filter')}
                   </span>
                   {activeFilterCount > 0 && (
                     <span className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center text-xs font-bold text-white">
@@ -793,7 +811,7 @@ export default function StoreListPage() {
                   >
                     <div className="p-2">
                       <p className="text-xs text-gray-400 px-3 py-2 font-bold">
-                        店舗を絞り込み
+                        {t('store_list.filter_title')}
                       </p>
                       
                       {/* 営業中フィルター */}
@@ -807,13 +825,13 @@ export default function StoreListPage() {
                             : 'hover:bg-white/10 text-white'
                         }`}
                       >
-                    <img
-src="https://res.cloudinary.com/dz9trbwma/image/upload/v1767848645/icons8-%E9%96%8B%E5%BA%97%E3%82%B5%E3%82%A4%E3%83%B3-94_a4tmzn.png"
-                          alt="営業中"
+                        <img
+                          src="https://res.cloudinary.com/dz9trbwma/image/upload/v1767848645/icons8-%E9%96%8B%E5%BA%97%E3%82%B5%E3%82%A4%E3%83%B3-94_a4tmzn.png"
+                          alt={t('store_list.open')}
                           className="w-5 h-5"
                         />
                         <span className="font-bold text-sm flex-1 text-left">
-                          営業中
+                          {t('store_list.open')}
                         </span>
                         {openNowOnly && (
                           <Check className="w-4 h-4 text-blue-400" />
@@ -833,14 +851,34 @@ src="https://res.cloudinary.com/dz9trbwma/image/upload/v1767848645/icons8-%E9%96
                       >
                         <img
                           src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761311529/%E7%A9%BA%E5%B8%AD%E3%81%82%E3%82%8A_rzejgw.png"
-                          alt="空席あり"
+                          alt={t('store_list.vacant')}
                           className="w-5 h-5"
                         />
                         <span className="font-bold text-sm flex-1 text-left">
-                          空席あり
+                          {t('store_list.vacant')}
                         </span>
                         {vacantOnly && (
                           <Check className="w-4 h-4 text-green-400" />
+                        )}
+                      </button>
+
+                      {/* クーポンありフィルター */}
+                      <button
+                        onClick={() => {
+                          setCouponOnly(!couponOnly);
+                        }}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
+                          couponOnly 
+                            ? 'bg-amber-500/20 text-amber-400' 
+                            : 'hover:bg-white/10 text-white'
+                        }`}
+                      >
+                        <Ticket className="w-5 h-5" />
+                        <span className="font-bold text-sm flex-1 text-left">
+                          {t('store_list.filter_has_coupon')}
+                        </span>
+                        {couponOnly && (
+                          <Check className="w-4 h-4 text-amber-400" />
                         )}
                       </button>
 
@@ -852,10 +890,11 @@ src="https://res.cloudinary.com/dz9trbwma/image/upload/v1767848645/icons8-%E9%96
                         onClick={() => {
                           setVacantOnly(false);
                           setOpenNowOnly(false);
+                          setCouponOnly(false);
                           setShowFilterMenu(false);
                         }}
                         className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
-                          !vacantOnly && !openNowOnly
+                          !vacantOnly && !openNowOnly && !couponOnly
                             ? 'bg-amber-500/20 text-amber-400' 
                             : 'hover:bg-white/10 text-white'
                         }`}
@@ -864,9 +903,9 @@ src="https://res.cloudinary.com/dz9trbwma/image/upload/v1767848645/icons8-%E9%96
                           🍺
                         </span>
                         <span className="font-bold text-sm flex-1 text-left">
-                          すべて表示
+                          {t('store_list.filter_show_all')}
                         </span>
-                        {!vacantOnly && !openNowOnly && (
+                        {!vacantOnly && !openNowOnly && !couponOnly && (
                           <Check className="w-4 h-4 text-amber-400" />
                         )}
                       </button>

@@ -42,6 +42,7 @@ import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/lib/supabase/client';
 import type { Database } from '@/lib/supabase/types';
 import { useLanguage } from '@/lib/i18n/context';
+import { translations } from '@/lib/i18n/translations';
 import { InstantReservationButton } from '@/components/instant-reservation-button';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { CouponDisplayModal } from '@/components/store/CouponDisplayModal';
@@ -133,7 +134,13 @@ const GoldDivider = () => (
 export default function StoreDetailPage() {
   const router = useRouter();
   const params = useParams();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  
+  // 設備名を翻訳するヘルパー関数
+  const translateFacility = (facility: string): string => {
+    const facilitiesMap = (translations as any)[language]?.facilities_map;
+    return facilitiesMap?.[facility] || facility;
+  };
   const [store, setStore] = useState<Store | null>(null);
   const [loading, setLoading] = useState(true);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
@@ -1207,7 +1214,7 @@ export default function StoreDetailPage() {
                                   border: `1px solid rgba(31, 64, 104, 0.2)`,
                                 }}
                               >
-                                {facility}
+                                {translateFacility(facility)}
                               </Badge>
                             ))}
                         </div>
@@ -1239,7 +1246,7 @@ export default function StoreDetailPage() {
                                   border: `1px solid rgba(201, 168, 108, 0.25)`,
                                 }}
                               >
-                                {facility}
+                                {translateFacility(facility)}
                               </Badge>
                             ))}
                         </div>
@@ -1271,7 +1278,7 @@ export default function StoreDetailPage() {
                                   border: `1px solid rgba(34, 197, 94, 0.25)`,
                                 }}
                               >
-                                {facility}
+                                {translateFacility(facility)}
                               </Badge>
                             ))}
                         </div>
@@ -1296,7 +1303,7 @@ export default function StoreDetailPage() {
                               border: `1px solid rgba(201, 168, 108, 0.2)`,
                             }}
                           >
-                            {facility}
+                            {translateFacility(facility)}
                           </Badge>
                         ))}
                     </div>
