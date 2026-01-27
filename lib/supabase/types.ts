@@ -125,6 +125,17 @@ export interface Database {
           coupon_barcode_url: string | null
           /** InstagramのURL */
           instagram_url: string | null
+          // ============================================
+          // キャンペーン関連のカラム
+          // ============================================
+          /** キャンペーン実施フラグ */
+          has_campaign: boolean
+          /** キャンペーン名 */
+          campaign_name: string | null
+          /** キャンペーン開始日時 */
+          campaign_start_date: string | null
+          /** キャンペーン終了日時 */
+          campaign_end_date: string | null
         }
         Insert: {
           id?: string
@@ -178,6 +189,11 @@ export interface Database {
           coupon_code?: string | null
           coupon_barcode_url?: string | null
           instagram_url?: string | null
+          // キャンペーン関連（すべてオプショナル）
+          has_campaign?: boolean
+          campaign_name?: string | null
+          campaign_start_date?: string | null
+          campaign_end_date?: string | null
         }
         Update: {
           id?: string
@@ -231,6 +247,11 @@ export interface Database {
           coupon_code?: string | null
           coupon_barcode_url?: string | null
           instagram_url?: string | null
+          // キャンペーン関連（すべてオプショナル）
+          has_campaign?: boolean
+          campaign_name?: string | null
+          campaign_start_date?: string | null
+          campaign_end_date?: string | null
         }
       }
       quick_reservations: {

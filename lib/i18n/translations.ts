@@ -113,6 +113,7 @@ export const translations = {
       filter_clear: 'フィルター解除',
       filter_show_all: 'すべて表示',
       filter_has_coupon: 'クーポンあり',
+      filter_campaign: 'キャンペーン中',
     },
     // コンシェルジュモーダル
     concierge: {
@@ -348,6 +349,28 @@ export const translations = {
       '地酒あり': '地酒あり',
       '和風': '和風',
       'オーセンティックバー': 'オーセンティックバー',
+      // 特徴・サービス項目
+      'スタイリッシュ': 'スタイリッシュ',
+      '大人の雰囲気': '大人の雰囲気',
+      '隠れ家的': '隠れ家的',
+      '美味しいお酒': '美味しいお酒',
+      'こだわりの一杯': 'こだわりの一杯',
+      'カジュアル': 'カジュアル',
+    },
+    // 決済方法の翻訳マップ
+    payment_methods_map: {
+      '現金': '現金',
+      'クレジットカード': 'クレジットカード',
+      'QRコード決済': 'QRコード決済',
+      '交通系IC': '交通系IC',
+    },
+    // キャンペーン関連
+    campaign: {
+      section_title: '開催中のキャンペーン',
+      section_subtitle: 'Special Campaign',
+      view_stores: '対象店舗を見る',
+      filter_label: 'キャンペーン中',
+      badge: 'キャンペーン中',
     },
   },
   en: {
@@ -464,6 +487,7 @@ export const translations = {
       filter_clear: 'Clear filters',
       filter_show_all: 'Show all',
       filter_has_coupon: 'Has Coupon',
+      filter_campaign: 'Campaign',
     },
     // Concierge modal
     concierge: {
@@ -699,6 +723,28 @@ export const translations = {
       '地酒あり': 'Local sake',
       '和風': 'Japanese style',
       'オーセンティックバー': 'Authentic bar',
+      // Features & Services
+      'スタイリッシュ': 'Stylish',
+      '大人の雰囲気': 'Sophisticated Atmosphere',
+      '隠れ家的': 'Cozy Retreat',
+      '美味しいお酒': 'Excellent Drinks',
+      'こだわりの一杯': 'Signature Brew',
+      'カジュアル': 'Casual',
+    },
+    // Payment methods translation map
+    payment_methods_map: {
+      '現金': 'Cash',
+      'クレジットカード': 'Credit Card',
+      'QRコード決済': 'QR Code Payment',
+      '交通系IC': 'Transportation IC Card',
+    },
+    // Campaign related
+    campaign: {
+      section_title: 'Current Campaigns',
+      section_subtitle: 'Special Campaign',
+      view_stores: 'View Participating Stores',
+      filter_label: 'Campaign',
+      badge: 'Campaign',
     },
   },
 };

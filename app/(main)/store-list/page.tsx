@@ -17,7 +17,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapIcon, ExternalLink, Star, Filter, Check, Sparkles, X, Clock, Ticket } from 'lucide-react';
+import { MapIcon, ExternalLink, Star, Filter, Check, Sparkles, X, Clock, Ticket, PartyPopper } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { supabase } from '@/lib/supabase/client';
@@ -133,6 +133,7 @@ const parseTimeRange = (timeRange: string, currentTime: number): boolean => {
 
 export default function StoreListPage() {
   const router = useRouter();
+  const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
   const { t } = useLanguage();
   const [stores, setStores] = useState<Store[]>([]);
   const [filteredStores, setFilteredStores] = useState<Store[]>([]);
@@ -143,6 +144,7 @@ export default function StoreListPage() {
   const [vacantOnly, setVacantOnly] = useState(false);
   const [openNowOnly, setOpenNowOnly] = useState(false);
   const [couponOnly, setCouponOnly] = useState(false);
+  const [campaignOnly, setCampaignOnly] = useState(false);
   const [showFilterMenu, setShowFilterMenu] = useState(false);
   
   // コンシェルジュ状態
@@ -154,11 +156,18 @@ export default function StoreListPage() {
   const isOpenUpdatedRef = useRef(false);
 
   // アクティブなフィルター数
-  const activeFilterCount = [vacantOnly, openNowOnly, couponOnly].filter(Boolean).length;
+  const activeFilterCount = [vacantOnly, openNowOnly, couponOnly, campaignOnly].filter(Boolean).length;
 
   // 位置情報の読み込み
   useEffect(() => {
     loadUserLocation();
+  }, []);
+
+  // URLパラメータからキャンペーンフィルターを初期化
+  useEffect(() => {
+    if (searchParams?.get('campaign')) {
+      setCampaignOnly(true);
+    }
   }, []);
 
   // 初回マウント時のみis_open更新APIを呼び出す
@@ -227,6 +236,17 @@ export default function StoreListPage() {
     );
   };
 
+  // キャンペーンが有効かどうかをチェック
+  const hasCampaign = (store: Store): boolean => {
+    if (!store.has_campaign) return false;
+    const now = new Date();
+    // 開始日チェック（開始日がある場合）
+    if (store.campaign_start_date && new Date(store.campaign_start_date) > now) return false;
+    // 終了日チェック（終了日がある場合）
+    if (store.campaign_end_date && new Date(store.campaign_end_date) < now) return false;
+    return true;
+  };
+
   // フィルタリングロジック
   useEffect(() => {
     let result = [...stores];
@@ -244,6 +264,11 @@ export default function StoreListPage() {
     // クーポンありフィルター
     if (couponOnly) {
       result = result.filter(store => hasCoupon(store));
+    }
+
+    // キャンペーンフィルター
+    if (campaignOnly) {
+      result = result.filter(store => hasCampaign(store));
     }
 
     // コンシェルジュフィルター（facilitiesベース）
@@ -275,7 +300,7 @@ export default function StoreListPage() {
     }
 
     setFilteredStores(result);
-  }, [stores, vacantOnly, openNowOnly, couponOnly, conciergeFilters, isConciergeActive]);
+  }, [stores, vacantOnly, openNowOnly, couponOnly, campaignOnly, conciergeFilters, isConciergeActive]);
 
   const loadUserLocation = () => {
     const savedLocation = localStorage.getItem('userLocation');
@@ -426,7 +451,14 @@ export default function StoreListPage() {
     setVacantOnly(false);
     setOpenNowOnly(false);
     setCouponOnly(false);
+    setCampaignOnly(false);
     clearConciergeFilter();
+    // URLパラメータもクリア
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('campaign');
+      window.history.replaceState({}, '', url.toString());
+    }
   }, []);
 
   useEffect(() => {
@@ -452,6 +484,7 @@ export default function StoreListPage() {
     if (vacantOnly) statuses.push(t('store_list.vacant'));
     if (openNowOnly) statuses.push(t('store_list.open'));
     if (couponOnly) statuses.push(t('store_list.filter_has_coupon'));
+    if (campaignOnly) statuses.push(t('store_list.filter_campaign') || 'キャンペーン中');
     if (isConciergeActive) statuses.push(t('store_list.concierge_active'));
     return statuses.length > 0 ? `（${statuses.join('・')}）` : '';
   };
@@ -493,7 +526,7 @@ export default function StoreListPage() {
               <span className="ml-2" style={{ color: COLORS.champagneGold }}>{getFilterStatusText()}</span>
             </p>
             
-            {(vacantOnly || openNowOnly || couponOnly || isConciergeActive) && (
+            {(vacantOnly || openNowOnly || couponOnly || campaignOnly || isConciergeActive) && (
               <button
                 onClick={clearAllFilters}
                 className="text-sm font-bold hover:underline flex items-center gap-1"
@@ -519,12 +552,12 @@ export default function StoreListPage() {
         ) : filteredStores.length === 0 ? (
           <div className="text-center py-12">
             <p className="font-bold" style={{ color: COLORS.deepNavy }}>
-              {(isConciergeActive || vacantOnly || openNowOnly || couponOnly)
+              {(isConciergeActive || vacantOnly || openNowOnly || couponOnly || campaignOnly)
                 ? t('store_list.no_matching_stores')
                 : t('store_list.no_stores')
               }
             </p>
-            {(vacantOnly || openNowOnly || couponOnly || isConciergeActive) && (
+            {(vacantOnly || openNowOnly || couponOnly || campaignOnly || isConciergeActive) && (
               <button
                 onClick={clearAllFilters}
                 className="mt-4 font-bold hover:underline"
@@ -597,19 +630,40 @@ export default function StoreListPage() {
                           </motion.div>
                         )}
 
-                        {/* 営業中バッジ（コンシェルジュ非アクティブ時） */}
-                        {!isConciergeActive && isOpen && (
-                          <motion.div
-                            initial={{ scale: 0, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            className="absolute top-2 right-2 z-10 px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1 bg-green-500 text-white"
-                            style={{
-                              boxShadow: '0 2px 8px rgba(34, 197, 94, 0.3)',
-                            }}
-                          >
-                            <Clock className="w-3 h-3" />
-                            {t('store_list.open')}
-                          </motion.div>
+                        {/* クーポンあり / キャンペーン中バッジ（コンシェルジュ非アクティブ時） */}
+                        {!isConciergeActive && (hasCoupon(store) || hasCampaign(store)) && (
+                          <div className="absolute top-2 right-2 z-10 flex flex-col gap-1">
+                            {/* キャンペーン中バッジ */}
+                            {hasCampaign(store) && (
+                              <motion.div
+                                initial={{ scale: 0, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                className="px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1"
+                                style={{
+                                  background: 'linear-gradient(135deg, #C9A86C 0%, #E8D5B7 50%, #B8956E 100%)',
+                                  color: '#0A1628',
+                                  boxShadow: '0 2px 8px rgba(201, 168, 108, 0.4)',
+                                }}
+                              >
+                                <PartyPopper className="w-3 h-3" />
+                                {t('store_list.filter_campaign') || 'キャンペーン'}
+                              </motion.div>
+                            )}
+                            {/* クーポンありバッジ */}
+                            {hasCoupon(store) && (
+                              <motion.div
+                                initial={{ scale: 0, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                className="px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1 bg-amber-500 text-white"
+                                style={{
+                                  boxShadow: '0 2px 8px rgba(245, 158, 11, 0.3)',
+                                }}
+                              >
+                                <Ticket className="w-3 h-3" />
+                                {t('store_list.filter_has_coupon')}
+                              </motion.div>
+                            )}
+                          </div>
                         )}
                         
                         <div className="flex gap-3 h-full">
@@ -627,7 +681,7 @@ export default function StoreListPage() {
                             <div className="flex-1">
                               {/* 店舗名 - バッジと重ならないようにpr追加 */}
                               <h3 
-                                className={`text-lg font-bold truncate ${isConciergeActive || isOpen ? 'pr-16' : ''}`}
+                                className={`text-lg font-bold truncate ${isConciergeActive || hasCoupon(store) || hasCampaign(store) ? 'pr-20' : ''}`}
                                 style={{ color: COLORS.deepNavy }}
                               >
                                 {store.name}
@@ -882,6 +936,26 @@ export default function StoreListPage() {
                         )}
                       </button>
 
+                      {/* キャンペーン中フィルター */}
+                      <button
+                        onClick={() => {
+                          setCampaignOnly(!campaignOnly);
+                        }}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
+                          campaignOnly 
+                            ? 'bg-yellow-500/20 text-yellow-400' 
+                            : 'hover:bg-white/10 text-white'
+                        }`}
+                      >
+                        <PartyPopper className="w-5 h-5" />
+                        <span className="font-bold text-sm flex-1 text-left">
+                          {t('store_list.filter_campaign') || 'キャンペーン中'}
+                        </span>
+                        {campaignOnly && (
+                          <Check className="w-4 h-4 text-yellow-400" />
+                        )}
+                      </button>
+
                       {/* 区切り線 */}
                       <div className="my-2 border-t border-white/10" />
 
@@ -891,10 +965,11 @@ export default function StoreListPage() {
                           setVacantOnly(false);
                           setOpenNowOnly(false);
                           setCouponOnly(false);
+                          setCampaignOnly(false);
                           setShowFilterMenu(false);
                         }}
                         className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
-                          !vacantOnly && !openNowOnly && !couponOnly
+                          !vacantOnly && !openNowOnly && !couponOnly && !campaignOnly
                             ? 'bg-amber-500/20 text-amber-400' 
                             : 'hover:bg-white/10 text-white'
                         }`}
@@ -905,7 +980,7 @@ export default function StoreListPage() {
                         <span className="font-bold text-sm flex-1 text-left">
                           {t('store_list.filter_show_all')}
                         </span>
-                        {!vacantOnly && !openNowOnly && !couponOnly && (
+                        {!vacantOnly && !openNowOnly && !couponOnly && !campaignOnly && (
                           <Check className="w-4 h-4 text-amber-400" />
                         )}
                       </button>

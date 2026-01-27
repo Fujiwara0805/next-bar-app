@@ -124,7 +124,11 @@ const STORE_SELECT_COLUMNS = `
   description,
   business_hours,
   created_at,
-  updated_at
+  updated_at,
+  has_campaign,
+  campaign_name,
+  campaign_start_date,
+  campaign_end_date
 `;
 
 // ============================================================================
@@ -990,9 +994,13 @@ function MapPageContent() {
                       const distanceText = distanceM >= 1000 
                         ? `${(distanceKm).toFixed(1)}km` 
                         : `${distanceM}m`;
+                      const walkingTime = calculateWalkingTime(distanceKm);
                       return (
                         <p className="text-sm font-bold" style={{ color: colors.textMuted }}>
-                          徒歩およそ{calculateWalkingTime(distanceKm)}分（約{distanceText}）
+                          {language === 'ja' 
+                            ? `徒歩およそ${walkingTime}分（約${distanceText}）`
+                            : `About ${walkingTime} min walk (${distanceText})`
+                          }
                         </p>
                       );
                     })()}
@@ -1021,6 +1029,23 @@ function MapPageContent() {
                         {getVacancyLabel(selectedStore.vacancy_status)}
                       </span>
                     </div>
+
+                    {/* キャンペーン情報 */}
+                    {selectedStore.has_campaign && selectedStore.campaign_name && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="mt-2 px-3 py-2 rounded-lg"
+                        style={{
+                          background: `linear-gradient(135deg, ${colors.accent}20 0%, ${colors.accent}10 100%)`,
+                          border: `1px solid ${colors.accent}40`,
+                        }}
+                      >
+                        <p className="text-sm font-bold" style={{ color: colors.accent }}>
+                          {selectedStore.campaign_name} 🍺
+                        </p>
+                      </motion.div>
+                    )}
                   </div>
                 </div>
 
@@ -1065,7 +1090,7 @@ function MapPageContent() {
                   {isNavigating ? (
                     <>
                       <Loader2 className="w-5 h-5 animate-spin" />
-                      <span>読み込み中...</span>
+                      <span>{language === 'ja' ? '読み込み中...' : 'Loading...'}</span>
                     </>
                   ) : (
                     t('map.view_details')

@@ -22,6 +22,7 @@ import {
   Heart,
   AlertCircle,
   Sparkles,
+  PartyPopper,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -74,6 +75,16 @@ interface PartnerStore {
   website_url: string | null;
   description: string | null;
   vacancy_status: 'vacant' | 'open' | 'full' | 'closed';
+}
+
+interface CampaignStore {
+  id: string;
+  name: string;
+  has_campaign: boolean;
+  campaign_name: string | null;
+  campaign_start_date: string | null;
+  campaign_end_date: string | null;
+  image_urls: string[] | null;
 }
 
 const DEFAULT_LOCATION = {
@@ -186,6 +197,7 @@ export default function LandingPage() {
   const [showToast, setShowToast] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [partnerStores, setPartnerStores] = useState<PartnerStore[]>([]);
+  const [campaignStores, setCampaignStores] = useState<CampaignStore[]>([]);
   const carouselRef = useRef<HTMLDivElement>(null);
   const locationAttemptRef = useRef(false);
 
@@ -238,6 +250,31 @@ export default function LandingPage() {
       } catch (error) { console.error('Error fetching partner stores:', error); }
     };
     fetchPartnerStores();
+  }, []);
+
+  // キャンペーン実施中の店舗を取得
+  useEffect(() => {
+    const fetchCampaignStores = async () => {
+      try {
+        const now = new Date().toISOString();
+        const { data, error } = await supabase
+          .from('stores')
+          .select('id, name, has_campaign, campaign_name, campaign_start_date, campaign_end_date, image_urls')
+          .eq('has_campaign', true)
+          .or(`campaign_end_date.is.null,campaign_end_date.gte.${now}`)
+          .limit(5);
+        if (error) {
+          console.error('Error fetching campaign stores:', error);
+          return;
+        }
+        if (data) {
+          setCampaignStores(data as CampaignStore[]);
+        }
+      } catch (error) {
+        console.error('Error fetching campaign stores:', error);
+      }
+    };
+    fetchCampaignStores();
   }, []);
 
   useEffect(() => {
@@ -413,6 +450,127 @@ export default function LandingPage() {
         </div>
         <motion.div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${colors.accent}60, transparent)` }} initial={{ scaleX: 0 }} whileInView={{ scaleX: 1 }} viewport={{ once: true }} transition={{ duration: 1.5, ease: 'easeOut' }} />
       </section>
+
+      {/* キャンペーンセクション */}
+      {campaignStores.length > 0 && (
+        <section className="relative py-16 px-4 overflow-hidden" style={{ background: colors.surface }}>
+          <div className="container mx-auto max-w-5xl">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-10"
+            >
+              <GoldDivider />
+              <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-3" style={{ color: colors.accent }}>
+                Special Campaign
+              </span>
+              <h2 className="text-2xl sm:text-3xl font-bold mb-2" style={{ color: colors.text }}>
+                {language === 'ja' ? '開催中のキャンペーン' : 'Current Campaigns'}
+              </h2>
+              <p className="text-base" style={{ color: colors.textMuted }}>
+                {language === 'ja' ? 'お得な特典をお見逃しなく' : "Don't miss these special offers"}
+              </p>
+            </motion.div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {campaignStores.map((campaign, index) => (
+                <motion.div
+                  key={campaign.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.1 }}
+                >
+                  <Card
+                    className="relative overflow-hidden cursor-pointer group h-full"
+                    style={{
+                      background: `${colors.background}90`,
+                      border: `1px solid ${colors.borderGold}`,
+                    }}
+                    onClick={() => router.push(`/store-list?campaign=${encodeURIComponent(campaign.campaign_name || 'true')}`)}
+                  >
+                    {/* 背景画像（あれば） */}
+                    {campaign.image_urls && campaign.image_urls.length > 0 && (
+                      <div className="absolute inset-0">
+                        <img
+                          src={campaign.image_urls[0]}
+                          alt=""
+                          className="w-full h-full object-cover opacity-20 group-hover:opacity-30 transition-opacity duration-300"
+                        />
+                        <div className="absolute inset-0" style={{ background: `linear-gradient(to top, ${colors.background} 0%, transparent 100%)` }} />
+                      </div>
+                    )}
+                    
+                    <div className="relative z-10 p-5">
+                      {/* キャンペーンバッジ */}
+                      <div className="flex items-center gap-2 mb-3">
+                        <motion.div
+                          animate={{ scale: [1, 1.2, 1] }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                          className="w-2 h-2 rounded-full"
+                          style={{ background: '#4ADE80', boxShadow: '0 0 8px #4ADE80' }}
+                        />
+                        <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: '#4ADE80' }}>
+                          {language === 'ja' ? '開催中' : 'Now On'}
+                        </span>
+                      </div>
+
+                      {/* キャンペーン名 */}
+                      <h3 className="text-lg font-bold mb-2 group-hover:translate-x-1 transition-transform" style={{ color: colors.text }}>
+                        {campaign.campaign_name || (language === 'ja' ? 'キャンペーン' : 'Campaign')} 🍺
+                      </h3>
+
+                      {/* 店舗名 */}
+                      <p className="text-sm mb-3" style={{ color: colors.textMuted }}>
+                        {campaign.name}
+                      </p>
+
+                      {/* 期間表示 */}
+                      {campaign.campaign_end_date && (
+                        <p className="text-xs" style={{ color: colors.accent }}>
+                          {language === 'ja' ? '〜' : 'Until '}{new Date(campaign.campaign_end_date).toLocaleDateString(language === 'ja' ? 'ja-JP' : 'en-US', { month: 'short', day: 'numeric' })}
+                          {language === 'ja' ? 'まで' : ''}
+                        </p>
+                      )}
+
+                      {/* 詳細へ誘導 */}
+                      <div className="flex items-center gap-1 mt-4 group-hover:gap-2 transition-all" style={{ color: colors.accent }}>
+                        <span className="text-sm font-medium">
+                          {language === 'ja' ? '詳細を見る' : 'View Details'}
+                        </span>
+                        <ChevronRight className="w-4 h-4" />
+                      </div>
+                    </div>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* すべてのキャンペーン店舗を見るボタン */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mt-8"
+            >
+              <Button
+                onClick={() => router.push('/store-list?campaign=true')}
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-full font-medium transition-all hover:scale-105"
+                style={{
+                  background: `${colors.accent}15`,
+                  border: `1px solid ${colors.borderGold}`,
+                  color: colors.accent,
+                }}
+              >
+                <Sparkles className="w-5 h-5" />
+                {language === 'ja' ? 'キャンペーン中の店舗を見る' : 'View Campaign Stores'}
+              </Button>
+            </motion.div>
+          </div>
+          <motion.div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${colors.accent}40, transparent)` }} />
+        </section>
+      )}
 
       {/* 課題提起セクション */}
       <section className="relative py-24 px-4 overflow-hidden" style={{ background: colors.surface }}>
