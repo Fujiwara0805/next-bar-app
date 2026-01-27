@@ -3,6 +3,9 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { translations, Language } from './translations';
 
+// Language型を再エクスポート
+export type { Language };
+
 // 対応言語リスト
 export const SUPPORTED_LANGUAGES: Language[] = ['ja', 'en', 'ko', 'zh'];
 
