@@ -210,7 +210,7 @@ export function StoreCouponForm({
                     <SelectItem value="percentage">
                       <div className="flex items-center gap-2">
                         <Percent className="w-4 h-4" />
-                        %割引
+                        割引
                       </div>
                     </SelectItem>
                     <SelectItem value="fixed">
@@ -277,7 +277,7 @@ export function StoreCouponForm({
 
               {/* 期間設定 */}
               <div className="space-y-4">
-                <div className="space-y-2 max-w-xs">
+                <div className="space-y-2 ">
                   <Label htmlFor="coupon-start-date" className="font-bold flex items-center gap-2 ">
                     <Calendar className="w-3 h-3" />
                     配布開始日
@@ -289,11 +289,11 @@ export function StoreCouponForm({
                     onChange={(e) => handleChange('startDate', e.target.value)}
                     disabled={disabled}
                     className="font-bold bg-white text-gray-700 border-2 border-gray-300 h-9 placeholder:text-gray-300"
-                    style={{ fontSize: '14px' }}
+                    style={{ fontSize: '16px' }}
                   />
                 </div>
 
-                <div className="space-y-2 max-w-xs">
+                <div className="space-y-2">
                   <Label htmlFor="coupon-expiry-date" className="font-bold flex items-center gap-2 ">
                     <Calendar className="w-3 h-3" />
                     有効期限
@@ -305,7 +305,7 @@ export function StoreCouponForm({
                     onChange={(e) => handleChange('expiryDate', e.target.value)}
                     disabled={disabled}
                     className="font-bold bg-white text-gray-700 border-2 border-gray-300 h-9 placeholder:text-gray-300"
-                    style={{ fontSize: '14px' }}
+                    style={{ fontSize: '16px' }}
                   />
                   {errors.expiryDate && (
                     <p className="text-xs text-red-500 flex items-center gap-1">
