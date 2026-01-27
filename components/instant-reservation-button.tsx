@@ -40,7 +40,7 @@ export function InstantReservationButton({
   const handleRequest = async () => {
     // バリデーション
     if (!guestName.trim()) {
-      toast.error('名前を入力してください', {
+      toast.error(t('reservation.error_name_required'), {
         position: 'top-center',
         className: 'bg-gray-100'
       });
@@ -48,7 +48,7 @@ export function InstantReservationButton({
     }
 
     if (!guestPhone.trim()) {
-      toast.error('電話番号を入力してください', {
+      toast.error(t('reservation.error_phone_required'), {
         position: 'top-center',
         className: 'bg-gray-100'
       });
@@ -58,8 +58,8 @@ export function InstantReservationButton({
     // 電話番号の簡易バリデーション（日本の携帯番号）
     const phonePattern = /^0[789]0-?\d{4}-?\d{4}$/;
     if (!phonePattern.test(guestPhone.replace(/\s/g, ''))) {
-      toast.error('正しい電話番号を入力してください', {
-        description: '例: 090-1234-5678',
+      toast.error(t('reservation.error_phone_invalid'), {
+        description: t('reservation.error_phone_example'),
         position: 'top-center',
         className: 'bg-gray-100'
       });
@@ -83,7 +83,7 @@ export function InstantReservationButton({
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || 'Failed to send request');
+        throw new Error(error.error || t('reservation.error_failed'));
       }
 
       const result = await response.json();
@@ -101,8 +101,8 @@ export function InstantReservationButton({
       setArrivalMinutes('10');
 
       // 成功メッセージ
-      toast.success('📞 予約リクエストを送信しました！', {
-        description: '40秒間、画面を開いたままにしてください',
+      toast.success(`📞 ${t('reservation.success_message')}`, {
+        description: t('reservation.success_description'),
         duration: 5000,
         position: 'top-center',
         className: 'bg-gray-100'
@@ -113,8 +113,8 @@ export function InstantReservationButton({
 
     } catch (error) {
       console.error('Error:', error);
-      toast.error('予約リクエストの送信に失敗しました', {
-        description: error instanceof Error ? error.message : '不明なエラー',
+      toast.error(t('reservation.error_failed'), {
+        description: error instanceof Error ? error.message : t('common.unknown_error'),
         position: 'top-center',
         className: 'bg-gray-100'
       });
@@ -146,8 +146,8 @@ export function InstantReservationButton({
       <CustomModal
         isOpen={showDialog}
         onClose={handleCancel}
-        title="⏰ 来店予約"
-        description={`${storeName}に来店予約をリクエスト。`}
+        title={`⏰ ${t('reservation.title')}`}
+        description={t('reservation.description_format').replace('{storeName}', storeName)}
       >
         <motion.div 
           className="space-y-4"
@@ -159,7 +159,7 @@ export function InstantReservationButton({
           <div>
             <Label className="text-sm font-bold flex items-center gap-2 mb-2" style={{ color: '#2c5c6e' }}>
               <Clock className="w-4 h-4" />
-              来店までの時間
+              {t('reservation.arrival_time')}
             </Label>
             <Select value={arrivalMinutes} onValueChange={setArrivalMinutes}>
               <SelectTrigger className="bg-white border-[#2c5c6e]">
@@ -168,7 +168,7 @@ export function InstantReservationButton({
               <SelectContent className="bg-white">
                 {[10, 20, 30].map(minutes => (
                   <SelectItem key={minutes} value={minutes.toString()} className="text-base">
-                    <span className="text-base">{minutes}分後</span>
+                    <span className="text-base">{t('reservation.minutes_later').replace('{minutes}', String(minutes))}</span>
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -179,7 +179,7 @@ export function InstantReservationButton({
           <div>
             <Label className="text-sm font-bold flex items-center gap-2 mb-2" style={{ color: '#2c5c6e' }}>
               <Users className="w-4 h-4" />
-              人数
+              {t('reservation.party_size')}
             </Label>
             <Select value={partySize} onValueChange={setPartySize}>
               <SelectTrigger className="bg-white border-[#2c5c6e]">
@@ -188,7 +188,7 @@ export function InstantReservationButton({
               <SelectContent className="bg-white">
                 {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
                   <SelectItem key={num} value={num.toString()}className="text-base">
-                    <span className="text-base">{num}名</span>
+                    <span className="text-base">{t('reservation.people_count').replace('{count}', String(num))}</span>
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -203,11 +203,11 @@ export function InstantReservationButton({
           >
             <Label className="text-sm font-bold flex items-center gap-2 mb-2" style={{ color: '#2c5c6e' }}>
               <User className="w-4 h-4" />
-              お名前
+              {t('reservation.guest_name')}
             </Label>
             <Input
               type="text"
-              placeholder="例：山田 太郎"
+              placeholder={t('reservation.guest_name_placeholder')}
               value={guestName}
               onChange={(e) => setGuestName(e.target.value)}
               disabled={requesting}
@@ -224,11 +224,11 @@ export function InstantReservationButton({
           >
             <Label className="text-sm font-bold flex items-center gap-2 mb-2" style={{ color: '#2c5c6e' }}>
               <Phone className="w-4 h-4" />
-              電話番号
+              {t('reservation.guest_phone')}
             </Label>
             <Input
               type="tel"
-              placeholder="例：090-1234-5678"
+              placeholder={t('reservation.guest_phone_placeholder')}
               value={guestPhone}
               onChange={(e) => setGuestPhone(e.target.value)}
               disabled={requesting}
@@ -245,17 +245,17 @@ export function InstantReservationButton({
             transition={{ delay: 0.3 }}
           >
             <div className="font-bold text-blue-900 text-sm">
-              📱 予約の流れ
+              📱 {t('reservation.flow_title')}
             </div>
             <ol className="text-xs text-blue-800 space-y-1 list-decimal list-inside">
-              <li>店舗に自動音声電話で通知</li>
-              <li>店舗が電話ボタンで承認/拒否</li>
-              <li>画面を開いたままお待ちください</li>
+              <li>{t('reservation.flow_step1')}</li>
+              <li>{t('reservation.flow_step2')}</li>
+              <li>{t('reservation.flow_step3')}</li>
             </ol>
           </motion.div>
 
           <div className="text-xs text-muted-foreground">
-            ※ 入力いただいた電話番号は予約通知のみに使用します
+            {t('reservation.phone_usage_note')}
           </div>
 
           {/* ボタン */}
@@ -272,7 +272,7 @@ export function InstantReservationButton({
               className="flex-1 bg-[#fceaea] hover:bg-[#fad6d5] border-[#fceaea]"
             >
               <X className="w-4 h-4 mr-2" />
-              キャンセル
+              {t('reservation.cancel')}
             </Button>
             <Button
               onClick={handleRequest}
@@ -282,12 +282,12 @@ export function InstantReservationButton({
               {requesting ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  送信中...
+                  {t('reservation.sending')}
                 </>
               ) : (
                 <>
                   <Clock className="w-4 h-4 mr-2" />
-                  予約リクエスト
+                  {t('reservation.request_button')}
                 </>
               )}
             </Button>
@@ -306,4 +306,3 @@ export function InstantReservationButton({
     </>
   );
 }
-

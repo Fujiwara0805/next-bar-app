@@ -3,6 +3,17 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { translations, Language } from './translations';
 
+// 対応言語リスト
+export const SUPPORTED_LANGUAGES: Language[] = ['ja', 'en', 'ko', 'zh'];
+
+// 言語メタデータ
+export const LANGUAGE_META: Record<Language, { flag: string; name: string; nativeName: string }> = {
+  ja: { flag: '🇯🇵', name: 'Japanese', nativeName: '日本語' },
+  en: { flag: '🇺🇸', name: 'English', nativeName: 'English' },
+  ko: { flag: '🇰🇷', name: 'Korean', nativeName: '한국어' },
+  zh: { flag: '🇨🇳', name: 'Chinese', nativeName: '中文' },
+};
+
 interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
@@ -17,7 +28,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Load saved language from localStorage
     const savedLanguage = localStorage.getItem('language') as Language;
-    if (savedLanguage && (savedLanguage === 'ja' || savedLanguage === 'en')) {
+    if (savedLanguage && SUPPORTED_LANGUAGES.includes(savedLanguage)) {
       setLanguageState(savedLanguage);
     }
   }, []);

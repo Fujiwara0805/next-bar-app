@@ -1,49 +1,61 @@
 'use client';
 
 import { useState } from 'react';
-import { Metadata } from 'next';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useLanguage } from '@/lib/i18n/context';
+
+// FAQ翻訳データ
+const faqTranslations = {
+  ja: [
+    { question: 'NIKENME+とは何ですか？', answer: 'NIKENME+（ニケンメプラス）は、大分県大分市で2軒目・バー・スナック・居酒屋を探す際に便利な空席情報マップサービスです。リアルタイムで店舗の空席状況を地図上で確認でき、ログイン不要で今すぐ使えます。' },
+    { question: '利用料金はかかりますか？', answer: '完全無料です。ログインや会員登録も不要で、アクセスするだけですぐに利用できます。' },
+    { question: '位置情報を許可する必要がありますか？', answer: '位置情報の許可は必須ではありませんが、許可していただくと現在地周辺の店舗を表示でき、距離も確認できるためより便利にご利用いただけます。位置情報はサーバーに保存されず、ブラウザ上でのみ一時的に使用されます。' },
+    { question: '空席情報はリアルタイムで更新されますか？', answer: 'はい、店舗オーナーが更新した空席情報はリアルタイムで反映されます。常に最新の情報を確認できるため、無駄な移動や待ち時間を減らせます。' },
+    { question: '対応エリアはどこですか？', answer: '現在は大分県大分市を中心にサービスを提供しています。今後、他のエリアへの展開も検討しています。' },
+    { question: 'スマートフォンでも使えますか？', answer: 'はい、スマートフォン、タブレット、PCなど、あらゆるデバイスで利用できます。レスポンシブデザインにより、どのデバイスでも快適にご利用いただけます。' },
+    { question: '店舗を登録するにはどうすればいいですか？', answer: '店舗オーナーの方は、画面右上の「店舗ログイン」ボタンから登録ページにアクセスできます。必要な情報を入力して登録申請を行ってください。' },
+    { question: 'お店の情報が間違っている場合はどうすればいいですか？', answer: 'お問い合わせフォームより、該当店舗名と修正内容をお知らせください。確認の上、速やかに対応いたします。' },
+  ],
+  en: [
+    { question: 'What is NIKENME+?', answer: 'NIKENME+ is a vacancy information map service convenient for finding your second stop, bars, snacks, and izakayas in Oita City, Oita Prefecture. You can check real-time vacancy status on the map without logging in.' },
+    { question: 'Is there a fee?', answer: 'It is completely free. No login or registration required - just access and start using immediately.' },
+    { question: 'Do I need to allow location access?', answer: 'Location permission is not required, but allowing it enables showing nearby stores and distance information for a better experience. Location data is not saved to servers and is only used temporarily in your browser.' },
+    { question: 'Is vacancy information updated in real-time?', answer: 'Yes, vacancy information updated by store owners is reflected in real-time. You can always check the latest information, reducing unnecessary travel and wait times.' },
+    { question: 'What areas are covered?', answer: 'Currently, we provide services mainly in Oita City, Oita Prefecture. We are considering expansion to other areas in the future.' },
+    { question: 'Can I use it on my smartphone?', answer: 'Yes, you can use it on smartphones, tablets, PCs, and any device. The responsive design ensures comfortable use on any device.' },
+    { question: 'How do I register my store?', answer: 'Store owners can access the registration page from the "Store Login" button at the top right of the screen. Enter the required information to submit your registration.' },
+    { question: 'What if store information is incorrect?', answer: 'Please contact us through the inquiry form with the store name and correction details. We will verify and respond promptly.' },
+  ],
+  ko: [
+    { question: 'NIKENME+란 무엇인가요?', answer: 'NIKENME+는 오이타현 오이타시에서 2차, 바, 스낵, 이자카야를 찾을 때 편리한 빈자리 정보 지도 서비스입니다. 실시간으로 매장의 빈자리 상황을 지도에서 확인할 수 있으며, 로그인 없이 바로 사용할 수 있습니다.' },
+    { question: '이용 요금이 있나요?', answer: '완전 무료입니다. 로그인이나 회원 등록도 필요 없이 접속만 하면 바로 이용할 수 있습니다.' },
+    { question: '위치 정보를 허용해야 하나요?', answer: '위치 정보 허용은 필수가 아니지만, 허용하시면 현재 위치 주변의 매장을 표시하고 거리도 확인할 수 있어 더 편리하게 이용하실 수 있습니다. 위치 정보는 서버에 저장되지 않고 브라우저에서만 일시적으로 사용됩니다.' },
+    { question: '빈자리 정보는 실시간으로 업데이트되나요?', answer: '네, 매장 오너가 업데이트한 빈자리 정보는 실시간으로 반영됩니다. 항상 최신 정보를 확인할 수 있어 불필요한 이동이나 대기 시간을 줄일 수 있습니다.' },
+    { question: '지원 지역은 어디인가요?', answer: '현재는 오이타현 오이타시를 중심으로 서비스를 제공하고 있습니다. 향후 다른 지역으로의 확장도 검토하고 있습니다.' },
+    { question: '스마트폰에서도 사용할 수 있나요?', answer: '네, 스마트폰, 태블릿, PC 등 모든 기기에서 이용할 수 있습니다. 반응형 디자인으로 어떤 기기에서도 편안하게 이용하실 수 있습니다.' },
+    { question: '매장을 등록하려면 어떻게 해야 하나요?', answer: '매장 오너분은 화면 오른쪽 위의 "매장 로그인" 버튼에서 등록 페이지에 접속할 수 있습니다. 필요한 정보를 입력하여 등록 신청해 주세요.' },
+    { question: '매장 정보가 잘못된 경우 어떻게 하나요?', answer: '문의 양식을 통해 해당 매장명과 수정 내용을 알려주세요. 확인 후 신속하게 대응하겠습니다.' },
+  ],
+  zh: [
+    { question: '什么是NIKENME+？', answer: 'NIKENME+是一个方便在大分县大分市寻找下一家店、酒吧、小酒馆、居酒屋时使用的空位信息地图服务。您可以在地图上实时查看店铺的空位情况，无需登录即可立即使用。' },
+    { question: '需要付费吗？', answer: '完全免费。无需登录或注册会员，只需访问即可立即使用。' },
+    { question: '需要允许位置信息吗？', answer: '位置信息的许可不是必须的，但如果允许，可以显示当前位置附近的店铺并确认距离，使用起来更加方便。位置信息不会保存到服务器，仅在浏览器中临时使用。' },
+    { question: '空位信息是实时更新的吗？', answer: '是的，店铺老板更新的空位信息会实时反映。您可以随时查看最新信息，减少不必要的移动和等待时间。' },
+    { question: '支持哪些地区？', answer: '目前主要在大分县大分市提供服务。今后也在考虑向其他地区扩展。' },
+    { question: '可以在智能手机上使用吗？', answer: '是的，您可以在智能手机、平板电脑、电脑等任何设备上使用。响应式设计确保在任何设备上都能舒适使用。' },
+    { question: '如何注册店铺？', answer: '店铺老板可以从屏幕右上角的"店铺登录"按钮访问注册页面。输入必要信息后提交注册申请。' },
+    { question: '如果店铺信息有误怎么办？', answer: '请通过联系表单告知相关店铺名称和修正内容。我们将核实后迅速处理。' },
+  ],
+};
 
 export default function FAQPage() {
+  const { t, language } = useLanguage();
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
-  const faqs = [
-    {
-      question: 'NIKENME+とは何ですか？',
-      answer: 'NIKENME+（ニケンメプラス）は、大分県大分市で2軒目・バー・スナック・居酒屋を探す際に便利な空席情報マップサービスです。リアルタイムで店舗の空席状況を地図上で確認でき、ログイン不要で今すぐ使えます。',
-    },
-    {
-      question: '利用料金はかかりますか？',
-      answer: '完全無料です。ログインや会員登録も不要で、アクセスするだけですぐに利用できます。',
-    },
-    {
-      question: '位置情報を許可する必要がありますか？',
-      answer: '位置情報の許可は必須ではありませんが、許可していただくと現在地周辺の店舗を表示でき、距離も確認できるためより便利にご利用いただけます。位置情報はサーバーに保存されず、ブラウザ上でのみ一時的に使用されます。',
-    },
-    {
-      question: '空席情報はリアルタイムで更新されますか？',
-      answer: 'はい、店舗オーナーが更新した空席情報はリアルタイムで反映されます。常に最新の情報を確認できるため、無駄な移動や待ち時間を減らせます。',
-    },
-    {
-      question: '対応エリアはどこですか？',
-      answer: '現在は大分県大分市を中心にサービスを提供しています。今後、他のエリアへの展開も検討しています。',
-    },
-    {
-      question: 'スマートフォンでも使えますか？',
-      answer: 'はい、スマートフォン、タブレット、PCなど、あらゆるデバイスで利用できます。レスポンシブデザインにより、どのデバイスでも快適にご利用いただけます。',
-    },
-    {
-      question: '店舗を登録するにはどうすればいいですか？',
-      answer: '店舗オーナーの方は、画面右上の「店舗ログイン」ボタンから登録ページにアクセスできます。必要な情報を入力して登録申請を行ってください。',
-    },
-    {
-      question: 'お店の情報が間違っている場合はどうすればいいですか？',
-      answer: 'お問い合わせフォームより、該当店舗名と修正内容をお知らせください。確認の上、速やかに対応いたします。',
-    },
-  ];
+  const faqs = faqTranslations[language] || faqTranslations.ja;
 
   return (
     <div className="min-h-screen bg-background">
@@ -52,16 +64,16 @@ export default function FAQPage() {
           <Link href="/landing">
             <Button variant="ghost" size="sm">
               <ArrowLeft className="w-4 h-4 mr-2" />
-              戻る
+              {t('static_pages.back')}
             </Button>
           </Link>
         </div>
       </header>
 
       <main className="container mx-auto px-4 py-8 max-w-4xl">
-        <h1 className="text-3xl sm:text-4xl font-bold mb-4">よくある質問 (FAQ)</h1>
+        <h1 className="text-3xl sm:text-4xl font-bold mb-4">{t('static_pages.faq_title')}</h1>
         <p className="text-muted-foreground mb-8">
-          NIKENME+に関するよくある質問と回答をまとめました。
+          {t('static_pages.faq_subtitle')}
         </p>
         
         <div className="space-y-4">
@@ -99,12 +111,12 @@ export default function FAQPage() {
         </div>
 
         <div className="mt-12 p-6 bg-accent rounded-lg text-center">
-          <h3 className="font-bold text-lg mb-2">他にご質問がありますか？</h3>
+          <h3 className="font-bold text-lg mb-2">{t('static_pages.faq_more_questions')}</h3>
           <p className="text-muted-foreground mb-4">
-            こちらに掲載されていない質問については、お問い合わせフォームよりご連絡ください。
+            {t('static_pages.faq_more_questions_desc')}
           </p>
           <Button variant="default">
-            お問い合わせ
+            {t('static_pages.contact')}
           </Button>
         </div>
       </main>

@@ -5,15 +5,17 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ArrowLeft, Check } from 'lucide-react';
-import { useLanguage } from '@/lib/i18n/context';
+import { useLanguage, SUPPORTED_LANGUAGES, LANGUAGE_META, type Language } from '@/lib/i18n/context';
 
 export default function LanguageSettingsPage() {
   const { language, setLanguage, t } = useLanguage();
 
-  const languages = [
-    { code: 'ja' as const, name: '日本語', nativeName: '日本語' },
-    { code: 'en' as const, name: 'English', nativeName: 'English' },
-  ];
+  const languages = SUPPORTED_LANGUAGES.map((code) => ({
+    code,
+    name: LANGUAGE_META[code].name,
+    nativeName: LANGUAGE_META[code].nativeName,
+    flag: LANGUAGE_META[code].flag,
+  }));
 
   return (
     <div className="min-h-screen bg-background">
@@ -22,7 +24,7 @@ export default function LanguageSettingsPage() {
           <Link href="/landing">
             <Button variant="ghost" size="sm">
               <ArrowLeft className="w-4 h-4 mr-2" />
-              {language === 'ja' ? '戻る' : 'Back'}
+              {t('static_pages.back')}
             </Button>
           </Link>
         </div>
@@ -35,12 +37,10 @@ export default function LanguageSettingsPage() {
           transition={{ duration: 0.5 }}
         >
           <h1 className="text-3xl sm:text-4xl font-bold mb-4">
-            {language === 'ja' ? '言語設定' : 'Language Settings'}
+            {t('language_settings_page.title')}
           </h1>
           <p className="text-muted-foreground mb-8">
-            {language === 'ja' 
-              ? '表示言語を選択してください。設定は自動的に保存されます。'
-              : 'Select your preferred language. Settings are saved automatically.'}
+            {t('language_settings_page.description')}
           </p>
 
           <div className="space-y-3">
@@ -57,12 +57,15 @@ export default function LanguageSettingsPage() {
                       ? 'border-2 border-primary bg-primary/5'
                       : 'border hover:border-primary/50'
                   }`}
-                  onClick={() => setLanguage(lang.code)}
+                  onClick={() => setLanguage(lang.code as Language)}
                 >
                   <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-xl font-bold mb-1">{lang.nativeName}</h3>
-                      <p className="text-sm text-muted-foreground">{lang.name}</p>
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">{lang.flag}</span>
+                      <div>
+                        <h3 className="text-xl font-bold mb-1">{lang.nativeName}</h3>
+                        <p className="text-sm text-muted-foreground">{lang.name}</p>
+                      </div>
                     </div>
                     {language === lang.code && (
                       <motion.div
@@ -83,12 +86,10 @@ export default function LanguageSettingsPage() {
 
           <div className="mt-8 p-6 bg-accent rounded-lg">
             <h3 className="font-bold mb-2">
-              {language === 'ja' ? '言語について' : 'About Languages'}
+              {t('language_settings_page.about_title')}
             </h3>
             <p className="text-sm text-muted-foreground">
-              {language === 'ja'
-                ? '現在、日本語と英語に対応しています。選択した言語はブラウザに保存され、次回訪問時も適用されます。'
-                : 'Currently supporting Japanese and English. Your language preference is saved in your browser and will be applied on your next visit.'}
+              {t('language_settings_page.about_description')}
             </p>
           </div>
         </motion.div>
@@ -96,4 +97,3 @@ export default function LanguageSettingsPage() {
     </div>
   );
 }
-

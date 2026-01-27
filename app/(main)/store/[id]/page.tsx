@@ -141,6 +141,12 @@ export default function StoreDetailPage() {
     const facilitiesMap = (translations as any)[language]?.facilities_map;
     return facilitiesMap?.[facility] || facility;
   };
+  
+  // 支払い方法を翻訳するヘルパー関数
+  const translatePaymentMethod = (method: string): string => {
+    const paymentMethodsMap = (translations as any)[language]?.payment_methods_map;
+    return paymentMethodsMap?.[method] || method;
+  };
   const [store, setStore] = useState<Store | null>(null);
   const [loading, setLoading] = useState(true);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
@@ -1180,7 +1186,7 @@ export default function StoreDetailPage() {
                             border: `1px solid rgba(201, 168, 108, 0.2)`,
                           }}
                         >
-                          {method}
+                          {translatePaymentMethod(method)}
                         </Badge>
                       ))}
                     </div>

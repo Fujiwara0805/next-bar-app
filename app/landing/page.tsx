@@ -19,7 +19,6 @@ import {
   Building2,
   Search,
   Clock,
-  Heart,
   AlertCircle,
   Sparkles,
   PartyPopper,
@@ -28,7 +27,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { useLanguage } from '@/lib/i18n/context';
+import { useLanguage, SUPPORTED_LANGUAGES, LANGUAGE_META } from '@/lib/i18n/context';
+import type { Language } from '@/lib/i18n/translations';
 import { supabase } from '@/lib/supabase/client';
 
 // ============================================
@@ -94,91 +94,8 @@ const DEFAULT_LOCATION = {
   isDefault: true,
 };
 
-const copy = {
-  ja: {
-    hero: {
-      catchphrase: '楽しみは、ここから',
-      subcopy: 'The Next Spot is Ready',
-      body: 'NIKENME+は、大分の夜を\n 案内するNight Spot Mapです。',
-    },
-    problems: {
-      title: 'こんなお悩み、ありませんか？',
-      subtitle: 'Common Concerns',
-      items: [
-        { icon: Search, text: '土地勘がなく、どのお店に\n 行けばいいかわからない' },
-        { icon: Phone, text: '電話予約が苦手' },
-        { icon: Clock, text: '混んでいるか空いているか、\n 行く前に知りたい' },
-      ],
-    },
-    solution: {
-      title: 'だから、NIKENME+',
-      subtitle: 'Our Solution',
-      body: 'あなたの不安を解消し、\n 夜の街を楽しむためのサービスです。',
-      features: [
-        { icon: Sparkles, title: '雰囲気がわかる', titleEn: 'See the Vibe', description: 'お店の雰囲気を画像にて事前に確認できます。\n 初めてのお店でも安心して入れます。' },
-        { icon: Radio, title: '空席がわかる', titleEn: 'Live Availability', description: 'リアルタイムの空席情報を確認できます。\n 満席のお店を避けられます。' },
-        { icon: Shield, title: '安心できる', titleEn: 'Safe & Clear', description: '料金目安や客層など、入る前に知りたい情報が揃っています。女性や観光客も安心です。' },
-      ],
-    },
-    howto: {
-      title: '使い方は、とてもシンプル',
-      subtitle: '3 Easy Steps',
-      steps: [
-        { step: '01', title: '次に行くお店を探す', titleEn: 'Find', description: '現在地周辺の空席があるお店をマップで確認します。「空席あり」のアイコンが表示されているお店が今すぐ入れるお店です。' },
-        { step: '02', title: 'お店の情報を確認', titleEn: 'Check', description: 'お店の雰囲気、メニュー、料金目安をチェック。気になるお店を見つけよう' },
-        { step: '03', title: '席をキープする', titleEn: 'Reserve', description: '到着時間と人数、電話番号、名前を入力するだけ。自動音声があなたの代わりにお店へ電話します。', highlight: true },
-      ],
-    },
-    cta: {
-      title: '今夜の二軒目、ここで見つかる。',
-      body: '大分の夜は、まだ終わらない。\n NIKENME+で、次のお店を探しましょう。',
-      buttonPrimary: 'お店を探す',
-      buttonSecondary: '加盟店募集中',
-    },
-  },
-  en: {
-    hero: {
-      catchphrase: 'Your Next Spot is Ready.',
-      subcopy: 'Find it now',
-      body: 'NIKENME+ is a night spot map for Oita. Find available venues instantly and reserve your seat with auto-voice call.',
-    },
-    problems: {
-      title: 'Sound Familiar?',
-      subtitle: 'Common Concerns',
-      items: [
-        { icon: Search, text: "Don't know the area or where to go next" },
-        { icon: Phone, text: 'Calling to reserve feels awkward or troublesome' },
-        { icon: Heart, text: 'Looking for a place comfortable for solo or female guests' },
-        { icon: Clock, text: 'Want to know if a place is busy before going' },
-      ],
-    },
-    solution: {
-      title: "That's Why NIKENME+",
-      subtitle: 'Our Solution',
-      body: 'A service designed to ease your concerns and help you enjoy the night.',
-      features: [
-        { icon: Sparkles, title: 'See the Vibe', titleEn: 'See the Vibe', description: 'Check photos and menus before you go. Feel confident entering a new place.' },
-        { icon: Radio, title: 'Live Availability', titleEn: 'Live Availability', description: 'Venues update their status in real-time. Avoid crowded spots easily.' },
-        { icon: Shield, title: 'Safe & Clear', titleEn: 'Safe & Clear', description: 'Price range, crowd type, and more info available upfront. Safe for women and tourists.' },
-      ],
-    },
-    howto: {
-      title: 'Simple to Use',
-      subtitle: '3 Easy Steps',
-      steps: [
-        { step: '01', title: 'Find on Map', titleEn: 'Find', description: 'Check available venues near you on the map. Green pins mean "seats available now".' },
-        { step: '02', title: 'Check Details', titleEn: 'Check', description: 'Review the vibe, menu, and price range. Found a place you like? Move to the next step.' },
-        { step: '03', title: 'Reserve Seat', titleEn: 'Reserve', description: 'Just enter arrival time and party size. Auto-voice will call the venue for you.', highlight: true },
-      ],
-    },
-    cta: {
-      title: 'Find Your Next Spot Tonight.',
-      body: "The night isn't over yet. Discover your next venue with NIKENME+.",
-      buttonPrimary: 'View Map',
-      buttonSecondary: 'Partner With Us',
-    },
-  },
-};
+// Problems section icons mapping
+const problemsIcons = [Search, Phone, Clock];
 
 const GoldDivider = () => (
   <div className="flex items-center justify-center gap-3 my-6">
@@ -198,10 +115,9 @@ export default function LandingPage() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [partnerStores, setPartnerStores] = useState<PartnerStore[]>([]);
   const [campaignStores, setCampaignStores] = useState<CampaignStore[]>([]);
+  const [showLanguageMenu, setShowLanguageMenu] = useState(false);
   const carouselRef = useRef<HTMLDivElement>(null);
   const locationAttemptRef = useRef(false);
-
-  const currentCopy = language === 'ja' ? copy.ja : copy.en;
 
   const renderWithLineBreaks = (text: string) => {
     return text.split('\n').map((line, index, array) => (
@@ -306,10 +222,10 @@ export default function LandingPage() {
   ];
 
   const footerLinks = [
-    { icon: Building2, label: language === 'ja' ? '会社概要' : 'About Us', href: 'https://www.nobody-inc.jp/' },
-    { icon: FileText, label: language === 'ja' ? '利用規約' : 'Terms', href: '/terms' },
-    { icon: HelpCircle, label: language === 'ja' ? 'よくある質問' : 'FAQ', href: '/faq' },
-    { icon: FileText, label: language === 'ja' ? 'リリースノート' : 'Release Notes', href: '/release-notes' },
+    { icon: Building2, label: t('landing.company_info'), href: 'https://www.nobody-inc.jp/' },
+    { icon: FileText, label: t('static_pages.terms_title'), href: '/terms' },
+    { icon: HelpCircle, label: t('static_pages.faq_title'), href: '/faq' },
+    { icon: FileText, label: t('static_pages.release_notes_title'), href: '/release-notes' },
   ];
 
   const handleMapClick = () => { setShowLocationModal(true); };
@@ -334,7 +250,27 @@ export default function LandingPage() {
     }
   };
 
-  const handleLanguageToggle = () => { setLanguage(language === 'ja' ? 'en' : 'ja'); window.location.reload(); };
+  const handleLanguageSelect = (lang: Language) => { 
+    setLanguage(lang); 
+    setShowLanguageMenu(false);
+    window.location.reload(); 
+  };
+
+  // 言語メニュー外クリックで閉じる
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('.language-menu-container')) {
+        setShowLanguageMenu(false);
+      }
+    };
+    if (showLanguageMenu) {
+      document.addEventListener('click', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [showLanguageMenu]);
   const handleStoreCardClick = (storeId: string) => { router.push(`/store/${storeId}`); };
   const nextSlide = () => { if (partnerStores.length === 0) return; setCurrentSlide((prev) => (prev + 1) % partnerStores.length); };
   const prevSlide = () => { if (partnerStores.length === 0) return; setCurrentSlide((prev) => (prev - 1 + partnerStores.length) % partnerStores.length); };
@@ -353,7 +289,7 @@ export default function LandingPage() {
           <motion.div initial={{ opacity: 0, y: -20, x: '-50%' }} animate={{ opacity: 1, y: 0, x: '-50%' }} exit={{ opacity: 0, y: -20, x: '-50%' }} className="fixed top-20 left-1/2 z-50">
             <div className="flex items-center gap-3 px-5 py-3 rounded-full" style={{ background: colors.surface, backdropFilter: 'blur(20px)', border: `1px solid ${colors.borderGold}`, boxShadow: colors.shadowGold }}>
               <motion.div animate={{ scale: [1, 1.3, 1], opacity: [1, 0.7, 1] }} transition={{ duration: 1, repeat: Infinity }} className="w-2.5 h-2.5 rounded-full" style={{ background: '#4ADE80', boxShadow: '0 0 10px #4ADE80' }} />
-              <span className="text-sm font-medium" style={{ color: colors.text }}>{language === 'ja' ? '空席があります' : 'Seats available now'}</span>
+              <span className="text-sm font-medium" style={{ color: colors.text }}>{t('landing.seats_available')}</span>
             </div>
           </motion.div>
         )}
@@ -430,19 +366,19 @@ export default function LandingPage() {
               <motion.div animate={{ opacity: [1, 0.5, 1] }} transition={{ duration: 2, repeat: Infinity }} className="w-1.5 h-1.5 rounded-full" style={{ background: colors.accent }} />
               <span className="text-[10px] font-medium tracking-[0.25em] uppercase" style={{ color: colors.accent }}>Night Spot Map</span>
             </motion.div>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 leading-tight"><span style={{ color: colors.text }}>{currentCopy.hero.catchphrase}</span></h1>
-            <p className="text-lg sm:text-xl md:text-2xl mb-6" style={{ color: colors.textMuted }}>{currentCopy.hero.subcopy}</p>
-            <p className="text-base sm:text-lg mb-10 max-w-2xl mx-auto leading-relaxed" style={{ color: colors.textMuted }}>{renderWithLineBreaks(currentCopy.hero.body)}</p>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 leading-tight"><span style={{ color: colors.text }}>{t('landing.hero_catchphrase')}</span></h1>
+            <p className="text-lg sm:text-xl md:text-2xl mb-6" style={{ color: colors.textMuted }}>{t('landing.hero_subcopy')}</p>
+            <p className="text-base sm:text-lg mb-10 max-w-2xl mx-auto leading-relaxed" style={{ color: colors.textMuted }}>{renderWithLineBreaks(t('landing.hero_body'))}</p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <motion.div whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.98 }} className="rounded-full relative overflow-hidden group" style={{ boxShadow: colors.shadowGold }}>
                 <Button size="lg" onClick={handleMapClick} className="text-lg px-10 py-6 rounded-full font-semibold transition-all relative z-10" style={{ background: colors.goldGradient, color: colors.background }}>
-                  <Store className="w-5 h-5 mr-2" />{currentCopy.cta.buttonPrimary}
+                  <Store className="w-5 h-5 mr-2" />{t('landing.cta_button_primary')}
                 </Button>
                 <motion.div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" style={{ background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%)' }} animate={{ x: ['-100%', '200%'] }} transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 1 }} />
               </motion.div>
               <a href="https://forms.gle/18LmBfyJAJ1txmF56" target="_blank" rel="noopener noreferrer">
                 <Button size="lg" variant="ghost" className="text-base px-8 py-6 rounded-full font-medium border transition-all hover:scale-105" style={{ borderColor: colors.borderGold, color: colors.textMuted, background: `${colors.accent}08` }}>
-                  <Store className="w-5 h-5 mr-2" />{currentCopy.cta.buttonSecondary}
+                  <Store className="w-5 h-5 mr-2" />{t('landing.cta_button_secondary')}
                 </Button>
               </a>
             </div>
@@ -466,10 +402,10 @@ export default function LandingPage() {
                 Special Campaign
               </span>
               <h2 className="text-2xl sm:text-3xl font-bold mb-2" style={{ color: colors.text }}>
-                {language === 'ja' ? '開催中のキャンペーン' : 'Current Campaigns'}
+                {t('campaign.section_title')}
               </h2>
               <p className="text-base" style={{ color: colors.textMuted }}>
-                {language === 'ja' ? 'お得な特典をお見逃しなく' : "Don't miss these special offers"}
+                {t('campaign.dont_miss')}
               </p>
             </motion.div>
 
@@ -512,13 +448,13 @@ export default function LandingPage() {
                           style={{ background: '#4ADE80', boxShadow: '0 0 8px #4ADE80' }}
                         />
                         <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: '#4ADE80' }}>
-                          {language === 'ja' ? '開催中' : 'Now On'}
+                          {t('campaign.now_on')}
                         </span>
                       </div>
 
                       {/* キャンペーン名 */}
                       <h3 className="text-lg font-bold mb-2 group-hover:translate-x-1 transition-transform" style={{ color: colors.text }}>
-                        {campaign.campaign_name || (language === 'ja' ? 'キャンペーン' : 'Campaign')} 🍺
+                        {campaign.campaign_name || t('campaign.default_name')} 🍺
                       </h3>
 
                       {/* 店舗名 */}
@@ -529,15 +465,14 @@ export default function LandingPage() {
                       {/* 期間表示 */}
                       {campaign.campaign_end_date && (
                         <p className="text-xs" style={{ color: colors.accent }}>
-                          {language === 'ja' ? '〜' : 'Until '}{new Date(campaign.campaign_end_date).toLocaleDateString(language === 'ja' ? 'ja-JP' : 'en-US', { month: 'short', day: 'numeric' })}
-                          {language === 'ja' ? 'まで' : ''}
+                          {t('campaign.until').replace('{date}', new Date(campaign.campaign_end_date).toLocaleDateString(language === 'ja' ? 'ja-JP' : language === 'ko' ? 'ko-KR' : language === 'zh' ? 'zh-CN' : 'en-US', { month: 'short', day: 'numeric' }))}
                         </p>
                       )}
 
                       {/* 詳細へ誘導 */}
                       <div className="flex items-center gap-1 mt-4 group-hover:gap-2 transition-all" style={{ color: colors.accent }}>
                         <span className="text-sm font-medium">
-                          {language === 'ja' ? '詳細を見る' : 'View Details'}
+                          {t('campaign.view_details')}
                         </span>
                         <ChevronRight className="w-4 h-4" />
                       </div>
@@ -564,7 +499,7 @@ export default function LandingPage() {
                 }}
               >
                 <Sparkles className="w-5 h-5" />
-                {language === 'ja' ? 'キャンペーン中の店舗を見る' : 'View Campaign Stores'}
+                {t('campaign.view_campaign_stores')}
               </Button>
             </motion.div>
           </div>
@@ -577,19 +512,20 @@ export default function LandingPage() {
         <div className="container mx-auto max-w-4xl">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
             <GoldDivider />
-            <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4" style={{ color: colors.accent }}>{currentCopy.problems.subtitle}</span>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold" style={{ color: colors.text }}>{currentCopy.problems.title}</h2>
+            <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4" style={{ color: colors.accent }}>{t('landing.problems_subtitle')}</span>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold" style={{ color: colors.text }}>{t('landing.problems_title')}</h2>
           </motion.div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {currentCopy.problems.items.map((item, index) => {
-              const Icon = item.icon;
+            {[1, 2, 3].map((num, index) => {
+              const Icon = problemsIcons[index];
+              const itemText = t(`landing.problems_item${num}`);
               return (
                 <motion.div key={index} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.1 }}>
                   <div className="flex items-start gap-4 p-5 rounded-xl" style={{ background: `${colors.background}80`, border: `1px solid ${colors.borderSubtle}` }}>
                     <div className="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: `${colors.accent}15`, border: `1px solid ${colors.borderGold}` }}>
                       <Icon className="w-5 h-5" style={{ color: colors.accent }} />
                     </div>
-                    <p className="text-base leading-relaxed pt-1.5" style={{ color: colors.textMuted }}>{renderWithLineBreaks(item.text)}</p>
+                    <p className="text-base leading-relaxed pt-1.5" style={{ color: colors.textMuted }}>{renderWithLineBreaks(itemText)}</p>
                   </div>
                 </motion.div>
               );
@@ -604,14 +540,16 @@ export default function LandingPage() {
         <div className="container mx-auto max-w-5xl">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
             <GoldDivider />
-            <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4" style={{ color: colors.accent }}>{currentCopy.solution.subtitle}</span>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4" style={{ color: colors.text }}>{currentCopy.solution.title}</h2>
-            <p className="text-lg max-w-xl mx-auto" style={{ color: colors.textMuted }}>{renderWithLineBreaks(currentCopy.solution.body)}</p>
+            <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4" style={{ color: colors.accent }}>{t('landing.solution_subtitle')}</span>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4" style={{ color: colors.text }}>{t('landing.solution_title')}</h2>
+            <p className="text-lg max-w-xl mx-auto" style={{ color: colors.textMuted }}>{renderWithLineBreaks(t('landing.solution_body'))}</p>
           </motion.div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {currentCopy.solution.features.map((feature, index) => {
-              const Icon = feature.icon;
-              return (
+            {[
+              { num: 1, Icon: Sparkles },
+              { num: 2, Icon: Radio },
+              { num: 3, Icon: Shield },
+            ].map(({ num, Icon }, index) => (
                 <motion.div key={index} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.15 }}>
                   <Card className="h-full p-8 group cursor-pointer transition-all duration-500 hover:translate-y-[-4px] relative overflow-hidden text-center" style={{ background: `${colors.surface}80`, backdropFilter: 'blur(10px)', border: `1px solid ${colors.borderGold}` }}>
                     <motion.div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ background: `radial-gradient(circle at center, ${colors.accent}10 0%, transparent 70%)` }} />
@@ -619,15 +557,14 @@ export default function LandingPage() {
                       <motion.div className="w-16 h-16 rounded-xl flex items-center justify-center mb-6 mx-auto" style={{ background: `${colors.accent}15`, border: `1px solid ${colors.borderGold}` }} whileHover={{ scale: 1.05 }}>
                         <Icon className="w-7 h-7" style={{ color: colors.accent }} />
                       </motion.div>
-                      <h3 className="text-xl font-bold mb-2" style={{ color: colors.text }}>{feature.title}</h3>
-                      <p className="text-xs uppercase tracking-wider mb-4 font-medium" style={{ color: colors.accentDark }}>{feature.titleEn}</p>
-                      <p style={{ color: colors.textMuted }} className="leading-relaxed text-sm">{renderWithLineBreaks(feature.description)}</p>
+                      <h3 className="text-xl font-bold mb-2" style={{ color: colors.text }}>{t(`landing.solution_feature${num}_title`)}</h3>
+                      <p className="text-xs uppercase tracking-wider mb-4 font-medium" style={{ color: colors.accentDark }}>{t(`landing.solution_feature${num}_title_en`)}</p>
+                      <p style={{ color: colors.textMuted }} className="leading-relaxed text-sm">{renderWithLineBreaks(t(`landing.solution_feature${num}_desc`))}</p>
                     </div>
                     <motion.div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ background: colors.goldGradient }} initial={{ scaleX: 0 }} whileHover={{ scaleX: 1 }} transition={{ duration: 0.3 }} />
                   </Card>
                 </motion.div>
-              );
-            })}
+              ))}
           </div>
         </div>
       </section>
@@ -637,11 +574,15 @@ export default function LandingPage() {
         <div className="container mx-auto max-w-6xl">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
             <GoldDivider />
-            <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4" style={{ color: colors.accent }}>{currentCopy.howto.subtitle}</span>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold" style={{ color: colors.text }}>{currentCopy.howto.title}</h2>
+            <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4" style={{ color: colors.accent }}>{t('landing.howto_subtitle')}</span>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold" style={{ color: colors.text }}>{t('landing.howto_title')}</h2>
           </motion.div>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {currentCopy.howto.steps.map((item, index) => {
+            {[
+              { step: '01', num: 1, highlight: false },
+              { step: '02', num: 2, highlight: false },
+              { step: '03', num: 3, highlight: true },
+            ].map(({ step, num, highlight }, index) => {
               const stepIcons = [MapPin, Store, Phone];
               const Icon = stepIcons[index];
               const images = [
@@ -649,24 +590,25 @@ export default function LandingPage() {
                 'https://res.cloudinary.com/dz9trbwma/image/upload/v1767762176/Gemini_Generated_Image_4tiamt4tiamt4tia_bnxmn9.png',
                 'https://res.cloudinary.com/dz9trbwma/image/upload/v1767763441/Gemini_Generated_Image_3qcvnq3qcvnq3qcv_acv91j.png',
               ];
+              const stepTitle = t(`landing.howto_step${num}_title`);
               return (
                 <motion.div key={index} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.15 }}>
-                  <Card className="h-full overflow-hidden group relative" style={{ background: item.highlight ? `${colors.accent}10` : colors.background, border: item.highlight ? `2px solid ${colors.accent}` : `1px solid ${colors.borderGold}`, boxShadow: item.highlight ? colors.shadowGold : 'none' }}>
+                  <Card className="h-full overflow-hidden group relative" style={{ background: highlight ? `${colors.accent}10` : colors.background, border: highlight ? `2px solid ${colors.accent}` : `1px solid ${colors.borderGold}`, boxShadow: highlight ? colors.shadowGold : 'none' }}>
                     <div className="p-8">
                       <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-3">
-                          <span className="text-4xl font-bold" style={{ color: item.highlight ? colors.accent : colors.accentDark }}>{item.step}</span>
+                          <span className="text-4xl font-bold" style={{ color: highlight ? colors.accent : colors.accentDark }}>{step}</span>
                           <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: `${colors.accent}15`, border: `1px solid ${colors.borderGold}` }}>
-                            <Icon className="w-5 h-5" style={{ color: item.highlight ? colors.accent : colors.textMuted }} />
+                            <Icon className="w-5 h-5" style={{ color: highlight ? colors.accent : colors.textMuted }} />
                           </div>
                         </div>
-                        {item.highlight && (<span className="text-[10px] font-semibold px-3 py-1 rounded-full uppercase tracking-wider" style={{ background: `${colors.accent}20`, color: colors.accent, border: `1px solid ${colors.accent}40` }}>{language === 'ja' ? '自動音声' : 'Auto Voice'}</span>)}
+                        {highlight && (<span className="text-[10px] font-semibold px-3 py-1 rounded-full uppercase tracking-wider" style={{ background: `${colors.accent}20`, color: colors.accent, border: `1px solid ${colors.accent}40` }}>{t('common.auto_voice')}</span>)}
                       </div>
-                      <h3 className="text-xl font-bold mb-1" style={{ color: colors.text }}>{item.title}</h3>
-                      <p className="text-xs uppercase tracking-wider mb-4 font-medium" style={{ color: colors.accentDark }}>{item.titleEn}</p>
-                      <p className="mb-6 leading-relaxed text-sm" style={{ color: colors.textMuted }}>{renderWithLineBreaks(item.description)}</p>
+                      <h3 className="text-xl font-bold mb-1" style={{ color: colors.text }}>{stepTitle}</h3>
+                      <p className="text-xs uppercase tracking-wider mb-4 font-medium" style={{ color: colors.accentDark }}>{t(`landing.howto_step${num}_title_en`)}</p>
+                      <p className="mb-6 leading-relaxed text-sm" style={{ color: colors.textMuted }}>{renderWithLineBreaks(t(`landing.howto_step${num}_desc`))}</p>
                       <div className="rounded-xl overflow-hidden" style={{ border: `1px solid ${colors.borderGold}` }}>
-                        <img src={images[index]} alt={item.title} className="w-full h-auto object-cover" />
+                        <img src={images[index]} alt={stepTitle} className="w-full h-auto object-cover" />
                       </div>
                     </div>
                   </Card>
@@ -684,8 +626,8 @@ export default function LandingPage() {
             <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
               <GoldDivider />
               <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4" style={{ color: colors.accent }}>Partner Stores</span>
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4" style={{ color: colors.text }}>{language === 'ja' ? '加盟店の様子' : 'Partner Store Gallery'}</h2>
-              <p className="text-lg max-w-xl mx-auto" style={{ color: colors.textMuted }}>{language === 'ja' ? 'NIKENME+を利用しているお店をCHECK' : 'Check out stores on NIKENME+'}</p>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4" style={{ color: colors.text }}>{t('common.partner_stores')}</h2>
+              <p className="text-lg max-w-xl mx-auto" style={{ color: colors.textMuted }}>{t('common.partner_stores_subtitle')}</p>
             </motion.div>
 
             {/* モバイル: カルーセル表示 */}
@@ -700,7 +642,7 @@ export default function LandingPage() {
                         <div className="absolute top-4 left-4"><h3 className="text-xl font-bold" style={{ color: colors.text, textShadow: '0 2px 10px rgba(0,0,0,0.8)' }}>{partnerStores[currentSlide].name}</h3></div>
                         <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
                           <motion.span className="text-sm font-medium px-4 py-2.5 rounded-full flex items-center gap-2" style={{ background: `${colors.accent}25`, color: colors.accent, border: `1px solid ${colors.accent}50`, backdropFilter: 'blur(8px)' }} whileHover={{ scale: 1.05 }}>
-                            <ChevronRight className="w-4 h-4" />{language === 'ja' ? '詳細をみる' : 'Tap to find a store'}
+                            <ChevronRight className="w-4 h-4" />{t('common.view_details')}
                           </motion.span>
                         </div>
                       </motion.div>
@@ -723,14 +665,14 @@ export default function LandingPage() {
                     <img src={store.image_urls?.[0] || ''} alt={store.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                     <div className="absolute inset-0" style={{ background: `linear-gradient(to top, ${colors.background} 0%, ${colors.background}80 50%, transparent 100%)` }} />
                     <div className="absolute top-4 left-4 right-4"><h3 className="text-lg sm:text-xl lg:text-2xl font-bold mb-2" style={{ color: colors.text, textShadow: '0 2px 10px rgba(0,0,0,0.8)' }}>{store.name}</h3></div>
-                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2"><motion.span className="text-sm font-medium px-4 py-2.5 rounded-full flex items-center gap-2" style={{ background: `${colors.accent}25`, color: colors.accent, border: `1px solid ${colors.accent}50`, backdropFilter: 'blur(8px)' }} whileHover={{ scale: 1.05 }}><ChevronRight className="w-4 h-4" />{language === 'ja' ? '詳細をみる' : 'View Details'}</motion.span></div>
+                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2"><motion.span className="text-sm font-medium px-4 py-2.5 rounded-full flex items-center gap-2" style={{ background: `${colors.accent}25`, color: colors.accent, border: `1px solid ${colors.accent}50`, backdropFilter: 'blur(8px)' }} whileHover={{ scale: 1.05 }}><ChevronRight className="w-4 h-4" />{t('common.view_details')}</motion.span></div>
                   </div>
                 </motion.div>
               ))}
             </div>
 
             <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mt-10">
-              <Button onClick={() => router.push('/store-list')} className="inline-flex items-center gap-2 px-6 py-3 rounded-full font-medium transition-all hover:scale-105 min-h-[48px]" style={{ background: `${colors.accent}15`, border: `1px solid ${colors.borderGold}`, color: colors.accent }}><Store className="w-5 h-5" />{language === 'ja' ? 'すべての加盟店を見る' : 'View All Partner Stores'}</Button>
+              <Button onClick={() => router.push('/store-list')} className="inline-flex items-center gap-2 px-6 py-3 rounded-full font-medium transition-all hover:scale-105 min-h-[48px]" style={{ background: `${colors.accent}15`, border: `1px solid ${colors.borderGold}`, color: colors.accent }}><Store className="w-5 h-5" />{t('common.view_all_partners')}</Button>
             </motion.div>
           </div>
         </section>
@@ -742,15 +684,15 @@ export default function LandingPage() {
         <div className="container mx-auto max-w-4xl text-center relative z-10">
           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
             <GoldDivider />
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-6" style={{ color: colors.text }}>{currentCopy.cta.title}</h2>
-            <p className="text-lg sm:text-xl mb-10 max-w-2xl mx-auto" style={{ color: colors.textMuted }}>{renderWithLineBreaks(currentCopy.cta.body)}</p>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-6" style={{ color: colors.text }}>{t('landing.cta_title')}</h2>
+            <p className="text-lg sm:text-xl mb-10 max-w-2xl mx-auto" style={{ color: colors.textMuted }}>{renderWithLineBreaks(t('landing.cta_body'))}</p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <motion.div whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.98 }} className="rounded-full relative overflow-hidden group" style={{ boxShadow: colors.shadowGold }}>
-                <Button size="lg" onClick={handleMapClick} className="text-xl px-12 py-7 rounded-full font-semibold relative z-10" style={{ background: colors.goldGradient, color: colors.background }}><MapPin className="w-6 h-6 mr-3" />{currentCopy.cta.buttonPrimary}</Button>
+                <Button size="lg" onClick={handleMapClick} className="text-xl px-12 py-7 rounded-full font-semibold relative z-10" style={{ background: colors.goldGradient, color: colors.background }}><MapPin className="w-6 h-6 mr-3" />{t('landing.cta_button_primary')}</Button>
                 <motion.div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" style={{ background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%)' }} animate={{ x: ['-100%', '200%'] }} transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 1 }} />
               </motion.div>
               <a href="https://forms.gle/18LmBfyJAJ1txmF56" target="_blank" rel="noopener noreferrer">
-                <Button size="lg" variant="ghost" className="text-base px-8 py-6 rounded-full font-medium border transition-all hover:scale-105" style={{ borderColor: colors.borderGold, color: colors.textMuted, background: `${colors.accent}08` }}><Store className="w-5 h-5 mr-2" />{currentCopy.cta.buttonSecondary}</Button>
+                <Button size="lg" variant="ghost" className="text-base px-8 py-6 rounded-full font-medium border transition-all hover:scale-105" style={{ borderColor: colors.borderGold, color: colors.textMuted, background: `${colors.accent}08` }}><Store className="w-5 h-5 mr-2" />{t('landing.cta_button_secondary')}</Button>
               </a>
             </div>
           </motion.div>
@@ -775,8 +717,8 @@ export default function LandingPage() {
             })}
           </nav>
           <div className="text-center">
-            <p className="text-sm mb-2" style={{ color: colors.textSubtle }}>© 2025 NIKENME+ All rights reserved.</p>
-            <p className="text-lg font-bold" style={{ color: colors.accent }}>{language === 'ja' ? 'いますぐ、2軒目へ' : 'Find Your Next Spot Now'}</p>
+            <p className="text-sm mb-2" style={{ color: colors.textSubtle }}>{t('landing.footer_copyright')}</p>
+            <p className="text-lg font-bold" style={{ color: colors.accent }}>{t('common.slogan')}</p>
           </div>
         </div>
       </footer>
@@ -800,8 +742,8 @@ export default function LandingPage() {
                   </div>
                 </div>
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="mt-8 text-center">
-                  <p className="text-lg font-medium mb-2" style={{ color: colors.text }}>{language === 'ja' ? '位置情報を取得中...' : 'Getting your location...'}</p>
-                  <p className="text-sm" style={{ color: colors.textMuted }}>{language === 'ja' ? 'まもなくマップを表示します' : 'Map will appear shortly'}</p>
+                  <p className="text-lg font-medium mb-2" style={{ color: colors.text }}>{t('landing.getting_location')}</p>
+                  <p className="text-sm" style={{ color: colors.textMuted }}>{t('landing.map_shortly')}</p>
                 </motion.div>
                 <div className="flex gap-2 mt-6">
                   {[0, 1, 2].map((i) => (<motion.div key={i} className="w-2 h-2 rounded-full" style={{ backgroundColor: colors.accent }} animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1, 0.8] }} transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.2, ease: 'easeInOut' }} />))}
@@ -830,7 +772,7 @@ export default function LandingPage() {
                     </motion.button>
                     <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => handleLocationPermission(false)} className="w-full py-4 px-6 rounded-xl font-medium text-base transition-all" style={{ background: `${colors.accent}08`, border: `1px solid ${colors.borderGold}`, color: colors.textMuted }}>{t('modal.location_deny')}</motion.button>
                   </div>
-                  <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="text-center mt-6 text-xs" style={{ color: colors.textSubtle }}>{language === 'ja' ? '位置情報は周辺のお店を表示する為だけに使用します' : 'Location is only used to show nearby venues'}</motion.p>
+                  <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="text-center mt-6 text-xs" style={{ color: colors.textSubtle }}>{t('common.location_info_note')}</motion.p>
                 </div>
               </motion.div>
             )}
@@ -841,35 +783,89 @@ export default function LandingPage() {
       {/* フローティングボタン群（画面右下） */}
       <div className="fixed bottom-6 right-6 z-20 flex flex-col gap-3 items-end safe-bottom">
         {/* 言語変更ボタン */}
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ delay: 0.1 }}
-        >
+        <div className="relative language-menu-container">
           <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.1 }}
           >
-            <Button
-              onClick={handleLanguageToggle}
-              className="flex flex-col items-center justify-center gap-1 px-3 py-2 touch-manipulation active:scale-95 rounded-lg"
-              style={{
-                background: 'rgba(5,5,5,0.7)',
-                backdropFilter: 'blur(20px)',
-                border: '1px solid rgba(201,168,108,0.3)',
-                boxShadow: '0 0 20px rgba(201,168,108,0.2)',
-                minWidth: '56px',
-                minHeight: '56px',
-              }}
-              title={language === 'ja' ? 'Switch to English' : '日本語に切り替え'}
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
-              <Globe className="w-5 h-5" style={{ color: '#C9A86C' }} />
-              <span className="text-[10px] font-bold" style={{ color: '#C9A86C' }}>
-                {language === 'ja' ? '英語' : '日本語'}
-              </span>
-            </Button>
+              <Button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowLanguageMenu(!showLanguageMenu);
+                }}
+                className="flex flex-col items-center justify-center gap-1 px-3 py-2 touch-manipulation active:scale-95 rounded-lg"
+                style={{
+                  background: showLanguageMenu ? colors.accent : 'rgba(5,5,5,0.7)',
+                  backdropFilter: 'blur(20px)',
+                  border: showLanguageMenu ? `1px solid ${colors.accent}` : '1px solid rgba(201,168,108,0.3)',
+                  boxShadow: '0 0 20px rgba(201,168,108,0.2)',
+                  minWidth: '56px',
+                  minHeight: '56px',
+                }}
+                title={t('menu.language')}
+              >
+                <Globe className="w-5 h-5" style={{ color: showLanguageMenu ? colors.background : colors.accent }} />
+                <span className="text-[10px] font-bold" style={{ color: showLanguageMenu ? colors.background : colors.accent }}>
+                  {t('menu.language').length > 4 ? t('menu.language').slice(0, 4) : t('menu.language')}
+                </span>
+              </Button>
+            </motion.div>
           </motion.div>
-        </motion.div>
+
+          {/* 言語選択メニュー */}
+          <AnimatePresence>
+            {showLanguageMenu && (
+              <motion.div
+                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                transition={{ duration: 0.15 }}
+                className="absolute bottom-full right-0 mb-2 w-52"
+              >
+                <div
+                  className="rounded-xl overflow-hidden"
+                  style={{
+                    background: 'rgba(30, 30, 30, 0.95)',
+                    backdropFilter: 'blur(12px)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
+                  }}
+                >
+                  <div className="p-2">
+                    <p className="text-xs text-gray-400 px-3 py-2 font-bold">
+                      {t('language_selector.title') || t('menu.language')}
+                    </p>
+                    
+                    {SUPPORTED_LANGUAGES.map((lang) => (
+                      <button
+                        key={lang}
+                        onClick={() => handleLanguageSelect(lang)}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
+                          language === lang 
+                            ? 'bg-amber-500/20 text-amber-400' 
+                            : 'hover:bg-white/10 text-white'
+                        }`}
+                      >
+                        <span className="text-xl">{LANGUAGE_META[lang].flag}</span>
+                        <span className="font-bold text-sm flex-1 text-left">
+                          {LANGUAGE_META[lang].nativeName}
+                        </span>
+                        {language === lang && (
+                          <CheckCircle className="w-4 h-4 text-amber-400" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
     </div>
   );

@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { useAuth } from '@/lib/auth/context';
 import { toast } from 'sonner';
 import { PasswordInput } from '@/components/ui/password-input';
+import { useLanguage } from '@/lib/i18n/context';
 
 // ============================================
 // カラーパレット定義（店舗詳細画面準拠）
@@ -61,6 +62,7 @@ const GoldDivider = () => (
 export default function LoginPage() {
   const router = useRouter();
   const { signIn } = useAuth();
+  const { t } = useLanguage();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -73,13 +75,13 @@ export default function LoginPage() {
       const { error, accountType, profile, store } = await signIn(email, password);
 
       if (error) {
-        toast.error('ログインに失敗しました', {
-          description: 'メールアドレスまたはパスワードが正しくありません。',
+        toast.error(t('auth.login_failed'), {
+          description: t('auth.login_failed_desc'),
         });
         return;
       }
 
-      toast.success('ログインしました', {
+      toast.success(t('auth.login_success'), {
         position: 'top-center',
         duration: 1000,
         className: 'bg-gray-100'
@@ -97,7 +99,7 @@ export default function LoginPage() {
         } else {
           // storeが取得できない場合はログインページに留まるか、エラーハンドリング
           console.error('Store information not found for store account');
-          toast.error('店舗情報の取得に失敗しました。再度ログインしてください。');
+          toast.error(t('auth.store_info_error'));
           return;
         }
       } else {
@@ -105,7 +107,7 @@ export default function LoginPage() {
       }
     } catch (error) {
       console.error('Login error:', error);
-      toast.error('エラーが発生しました');
+      toast.error(t('common.error_occurred'));
     } finally {
       setLoading(false);
     }
@@ -165,15 +167,14 @@ export default function LoginPage() {
               className="text-4xl leading-tight font-bold mb-4"
               style={{ color: COLORS.ivory }}
             >
-              二軒目がすぐ見つかる、<br />
-              <span style={{ color: COLORS.champagneGold }}>空席マップ</span>
+              {t('auth.find_second_bar')}<br />
+              <span style={{ color: COLORS.champagneGold }}>{t('auth.vacancy_map')}</span>
             </h1>
             <p 
               className="text-lg font-medium"
               style={{ color: COLORS.platinum }}
             >
-              『いま入れるバー・スナック』だけを地図で表示。<br />
-              ログイン不要、位置情報を許可してマップを開くだけ。
+              {t('auth.vacancy_map_desc')}
             </p>
           </div>
 
@@ -191,10 +192,10 @@ export default function LoginPage() {
               transition={{ duration: 0.2 }}
             >
               <p className="font-bold" style={{ color: COLORS.champagneGold }}>
-                ひと目で空席チェック
+                {t('auth.benefit_quick_check')}
               </p>
               <p className="text-sm font-medium mt-1" style={{ color: COLORS.platinum }}>
-                最寄りのバー・スナックを最短で。
+                {t('auth.benefit_quick_check_desc')}
               </p>
             </motion.div>
             <motion.div 
@@ -207,10 +208,10 @@ export default function LoginPage() {
               transition={{ duration: 0.2 }}
             >
               <p className="font-bold" style={{ color: COLORS.champagneGold }}>
-                経路案内・電話もワンタップ
+                {t('auth.benefit_one_tap')}
               </p>
               <p className="text-sm font-medium mt-1" style={{ color: COLORS.platinum }}>
-                迷わず到着、すぐ確認。
+                {t('auth.benefit_one_tap_desc')}
               </p>
             </motion.div>
           </div>
@@ -253,14 +254,14 @@ export default function LoginPage() {
                       className="text-2xl sm:text-3xl font-bold"
                       style={{ color: COLORS.deepNavy }}
                     >
-                      おかえりなさい
+                      {t('auth.welcome_back')}
                     </h2>
                   </div>
                   <p 
                     className="text-sm font-medium"
                     style={{ color: COLORS.warmGray }}
                   >
-                    店舗アカウントにログインしてください
+                    {t('auth.login_to_store')}
                   </p>
                 </div>
 
@@ -271,7 +272,7 @@ export default function LoginPage() {
                       className="text-sm font-bold"
                       style={{ color: COLORS.deepNavy }}
                     >
-                      メールアドレス
+                      {t('auth.email')}
                     </Label>
                     <div className="relative">
                       <Mail 
@@ -291,7 +292,7 @@ export default function LoginPage() {
                           fontSize: '16px',
                           borderColor: 'rgba(201, 168, 108, 0.3)',
                         }}
-                        aria-label="メールアドレス"
+                        aria-label={t('auth.email')}
                         required
                       />
                     </div>
@@ -303,7 +304,7 @@ export default function LoginPage() {
                       className="text-sm font-bold"
                       style={{ color: COLORS.deepNavy }}
                     >
-                      パスワード
+                      {t('auth.password')}
                     </Label>
                     <div className="relative">
                       <Lock 
@@ -321,7 +322,7 @@ export default function LoginPage() {
                           borderColor: 'rgba(201, 168, 108, 0.3)',
                         }}
                         autoComplete="current-password"
-                        aria-label="パスワード"
+                        aria-label={t('auth.password')}
                         required
                       />
                     </div>
@@ -342,11 +343,11 @@ export default function LoginPage() {
                       {loading ? (
                         <>
                           <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                          ログイン中…
+                          {t('auth.logging_in')}
                         </>
                       ) : (
                         <>
-                          ログイン
+                          {t('auth.login')}
                           <ArrowRight className="w-5 h-5 ml-2" />
                         </>
                       )}
@@ -361,7 +362,7 @@ export default function LoginPage() {
                       className="inline-flex items-center gap-1 text-sm font-bold transition-colors hover:opacity-80"
                       style={{ color: COLORS.royalNavy }}
                     >
-                      ホーム画面に戻る
+                      {t('map.home')}
                       <ArrowRight className="w-4 h-4" />
                     </Link>
                   </div>

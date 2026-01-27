@@ -11,11 +11,23 @@ import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/lib/auth/context';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
-import { ja } from 'date-fns/locale';
+import { ja, enUS, ko, zhCN } from 'date-fns/locale';
+import { useLanguage } from '@/lib/i18n/context';
 
 export default function ProfilePage() {
   const router = useRouter();
   const { user, profile, signOut, accountType, store: userStore } = useAuth();
+  const { t, language } = useLanguage();
+  
+  // 言語に応じたlocaleを取得
+  const getDateLocale = () => {
+    switch (language) {
+      case 'en': return enUS;
+      case 'ko': return ko;
+      case 'zh': return zhCN;
+      default: return ja;
+    }
+  };
 
   useEffect(() => {
     // 店舗アカウントの場合は更新画面にリダイレクト
@@ -34,14 +46,14 @@ export default function ProfilePage() {
   const handleSignOut = async () => {
     try {
       await signOut();
-      toast.success('ログアウトしました', {
+      toast.success(t('auth.logout_success'), {
         position: 'top-center',
         duration: 1000,
         className: 'bg-gray-100'
       });
       router.push('/login');
     } catch (error) {
-      toast.error('ログアウトに失敗しました', {
+      toast.error(t('auth.logout_failed'), {
         position: 'top-center',
         duration: 3000,
         className: 'bg-gray-100'
@@ -54,7 +66,7 @@ export default function ProfilePage() {
       <div className="flex items-center justify-center h-screen" style={{ backgroundColor: '#1C1E26' }}>
         <div className="text-center">
           <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-          <p className="text-sm text-white font-bold">読み込み中...</p>
+          <p className="text-sm text-white font-bold">{t('common.loading')}</p>
         </div>
       </div>
     );
@@ -89,7 +101,7 @@ export default function ProfilePage() {
                   {profile.is_business && (
                     <Badge variant="secondary">
                       <Building className="w-3 h-3 mr-1" />
-                      企業アカウント
+                      {t('profile.business_account')}
                     </Badge>
                   )}
                 </div>
@@ -114,7 +126,7 @@ export default function ProfilePage() {
               <div className="flex items-center gap-1">
                 <Calendar className="w-4 h-4" />
                 <span>
-                  {format(new Date(profile.created_at), 'yyyy年M月', { locale: ja })}から利用
+                  {t('profile.member_since').replace('{date}', format(new Date(profile.created_at), language === 'ja' ? 'yyyy年M月' : 'MMM yyyy', { locale: getDateLocale() }))}
                 </span>
               </div>
             </div>
@@ -127,7 +139,7 @@ export default function ProfilePage() {
               onClick={() => router.push('/profile/change-password')}
             >
               <Key className="w-4 h-4 mr-2" />
-              パスワード変更
+              {t('auth.change_password')}
             </Button>
             <Button
               variant="outline"
@@ -135,7 +147,7 @@ export default function ProfilePage() {
               onClick={handleSignOut}
             >
               <LogOut className="w-4 h-4 mr-2" />
-              ログアウト
+              {t('auth.logout')}
             </Button>
           </div>
         </motion.div>

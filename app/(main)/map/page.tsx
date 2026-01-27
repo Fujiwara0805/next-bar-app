@@ -519,6 +519,7 @@ interface ErrorBannerProps {
 }
 
 function ErrorBanner({ error, retryCount, onRetry }: ErrorBannerProps) {
+  const { t } = useLanguage();
   return (
     <motion.div
       initial={{ opacity: 0, y: -20 }}
@@ -537,11 +538,11 @@ function ErrorBanner({ error, retryCount, onRetry }: ErrorBannerProps) {
         <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: colors.error }} />
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium" style={{ color: colors.error }}>
-            データの取得に失敗しました
+            {t('map.error_fetch_failed')}
           </p>
           {retryCount > 0 && retryCount < MAX_RETRY_COUNT && (
             <p className="text-xs mt-1" style={{ color: `${colors.error}99` }}>
-              リトライ中: {retryCount}/{MAX_RETRY_COUNT}
+              {t('map.error_retrying').replace('{retryCount}', String(retryCount)).replace('{maxRetryCount}', String(MAX_RETRY_COUNT))}
             </p>
           )}
           {retryCount >= MAX_RETRY_COUNT && (
@@ -550,7 +551,7 @@ function ErrorBanner({ error, retryCount, onRetry }: ErrorBannerProps) {
               className="mt-2 text-xs underline"
               style={{ color: colors.error }}
             >
-              再試行
+              {t('map.retry')}
             </button>
           )}
         </div>
@@ -837,11 +838,11 @@ function MapPageContent() {
                     minWidth: '56px',
                     minHeight: '56px',
                   }}
-                  title={language === 'ja' ? '一覧' : 'List'}
+                  title={t('map.store_list')}
                 >
                   <List className="w-5 h-5" style={{ color: colors.accent }} />
                   <span className="text-[10px] font-bold" style={{ color: colors.accent }}>
-                    {language === 'ja' ? '一覧' : 'List'}
+                    {t('map.store_list')}
                   </span>
                 </Button>
               </motion.div>
@@ -997,9 +998,9 @@ function MapPageContent() {
                       const walkingTime = calculateWalkingTime(distanceKm);
                       return (
                         <p className="text-sm font-bold" style={{ color: colors.textMuted }}>
-                          {language === 'ja' 
-                            ? `徒歩およそ${walkingTime}分（約${distanceText}）`
-                            : `About ${walkingTime} min walk (${distanceText})`
+                          {t('store_detail.walking_time')
+                            .replace('{minutes}', String(walkingTime))
+                            .replace('{distance}', distanceText)
                           }
                         </p>
                       );
@@ -1090,7 +1091,7 @@ function MapPageContent() {
                   {isNavigating ? (
                     <>
                       <Loader2 className="w-5 h-5 animate-spin" />
-                      <span>{language === 'ja' ? '読み込み中...' : 'Loading...'}</span>
+                      <span>{t('common.loading')}</span>
                     </>
                   ) : (
                     t('map.view_details')
@@ -1163,6 +1164,7 @@ function MapPageContent() {
 // ============================================================================
 
 function MapPageLoading() {
+  const { t } = useLanguage();
   return (
     <div
       className="flex items-center justify-center h-screen"
@@ -1187,7 +1189,7 @@ function MapPageLoading() {
           />
         </div>
         <p style={{ color: colors.textMuted }} className="text-sm font-medium">
-          読み込み中...
+          {t('common.loading')}
         </p>
       </div>
     </div>

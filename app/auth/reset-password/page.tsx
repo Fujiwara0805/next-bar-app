@@ -9,9 +9,11 @@ import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
+import { useLanguage } from '@/lib/i18n/context';
 
 export default function ResetPasswordPage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -20,12 +22,12 @@ export default function ResetPasswordPage() {
     e.preventDefault();
 
     if (newPassword !== confirmPassword) {
-      toast.error('パスワードが一致しません');
+      toast.error(t('auth.password_mismatch'));
       return;
     }
 
     if (newPassword.length < 6) {
-      toast.error('パスワードは6文字以上で入力してください');
+      toast.error(t('auth.password_min_length'));
       return;
     }
 
@@ -38,7 +40,7 @@ export default function ResetPasswordPage() {
 
       if (error) throw error;
 
-      toast.success('パスワードを変更しました', {
+      toast.success(t('auth.password_changed'), {
         position: 'top-center',
         duration: 1000,
         className: 'bg-gray-100'
@@ -46,7 +48,7 @@ export default function ResetPasswordPage() {
       router.push('/login');
     } catch (error) {
       console.error('Error:', error);
-      toast.error('パスワードの変更に失敗しました');
+      toast.error(t('auth.password_change_failed'));
     } finally {
       setLoading(false);
     }
@@ -55,26 +57,26 @@ export default function ResetPasswordPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md p-6">
-        <h1 className="text-2xl font-bold mb-6 text-center">パスワードをリセット</h1>
+        <h1 className="text-2xl font-bold mb-6 text-center">{t('auth.reset_password')}</h1>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="newPassword">新しいパスワード</Label>
+            <Label htmlFor="newPassword">{t('auth.new_password')}</Label>
             <PasswordInput
               id="newPassword"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="6文字以上"
+              placeholder={t('auth.password_placeholder')}
               required
               minLength={6}
             />
           </div>
           <div>
-            <Label htmlFor="confirmPassword">パスワード（確認）</Label>
+            <Label htmlFor="confirmPassword">{t('auth.confirm_password')}</Label>
             <PasswordInput
               id="confirmPassword"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="もう一度入力"
+              placeholder={t('auth.password_confirm_placeholder')}
               required
               minLength={6}
             />
@@ -83,10 +85,10 @@ export default function ResetPasswordPage() {
             {loading ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                変更中...
+                {t('auth.changing')}
               </>
             ) : (
-              'パスワードを変更'
+              t('auth.change_password')
             )}
           </Button>
         </form>
