@@ -100,6 +100,7 @@ export const translations = {
       distance_from_current: '現在地から',
       open_in_google_maps: 'Googleマップで開く',
       walking_time: '徒歩およそ{minutes}分（約{distance}）',
+      reviews_count: '({count}件)',
       // コンシェルジュ関連
       concierge_button: 'コンシェルジュに相談する',
       concierge_active: '厳選3件をご案内中',
@@ -204,6 +205,11 @@ export const translations = {
       reviews: '口コミを見る',
       write_review: '口コミを記入',
       walking_time: '徒歩およそ{minutes}分（約{distance}）',
+      reviews_count: '({count}件)',
+      coupon_button: 'クーポン',
+      regular_holiday_day: '定休日',
+      image_expand: '画像を拡大表示',
+      photo_expand: '写真 {index} を拡大表示',
     },
     // 混雑状況
     busyness: {
@@ -272,6 +278,12 @@ export const translations = {
       write_review: 'クチコミを書く',
       close: '閉じる',
       duplicate_usage: '短時間内に同じクーポンが使用されています',
+      default_coupon_title: 'お得なクーポン',
+      copy_code: 'コードをコピー',
+      copied_label: 'コピー完了',
+      coupon_image_alt: 'クーポン',
+      barcode_alt: 'バーコード',
+      free: '無料',
     },
     // 設備・サービスの翻訳マップ
     facilities_map: {
@@ -439,6 +451,7 @@ export const translations = {
       distance_from_current: 'Distance',
       open_in_google_maps: 'Open in Google Maps',
       walking_time: 'About {minutes} min walk ({distance})',
+      reviews_count: '({count})',
       // Concierge
       concierge_button: 'Ask Concierge',
       concierge_active: 'Top 3 Picks',
@@ -543,6 +556,11 @@ export const translations = {
       reviews: 'View Reviews',
       write_review: 'Write a Review',
       walking_time: 'About {minutes} min walk ({distance})',
+      reviews_count: '({count})',
+      coupon_button: 'Coupon',
+      regular_holiday_day: 'Closed',
+      image_expand: 'Expand image',
+      photo_expand: 'Expand photo {index}',
     },
     // Busyness
     busyness: {
@@ -611,6 +629,12 @@ export const translations = {
       write_review: 'Write a Review',
       close: 'Close',
       duplicate_usage: 'This coupon was recently used',
+      default_coupon_title: 'Special Coupon',
+      copy_code: 'Copy code',
+      copied_label: 'Copied',
+      coupon_image_alt: 'Coupon',
+      barcode_alt: 'Barcode',
+      free: 'Free',
     },
     // Facilities translation map
     facilities_map: {

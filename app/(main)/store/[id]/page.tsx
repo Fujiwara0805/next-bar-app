@@ -474,13 +474,19 @@ export default function StoreDetailPage() {
     if (!hours) return t('store_detail.no_info');
     if (typeof hours === 'string') return hours;
     
-    const dayLabels: any = {
+    const dayLabelsJa: any = {
       monday: '月', tuesday: '火', wednesday: '水', thursday: '木',
       friday: '金', saturday: '土', sunday: '日'
     };
+    const dayLabelsEn: any = {
+      monday: 'Mon', tuesday: 'Tue', wednesday: 'Wed', thursday: 'Thu',
+      friday: 'Fri', saturday: 'Sat', sunday: 'Sun'
+    };
+    const dayLabels = language === 'en' ? dayLabelsEn : dayLabelsJa;
+    const closedText = t('store_detail.regular_holiday_day');
 
     return Object.entries(hours).map(([day, time]: any) => {
-      if (time.closed) return `${dayLabels[day]}: 定休日`;
+      if (time.closed) return `${dayLabels[day]}: ${closedText}`;
       if (time.open && time.close) return `${dayLabels[day]}: ${time.open} - ${time.close}`;
       return null;
     }).filter(Boolean).join(', ') || t('store_detail.no_info');
@@ -593,7 +599,7 @@ export default function StoreDetailPage() {
               onClick={() => openLightbox(imageUrls, selectedImageIndex)}
               role="button"
               tabIndex={0}
-              aria-label="画像を拡大表示"
+              aria-label={t('store_detail.image_expand')}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
@@ -727,7 +733,7 @@ export default function StoreDetailPage() {
                   
                   {store.google_reviews_count && (
                     <span className="text-xs" style={{ color: COLORS.warmGray }}>
-                      ({store.google_reviews_count.toLocaleString()}件)
+                      {t('store_detail.reviews_count').replace('{count}', store.google_reviews_count.toLocaleString())}
                     </span>
                   )}
                   
@@ -807,7 +813,7 @@ export default function StoreDetailPage() {
                       }}
                     />
                     <Ticket className="w-4 h-4 relative z-10" />
-                    <span className="relative z-10">クーポン</span>
+                    <span className="relative z-10">{t('store_detail.coupon_button')}</span>
                   </motion.button>
                 )}
               </div>
@@ -868,7 +874,9 @@ export default function StoreDetailPage() {
                         : `${distanceM}m`;
                       return (
                         <p className="text-sm font-medium" style={{ color: COLORS.warmGray }}>
-                          徒歩およそ{calculateWalkingTime(distance)}分（約{distanceText}）
+                          {t('store_detail.walking_time')
+                            .replace('{minutes}', String(calculateWalkingTime(distance)))
+                            .replace('{distance}', distanceText)}
                         </p>
                       );
                     })()}
@@ -1007,7 +1015,7 @@ export default function StoreDetailPage() {
                                   onClick={() => openLightbox(placePhotos, photoIndex)}
                                   role="button"
                                   tabIndex={0}
-                                  aria-label={`写真 ${photoIndex + 1} を拡大表示`}
+                                  aria-label={t('store_detail.photo_expand').replace('{index}', String(photoIndex + 1))}
                                   onKeyDown={(e) => {
                                     if (e.key === 'Enter' || e.key === ' ') {
                                       e.preventDefault();

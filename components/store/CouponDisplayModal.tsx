@@ -454,7 +454,7 @@ export function CouponDisplayModal({
 
       if (!result.success) {
         if (result.error === 'DUPLICATE_USAGE') {
-          toast.error(result.message || '短時間内に同じクーポンが使用されています', {
+          toast.error(result.message || t('coupon.duplicate_usage'), {
             position: 'top-center',
             duration: 4000,
           });
@@ -490,7 +490,7 @@ export function CouponDisplayModal({
     if (coupon.coupon_code) {
       await navigator.clipboard.writeText(coupon.coupon_code);
       setCopied(true);
-      toast.success('クーポンコードをコピーしました', { 
+      toast.success(t('coupon.copied'), { 
         position: 'top-center',
         duration: 1500,
       });
@@ -506,7 +506,7 @@ export function CouponDisplayModal({
       // ここでは状態の更新のみ
       setIsUsed(true);
       setShowConfirmModal(false);
-      toast.success('クーポンを使用しました', {
+      toast.success(t('coupon.used_success'), {
         position: 'top-center',
         duration: 2000,
       });
@@ -516,7 +516,7 @@ export function CouponDisplayModal({
       }
     } catch (error) {
       console.error('Error using coupon:', error);
-      toast.error('クーポンの使用に失敗しました', {
+      toast.error(t('coupon.use_failed'), {
         position: 'top-center',
         duration: 3000,
       });
@@ -597,7 +597,7 @@ export function CouponDisplayModal({
               backgroundColor: 'rgba(255, 255, 255, 0.08)',
               border: '1px solid rgba(255, 255, 255, 0.1)',
             }}
-            aria-label="閉じる"
+            aria-label={t('coupon.close')}
           >
             <X className="w-5 h-5" />
           </motion.button>
@@ -666,7 +666,7 @@ export function CouponDisplayModal({
                     className="text-sm mb-2"
                     style={{ color: COLORS.warmGray }}
                   >
-                    {coupon.coupon_title || 'お得なクーポン'}
+                    {coupon.coupon_title || t('coupon.default_coupon_title')}
                   </p>
                     <p 
                       className="text-3xl font-bold"
@@ -973,7 +973,7 @@ export function CouponDisplayModal({
                       fontFamily: '"Cormorant Garamond", "Noto Serif JP", serif',
                     }}
                   >
-                    {coupon.coupon_title || 'お得なクーポン'}
+                    {coupon.coupon_title || t('coupon.default_coupon_title')}
                   </h2>
                   <p 
                     className="text-sm tracking-wide"
@@ -1035,7 +1035,7 @@ export function CouponDisplayModal({
                     >
                       <img
                         src={coupon.coupon_image_url}
-                        alt="クーポン"
+                        alt={t('coupon.coupon_image_alt')}
                         className="w-full h-auto"
                       />
                     </div>
@@ -1100,7 +1100,7 @@ export function CouponDisplayModal({
                       {coupon.coupon_expiry_date ? (
                         <>
                           <p className="text-sm font-medium" style={{ color: COLORS.ivory }}>
-                            {formatDate(coupon.coupon_expiry_date)}{language === 'ja' ? 'まで' : ''}
+                            {formatDate(coupon.coupon_expiry_date)}{language === 'ja' ? t('coupon.until') : ''}
                           </p>
                           {remainingDays !== null && remainingDays > 0 && remainingDays <= 7 && (
                             <p className="text-xs font-medium mt-0.5" style={{ color: COLORS.champagneGold }}>
@@ -1144,7 +1144,7 @@ export function CouponDisplayModal({
                               : 'rgba(201, 168, 108, 0.15)',
                             border: `1px solid ${copied ? 'rgba(34, 197, 94, 0.3)' : 'rgba(201, 168, 108, 0.25)'}`,
                           }}
-                          aria-label={copied ? 'コピー完了' : 'コードをコピー'}
+                          aria-label={copied ? t('coupon.copied_label') : t('coupon.copy_code')}
                         >
                           {copied ? (
                             <Check className="w-4 h-4" style={{ color: '#4ade80' }} />
@@ -1165,7 +1165,7 @@ export function CouponDisplayModal({
                       <div className="inline-block p-4 rounded-xl" style={{ backgroundColor: COLORS.ivory }}>
                         <img
                           src={coupon.coupon_barcode_url}
-                          alt="バーコード"
+                          alt={t('coupon.barcode_alt')}
                           className="max-w-[200px] mx-auto"
                         />
                       </div>
@@ -1399,7 +1399,7 @@ export function CouponDisplayModal({
               backgroundColor: 'rgba(255, 255, 255, 0.08)',
               border: '1px solid rgba(255, 255, 255, 0.1)',
             }}
-            aria-label="閉じる"
+            aria-label={t('coupon.close')}
           >
             <X className="w-4 h-4" />
           </motion.button>
@@ -1473,6 +1473,7 @@ interface CouponBadgeProps {
 }
 
 export function CouponBadge({ coupon, onClick, size = 'md' }: CouponBadgeProps) {
+  const { t } = useLanguage();
   const isValid = isCouponValid(coupon);
 
   if (!isValid || !coupon.coupon_title) return null;
@@ -1498,7 +1499,7 @@ export function CouponBadge({ coupon, onClick, size = 'md' }: CouponBadgeProps) 
       <Ticket className={size === 'sm' ? 'w-3 h-3' : 'w-4 h-4'} />
       <span>
         {coupon.coupon_discount_type === 'free_item'
-          ? '無料'
+          ? t('coupon.free')
           : formatDiscountValue(
               coupon.coupon_discount_type as CouponDiscountType,
               coupon.coupon_discount_value || 0

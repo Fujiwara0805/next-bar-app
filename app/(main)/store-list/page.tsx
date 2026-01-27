@@ -653,7 +653,7 @@ export default function StoreListPage() {
                                   </span>
                                   {store.google_reviews_count && (
                                     <span className="text-xs" style={{ color: COLORS.warmGray }}>
-                                      ({store.google_reviews_count.toLocaleString()}件)
+                                      {t('store_list.reviews_count').replace('{count}', store.google_reviews_count.toLocaleString())}
                                     </span>
                                   )}
                                 </div>
@@ -769,7 +769,7 @@ export default function StoreListPage() {
                     minWidth: '56px',
                     minHeight: '56px',
                   }}
-                  title="フィルター"
+                  title={t('store_list.filter')}
                 >
                   <Filter 
                     className="w-5 h-5" 
