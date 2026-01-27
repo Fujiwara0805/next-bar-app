@@ -454,7 +454,6 @@ export function CouponDisplayModal({
           });
           return;
         }
-        console.error('Failed to record coupon usage:', result.error);
         // エラーでも表示は続行（UX優先）
       }
       

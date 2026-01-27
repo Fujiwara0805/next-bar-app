@@ -5,25 +5,13 @@
 // lib/actions/coupon-usage.ts
 // ============================================
 
-import { createClient } from '@supabase/supabase-js';
 import { headers } from 'next/headers';
 import {
   RecordCouponUsageRequest,
   RecordCouponUsageResponse,
   recordCouponUsageSchema,
 } from '@/lib/types/coupon-usage';
-
-// Supabaseクライアント（サーバーサイド用）
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-  }
-);
+import { createServerSupabaseClient } from '@/lib/supabase/server';
 
 /**
  * クーポン利用を記録するサーバーアクション
@@ -32,6 +20,9 @@ export async function recordCouponUsage(
   request: RecordCouponUsageRequest
 ): Promise<RecordCouponUsageResponse> {
   try {
+    // Supabaseクライアントを作成
+    const supabase = createServerSupabaseClient();
+    
     // バリデーション
     const validationResult = recordCouponUsageSchema.safeParse(request);
     
@@ -51,7 +42,7 @@ export async function recordCouponUsage(
     const referrer = headersList.get('referer') || undefined;
 
     // 重複チェック（同一セッション、同一店舗、30分以内）
-    const { data: duplicateCheck, error: duplicateError } = await supabaseAdmin.rpc(
+    const { data: duplicateCheck, error: duplicateError } = await supabase.rpc(
       'check_coupon_duplicate_usage',
       {
         p_store_id: validatedData.storeId,
@@ -61,8 +52,7 @@ export async function recordCouponUsage(
     );
 
     if (duplicateError) {
-      console.error('Duplicate check error:', duplicateError);
-      // エラーが発生しても処理を続行（RPC関数が存在しない場合など）
+      // RPC関数が存在しない場合など、エラーが発生しても処理を続行
     } else if (duplicateCheck === true) {
       return {
         success: false,
@@ -72,7 +62,7 @@ export async function recordCouponUsage(
     }
 
     // クーポン利用を記録
-    const { data: usageData, error: insertError } = await supabaseAdmin
+    const { data: usageData, error: insertError } = await supabase
       .from('coupon_usages')
       .insert({
         store_id: validatedData.storeId,
@@ -96,19 +86,22 @@ export async function recordCouponUsage(
     }
 
     // 店舗のクーポン使用回数をインクリメント
-    const { error: updateError } = await supabaseAdmin.rpc('increment_coupon_uses', {
+    const { error: updateError } = await supabase.rpc('increment_coupon_uses', {
       store_id: validatedData.storeId,
     });
 
     // インクリメントRPCが存在しない場合は直接UPDATE
     if (updateError) {
-      await supabaseAdmin
+      const { data: storeData } = await supabase
+        .from('stores')
+        .select('coupon_current_uses')
+        .eq('id', validatedData.storeId)
+        .single();
+      
+      await supabase
         .from('stores')
         .update({
-          coupon_current_uses: supabaseAdmin.rpc('coalesce', {
-            value: 'coupon_current_uses',
-            default_value: 0,
-          }),
+          coupon_current_uses: (storeData?.coupon_current_uses ?? 0) + 1,
         })
         .eq('id', validatedData.storeId);
     }
@@ -136,7 +129,9 @@ export async function getCouponUsageStats(
   endDate?: string
 ) {
   try {
-    let query = supabaseAdmin
+    const supabase = createServerSupabaseClient();
+    
+    let query = supabase
       .from('coupon_usages')
       .select('*')
       .eq('store_id', storeId)
