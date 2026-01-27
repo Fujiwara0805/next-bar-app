@@ -148,7 +148,7 @@ export function StoreCouponForm({
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <div className="p-6 space-y-6 border-t">
+            <div className="p-6 space-y-6 border-t overflow-hidden">
 
               {/* タイトル */}
               <div className="space-y-2">
@@ -277,8 +277,8 @@ export function StoreCouponForm({
 
               {/* 期間設定 */}
               <div className="space-y-4">
-                <div className="space-y-2 ">
-                  <Label htmlFor="coupon-start-date" className="font-bold flex items-center gap-2 ">
+                <div className="space-y-2">
+                  <Label htmlFor="coupon-start-date" className="font-bold flex items-center gap-2">
                     <Calendar className="w-3 h-3" />
                     配布開始日
                   </Label>
@@ -288,13 +288,13 @@ export function StoreCouponForm({
                     value={values.startDate}
                     onChange={(e) => handleChange('startDate', e.target.value)}
                     disabled={disabled}
-                    className="font-bold bg-white text-gray-700 border-2 border-gray-300 h-9 placeholder:text-gray-300"
+                    className="font-bold bg-white text-gray-700 border-2 border-gray-300 h-12 placeholder:text-gray-300 w-full max-w-full"
                     style={{ fontSize: '16px' }}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="coupon-expiry-date" className="font-bold flex items-center gap-2 ">
+                  <Label htmlFor="coupon-expiry-date" className="font-bold flex items-center gap-2">
                     <Calendar className="w-3 h-3" />
                     有効期限
                   </Label>
@@ -304,7 +304,7 @@ export function StoreCouponForm({
                     value={values.expiryDate}
                     onChange={(e) => handleChange('expiryDate', e.target.value)}
                     disabled={disabled}
-                    className="font-bold bg-white text-gray-700 border-2 border-gray-300 h-9 placeholder:text-gray-300"
+                    className="font-bold bg-white text-gray-700 border-2 border-gray-300 h-12 placeholder:text-gray-300 w-full max-w-full"
                     style={{ fontSize: '16px' }}
                   />
                   {errors.expiryDate && (

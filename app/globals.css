@@ -221,3 +221,24 @@ a,
 .pointer-events-auto {
   pointer-events: auto;
 }
+
+/* 日付入力フィールドのモバイル対応 */
+input[type="date"] {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+input[type="date"]::-webkit-date-and-time-value {
+  text-align: left;
+}
+
+/* iOS Safari での日付入力の最適化 */
+@supports (-webkit-touch-callout: none) {
+  input[type="date"] {
+    min-height: 44px;
+  }
+}

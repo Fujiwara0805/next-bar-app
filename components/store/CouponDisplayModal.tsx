@@ -37,6 +37,7 @@ import {
 } from '@/lib/types/coupon-usage';
 import { recordCouponUsage } from '@/lib/actions/coupon-usage';
 import { toast } from 'sonner';
+import { useLanguage } from '@/lib/i18n/context';
 
 // ============================================
 // カラーパレット定義（ラグジュアリーテーマ）
@@ -353,6 +354,11 @@ export function CouponDisplayModal({
   onCouponUsed,
 }: CouponDisplayModalProps) {
   // ============================================
+  // 多言語対応
+  // ============================================
+  const { t, language } = useLanguage();
+
+  // ============================================
   // 状態管理
   // ============================================
   
@@ -540,7 +546,10 @@ export function CouponDisplayModal({
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   };
 
-  const generateReviewUrl = (placeId: string): string => {
+  /**
+   * Google Maps口コミ投稿URLを生成
+   */
+  const generateGoogleReviewUrl = (placeId: string): string => {
     return `https://search.google.com/local/writereview?placeid=${encodeURIComponent(placeId)}`;
   };
 
@@ -630,13 +639,13 @@ export function CouponDisplayModal({
                       fontFamily: '"Cormorant Garamond", "Noto Serif JP", serif',
                     }}
                   >
-                    特別クーポン
+                    {t('coupon.special_coupon')}
                   </h2>
                   <p 
                     className="text-sm"
                     style={{ color: COLORS.warmGray }}
                   >
-                    {storeName}からのおもてなし
+                    {storeName}{t('coupon.from_store')}
                   </p>
                 </div>
 
@@ -659,34 +668,32 @@ export function CouponDisplayModal({
                   >
                     {coupon.coupon_title || 'お得なクーポン'}
                   </p>
-                  <p 
-                    className="text-3xl font-bold"
-                    style={{ 
-                      color: COLORS.champagneGold,
-                      textShadow: '0 0 30px rgba(201, 168, 108, 0.3)',
-                    }}
-                  >
-                    {coupon.coupon_discount_type === 'free_item' 
-                      ? '無料サービス'
-                      : formatDiscountValue(
-                          coupon.coupon_discount_type as CouponDiscountType,
-                          coupon.coupon_discount_value || 0
-                        )
-                    }
-                  </p>
-                </motion.div>
+                    <p 
+                      className="text-3xl font-bold"
+                      style={{ 
+                        color: COLORS.champagneGold,
+                        textShadow: '0 0 30px rgba(201, 168, 108, 0.3)',
+                      }}
+                    >
+                      {coupon.coupon_discount_type === 'free_item' 
+                        ? t('coupon.free_item')
+                        : formatDiscountValue(
+                            coupon.coupon_discount_type as CouponDiscountType,
+                            coupon.coupon_discount_value || 0
+                          )
+                      }
+                    </p>
+                  </motion.div>
 
                 {/* 説明 */}
                 <motion.p
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.3 }}
-                  className="text-center text-sm mb-6"
+                  className="text-center text-sm mb-6 whitespace-pre-line"
                   style={{ color: COLORS.platinum }}
                 >
-                  クーポンを受け取るには
-                  <br />
-                  簡単なアンケートにお答えください
+                  {t('coupon.survey_intro')}
                 </motion.p>
 
                 {/* 開始ボタン */}
@@ -705,7 +712,7 @@ export function CouponDisplayModal({
                   }}
                 >
                   <span className="relative flex items-center justify-center gap-2">
-                    クーポンを受け取る
+                    {t('coupon.receive_coupon')}
                     <ChevronRight className="w-5 h-5" />
                   </span>
                 </motion.button>
@@ -736,29 +743,29 @@ export function CouponDisplayModal({
                       fontFamily: '"Cormorant Garamond", "Noto Serif JP", serif',
                     }}
                   >
-                    ご来店ありがとうございます
+                    {t('coupon.thank_you_visit')}
                   </h3>
                   <p 
                     className="text-sm"
                     style={{ color: COLORS.warmGray }}
                   >
-                    {storeName}は初めてですか？
+                    {language === 'en' ? t('coupon.first_time_question') + storeName + '?' : storeName + t('coupon.first_time_question')}
                   </p>
                 </div>
 
                 <div className="space-y-3 mb-6">
                   <ChoiceButton
                     icon={<Sparkles className="w-6 h-6" />}
-                    label="はい、初めてです"
-                    sublabel="Welcome! 初回限定特典をお楽しみください"
+                    label={t('coupon.yes_first_time')}
+                    sublabel={t('coupon.welcome_first_time')}
                     isSelected={surveyAnswers.isFirstVisit === true}
                     onClick={() => handleFirstVisitAnswer(true)}
                     delay={0.1}
                   />
                   <ChoiceButton
                     icon={<Heart className="w-6 h-6" />}
-                    label="いいえ、以前も来ました"
-                    sublabel="いつもありがとうございます！"
+                    label={t('coupon.no_been_before')}
+                    sublabel={t('coupon.thank_repeat_customer')}
                     isSelected={surveyAnswers.isFirstVisit === false}
                     onClick={() => handleFirstVisitAnswer(false)}
                     delay={0.2}
@@ -782,7 +789,7 @@ export function CouponDisplayModal({
                     }}
                   >
                     <ChevronLeft className="w-4 h-4" />
-                    戻る
+                    {t('coupon.back')}
                   </motion.button>
                   <motion.button
                     initial={{ opacity: 0 }}
@@ -805,7 +812,7 @@ export function CouponDisplayModal({
                         : 'none',
                     }}
                   >
-                    次へ
+                    {t('coupon.next')}
                     <ChevronRight className="w-4 h-4" />
                   </motion.button>
                 </div>
@@ -836,29 +843,29 @@ export function CouponDisplayModal({
                       fontFamily: '"Cormorant Garamond", "Noto Serif JP", serif',
                     }}
                   >
-                    お住まいはどちらですか？
+                    {t('coupon.residence_question')}
                   </h3>
                   <p 
                     className="text-sm"
                     style={{ color: COLORS.warmGray }}
                   >
-                    大分県内のお客様ですか？
+                    {t('coupon.local_question')}
                   </p>
                 </div>
 
                 <div className="space-y-3 mb-6">
                   <ChoiceButton
                     icon={<Home className="w-6 h-6" />}
-                    label="県内に住んでいます"
-                    sublabel="地元のお客様、ありがとうございます！"
+                    label={t('coupon.live_locally')}
+                    sublabel={t('coupon.thank_local')}
                     isSelected={surveyAnswers.isLocalResident === true}
                     onClick={() => handleResidenceAnswer(true)}
                     delay={0.1}
                   />
                   <ChoiceButton
                     icon={<Plane className="w-6 h-6" />}
-                    label="県外から来ました"
-                    sublabel="遠方からのお越し、嬉しいです！"
+                    label={t('coupon.from_outside')}
+                    sublabel={t('coupon.thank_visitor')}
                     isSelected={surveyAnswers.isLocalResident === false}
                     onClick={() => handleResidenceAnswer(false)}
                     delay={0.2}
@@ -882,7 +889,7 @@ export function CouponDisplayModal({
                     }}
                   >
                     <ChevronLeft className="w-4 h-4" />
-                    戻る
+                    {t('coupon.back')}
                   </motion.button>
                   <motion.button
                     initial={{ opacity: 0 }}
@@ -913,11 +920,11 @@ export function CouponDisplayModal({
                           animate={{ rotate: 360 }}
                           transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
                         />
-                        処理中...
+                        {t('coupon.processing')}
                       </>
                     ) : (
                       <>
-                        クーポンを表示
+                        {t('coupon.show_coupon')}
                         <Gift className="w-4 h-4" />
                       </>
                     )}
@@ -1002,7 +1009,7 @@ export function CouponDisplayModal({
                       }}
                     >
                       {coupon.coupon_discount_type === 'free_item' 
-                        ? '無料サービス'
+                        ? t('coupon.free_item')
                         : formatDiscountValue(
                             coupon.coupon_discount_type as CouponDiscountType,
                             coupon.coupon_discount_value || 0
@@ -1044,7 +1051,7 @@ export function CouponDisplayModal({
                       }}
                     >
                       <p className="font-medium text-sm mb-2" style={{ color: COLORS.paleGold }}>
-                        詳細
+                        {t('coupon.detail')}
                       </p>
                       <p className="text-sm leading-relaxed" style={{ color: COLORS.platinum }}>
                         {coupon.coupon_description}
@@ -1065,7 +1072,7 @@ export function CouponDisplayModal({
                         <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: COLORS.champagneGold }} />
                         <div>
                           <p className="font-medium text-sm mb-1" style={{ color: COLORS.champagneGold }}>
-                            ご利用条件
+                            {t('coupon.conditions')}
                           </p>
                           <p className="text-sm leading-relaxed" style={{ color: COLORS.platinum }}>
                             {coupon.coupon_conditions}
@@ -1086,23 +1093,23 @@ export function CouponDisplayModal({
                     <div className="flex items-center gap-2">
                       <Clock className="w-4 h-4" style={{ color: COLORS.warmGray }} />
                       <span className="text-sm font-medium" style={{ color: COLORS.warmGray }}>
-                        有効期限
+                        {t('coupon.expiry')}
                       </span>
                     </div>
                     <div className="text-right">
                       {coupon.coupon_expiry_date ? (
                         <>
                           <p className="text-sm font-medium" style={{ color: COLORS.ivory }}>
-                            {formatDate(coupon.coupon_expiry_date)}まで
+                            {formatDate(coupon.coupon_expiry_date)}{language === 'ja' ? 'まで' : ''}
                           </p>
                           {remainingDays !== null && remainingDays > 0 && remainingDays <= 7 && (
                             <p className="text-xs font-medium mt-0.5" style={{ color: COLORS.champagneGold }}>
-                              残り{remainingDays}日
+                              {t('coupon.remaining_days').replace('{days}', String(remainingDays))}
                             </p>
                           )}
                         </>
                       ) : (
-                        <p className="text-sm" style={{ color: COLORS.warmGray }}>期限なし</p>
+                        <p className="text-sm" style={{ color: COLORS.warmGray }}>{t('coupon.no_expiry')}</p>
                       )}
                     </div>
                   </div>
@@ -1153,7 +1160,7 @@ export function CouponDisplayModal({
                   {coupon.coupon_barcode_url && (
                     <div className="text-center">
                       <p className="text-xs font-medium mb-3" style={{ color: COLORS.warmGray }}>
-                        店舗でこちらを提示してください
+                        {t('coupon.show_to_staff')}
                       </p>
                       <div className="inline-block p-4 rounded-xl" style={{ backgroundColor: COLORS.ivory }}>
                         <img
@@ -1169,9 +1176,10 @@ export function CouponDisplayModal({
                   {coupon.coupon_max_uses && (
                     <div className="text-center text-sm">
                       <span className="font-medium" style={{ color: COLORS.champagneGold }}>
-                        残り {coupon.coupon_max_uses - (coupon.coupon_current_uses || 0)} 枚
+                        {t('coupon.remaining_count')
+                          .replace('{remaining}', String(coupon.coupon_max_uses - (coupon.coupon_current_uses || 0)))
+                          .replace('{total}', String(coupon.coupon_max_uses))}
                       </span>
-                      <span style={{ color: COLORS.warmGray }}> / {coupon.coupon_max_uses} 枚</span>
                     </div>
                   )}
 
@@ -1185,7 +1193,7 @@ export function CouponDisplayModal({
                       }}
                     >
                       <p className="font-medium text-sm" style={{ color: '#f87171' }}>
-                        このクーポンは現在ご利用いただけません
+                        {t('coupon.unavailable')}
                       </p>
                     </div>
                   )}
@@ -1212,7 +1220,7 @@ export function CouponDisplayModal({
                       />
                       <span className="relative flex items-center justify-center gap-2">
                         <Gift className="w-5 h-5" />
-                        クーポンを使う
+                        {t('coupon.use_coupon')}
                       </span>
                     </motion.button>
                   )}
@@ -1261,7 +1269,7 @@ export function CouponDisplayModal({
                       fontFamily: '"Cormorant Garamond", "Noto Serif JP", serif',
                     }}
                   >
-                    ご来店ありがとうございます！
+                    {t('coupon.thank_you')}
                   </motion.h2>
                   
                   <motion.p
@@ -1271,7 +1279,7 @@ export function CouponDisplayModal({
                     className="text-sm"
                     style={{ color: COLORS.platinum }}
                   >
-                    {storeName}でのひとときをお楽しみください
+                    {language === 'en' ? t('coupon.enjoy_time') + storeName : storeName + t('coupon.enjoy_time')}
                   </motion.p>
                 </motion.div>
 
@@ -1300,34 +1308,38 @@ export function CouponDisplayModal({
                       </div>
                       <div>
                         <h3 className="font-bold text-sm mb-1" style={{ color: COLORS.champagneGold }}>
-                          さらにお得なチャンス！
+                          {t('coupon.extra_bonus')}
                         </h3>
                         <p className="text-xs leading-relaxed" style={{ color: COLORS.platinum }}>
-                          以下のいずれかの画面をスタッフに提示すると、追加特典をプレゼントいたします。
+                          {t('coupon.bonus_instruction')}
                         </p>
                       </div>
                     </div>
                   </div>
 
                   <div className="space-y-3">
-                    <ActionCard
-                      icon={<Instagram className="w-6 h-6 text-white" />}
-                      title="Instagram公式アカウントをフォロー"
-                      description="最新情報やお得なキャンペーン情報をお届けします"
-                      buttonText="Instagramを開く"
-                      href={instagramUrl || `https://www.instagram.com/explore/locations/${storeName}`}
-                      gradientStyle={COLORS.instagramGradient}
-                      delay={0}
-                    />
+                    {/* Instagram導線（URLがある場合のみ表示） */}
+                    {instagramUrl && (
+                      <ActionCard
+                        icon={<Instagram className="w-6 h-6 text-white" />}
+                        title={t('coupon.follow_instagram')}
+                        description={t('coupon.instagram_desc')}
+                        buttonText={t('coupon.open_instagram')}
+                        href={instagramUrl}
+                        gradientStyle={COLORS.instagramGradient}
+                        delay={0}
+                      />
+                    )}
 
+                    {/* Googleレビュー導線（常に表示、placeIdがなければ検索URLにフォールバック） */}
                     <ActionCard
                       icon={<Star className="w-6 h-6 text-white" />}
-                      title="Googleマップでクチコミを投稿"
-                      description="あなたの体験を共有して、お店を応援しましょう"
-                      buttonText="クチコミを書く"
-                      href={googlePlaceId ? generateReviewUrl(googlePlaceId) : `https://www.google.com/maps/search/${encodeURIComponent(storeName)}`}
+                      title={t('coupon.write_google_review')}
+                      description={t('coupon.review_desc')}
+                      buttonText={t('coupon.write_review')}
+                      href={googlePlaceId ? generateGoogleReviewUrl(googlePlaceId) : `https://www.google.com/maps/search/${encodeURIComponent(storeName)}`}
                       gradientStyle={COLORS.googleGradient}
-                      delay={0.1}
+                      delay={instagramUrl ? 0.1 : 0}
                     />
                   </div>
                 </motion.div>
@@ -1347,7 +1359,7 @@ export function CouponDisplayModal({
                     color: COLORS.platinum,
                   }}
                 >
-                  閉じる
+                  {t('coupon.close')}
                 </motion.button>
               </motion.div>
             )}
@@ -1409,10 +1421,10 @@ export function CouponDisplayModal({
                 fontFamily: '"Cormorant Garamond", "Noto Serif JP", serif',
               }}
             >
-              クーポンを使用しますか？
+              {t('coupon.confirm_use')}
             </h3>
             <p className="text-sm mb-6" style={{ color: COLORS.warmGray }}>
-              この操作は取り消せません
+              {t('coupon.cannot_undo')}
             </p>
           </div>
           
@@ -1427,7 +1439,7 @@ export function CouponDisplayModal({
                 color: COLORS.warmGray,
               }}
             >
-              キャンセル
+              {t('coupon.cancel')}
             </button>
             <motion.button
               whileHover={{ scale: 1.05 }}
@@ -1441,7 +1453,7 @@ export function CouponDisplayModal({
                 boxShadow: '0 10px 30px rgba(201, 168, 108, 0.3)',
               }}
             >
-              {isUsing ? '処理中...' : '使用する'}
+              {isUsing ? t('coupon.processing') : t('coupon.confirm')}
             </motion.button>
           </div>
         </div>

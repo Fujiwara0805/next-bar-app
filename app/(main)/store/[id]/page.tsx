@@ -85,7 +85,7 @@ const photoCache = new Map<string, string[]>();
 /**
  * Google Maps口コミ投稿URLを生成
  */
-const generateReviewUrl = (placeId: string): string => {
+const generateGoogleReviewUrl = (placeId: string): string => {
   return `https://search.google.com/local/writereview?placeid=${encodeURIComponent(placeId)}`;
 };
 
@@ -733,12 +733,12 @@ export default function StoreDetailPage() {
                       style={{ color: COLORS.royalNavy }}
                     >
                       <ExternalLink className="w-3 h-3" />
-                      口コミを見る
+                      {t('store_detail.reviews')}
                     </a>
                     
                     {store.google_place_id && (
                       <motion.a
-                        href={generateReviewUrl(store.google_place_id)}
+                        href={generateGoogleReviewUrl(store.google_place_id)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-full shadow-sm transition-all duration-200"
@@ -751,7 +751,7 @@ export default function StoreDetailPage() {
                         whileTap={{ scale: 0.97 }}
                       >
                         <PenLine className="w-3.5 h-3.5" />
-                        口コミを記入
+                        {t('store_detail.write_review')}
                       </motion.a>
                     )}
                   </div>
@@ -902,18 +902,20 @@ export default function StoreDetailPage() {
                 </div>
               )}
 
-              {/* 来客層 */}
-              <div className="flex items-start gap-3">
-                <Users className="w-5 h-5 shrink-0 mt-0.5" style={{ color: COLORS.champagneGold }} />
-                <div className="flex-1">
-                  <p className="text-sm font-bold mb-1" style={{ color: COLORS.deepNavy }}>
-                    {t('store_detail.customer_demographics')}
-                  </p>
-                  <p className="text-sm font-medium" style={{ color: COLORS.warmGray }}>
-                    {t('store_detail.male')} {store.male_ratio}{t('store_detail.people')} / {t('store_detail.female')} {store.female_ratio}{t('store_detail.people')}
-                  </p>
+              {/* 来客層（男女ともに0人の場合は非表示） */}
+              {(store.male_ratio > 0 || store.female_ratio > 0) && (
+                <div className="flex items-start gap-3">
+                  <Users className="w-5 h-5 shrink-0 mt-0.5" style={{ color: COLORS.champagneGold }} />
+                  <div className="flex-1">
+                    <p className="text-sm font-bold mb-1" style={{ color: COLORS.deepNavy }}>
+                      {t('store_detail.customer_demographics')}
+                    </p>
+                    <p className="text-sm font-medium" style={{ color: COLORS.warmGray }}>
+                      {t('store_detail.male')} {store.male_ratio}{t('store_detail.people')} / {t('store_detail.female')} {store.female_ratio}{t('store_detail.people')}
+                    </p>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* 電話番号 */}
               {store.phone && (
@@ -944,7 +946,7 @@ export default function StoreDetailPage() {
                 <User className="w-5 h-5 shrink-0 mt-0.5" style={{ color: COLORS.champagneGold }} />
                 <div className="flex-1">
                   <p className="text-sm font-bold mb-1" style={{ color: COLORS.deepNavy }}>
-                    席をキープする
+                    {t('store_detail.keep_seat')}
                   </p>
                   <InstantReservationButton storeId={store.id} storeName={store.name} />
                 </div>
@@ -956,7 +958,7 @@ export default function StoreDetailPage() {
                   <ImageIcon className="w-5 h-5 shrink-0 mt-0.5" style={{ color: COLORS.champagneGold }} />
                   <div className="flex-1">
                     <p className="text-sm font-bold mb-3" style={{ color: COLORS.deepNavy }}>
-                      お店の雰囲気（写真）
+                      {t('store_detail.photos')}
                     </p>
                     
                     {/* ローディング状態 */}
@@ -1092,7 +1094,7 @@ export default function StoreDetailPage() {
                     {/* 写真なし */}
                     {!loadingPhotos && photosRequested && placePhotos.length === 0 && (
                       <p className="text-sm font-medium" style={{ color: COLORS.warmGray }}>
-                        写真がありません
+                        {t('store_detail.no_photos')}
                       </p>
                     )}
                   </div>
@@ -1314,6 +1316,8 @@ export default function StoreDetailPage() {
           coupon={store as Partial<CouponData>}
           storeName={store.name}
           storeId={store.id}
+          instagramUrl={(store as any).instagram_url ?? (store.website_url?.includes('instagram.com') ? store.website_url : undefined) ?? undefined}
+          googlePlaceId={store.google_place_id ?? undefined}
           onCouponUsed={() => fetchStore(store.id)}
         />
       )}

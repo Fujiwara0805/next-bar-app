@@ -123,6 +123,8 @@ export interface Database {
           coupon_code: string | null
           /** クーポンバーコードURL */
           coupon_barcode_url: string | null
+          /** InstagramのURL */
+          instagram_url: string | null
         }
         Insert: {
           id?: string
@@ -175,6 +177,7 @@ export interface Database {
           coupon_current_uses?: number
           coupon_code?: string | null
           coupon_barcode_url?: string | null
+          instagram_url?: string | null
         }
         Update: {
           id?: string
@@ -227,6 +230,7 @@ export interface Database {
           coupon_current_uses?: number
           coupon_code?: string | null
           coupon_barcode_url?: string | null
+          instagram_url?: string | null
         }
       }
       quick_reservations: {
