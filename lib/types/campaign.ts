@@ -127,8 +127,11 @@ export function campaignMasterFormToDbData(formValues: CampaignMasterFormValues)
  * @returns 有効な場合true
  */
 export function isCampaignValid(campaign: Campaign | CampaignOption): boolean {
-  if (!campaign.isActive && 'isActive' in campaign) return false;
-  if (!campaign.is_active && 'is_active' in campaign) return false;
+  // アクティブフラグをチェック（型によってプロパティ名が異なる）
+  // CampaignOption: isActive (キャメルケース)
+  // Campaign: is_active (スネークケース)
+  const isActive = 'isActive' in campaign ? campaign.isActive : campaign.is_active;
+  if (!isActive) return false;
   
   const now = new Date();
   const startDate = new Date('startDate' in campaign ? campaign.startDate : campaign.start_date);

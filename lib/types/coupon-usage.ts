@@ -44,6 +44,9 @@ export const recordCouponUsageSchema = z.object({
   userId: z.string().uuid('ユーザーIDが不正です').optional(),
   isFirstVisit: z.boolean().default(false),
   isLocalResident: z.boolean().default(false),
+  // キャンペーン関連（どのキャンペーンでクーポンが使用されたか追跡）
+  campaignId: z.string().uuid('キャンペーンIDが不正です').optional().nullable(),
+  campaignName: z.string().optional().nullable(),
 });
 
 // リクエスト型
@@ -69,6 +72,9 @@ export interface CouponUsage {
   user_agent: string | null;
   referrer: string | null;
   used_at: string;
+  // キャンペーン関連
+  campaign_id: string | null;
+  campaign_name: string | null;
 }
 
 // クーポン利用統計の型

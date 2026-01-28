@@ -17,6 +17,11 @@ import { createServerSupabaseClient } from '@/lib/supabase/server';
 /**
  * アクティブなキャンペーン一覧を取得
  * 店舗側のドロップダウン選択用
+ * 
+ * 取得条件:
+ * - is_active = true
+ * - 終了日が今日以降（まだ終わっていない）
+ * - 開始日は問わない（これから始まるキャンペーンも選択可能）
  */
 export async function getActiveCampaigns(): Promise<{
   success: boolean;
@@ -27,13 +32,14 @@ export async function getActiveCampaigns(): Promise<{
     const supabase = createServerSupabaseClient();
     const now = new Date().toISOString().split('T')[0];
 
+    // is_active = true かつ 終了日が今日以降のキャンペーンを取得
+    // 開始日の条件は外す（これから始まるキャンペーンも選択可能にする）
     const { data, error } = await supabase
       .from('campaigns')
       .select('id, name, start_date, end_date, image_url, is_active')
       .eq('is_active', true)
-      .lte('start_date', now)
       .gte('end_date', now)
-      .order('end_date', { ascending: true });
+      .order('start_date', { ascending: true });
 
     if (error) {
       // テーブルが存在しない場合のフォールバック
@@ -44,6 +50,8 @@ export async function getActiveCampaigns(): Promise<{
       console.error('Get active campaigns error:', error);
       return { success: false, error: error.message };
     }
+
+    console.log('Fetched campaigns:', data); // デバッグログ
 
     const options: CampaignOption[] = (data || []).map((campaign) => ({
       id: campaign.id,

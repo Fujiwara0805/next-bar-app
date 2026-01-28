@@ -104,6 +104,9 @@ export interface Database {
           user_agent: string | null
           referrer: string | null
           used_at: string
+          // キャンペーン関連
+          campaign_id: string | null
+          campaign_name: string | null
         }
         Insert: {
           id?: string
@@ -116,6 +119,9 @@ export interface Database {
           user_agent?: string | null
           referrer?: string | null
           used_at?: string
+          // キャンペーン関連
+          campaign_id?: string | null
+          campaign_name?: string | null
         }
         Update: {
           id?: string
@@ -128,6 +134,9 @@ export interface Database {
           user_agent?: string | null
           referrer?: string | null
           used_at?: string
+          // キャンペーン関連
+          campaign_id?: string | null
+          campaign_name?: string | null
         }
       }
       profiles: {

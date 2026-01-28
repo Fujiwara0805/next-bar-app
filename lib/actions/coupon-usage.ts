@@ -61,7 +61,7 @@ export async function recordCouponUsage(
       };
     }
 
-    // クーポン利用を記録
+    // クーポン利用を記録（キャンペーン情報も含む）
     const { data: usageData, error: insertError } = await supabase
       .from('coupon_usages')
       .insert({
@@ -73,6 +73,9 @@ export async function recordCouponUsage(
         is_local_resident: validatedData.isLocalResident,
         user_agent: userAgent,
         referrer: referrer,
+        // キャンペーン関連（Aという店舗でBキャンペーンにてCクーポンが使用された記録）
+        campaign_id: validatedData.campaignId || null,
+        campaign_name: validatedData.campaignName || null,
       })
       .select('id')
       .single();
