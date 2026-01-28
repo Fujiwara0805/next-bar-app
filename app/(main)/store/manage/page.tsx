@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Store as StoreIcon, Edit, Trash2, Loader2, LogOut, Mail, User, Sparkles } from 'lucide-react';
+import { Plus, Store as StoreIcon, Edit, Trash2, Loader2, LogOut, Mail, PartyPopper, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -285,7 +285,7 @@ export default function StoreManagePage() {
               animate={{ opacity: 1, y: 0 }}
               className="mb-6"
             >
-              <div className="flex gap-3">
+              <div className="flex flex-wrap gap-3">
                 <Link href="/store/manage/new">
                   <Button 
                     className="w-full sm:w-auto rounded-xl font-bold shadow-lg"
@@ -299,18 +299,18 @@ export default function StoreManagePage() {
                     新しい店舗を追加
                   </Button>
                 </Link>
-                <Link href="/profile">
+                <Link href="/store/manage/campaigns">
                   <Button 
                     variant="outline" 
                     className="w-full sm:w-auto rounded-xl font-bold"
                     style={{ 
-                      borderColor: 'rgba(201, 168, 108, 0.3)',
-                      backgroundColor: 'rgba(201, 168, 108, 0.08)',
+                      borderColor: 'rgba(236, 72, 153, 0.3)',
+                      backgroundColor: 'rgba(236, 72, 153, 0.08)',
                       color: COLORS.charcoal,
                     }}
                   >
-                    <User className="w-4 h-4 mr-2" />
-                    プロフィール
+                    <PartyPopper className="w-4 h-4 mr-2" style={{ color: '#EC4899' }} />
+                    キャンペーン管理
                   </Button>
                 </Link>
               </div>

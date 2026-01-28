@@ -13,6 +13,123 @@ export type Json =
 export interface Database {
   public: {
     Tables: {
+      // ============================================
+      // キャンペーンマスタテーブル
+      // ============================================
+      campaigns: {
+        Row: {
+          id: string
+          name: string
+          description: string | null
+          start_date: string
+          end_date: string
+          is_active: boolean
+          region: string | null
+          created_at: string
+          updated_at: string
+          created_by: string | null
+        }
+        Insert: {
+          id?: string
+          name: string
+          description?: string | null
+          start_date: string
+          end_date: string
+          is_active?: boolean
+          region?: string | null
+          created_at?: string
+          updated_at?: string
+          created_by?: string | null
+        }
+        Update: {
+          id?: string
+          name?: string
+          description?: string | null
+          start_date?: string
+          end_date?: string
+          is_active?: boolean
+          region?: string | null
+          created_at?: string
+          updated_at?: string
+          created_by?: string | null
+        }
+      }
+      // ============================================
+      // ボーナスクリック記録テーブル
+      // ============================================
+      bonus_clicks: {
+        Row: {
+          id: string
+          coupon_usage_id: string | null
+          store_id: string
+          click_type: 'instagram' | 'google_review' | 'additional_bonus'
+          session_id: string | null
+          user_agent: string | null
+          referrer: string | null
+          clicked_at: string
+        }
+        Insert: {
+          id?: string
+          coupon_usage_id?: string | null
+          store_id: string
+          click_type: 'instagram' | 'google_review' | 'additional_bonus'
+          session_id?: string | null
+          user_agent?: string | null
+          referrer?: string | null
+          clicked_at?: string
+        }
+        Update: {
+          id?: string
+          coupon_usage_id?: string | null
+          store_id?: string
+          click_type?: 'instagram' | 'google_review' | 'additional_bonus'
+          session_id?: string | null
+          user_agent?: string | null
+          referrer?: string | null
+          clicked_at?: string
+        }
+      }
+      // ============================================
+      // クーポン利用記録テーブル（参照用）
+      // ============================================
+      coupon_usages: {
+        Row: {
+          id: string
+          store_id: string
+          store_name: string
+          session_id: string
+          user_id: string | null
+          is_first_visit: boolean
+          is_local_resident: boolean
+          user_agent: string | null
+          referrer: string | null
+          used_at: string
+        }
+        Insert: {
+          id?: string
+          store_id: string
+          store_name: string
+          session_id: string
+          user_id?: string | null
+          is_first_visit?: boolean
+          is_local_resident?: boolean
+          user_agent?: string | null
+          referrer?: string | null
+          used_at?: string
+        }
+        Update: {
+          id?: string
+          store_id?: string
+          store_name?: string
+          session_id?: string
+          user_id?: string | null
+          is_first_visit?: boolean
+          is_local_resident?: boolean
+          user_agent?: string | null
+          referrer?: string | null
+          used_at?: string
+        }
+      }
       profiles: {
         Row: {
           id: string
@@ -130,6 +247,8 @@ export interface Database {
           // ============================================
           /** キャンペーン実施フラグ */
           has_campaign: boolean
+          /** キャンペーンID（マスタ参照） */
+          campaign_id: string | null
           /** キャンペーン名 */
           campaign_name: string | null
           /** キャンペーン開始日時 */
@@ -191,6 +310,7 @@ export interface Database {
           instagram_url?: string | null
           // キャンペーン関連（すべてオプショナル）
           has_campaign?: boolean
+          campaign_id?: string | null
           campaign_name?: string | null
           campaign_start_date?: string | null
           campaign_end_date?: string | null
@@ -249,6 +369,7 @@ export interface Database {
           instagram_url?: string | null
           // キャンペーン関連（すべてオプショナル）
           has_campaign?: boolean
+          campaign_id?: string | null
           campaign_name?: string | null
           campaign_start_date?: string | null
           campaign_end_date?: string | null

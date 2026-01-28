@@ -36,6 +36,8 @@ import {
   isSurveyComplete,
 } from '@/lib/types/coupon-usage';
 import { recordCouponUsage } from '@/lib/actions/coupon-usage';
+import { recordBonusClick } from '@/lib/actions/bonus-click';
+import { BonusClickType } from '@/lib/types/bonus-click';
 import { toast } from 'sonner';
 import { useLanguage } from '@/lib/i18n/context';
 
@@ -262,7 +264,7 @@ const ChoiceButton = ({ icon, label, sublabel, isSelected, onClick, delay = 0 }:
   </motion.button>
 );
 
-// Next Actionカード
+// Next Actionカード（クリックトラッキング機能付き）
 interface ActionCardProps {
   icon: React.ReactNode;
   title: string;
@@ -271,6 +273,7 @@ interface ActionCardProps {
   href: string;
   gradientStyle: string;
   delay?: number;
+  onClickTrack?: () => void; // トラッキング用コールバック
 }
 
 const ActionCard = ({ 
@@ -281,52 +284,63 @@ const ActionCard = ({
   href, 
   gradientStyle,
   delay = 0,
-}: ActionCardProps) => (
-  <motion.a
-    href={href}
-    target="_blank"
-    rel="noopener noreferrer"
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ delay: delay + 0.3, duration: 0.4 }}
-    className="block rounded-xl p-4 transition-all hover:scale-[1.02] group"
-    style={{
-      backgroundColor: 'rgba(255, 255, 255, 0.05)',
-      border: '1px solid rgba(255, 255, 255, 0.1)',
-    }}
-  >
-    <div className="flex items-start gap-4">
-      <div 
-        className="flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center"
-        style={{ background: gradientStyle }}
-      >
-        {icon}
-      </div>
-      
-      <div className="flex-1 min-w-0">
-        <h4 
-          className="font-bold text-sm mb-1"
-          style={{ color: COLORS.ivory }}
-        >
-          {title}
-        </h4>
-        <p 
-          className="text-xs leading-relaxed mb-2"
-          style={{ color: COLORS.warmGray }}
-        >
-          {description}
-        </p>
+  onClickTrack,
+}: ActionCardProps) => {
+  const handleClick = () => {
+    // トラッキングを非同期で実行（UXを損なわないよう外部遷移と並行処理）
+    if (onClickTrack) {
+      onClickTrack();
+    }
+  };
+
+  return (
+    <motion.a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={handleClick}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: delay + 0.3, duration: 0.4 }}
+      className="block rounded-xl p-4 transition-all hover:scale-[1.02] group"
+      style={{
+        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+        border: '1px solid rgba(255, 255, 255, 0.1)',
+      }}
+    >
+      <div className="flex items-start gap-4">
         <div 
-          className="inline-flex items-center gap-1 text-xs font-medium group-hover:underline"
-          style={{ color: COLORS.champagneGold }}
+          className="flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center"
+          style={{ background: gradientStyle }}
         >
-          {buttonText}
-          <ChevronRight className="w-3 h-3 transition-transform group-hover:translate-x-1" />
+          {icon}
+        </div>
+        
+        <div className="flex-1 min-w-0">
+          <h4 
+            className="font-bold text-sm mb-1"
+            style={{ color: COLORS.ivory }}
+          >
+            {title}
+          </h4>
+          <p 
+            className="text-xs leading-relaxed mb-2"
+            style={{ color: COLORS.warmGray }}
+          >
+            {description}
+          </p>
+          <div 
+            className="inline-flex items-center gap-1 text-xs font-medium group-hover:underline"
+            style={{ color: COLORS.champagneGold }}
+          >
+            {buttonText}
+            <ChevronRight className="w-3 h-3 transition-transform group-hover:translate-x-1" />
+          </div>
         </div>
       </div>
-    </div>
-  </motion.a>
-);
+    </motion.a>
+  );
+};
 
 // ============================================
 // メインコンポーネント
@@ -377,6 +391,7 @@ export function CouponDisplayModal({
   const [isUsed, setIsUsed] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [showAdditionalBonus, setShowAdditionalBonus] = useState(false);
+  const [couponUsageId, setCouponUsageId] = useState<string | null>(null); // KPI計測用
 
   const isValid = isCouponValid(coupon);
 
@@ -394,6 +409,7 @@ export function CouponDisplayModal({
         setSlideDirection(1);
         setIsUsed(false);
         setShowAdditionalBonus(false);
+        setCouponUsageId(null);
       }, 300);
       return () => clearTimeout(timer);
     }
@@ -464,6 +480,9 @@ export function CouponDisplayModal({
           return;
         }
         // エラーでも表示は続行（UX優先）
+      } else if (result.usageId) {
+        // クーポン利用IDを保存（KPI計測用）
+        setCouponUsageId(result.usageId);
       }
       
       setSlideDirection(1);
@@ -477,6 +496,25 @@ export function CouponDisplayModal({
       setIsRecording(false);
     }
   };
+
+  // ============================================
+  // ボーナスクリックのトラッキング（KPI計測用）
+  // ============================================
+  const trackBonusClick = useCallback(async (clickType: BonusClickType) => {
+    try {
+      const sessionId = getOrCreateSessionId();
+      // 非同期で記録（UXを損なわないよう、エラーは無視）
+      await recordBonusClick({
+        storeId,
+        couponUsageId: couponUsageId || undefined,
+        clickType,
+        sessionId,
+      });
+    } catch (error) {
+      // トラッキングエラーはログのみ、UXに影響を与えない
+      console.error('Failed to track bonus click:', error);
+    }
+  }, [storeId, couponUsageId]);
 
   // 初来店の回答
   const handleFirstVisitAnswer = (isFirst: boolean) => {
@@ -1350,6 +1388,7 @@ export function CouponDisplayModal({
                         href={instagramUrl}
                         gradientStyle={COLORS.instagramGradient}
                         delay={0}
+                        onClickTrack={() => trackBonusClick('instagram')}
                       />
                     )}
 
@@ -1362,6 +1401,7 @@ export function CouponDisplayModal({
                       href={googlePlaceId ? generateGoogleReviewUrl(googlePlaceId) : `https://www.google.com/maps/search/${encodeURIComponent(storeName)}`}
                       gradientStyle={COLORS.googleGradient}
                       delay={instagramUrl ? 0.1 : 0}
+                      onClickTrack={() => trackBonusClick('google_review')}
                     />
                   </div>
                 </motion.div>
@@ -1392,7 +1432,11 @@ export function CouponDisplayModal({
                     transition={{ delay: 0.7 }}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    onClick={() => setShowAdditionalBonus(true)}
+                    onClick={() => {
+                      // トラッキングを記録
+                      trackBonusClick('additional_bonus');
+                      setShowAdditionalBonus(true);
+                    }}
                     className="w-full py-4 mt-3 rounded-xl font-medium tracking-wider transition-all flex items-center justify-center gap-2"
                     style={{
                       background: COLORS.goldGradient,
