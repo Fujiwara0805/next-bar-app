@@ -523,7 +523,6 @@ export default function StoreListPage() {
           <div className="flex items-center justify-between mt-3">
             <p className="text-sm font-bold" style={{ color: COLORS.warmGray }}>
               {filteredStores.length}{t('store_list.results_count')}
-              <span className="ml-2" style={{ color: COLORS.champagneGold }}>{getFilterStatusText()}</span>
             </p>
             
             {(vacantOnly || openNowOnly || couponOnly || campaignOnly || isConciergeActive) && (
@@ -551,7 +550,7 @@ export default function StoreListPage() {
           </div>
         ) : filteredStores.length === 0 ? (
           <div className="text-center py-12">
-            <p className="font-bold" style={{ color: COLORS.deepNavy }}>
+            <p className="font-bold" style={{ color: COLORS.warmGray }}>
               {(isConciergeActive || vacantOnly || openNowOnly || couponOnly || campaignOnly)
                 ? t('store_list.no_matching_stores')
                 : t('store_list.no_stores')
@@ -864,9 +863,17 @@ export default function StoreListPage() {
                     }}
                   >
                     <div className="p-2">
-                      <p className="text-xs text-gray-400 px-3 py-2 font-bold">
-                        {t('store_list.filter_title')}
-                      </p>
+                      <div className="flex items-center justify-between px-3 py-2">
+                        <p className="text-xs text-gray-400 font-bold">
+                          {t('store_list.filter_title')}
+                        </p>
+                        <button
+                          onClick={() => setShowFilterMenu(false)}
+                          className="text-gray-400 hover:text-white transition-colors p-1 -mr-1"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
                       
                       {/* 営業中フィルター */}
                       <button
@@ -923,16 +930,16 @@ export default function StoreListPage() {
                         }}
                         className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
                           couponOnly 
-                            ? 'bg-amber-500/20 text-amber-400' 
+                            ? 'bg-orange-500/20 text-orange-400' 
                             : 'hover:bg-white/10 text-white'
                         }`}
                       >
-                        <Ticket className="w-5 h-5" />
+                        <Ticket className="w-5 h-5" style={{ color: couponOnly ? '#fb923c' : '#C9A86C' }} />
                         <span className="font-bold text-sm flex-1 text-left">
                           {t('store_list.filter_has_coupon')}
                         </span>
                         {couponOnly && (
-                          <Check className="w-4 h-4 text-amber-400" />
+                          <Check className="w-4 h-4 text-orange-400" />
                         )}
                       </button>
 
@@ -943,16 +950,16 @@ export default function StoreListPage() {
                         }}
                         className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
                           campaignOnly 
-                            ? 'bg-yellow-500/20 text-yellow-400' 
+                            ? 'bg-pink-500/20 text-pink-400' 
                             : 'hover:bg-white/10 text-white'
                         }`}
                       >
-                        <PartyPopper className="w-5 h-5" />
+                        <PartyPopper className="w-5 h-5" style={{ color: campaignOnly ? '#f472b6' : '#C9A86C' }} />
                         <span className="font-bold text-sm flex-1 text-left">
                           {t('store_list.filter_campaign') || 'キャンペーン中'}
                         </span>
                         {campaignOnly && (
-                          <Check className="w-4 h-4 text-yellow-400" />
+                          <Check className="w-4 h-4 text-pink-400" />
                         )}
                       </button>
 

@@ -362,7 +362,7 @@ export default function LoginPage() {
                       className="inline-flex items-center gap-1 text-sm font-bold transition-colors hover:opacity-80"
                       style={{ color: COLORS.royalNavy }}
                     >
-                      {t('map.home')}
+                      {t('auth.back_to_home')}
                       <ArrowRight className="w-4 h-4" />
                     </Link>
                   </div>

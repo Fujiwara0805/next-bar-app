@@ -48,13 +48,13 @@ export interface CouponFormValues {
 
 // Zodバリデーションスキーマ
 export const couponFormSchema = z.object({
-  title: z.string().max(100, 'タイトルは100文字以内で入力してください').optional().or(z.literal('')),
+  title: z.string().min(1, 'クーポンタイトルは必須です').max(100, 'タイトルは100文字以内で入力してください'),
   description: z.string().optional().or(z.literal('')),
   discountType: z.enum(['percentage', 'fixed', 'free_item', '']).optional(),
   discountValue: z.string().optional().or(z.literal('')),
   conditions: z.string().optional().or(z.literal('')),
-  startDate: z.string().optional().or(z.literal('')),
-  expiryDate: z.string().optional().or(z.literal('')),
+  startDate: z.string().min(1, '配布開始日は必須です'),
+  expiryDate: z.string().min(1, '有効期限は必須です'),
   imageUrl: z.string().url('有効なURLを入力してください').optional().or(z.literal('')),
   isActive: z.boolean().default(false),
   maxUses: z.string().optional().or(z.literal('')),

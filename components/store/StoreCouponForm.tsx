@@ -154,7 +154,7 @@ export function StoreCouponForm({
               <div className="space-y-2">
                 <Label htmlFor="coupon-title" className="font-bold flex items-center gap-2">
                   <Ticket className="w-4 h-4" />
-                  クーポンタイトル
+                  クーポンタイトル<span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="coupon-title"
@@ -280,7 +280,7 @@ export function StoreCouponForm({
                 <div className="space-y-2">
                   <Label htmlFor="coupon-start-date" className="font-bold flex items-center gap-2">
                     <Calendar className="w-3 h-3" />
-                    配布開始日
+                    配布開始日<span className="text-red-500">*</span>
                   </Label>
                   <Input
                     id="coupon-start-date"
@@ -291,12 +291,18 @@ export function StoreCouponForm({
                     className="font-bold bg-white text-gray-700 border-2 border-gray-300 h-12 placeholder:text-gray-300 w-full max-w-full"
                     style={{ fontSize: '16px' }}
                   />
+                  {errors.startDate && (
+                    <p className="text-xs text-red-500 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" />
+                      {errors.startDate}
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="coupon-expiry-date" className="font-bold flex items-center gap-2">
                     <Calendar className="w-3 h-3" />
-                    有効期限
+                    有効期限<span className="text-red-500">*</span>
                   </Label>
                   <Input
                     id="coupon-expiry-date"

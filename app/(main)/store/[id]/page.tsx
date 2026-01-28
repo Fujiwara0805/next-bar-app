@@ -799,7 +799,7 @@ export default function StoreDetailPage() {
                 </motion.div>
 
                 {/* 高級感のあるクーポンボタン */}
-                {store.coupon_is_active && store.coupon_title && isCouponValid(store as Partial<CouponData>) && (
+                {store.coupon_is_active && store.coupon_title && (
                   <motion.button
                     whileHover={{ scale: 1.03, y: -2 }}
                     whileTap={{ scale: 0.97 }}
