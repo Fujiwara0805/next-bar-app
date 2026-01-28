@@ -67,6 +67,26 @@ export const couponFormSchema = z.object({
   additionalBonus: z.string().optional().or(z.literal('')),
   isCampaign: z.boolean().default(false),
 }).refine((data) => {
+  // クーポンが有効な場合、割引タイプは必須
+  if (data.isActive && !data.discountType) {
+    return false;
+  }
+  return true;
+}, {
+  message: '割引タイプを選択してください',
+  path: ['discountType'],
+}).refine((data) => {
+  // クーポンが有効かつ割引タイプがpercentageまたはfixedの場合、割引値は必須
+  if (data.isActive && data.discountType && (data.discountType === 'percentage' || data.discountType === 'fixed')) {
+    if (!data.discountValue || data.discountValue === '') {
+      return false;
+    }
+  }
+  return true;
+}, {
+  message: '割引値を入力してください',
+  path: ['discountValue'],
+}).refine((data) => {
   // 割引タイプがpercentageの場合、値は0-100の範囲
   if (data.discountType === 'percentage' && data.discountValue) {
     const value = parseFloat(data.discountValue);

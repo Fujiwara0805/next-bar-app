@@ -221,7 +221,7 @@ export function StoreCouponForm({
               <div className="space-y-2">
                 <Label className="font-bold flex items-center gap-2">
                   {getDiscountTypeIcon(values.discountType)}
-                  割引タイプ
+                  割引タイプ<span className="text-red-500">*</span>
                 </Label>
                 <Select
                   value={values.discountType}
@@ -252,12 +252,18 @@ export function StoreCouponForm({
                     </SelectItem>
                   </SelectContent>
                 </Select>
+                {errors.discountType && (
+                  <p className="text-xs text-red-500 flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" />
+                    {errors.discountType}
+                  </p>
+                )}
               </div>
 
               {/* 割引値 */}
               <div className="space-y-2">
                 <Label htmlFor="coupon-discount-value" className="font-bold">
-                  割引値
+                  割引値{(values.discountType === 'percentage' || values.discountType === 'fixed') && <span className="text-red-500">*</span>}
                   {values.discountType === 'percentage' && ' (%)'}
                   {values.discountType === 'fixed' && ' (円)'}
                 </Label>

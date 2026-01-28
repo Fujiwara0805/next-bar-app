@@ -1384,24 +1384,26 @@ export function CouponDisplayModal({
                   {t('coupon.close')}
                 </motion.button>
 
-                {/* 追加特典ボタン */}
-                <motion.button
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.7 }}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => setShowAdditionalBonus(true)}
-                  className="w-full py-4 mt-3 rounded-xl font-medium tracking-wider transition-all flex items-center justify-center gap-2"
-                  style={{
-                    background: COLORS.goldGradient,
-                    color: COLORS.deepNavy,
-                    boxShadow: '0 8px 25px rgba(201, 168, 108, 0.35)',
-                  }}
-                >
-                  <Sparkles className="w-5 h-5" />
-                  {t('coupon.additional_bonus')}
-                </motion.button>
+                {/* 追加特典ボタン（追加特典が登録されている場合のみ表示） */}
+                {coupon.coupon_additional_bonus && coupon.coupon_additional_bonus.trim() !== '' && (
+                  <motion.button
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.7 }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => setShowAdditionalBonus(true)}
+                    className="w-full py-4 mt-3 rounded-xl font-medium tracking-wider transition-all flex items-center justify-center gap-2"
+                    style={{
+                      background: COLORS.goldGradient,
+                      color: COLORS.deepNavy,
+                      boxShadow: '0 8px 25px rgba(201, 168, 108, 0.35)',
+                    }}
+                  >
+                    <Sparkles className="w-5 h-5" />
+                    {t('coupon.additional_bonus')}
+                  </motion.button>
+                )}
               </motion.div>
             )}
           </AnimatePresence>

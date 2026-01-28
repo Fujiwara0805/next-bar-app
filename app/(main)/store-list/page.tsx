@@ -133,7 +133,6 @@ const parseTimeRange = (timeRange: string, currentTime: number): boolean => {
 
 export default function StoreListPage() {
   const router = useRouter();
-  const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
   const { t } = useLanguage();
   const [stores, setStores] = useState<Store[]>([]);
   const [filteredStores, setFilteredStores] = useState<Store[]>([]);
@@ -145,6 +144,7 @@ export default function StoreListPage() {
   const [openNowOnly, setOpenNowOnly] = useState(false);
   const [couponOnly, setCouponOnly] = useState(false);
   const [campaignOnly, setCampaignOnly] = useState(false);
+  const [campaignNameFilter, setCampaignNameFilter] = useState<string | null>(null);
   const [showFilterMenu, setShowFilterMenu] = useState(false);
   
   // コンシェルジュ状態
@@ -165,8 +165,18 @@ export default function StoreListPage() {
 
   // URLパラメータからキャンペーンフィルターを初期化
   useEffect(() => {
-    if (searchParams?.get('campaign')) {
+    if (typeof window === 'undefined') return;
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    const campaign = urlParams.get('campaign');
+    const campaignName = urlParams.get('campaign_name');
+    
+    if (campaign) {
       setCampaignOnly(true);
+      // キャンペーン名での絞り込みも確認（空でない場合のみ）
+      if (campaignName && campaignName.trim() !== '') {
+        setCampaignNameFilter(campaignName);
+      }
     }
   }, []);
 
@@ -269,6 +279,11 @@ export default function StoreListPage() {
     // キャンペーンフィルター
     if (campaignOnly) {
       result = result.filter(store => hasCampaign(store));
+      
+      // 特定のキャンペーン名で絞り込み
+      if (campaignNameFilter) {
+        result = result.filter(store => store.campaign_name === campaignNameFilter);
+      }
     }
 
     // コンシェルジュフィルター（facilitiesベース）
@@ -300,7 +315,7 @@ export default function StoreListPage() {
     }
 
     setFilteredStores(result);
-  }, [stores, vacantOnly, openNowOnly, couponOnly, campaignOnly, conciergeFilters, isConciergeActive]);
+  }, [stores, vacantOnly, openNowOnly, couponOnly, campaignOnly, campaignNameFilter, conciergeFilters, isConciergeActive]);
 
   const loadUserLocation = () => {
     const savedLocation = localStorage.getItem('userLocation');
@@ -452,11 +467,13 @@ export default function StoreListPage() {
     setOpenNowOnly(false);
     setCouponOnly(false);
     setCampaignOnly(false);
+    setCampaignNameFilter(null);
     clearConciergeFilter();
     // URLパラメータもクリア
     if (typeof window !== 'undefined') {
       const url = new URL(window.location.href);
       url.searchParams.delete('campaign');
+      url.searchParams.delete('campaign_name');
       window.history.replaceState({}, '', url.toString());
     }
   }, []);
@@ -484,7 +501,13 @@ export default function StoreListPage() {
     if (vacantOnly) statuses.push(t('store_list.vacant'));
     if (openNowOnly) statuses.push(t('store_list.open'));
     if (couponOnly) statuses.push(t('store_list.filter_has_coupon'));
-    if (campaignOnly) statuses.push(t('store_list.filter_campaign') || 'キャンペーン中');
+    if (campaignOnly) {
+      if (campaignNameFilter) {
+        statuses.push(campaignNameFilter);
+      } else {
+        statuses.push(t('store_list.filter_campaign') || 'キャンペーン中');
+      }
+    }
     if (isConciergeActive) statuses.push(t('store_list.concierge_active'));
     return statuses.length > 0 ? `（${statuses.join('・')}）` : '';
   };
@@ -519,6 +542,41 @@ export default function StoreListPage() {
             </span>
           </motion.button>
           
+          {/* キャンペーン名フィルター表示 */}
+          {campaignNameFilter && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-3 p-3 rounded-xl flex items-center justify-between"
+              style={{
+                background: 'linear-gradient(135deg, rgba(201, 168, 108, 0.15) 0%, rgba(184, 149, 110, 0.1) 100%)',
+                border: '1px solid rgba(201, 168, 108, 0.3)',
+              }}
+            >
+              <div className="flex items-center gap-2">
+                <PartyPopper className="w-5 h-5" style={{ color: COLORS.champagneGold }} />
+                <span className="font-bold text-sm" style={{ color: COLORS.champagneGold }}>
+                  {campaignNameFilter}
+                </span>
+              </div>
+              <button
+                onClick={() => {
+                  setCampaignNameFilter(null);
+                  // URLパラメータからcampaign_nameを削除
+                  if (typeof window !== 'undefined') {
+                    const url = new URL(window.location.href);
+                    url.searchParams.delete('campaign_name');
+                    window.history.replaceState({}, '', url.toString());
+                  }
+                }}
+                className="p-1 rounded-full hover:bg-white/10 transition-colors"
+                style={{ color: COLORS.warmGray }}
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </motion.div>
+          )}
+
           {/* フィルター状態表示 */}
           <div className="flex items-center justify-between mt-3">
             <p className="text-sm font-bold" style={{ color: COLORS.warmGray }}>

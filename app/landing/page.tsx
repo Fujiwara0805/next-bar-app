@@ -410,78 +410,177 @@ export default function LandingPage() {
               </p>
             </motion.div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {campaignStores.map((campaign, index) => (
-                <motion.div
-                  key={campaign.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1 }}
+            {/* キャンペーンカルーセル（複数キャンペーン対応） */}
+            {campaignStores.length === 1 ? (
+              // 1件のみの場合はカード表示
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className="max-w-md mx-auto"
+              >
+                <Card
+                  className="relative overflow-hidden cursor-pointer group"
+                  style={{
+                    background: `${colors.background}90`,
+                    border: `2px solid ${colors.accent}`,
+                    boxShadow: colors.shadowGold,
+                  }}
+                  onClick={() => {
+                    const campaignName = campaignStores[0].campaign_name;
+                    const url = campaignName 
+                      ? `/store-list?campaign=true&campaign_name=${encodeURIComponent(campaignName)}`
+                      : '/store-list?campaign=true';
+                    router.push(url);
+                  }}
                 >
-                  <Card
-                    className="relative overflow-hidden cursor-pointer group h-full"
-                    style={{
-                      background: `${colors.background}90`,
-                      border: `1px solid ${colors.borderGold}`,
-                    }}
-                    onClick={() => router.push(`/store-list?campaign=${encodeURIComponent(campaign.campaign_name || 'true')}`)}
-                  >
-                    {/* 背景画像（あれば） */}
-                    {campaign.image_urls && campaign.image_urls.length > 0 && (
-                      <div className="absolute inset-0">
-                        <img
-                          src={campaign.image_urls[0]}
-                          alt=""
-                          className="w-full h-full object-cover opacity-20 group-hover:opacity-30 transition-opacity duration-300"
-                        />
-                        <div className="absolute inset-0" style={{ background: `linear-gradient(to top, ${colors.background} 0%, transparent 100%)` }} />
-                      </div>
-                    )}
-                    
-                    <div className="relative z-10 p-5">
-                      {/* キャンペーンバッジ */}
-                      <div className="flex items-center gap-2 mb-3">
-                        <motion.div
-                          animate={{ scale: [1, 1.2, 1] }}
-                          transition={{ duration: 2, repeat: Infinity }}
-                          className="w-2 h-2 rounded-full"
-                          style={{ background: '#4ADE80', boxShadow: '0 0 8px #4ADE80' }}
-                        />
-                        <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: '#4ADE80' }}>
-                          {t('campaign.now_on')}
-                        </span>
-                      </div>
-
-                      {/* キャンペーン名 */}
-                      <h3 className="text-lg font-bold mb-2 group-hover:translate-x-1 transition-transform" style={{ color: colors.text }}>
-                        {campaign.campaign_name || t('campaign.default_name')} 🍺
-                      </h3>
-
-                      {/* 店舗名 */}
-                      <p className="text-sm mb-3" style={{ color: colors.textMuted }}>
-                        {campaign.name}
-                      </p>
-
-                      {/* 期間表示 */}
-                      {campaign.campaign_end_date && (
-                        <p className="text-xs" style={{ color: colors.accent }}>
-                          {t('campaign.until').replace('{date}', new Date(campaign.campaign_end_date).toLocaleDateString(language === 'ja' ? 'ja-JP' : language === 'ko' ? 'ko-KR' : language === 'zh' ? 'zh-CN' : 'en-US', { month: 'short', day: 'numeric' }))}
-                        </p>
-                      )}
-
-                      {/* 詳細へ誘導 */}
-                      <div className="flex items-center gap-1 mt-4 group-hover:gap-2 transition-all" style={{ color: colors.accent }}>
-                        <span className="text-sm font-medium">
-                          {t('campaign.view_details')}
-                        </span>
-                        <ChevronRight className="w-4 h-4" />
-                      </div>
+                  {campaignStores[0].image_urls && campaignStores[0].image_urls.length > 0 && (
+                    <div className="absolute inset-0">
+                      <img
+                        src={campaignStores[0].image_urls[0]}
+                        alt=""
+                        className="w-full h-full object-cover opacity-20 group-hover:opacity-30 transition-opacity duration-300"
+                      />
+                      <div className="absolute inset-0" style={{ background: `linear-gradient(to top, ${colors.background} 0%, transparent 100%)` }} />
                     </div>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
+                  )}
+                  <div className="relative z-10 p-6">
+                    <div className="flex items-center gap-2 mb-3">
+                      <motion.div
+                        animate={{ scale: [1, 1.2, 1] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                        className="w-2 h-2 rounded-full"
+                        style={{ background: '#4ADE80', boxShadow: '0 0 8px #4ADE80' }}
+                      />
+                      <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: '#4ADE80' }}>
+                        {t('campaign.now_on')}
+                      </span>
+                    </div>
+                    <h3 className="text-xl font-bold mb-2 group-hover:translate-x-1 transition-transform" style={{ color: colors.text }}>
+                      {campaignStores[0].campaign_name || t('campaign.default_name')} 🍺
+                    </h3>
+                    <p className="text-sm mb-3" style={{ color: colors.textMuted }}>
+                      {campaignStores[0].name}
+                    </p>
+                    {campaignStores[0].campaign_end_date && (
+                      <p className="text-xs mb-4" style={{ color: colors.accent }}>
+                        {t('campaign.until').replace('{date}', new Date(campaignStores[0].campaign_end_date).toLocaleDateString(language === 'ja' ? 'ja-JP' : language === 'ko' ? 'ko-KR' : language === 'zh' ? 'zh-CN' : 'en-US', { month: 'short', day: 'numeric' }))}
+                      </p>
+                    )}
+                    <div className="flex items-center gap-1 group-hover:gap-2 transition-all" style={{ color: colors.accent }}>
+                      <span className="text-sm font-medium">{t('campaign.view_details')}</span>
+                      <ChevronRight className="w-4 h-4" />
+                    </div>
+                  </div>
+                </Card>
+              </motion.div>
+            ) : (
+              // 複数キャンペーンの場合はカルーセル表示
+              <div className="relative">
+                <div className="overflow-hidden rounded-2xl" style={{ touchAction: 'pan-x pan-y' }}>
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={currentSlide}
+                      initial={{ opacity: 0, x: 100 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -100 }}
+                      transition={{ duration: 0.4 }}
+                      className="w-full"
+                    >
+                      <Card
+                        className="relative overflow-hidden cursor-pointer group mx-auto max-w-lg"
+                        style={{
+                          background: `${colors.background}90`,
+                          border: `2px solid ${colors.accent}`,
+                          boxShadow: colors.shadowGold,
+                        }}
+                        onClick={() => {
+                          const campaignName = campaignStores[currentSlide].campaign_name;
+                          const url = campaignName 
+                            ? `/store-list?campaign=true&campaign_name=${encodeURIComponent(campaignName)}`
+                            : '/store-list?campaign=true';
+                          router.push(url);
+                        }}
+                      >
+                        {campaignStores[currentSlide].image_urls && campaignStores[currentSlide].image_urls.length > 0 && (
+                          <div className="absolute inset-0">
+                            <img
+                              src={campaignStores[currentSlide].image_urls[0]}
+                              alt=""
+                              className="w-full h-full object-cover opacity-20 group-hover:opacity-30 transition-opacity duration-300"
+                            />
+                            <div className="absolute inset-0" style={{ background: `linear-gradient(to top, ${colors.background} 0%, transparent 100%)` }} />
+                          </div>
+                        )}
+                        <div className="relative z-10 p-6">
+                          <div className="flex items-center gap-2 mb-3">
+                            <motion.div
+                              animate={{ scale: [1, 1.2, 1] }}
+                              transition={{ duration: 2, repeat: Infinity }}
+                              className="w-2 h-2 rounded-full"
+                              style={{ background: '#4ADE80', boxShadow: '0 0 8px #4ADE80' }}
+                            />
+                            <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: '#4ADE80' }}>
+                              {t('campaign.now_on')}
+                            </span>
+                          </div>
+                          <h3 className="text-xl font-bold mb-2 group-hover:translate-x-1 transition-transform" style={{ color: colors.text }}>
+                            {campaignStores[currentSlide].campaign_name || t('campaign.default_name')} 🍺
+                          </h3>
+                          <p className="text-sm mb-3" style={{ color: colors.textMuted }}>
+                            {campaignStores[currentSlide].name}
+                          </p>
+                          {campaignStores[currentSlide].campaign_end_date && (
+                            <p className="text-xs mb-4" style={{ color: colors.accent }}>
+                              {t('campaign.until').replace('{date}', new Date(campaignStores[currentSlide].campaign_end_date).toLocaleDateString(language === 'ja' ? 'ja-JP' : language === 'ko' ? 'ko-KR' : language === 'zh' ? 'zh-CN' : 'en-US', { month: 'short', day: 'numeric' }))}
+                            </p>
+                          )}
+                          <div className="flex items-center gap-1 group-hover:gap-2 transition-all" style={{ color: colors.accent }}>
+                            <span className="text-sm font-medium">{t('campaign.view_details')}</span>
+                            <ChevronRight className="w-4 h-4" />
+                          </div>
+                        </div>
+                      </Card>
+                    </motion.div>
+                  </AnimatePresence>
+                </div>
+
+                {/* カルーセルナビゲーション */}
+                <button
+                  onClick={(e) => { e.stopPropagation(); setCurrentSlide((prev) => (prev - 1 + campaignStores.length) % campaignStores.length); }}
+                  className="absolute left-0 sm:left-4 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 z-10"
+                  style={{ background: `${colors.background}E6`, border: `1px solid ${colors.borderGold}`, backdropFilter: 'blur(10px)' }}
+                  aria-label="Previous campaign"
+                >
+                  <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: colors.text }} />
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); setCurrentSlide((prev) => (prev + 1) % campaignStores.length); }}
+                  className="absolute right-0 sm:right-4 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 z-10"
+                  style={{ background: `${colors.background}E6`, border: `1px solid ${colors.borderGold}`, backdropFilter: 'blur(10px)' }}
+                  aria-label="Next campaign"
+                >
+                  <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: colors.text }} />
+                </button>
+
+                {/* ドットインジケーター */}
+                <div className="flex justify-center gap-2 mt-6">
+                  {campaignStores.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setCurrentSlide(index)}
+                      className="h-2 rounded-full transition-all duration-300"
+                      style={{
+                        width: currentSlide === index ? '24px' : '8px',
+                        background: currentSlide === index ? colors.accent : `${colors.text}30`,
+                        boxShadow: currentSlide === index ? `0 0 10px ${colors.accent}60` : 'none',
+                      }}
+                      aria-label={`Go to campaign ${index + 1}`}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* すべてのキャンペーン店舗を見るボタン */}
             <motion.div
