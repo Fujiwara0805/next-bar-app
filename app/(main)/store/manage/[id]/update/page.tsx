@@ -710,7 +710,7 @@ export default function StoreUpdatePage() {
                         className="rounded-xl font-bold"
                         style={{ 
                           borderColor: 'rgba(201, 168, 108, 0.3)',
-                          color: COLORS.charcoal,
+                          color: COLORS.warmGray,
                         }}
                       >
                         <Key className="w-4 h-4 mr-2" />

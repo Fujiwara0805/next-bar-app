@@ -43,6 +43,14 @@ import {
   couponFormSchema,
 } from '@/lib/types/coupon';
 
+// キャンペーン関連のインポート
+import {
+  StoreCampaignForm,
+  CampaignFormValues,
+  getDefaultCampaignFormValues,
+  campaignFormToDbData,
+} from '@/components/store/StoreCampaignForm';
+
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
 // ============================================
@@ -177,6 +185,20 @@ export default function NewStorePage() {
   // クーポン関連のステート
   const [couponValues, setCouponValues] = useState<CouponFormValues>(getDefaultCouponFormValues());
   const [couponErrors, setCouponErrors] = useState<Record<string, string>>({});
+
+  // キャンペーン関連のステート
+  const [campaignValues, setCampaignValues] = useState<CampaignFormValues>(getDefaultCampaignFormValues());
+
+  // キャンペーン値変更時にクーポンのisCampaignフラグを連動させる
+  const handleCampaignChange = (newCampaignValues: CampaignFormValues) => {
+    setCampaignValues(newCampaignValues);
+    // キャンペーンがONの場合、クーポンをキャンペーン用に設定
+    // キャンペーンがOFFの場合、クーポンを通常に戻す
+    setCouponValues(prev => ({
+      ...prev,
+      isCampaign: newCampaignValues.hasCampaign,
+    }));
+  };
 
   // 店舗名候補
   const [suggestions, setSuggestions] = useState<google.maps.places.AutocompletePrediction[]>([]);
@@ -555,6 +577,9 @@ export default function NewStorePage() {
 
       // クーポンデータをDB形式に変換
       const couponDbData = couponFormToDbData(couponValues);
+      
+      // キャンペーンデータをDB形式に変換
+      const campaignDbData = campaignFormToDbData(campaignValues);
 
       const { error: storeError } = await supabase
         .from('stores')
@@ -584,6 +609,8 @@ export default function NewStorePage() {
           google_reviews_count: googleReviewsCount,
           // クーポン関連カラム
           ...couponDbData,
+          // キャンペーン関連カラム
+          ...campaignDbData,
         } as any);
 
       if (storeError) {
@@ -1083,6 +1110,21 @@ export default function NewStorePage() {
                   ))}
                 </div>
               </div>
+            </Card>
+
+            {/* ========== キャンペーンセクション ========== */}
+            <Card 
+              className="p-6 rounded-2xl shadow-lg"
+              style={{ 
+                background: '#FFFFFF',
+                border: `1px solid rgba(201, 168, 108, 0.15)`,
+              }}
+            >
+              <StoreCampaignForm
+                values={campaignValues}
+                onChange={handleCampaignChange}
+                disabled={loading}
+              />
             </Card>
 
             {/* ========== クーポン設定セクション ========== */}

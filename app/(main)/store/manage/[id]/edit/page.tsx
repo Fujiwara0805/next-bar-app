@@ -45,6 +45,15 @@ import {
   couponFormSchema,
 } from '@/lib/types/coupon';
 
+// キャンペーン関連のインポート
+import {
+  StoreCampaignForm,
+  CampaignFormValues,
+  getDefaultCampaignFormValues,
+  campaignFormToDbData,
+  dbDataToCampaignForm,
+} from '@/components/store/StoreCampaignForm';
+
 type Store = Database['public']['Tables']['stores']['Row'];
 
 // Store型を拡張してクーポンフィールドを追加
@@ -191,6 +200,20 @@ export default function StoreEditPage() {
   const [couponErrors, setCouponErrors] = useState<Record<string, string>>({});
   const [couponCurrentUses, setCouponCurrentUses] = useState(0);
 
+  // キャンペーン関連のステート
+  const [campaignValues, setCampaignValues] = useState<CampaignFormValues>(getDefaultCampaignFormValues());
+
+  // キャンペーン値変更時にクーポンのisCampaignフラグを連動させる
+  const handleCampaignChange = (newCampaignValues: CampaignFormValues) => {
+    setCampaignValues(newCampaignValues);
+    // キャンペーンがONの場合、クーポンをキャンペーン用に設定
+    // キャンペーンがOFFの場合、クーポンを通常に戻す
+    setCouponValues(prev => ({
+      ...prev,
+      isCampaign: newCampaignValues.hasCampaign,
+    }));
+  };
+
   const geocoderRef = useRef<google.maps.Geocoder | null>(null);
   const [mapsLoaded, setMapsLoaded] = useState(false);
 
@@ -253,6 +276,9 @@ export default function StoreEditPage() {
         // クーポンデータの読み込み
         setCouponValues(dbDataToCouponForm(storeData));
         setCouponCurrentUses(storeData.coupon_current_uses || 0);
+        
+        // キャンペーンデータの読み込み
+        setCampaignValues(dbDataToCampaignForm(storeData));
       }
     } catch (error) {
       console.error('Error fetching store:', error);
@@ -318,6 +344,9 @@ export default function StoreEditPage() {
           // クーポンデータの読み込み
           setCouponValues(dbDataToCouponForm(storeData));
           setCouponCurrentUses(storeData.coupon_current_uses || 0);
+          
+          // キャンペーンデータの読み込み
+          setCampaignValues(dbDataToCampaignForm(storeData));
           
           setFetchingStore(false);
         }
@@ -611,6 +640,9 @@ export default function StoreEditPage() {
     try {
       // クーポンデータをDB形式に変換
       const couponDbData = couponFormToDbData(couponValues);
+      
+      // キャンペーンデータをDB形式に変換
+      const campaignDbData = campaignFormToDbData(campaignValues);
 
       let query = (supabase.from('stores') as any)
         .update({
@@ -631,6 +663,8 @@ export default function StoreEditPage() {
           updated_at: new Date().toISOString(),
           // クーポン関連カラム
           ...couponDbData,
+          // キャンペーン関連カラム
+          ...campaignDbData,
         })
         .eq('id', params.id as string);
 
@@ -1297,6 +1331,21 @@ export default function StoreEditPage() {
                   </p>
                 </div>
               )}
+            </Card>
+
+            {/* ========== キャンペーンセクション ========== */}
+            <Card 
+              className="p-6 rounded-2xl shadow-lg"
+              style={{ 
+                background: '#FFFFFF',
+                border: `1px solid rgba(201, 168, 108, 0.15)`,
+              }}
+            >
+              <StoreCampaignForm
+                values={campaignValues}
+                onChange={handleCampaignChange}
+                disabled={loading}
+              />
             </Card>
 
             {/* ========== クーポン設定セクション ========== */}

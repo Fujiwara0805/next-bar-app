@@ -115,15 +115,40 @@ export function StoreCouponForm({
   return (
     <Card className="overflow-hidden">
       {/* ヘッダー（ON・OFFスイッチ付き） */}
-      <div className="w-full p-4 flex items-center justify-between bg-gradient-to-r from-amber-500/10 to-orange-500/10 transition-colors">
+      <div 
+        className="w-full p-4 flex items-center justify-between transition-colors"
+        style={{
+          background: values.isCampaign 
+            ? 'linear-gradient(135deg, rgba(236, 72, 153, 0.15) 0%, rgba(244, 114, 182, 0.1) 100%)'
+            : 'linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(249, 115, 22, 0.1) 100%)',
+        }}
+      >
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-amber-500/20 rounded-lg">
-            <Ticket className="w-5 h-5 text-amber-600" />
+          <div 
+            className="p-2 rounded-lg"
+            style={{
+              background: values.isCampaign ? 'rgba(236, 72, 153, 0.2)' : 'rgba(245, 158, 11, 0.2)',
+            }}
+          >
+            <Ticket 
+              className="w-5 h-5" 
+              style={{ color: values.isCampaign ? '#EC4899' : '#D97706' }}
+            />
           </div>
           <div className="text-left">
             <h3 className="font-bold text-gray-800">クーポン設定</h3>
             <p className="text-sm text-gray-500">
-              {values.title && ` ${values.title}`}
+              {values.isCampaign ? (
+                <span 
+                  className="text-xs font-bold px-2 py-0.5 rounded-full"
+                  style={{ 
+                    background: 'linear-gradient(135deg, #EC4899 0%, #F472B6 100%)',
+                    color: '#FFF',
+                  }}
+                >
+                  キャンペーン連動
+                </span>
+              ) : null}
             </p>
           </div>
         </div>
@@ -343,6 +368,27 @@ export function StoreCouponForm({
                 <p className="text-xs text-muted-foreground font-bold">
                   空欄の場合は無制限
                   {currentUses > 0 && ` (現在の利用数: ${currentUses})`}
+                </p>
+              </div>
+
+              {/* 追加特典 */}
+              <div className="space-y-2">
+                <Label htmlFor="coupon-additional-bonus" className="font-bold flex items-center gap-2">
+                  <Sparkles className="w-4 h-4" />
+                  追加特典
+                </Label>
+                <Textarea
+                  id="coupon-additional-bonus"
+                  value={values.additionalBonus}
+                  onChange={(e) => handleChange('additionalBonus', e.target.value)}
+                  placeholder="例：SNSフォローでドリンク1杯サービス"
+                  rows={2}
+                  disabled={disabled}
+                  className="font-bold bg-white text-gray-700 border-2 border-gray-300 placeholder:text-gray-300"
+                  style={{ fontSize: '16px' }}
+                />
+                <p className="text-xs text-muted-foreground font-bold">
+                  クーポン使用後に表示される追加特典（任意）
                 </p>
               </div>
 

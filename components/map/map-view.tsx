@@ -24,6 +24,7 @@ import type { Database } from '@/lib/supabase/types';
 // ============================================================================
 
 import { locationCache, compassCache, cacheManager } from '@/lib/cache';
+import { useLanguage } from '@/lib/i18n/context';
 
 type Store = Database['public']['Tables']['stores']['Row'];
 
@@ -624,6 +625,8 @@ function DirectionPermissionDialog({
   onRequestPermission,
   onDismiss,
 }: DirectionPermissionDialogProps) {
+  const { t } = useLanguage();
+  
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -659,10 +662,10 @@ function DirectionPermissionDialog({
           </div>
           <div>
             <h4 style={{ color: colors.text }} className="font-bold text-sm">
-              方向表示をオンにする
+              {t('map_direction.enable_direction')}
             </h4>
             <p style={{ color: colors.textSubtle }} className="text-xs">
-              あなたの向きをマップに表示
+              {t('map_direction.show_your_direction')}
             </p>
           </div>
         </div>
@@ -676,7 +679,7 @@ function DirectionPermissionDialog({
               color: colors.textMuted,
             }}
           >
-            スキップ
+            {t('common.cancel')}
           </button>
           <button
             onClick={onRequestPermission}
@@ -686,7 +689,7 @@ function DirectionPermissionDialog({
               color: colors.background,
             }}
           >
-            オンにする
+            {t('common.confirm')}
           </button>
         </div>
       </div>
@@ -859,6 +862,7 @@ export function MapView({
   const [compassEnabled, setCompassEnabled] = useState(false);
 
   // Hooks
+  const { t } = useLanguage();
   const { location: geoLocation, isInitialized } = useOptimizedGeolocation(enableLocationTracking);
   const { orientation, needsPermission, requestPermission, setPermissionGranted } =
     useDeviceOrientation(enableCompass);
@@ -1302,7 +1306,7 @@ export function MapView({
               ? colors.shadowGold
               : `0 2px 10px rgba(0,0,0,0.3)`,
           }}
-          aria-label={compassEnabled ? '方向表示をオフ' : '方向表示をオン'}
+          aria-label={compassEnabled ? t('map_direction.disable_direction') : t('map_direction.enable_direction')}
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
             <circle

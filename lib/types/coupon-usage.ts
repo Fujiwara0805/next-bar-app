@@ -39,6 +39,7 @@ export function getOrCreateSessionId(): string {
 // クーポン利用記録リクエストのZodスキーマ
 export const recordCouponUsageSchema = z.object({
   storeId: z.string().uuid('店舗IDが不正です'),
+  storeName: z.string().min(1, '店舗名は必須です'),
   sessionId: z.string().min(1, 'セッションIDは必須です'),
   userId: z.string().uuid('ユーザーIDが不正です').optional(),
   isFirstVisit: z.boolean().default(false),
@@ -60,6 +61,7 @@ export interface RecordCouponUsageResponse {
 export interface CouponUsage {
   id: string;
   store_id: string;
+  store_name: string;
   session_id: string;
   user_id: string | null;
   is_first_visit: boolean;

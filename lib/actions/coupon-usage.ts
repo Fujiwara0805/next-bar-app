@@ -66,6 +66,7 @@ export async function recordCouponUsage(
       .from('coupon_usages')
       .insert({
         store_id: validatedData.storeId,
+        store_name: validatedData.storeName,
         session_id: validatedData.sessionId,
         user_id: validatedData.userId || null,
         is_first_visit: validatedData.isFirstVisit,

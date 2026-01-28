@@ -390,8 +390,10 @@ export const translations = {
       confirm: '使用する',
       used_success: 'クーポンを使用しました',
       use_failed: 'クーポンの使用に失敗しました',
-      thank_you: 'ご来店ありがとうございます！',
-      enjoy_time: 'でのひとときをお楽しみください',
+      thank_you: 'クーポンが適用されました！',
+      enjoy_time: '次のご来店をお待ちしています',
+      show_to_staff_payment: 'お会計時にこの画面をお見せください',
+      payment_ready: 'お会計の準備ができました',
       extra_bonus: 'さらにお得なチャンス！',
       bonus_instruction: '以下のいずれかの画面をスタッフに提示すると、追加特典をプレゼントいたします。',
       follow_instagram: 'Instagram公式アカウントをフォロー',
@@ -401,6 +403,9 @@ export const translations = {
       review_desc: 'あなたの体験を共有して、お店を応援しましょう',
       write_review: 'クチコミを書く',
       close: '閉じる',
+      additional_bonus: '追加特典',
+      additional_bonus_content: '追加特典の内容',
+      no_additional_bonus: '追加特典は設定されていません',
       duplicate_usage: '短時間内に同じクーポンが使用されています',
       default_coupon_title: 'お得なクーポン',
       copy_code: 'コードをコピー',
@@ -408,6 +413,12 @@ export const translations = {
       coupon_image_alt: 'クーポン',
       barcode_alt: 'バーコード',
       free: '無料',
+    },
+    // マップ関連
+    map_direction: {
+      enable_direction: '方向表示をオンにする',
+      disable_direction: '方向表示をオフにする',
+      show_your_direction: 'あなたの向きをマップに表示',
     },
     // 設備・サービスの翻訳マップ
     facilities_map: {
@@ -514,6 +525,12 @@ export const translations = {
       until: '〜{date}まで',
       view_details: '詳細を見る',
       view_campaign_stores: 'キャンペーン中の店舗を見る',
+      settings: 'キャンペーン設定',
+      enable: 'キャンペーンを有効にする',
+      name: 'キャンペーン名',
+      name_placeholder: '例：オープン記念キャンペーン',
+      start_date: '開始日',
+      end_date: '終了日',
     },
     // 言語セレクター
     language_selector: {
@@ -1093,8 +1110,10 @@ export const translations = {
       confirm: 'Use',
       used_success: 'Coupon used successfully',
       use_failed: 'Failed to use coupon',
-      thank_you: 'Thank you for your visit!',
-      enjoy_time: 'Enjoy your time at ',
+      thank_you: 'Coupon Applied!',
+      enjoy_time: 'We look forward to your next visit',
+      show_to_staff_payment: 'Please show this screen at checkout',
+      payment_ready: 'Ready for checkout',
       extra_bonus: 'Extra Bonus Opportunity!',
       bonus_instruction: 'Show any of the following screens to staff for an additional bonus.',
       follow_instagram: 'Follow our official Instagram',
@@ -1104,6 +1123,9 @@ export const translations = {
       review_desc: 'Share your experience and support the store',
       write_review: 'Write a Review',
       close: 'Close',
+      additional_bonus: 'Additional Bonus',
+      additional_bonus_content: 'Additional bonus content',
+      no_additional_bonus: 'No additional bonus set',
       duplicate_usage: 'This coupon was recently used',
       default_coupon_title: 'Special Coupon',
       copy_code: 'Copy code',
@@ -1111,6 +1133,12 @@ export const translations = {
       coupon_image_alt: 'Coupon',
       barcode_alt: 'Barcode',
       free: 'Free',
+    },
+    // Map direction
+    map_direction: {
+      enable_direction: 'Enable direction display',
+      disable_direction: 'Disable direction display',
+      show_your_direction: 'Show your direction on the map',
     },
     // Facilities translation map
     facilities_map: {
@@ -1217,6 +1245,12 @@ export const translations = {
       until: 'Until {date}',
       view_details: 'View Details',
       view_campaign_stores: 'View Campaign Stores',
+      settings: 'Campaign Settings',
+      enable: 'Enable campaign',
+      name: 'Campaign Name',
+      name_placeholder: 'e.g., Grand Opening Campaign',
+      start_date: 'Start Date',
+      end_date: 'End Date',
     },
     // Language selector
     language_selector: {
@@ -1793,8 +1827,10 @@ export const translations = {
       confirm: '사용',
       used_success: '쿠폰을 사용했습니다',
       use_failed: '쿠폰 사용에 실패했습니다',
-      thank_you: '방문해 주셔서 감사합니다!',
-      enjoy_time: '에서의 시간을 즐겨주세요',
+      thank_you: '쿠폰이 적용되었습니다!',
+      enjoy_time: '다음 방문을 기다리고 있겠습니다',
+      show_to_staff_payment: '계산 시 이 화면을 보여주세요',
+      payment_ready: '계산 준비가 되었습니다',
       extra_bonus: '추가 혜택 기회!',
       bonus_instruction: '다음 화면 중 하나를 스태프에게 보여주시면 추가 특전을 드립니다.',
       follow_instagram: 'Instagram 공식 계정 팔로우',
@@ -1804,6 +1840,9 @@ export const translations = {
       review_desc: '경험을 공유하고 매장을 응원해주세요',
       write_review: '리뷰 작성',
       close: '닫기',
+      additional_bonus: '추가 특전',
+      additional_bonus_content: '추가 특전 내용',
+      no_additional_bonus: '추가 특전이 설정되지 않았습니다',
       duplicate_usage: '짧은 시간 내에 같은 쿠폰이 사용되었습니다',
       default_coupon_title: '특별 쿠폰',
       copy_code: '코드 복사',
@@ -1811,6 +1850,12 @@ export const translations = {
       coupon_image_alt: '쿠폰',
       barcode_alt: '바코드',
       free: '무료',
+    },
+    // Map direction
+    map_direction: {
+      enable_direction: '방향 표시 켜기',
+      disable_direction: '방향 표시 끄기',
+      show_your_direction: '지도에 방향 표시',
     },
     // Facilities map
     facilities_map: {
@@ -1912,6 +1957,12 @@ export const translations = {
       until: '{date}까지',
       view_details: '상세 보기',
       view_campaign_stores: '캠페인 중인 매장 보기',
+      settings: '캠페인 설정',
+      enable: '캠페인 활성화',
+      name: '캠페인 이름',
+      name_placeholder: '예: 오픈 기념 캠페인',
+      start_date: '시작일',
+      end_date: '종료일',
     },
     // Language selector
     language_selector: {
@@ -2488,8 +2539,10 @@ export const translations = {
       confirm: '使用',
       used_success: '优惠券已使用',
       use_failed: '优惠券使用失败',
-      thank_you: '感谢您的光临！',
-      enjoy_time: '请享受在这里的时光',
+      thank_you: '优惠券已生效！',
+      enjoy_time: '期待您的下次光临',
+      show_to_staff_payment: '结账时请出示此画面',
+      payment_ready: '可以结账了',
       extra_bonus: '额外优惠机会！',
       bonus_instruction: '向店员出示以下任一画面，将获得额外特典。',
       follow_instagram: '关注Instagram官方账号',
@@ -2499,6 +2552,9 @@ export const translations = {
       review_desc: '分享您的体验，支持店铺',
       write_review: '写评价',
       close: '关闭',
+      additional_bonus: '额外特典',
+      additional_bonus_content: '额外特典内容',
+      no_additional_bonus: '未设置额外特典',
       duplicate_usage: '短时间内同一优惠券已被使用',
       default_coupon_title: '特别优惠券',
       copy_code: '复制代码',
@@ -2506,6 +2562,12 @@ export const translations = {
       coupon_image_alt: '优惠券',
       barcode_alt: '条形码',
       free: '免费',
+    },
+    // Map direction
+    map_direction: {
+      enable_direction: '开启方向显示',
+      disable_direction: '关闭方向显示',
+      show_your_direction: '在地图上显示方向',
     },
     // Facilities map
     facilities_map: {
@@ -2607,6 +2669,12 @@ export const translations = {
       until: '至{date}',
       view_details: '查看详情',
       view_campaign_stores: '查看活动中的店铺',
+      settings: '活动设置',
+      enable: '启用活动',
+      name: '活动名称',
+      name_placeholder: '例：开业纪念活动',
+      start_date: '开始日期',
+      end_date: '结束日期',
     },
     // Language selector
     language_selector: {

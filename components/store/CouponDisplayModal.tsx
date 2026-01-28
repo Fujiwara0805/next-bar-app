@@ -376,6 +376,7 @@ export function CouponDisplayModal({
   const [isUsing, setIsUsing] = useState(false);
   const [isUsed, setIsUsed] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [showAdditionalBonus, setShowAdditionalBonus] = useState(false);
 
   const isValid = isCouponValid(coupon);
 
@@ -392,6 +393,7 @@ export function CouponDisplayModal({
         setSurveyAnswers({ isFirstVisit: null, isLocalResident: null });
         setSlideDirection(1);
         setIsUsed(false);
+        setShowAdditionalBonus(false);
       }, 300);
       return () => clearTimeout(timer);
     }
@@ -447,6 +449,7 @@ export function CouponDisplayModal({
       
       const result = await recordCouponUsage({
         storeId,
+        storeName,
         sessionId,
         isFirstVisit: surveyAnswers.isFirstVisit!,
         isLocalResident: surveyAnswers.isLocalResident!,
@@ -1279,8 +1282,27 @@ export function CouponDisplayModal({
                     className="text-sm"
                     style={{ color: COLORS.platinum }}
                   >
-                    {language === 'en' ? t('coupon.enjoy_time') + storeName : storeName + t('coupon.enjoy_time')}
+                    {t('coupon.enjoy_time')}
                   </motion.p>
+                </motion.div>
+
+                {/* 店員に見せてください案内 */}
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.35 }}
+                  className="mb-4 rounded-xl p-4 text-center"
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(201, 168, 108, 0.2) 0%, rgba(184, 149, 110, 0.15) 100%)',
+                    border: '2px solid rgba(201, 168, 108, 0.4)',
+                  }}
+                >
+                  <p 
+                    className="font-bold text-base"
+                    style={{ color: COLORS.champagneGold }}
+                  >
+                    {t('coupon.show_to_staff_payment')}
+                  </p>
                 </motion.div>
 
                 <GoldDivider />
@@ -1360,6 +1382,25 @@ export function CouponDisplayModal({
                   }}
                 >
                   {t('coupon.close')}
+                </motion.button>
+
+                {/* 追加特典ボタン */}
+                <motion.button
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.7 }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setShowAdditionalBonus(true)}
+                  className="w-full py-4 mt-3 rounded-xl font-medium tracking-wider transition-all flex items-center justify-center gap-2"
+                  style={{
+                    background: COLORS.goldGradient,
+                    color: COLORS.deepNavy,
+                    boxShadow: '0 8px 25px rgba(201, 168, 108, 0.35)',
+                  }}
+                >
+                  <Sparkles className="w-5 h-5" />
+                  {t('coupon.additional_bonus')}
                 </motion.button>
               </motion.div>
             )}
@@ -1454,6 +1495,105 @@ export function CouponDisplayModal({
               }}
             >
               {isUsing ? t('coupon.processing') : t('coupon.confirm')}
+            </motion.button>
+          </div>
+        </div>
+      </CustomModal>
+
+      {/* 追加特典モーダル */}
+      <CustomModal
+        isOpen={showAdditionalBonus}
+        onClose={() => setShowAdditionalBonus(false)}
+        title=""
+        description=""
+        showCloseButton={false}
+      >
+        <div 
+          className="absolute inset-0 rounded-2xl overflow-hidden"
+          style={{
+            background: COLORS.luxuryGradient,
+            margin: '-1px',
+          }}
+        >
+          <div 
+            className="absolute inset-0 opacity-50 pointer-events-none"
+            style={{ background: COLORS.marbleTexture }}
+          />
+        </div>
+
+        <div className="relative z-10 -m-6 p-6">
+          <motion.button
+            whileHover={{ scale: 1.1, opacity: 1 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setShowAdditionalBonus(false)}
+            className="absolute top-4 right-4 z-20 p-2 rounded-full transition-colors"
+            style={{ 
+              color: COLORS.warmGray,
+              backgroundColor: 'rgba(255, 255, 255, 0.08)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+            }}
+            aria-label={t('coupon.close')}
+          >
+            <X className="w-4 h-4" />
+          </motion.button>
+
+          <div className="relative text-center pt-2">
+            <div 
+              className="inline-flex items-center justify-center w-14 h-14 rounded-full mb-4"
+              style={{
+                background: COLORS.goldGradient,
+                boxShadow: '0 10px 40px rgba(201, 168, 108, 0.4)',
+              }}
+            >
+              <Sparkles className="w-7 h-7" style={{ color: COLORS.deepNavy }} />
+            </div>
+            <h3 
+              className="text-xl font-bold mb-2"
+              style={{ color: COLORS.champagneGold }}
+            >
+              {t('coupon.additional_bonus')}
+            </h3>
+            <p className="text-sm mb-6" style={{ color: COLORS.platinum }}>
+              {t('coupon.show_to_staff_payment')}
+            </p>
+
+            {/* 追加特典内容 */}
+            <div 
+              className="rounded-xl p-4 mb-6 text-left"
+              style={{
+                backgroundColor: 'rgba(201, 168, 108, 0.1)',
+                border: '1px solid rgba(201, 168, 108, 0.3)',
+              }}
+            >
+              {coupon.coupon_additional_bonus ? (
+                <p 
+                  className="font-medium whitespace-pre-wrap"
+                  style={{ color: COLORS.ivory }}
+                >
+                  {coupon.coupon_additional_bonus}
+                </p>
+              ) : (
+                <p 
+                  className="text-sm italic"
+                  style={{ color: COLORS.warmGray }}
+                >
+                  {t('coupon.no_additional_bonus')}
+                </p>
+              )}
+            </div>
+
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setShowAdditionalBonus(false)}
+              className="w-full py-3.5 rounded-xl font-medium tracking-wider transition-all"
+              style={{
+                background: COLORS.goldGradient,
+                color: COLORS.deepNavy,
+                boxShadow: '0 10px 30px rgba(201, 168, 108, 0.3)',
+              }}
+            >
+              {t('coupon.close')}
             </motion.button>
           </div>
         </div>

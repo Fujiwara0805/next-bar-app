@@ -28,6 +28,8 @@ export interface CouponData {
   coupon_current_uses: number;
   coupon_code: string | null;
   coupon_barcode_url: string | null;
+  coupon_additional_bonus: string | null;
+  coupon_is_campaign: boolean; // キャンペーン用クーポンかどうか
 }
 
 // クーポンフォームの入力値型
@@ -44,6 +46,8 @@ export interface CouponFormValues {
   maxUses: string;
   code: string;
   barcodeUrl: string;
+  additionalBonus: string;
+  isCampaign: boolean; // キャンペーン用クーポンかどうか
 }
 
 // Zodバリデーションスキーマ
@@ -60,6 +64,8 @@ export const couponFormSchema = z.object({
   maxUses: z.string().optional().or(z.literal('')),
   code: z.string().max(50, 'クーポンコードは50文字以内で入力してください').optional().or(z.literal('')),
   barcodeUrl: z.string().url('有効なURLを入力してください').optional().or(z.literal('')),
+  additionalBonus: z.string().optional().or(z.literal('')),
+  isCampaign: z.boolean().default(false),
 }).refine((data) => {
   // 割引タイプがpercentageの場合、値は0-100の範囲
   if (data.discountType === 'percentage' && data.discountValue) {
@@ -108,6 +114,8 @@ export function couponFormToDbData(formValues: CouponFormValues): Partial<Coupon
     coupon_max_uses: formValues.maxUses ? parseInt(formValues.maxUses, 10) : null,
     coupon_code: formValues.code || null,
     coupon_barcode_url: formValues.barcodeUrl || null,
+    coupon_additional_bonus: formValues.additionalBonus || null,
+    coupon_is_campaign: formValues.isCampaign,
   };
 }
 
@@ -130,7 +138,15 @@ export function dbDataToCouponForm(dbData: Partial<CouponData> | null): CouponFo
     maxUses: dbData.coupon_max_uses?.toString() || '',
     code: dbData.coupon_code || '',
     barcodeUrl: dbData.coupon_barcode_url || '',
+    additionalBonus: dbData.coupon_additional_bonus || '',
+    isCampaign: dbData.coupon_is_campaign || false,
   };
+}
+
+// 今日の日付をYYYY-MM-DD形式で取得
+function getTodayString(): string {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 }
 
 // デフォルト値
@@ -141,13 +157,15 @@ export function getDefaultCouponFormValues(): CouponFormValues {
     discountType: '',
     discountValue: '',
     conditions: '',
-    startDate: '',
+    startDate: getTodayString(), // デフォルトで今日の日付を設定
     expiryDate: '',
     imageUrl: '',
     isActive: false,
     maxUses: '',
     code: '',
     barcodeUrl: '',
+    additionalBonus: '',
+    isCampaign: false,
   };
 }
 
