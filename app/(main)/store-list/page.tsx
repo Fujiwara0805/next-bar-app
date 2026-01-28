@@ -14,10 +14,10 @@
 
 'use client';
 
-import { useEffect, useState, useRef, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useEffect, useState, useRef, useCallback } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapIcon, ExternalLink, Star, Filter, Check, Sparkles, X, Clock, Ticket, PartyPopper } from 'lucide-react';
+import { MapIcon, ExternalLink, Star, Filter, Check, Sparkles, X, Clock, Ticket, PartyPopper, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { supabase } from '@/lib/supabase/client';
@@ -131,15 +131,17 @@ const parseTimeRange = (timeRange: string, currentTime: number): boolean => {
   return currentTime >= openTime && currentTime < closeTime;
 };
 
-export default function StoreListPage() {
+// メインコンポーネント（Suspenseでラップされる）
+function StoreListContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { t } = useLanguage();
   const [stores, setStores] = useState<Store[]>([]);
   const [filteredStores, setFilteredStores] = useState<Store[]>([]);
   const [loading, setLoading] = useState(true);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   
-  // フィルター状態
+  // フィルター状態（URLパラメータから初期化）
   const [vacantOnly, setVacantOnly] = useState(false);
   const [openNowOnly, setOpenNowOnly] = useState(false);
   const [couponOnly, setCouponOnly] = useState(false);
@@ -154,31 +156,69 @@ export default function StoreListPage() {
 
   // 初回ロード完了フラグ
   const isOpenUpdatedRef = useRef(false);
+  const isInitializedRef = useRef(false);
 
   // アクティブなフィルター数
   const activeFilterCount = [vacantOnly, openNowOnly, couponOnly, campaignOnly].filter(Boolean).length;
+
+  // URLパラメータを更新するヘルパー関数
+  const updateUrlParams = useCallback((params: Record<string, string | null>) => {
+    if (typeof window === 'undefined') return;
+    
+    const url = new URL(window.location.href);
+    
+    Object.entries(params).forEach(([key, value]) => {
+      if (value === null || value === '' || value === 'false') {
+        url.searchParams.delete(key);
+      } else {
+        url.searchParams.set(key, value);
+      }
+    });
+    
+    window.history.replaceState({}, '', url.toString());
+  }, []);
 
   // 位置情報の読み込み
   useEffect(() => {
     loadUserLocation();
   }, []);
 
-  // URLパラメータからキャンペーンフィルターを初期化
+  // URLパラメータからフィルター状態を初期化（初回のみ）
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (isInitializedRef.current) return;
+    isInitializedRef.current = true;
     
-    const urlParams = new URLSearchParams(window.location.search);
-    const campaign = urlParams.get('campaign');
-    const campaignName = urlParams.get('campaign_name');
+    // URLパラメータを読み取り
+    const vacant = searchParams.get('vacant') === 'true';
+    const openNow = searchParams.get('open') === 'true';
+    const coupon = searchParams.get('coupon') === 'true';
+    const campaign = searchParams.get('campaign') === 'true';
+    const campaignName = searchParams.get('campaign_name');
+    const concierge = searchParams.get('concierge');
     
-    if (campaign) {
-      setCampaignOnly(true);
-      // キャンペーン名での絞り込みも確認（空でない場合のみ）
-      if (campaignName && campaignName.trim() !== '') {
-        setCampaignNameFilter(campaignName);
+    // フィルター状態を設定
+    setVacantOnly(vacant);
+    setOpenNowOnly(openNow);
+    setCouponOnly(coupon);
+    setCampaignOnly(campaign);
+    
+    if (campaignName && campaignName.trim() !== '') {
+      setCampaignNameFilter(campaignName);
+    }
+    
+    // コンシェルジュフィルターの復元
+    if (concierge) {
+      try {
+        const filters = concierge.split(',').filter(f => f.trim() !== '');
+        if (filters.length > 0) {
+          setConciergeFilters(filters);
+          setIsConciergeActive(true);
+        }
+      } catch (e) {
+        console.error('Failed to parse concierge filters:', e);
       }
     }
-  }, []);
+  }, [searchParams]);
 
   // 初回マウント時のみis_open更新APIを呼び出す
   useEffect(() => {
@@ -316,6 +356,22 @@ export default function StoreListPage() {
 
     setFilteredStores(result);
   }, [stores, vacantOnly, openNowOnly, couponOnly, campaignOnly, campaignNameFilter, conciergeFilters, isConciergeActive]);
+
+  // フィルター状態が変わったらURLを更新（初期化後のみ）
+  useEffect(() => {
+    if (!isInitializedRef.current) return;
+    
+    updateUrlParams({
+      vacant: vacantOnly ? 'true' : null,
+      open: openNowOnly ? 'true' : null,
+      coupon: couponOnly ? 'true' : null,
+      campaign: campaignOnly ? 'true' : null,
+      campaign_name: campaignNameFilter,
+      concierge: isConciergeActive && conciergeFilters.length > 0 
+        ? conciergeFilters.join(',') 
+        : null,
+    });
+  }, [vacantOnly, openNowOnly, couponOnly, campaignOnly, campaignNameFilter, isConciergeActive, conciergeFilters, updateUrlParams]);
 
   const loadUserLocation = () => {
     const savedLocation = localStorage.getItem('userLocation');
@@ -469,11 +525,15 @@ export default function StoreListPage() {
     setCampaignOnly(false);
     setCampaignNameFilter(null);
     clearConciergeFilter();
-    // URLパラメータもクリア
+    // URLパラメータもクリア（すべてのフィルターパラメータを削除）
     if (typeof window !== 'undefined') {
       const url = new URL(window.location.href);
+      url.searchParams.delete('vacant');
+      url.searchParams.delete('open');
+      url.searchParams.delete('coupon');
       url.searchParams.delete('campaign');
       url.searchParams.delete('campaign_name');
+      url.searchParams.delete('concierge');
       window.history.replaceState({}, '', url.toString());
     }
   }, []);
@@ -560,15 +620,7 @@ export default function StoreListPage() {
                 </span>
               </div>
               <button
-                onClick={() => {
-                  setCampaignNameFilter(null);
-                  // URLパラメータからcampaign_nameを削除
-                  if (typeof window !== 'undefined') {
-                    const url = new URL(window.location.href);
-                    url.searchParams.delete('campaign_name');
-                    window.history.replaceState({}, '', url.toString());
-                  }
-                }}
+                onClick={() => setCampaignNameFilter(null)}
                 className="p-1 rounded-full hover:bg-white/10 transition-colors"
                 style={{ color: COLORS.warmGray }}
               >
@@ -1095,5 +1147,26 @@ export default function StoreListPage() {
         onComplete={handleConciergeComplete}
       />
     </div>
+  );
+}
+
+// ローディングフォールバック
+function StoreListLoading() {
+  return (
+    <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#1C1E26' }}>
+      <div className="text-center">
+        <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" style={{ color: '#C9A86C' }} />
+        <p className="text-sm font-bold" style={{ color: '#636E72' }}>読み込み中...</p>
+      </div>
+    </div>
+  );
+}
+
+// デフォルトエクスポート（Suspenseでラップ）
+export default function StoreListPage() {
+  return (
+    <Suspense fallback={<StoreListLoading />}>
+      <StoreListContent />
+    </Suspense>
   );
 }

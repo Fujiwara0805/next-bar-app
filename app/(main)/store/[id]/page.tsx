@@ -575,7 +575,7 @@ export default function StoreDetailPage() {
           <Button
             size="icon"
             variant="ghost"
-            onClick={() => router.push('/map?refresh=true')}
+            onClick={() => router.back()}
             className="rounded-full absolute right-4"
             style={{ color: COLORS.warmGray }}
           >
