@@ -22,6 +22,7 @@ import {
   AlertCircle,
   Sparkles,
   PartyPopper,
+  Gift,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -577,38 +578,75 @@ export default function LandingPage() {
             <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4" style={{ color: colors.accent }}>{t('landing.howto_subtitle')}</span>
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold" style={{ color: colors.text }}>{t('landing.howto_title')}</h2>
           </motion.div>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {[
               { step: '01', num: 1, highlight: false },
               { step: '02', num: 2, highlight: false },
-              { step: '03', num: 3, highlight: true },
-            ].map(({ step, num, highlight }, index) => {
-              const stepIcons = [MapPin, Store, Phone];
+              { step: '03', num: 3, highlight: true, badge: 'common.auto_voice' },
+              { step: '04', num: 4, highlight: true, badge: 'bonus' },
+            ].map(({ step, num, highlight, badge }, index) => {
+              const stepIcons = [MapPin, Store, Phone, Gift];
               const Icon = stepIcons[index];
               const images = [
                 'https://res.cloudinary.com/dz9trbwma/image/upload/v1767761406/26ef2985-e460-4b06-a245-8e5e0f65a459_lk9q5d.png',
                 'https://res.cloudinary.com/dz9trbwma/image/upload/v1767762176/Gemini_Generated_Image_4tiamt4tiamt4tia_bnxmn9.png',
                 'https://res.cloudinary.com/dz9trbwma/image/upload/v1767763441/Gemini_Generated_Image_3qcvnq3qcvnq3qcv_acv91j.png',
+                'https://res.cloudinary.com/dz9trbwma/image/upload/v1769578961/Gemini_Generated_Image_4o9bjm4o9bjm4o9b_j6hwmu.png',
               ];
               const stepTitle = t(`landing.howto_step${num}_title`);
+              const isStep4 = num === 4;
               return (
                 <motion.div key={index} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.15 }}>
                   <Card className="h-full overflow-hidden group relative" style={{ background: highlight ? `${colors.accent}10` : colors.background, border: highlight ? `2px solid ${colors.accent}` : `1px solid ${colors.borderGold}`, boxShadow: highlight ? colors.shadowGold : 'none' }}>
-                    <div className="p-8">
+                    {isStep4 && (
+                      <motion.div
+                        className="absolute inset-0 pointer-events-none"
+                        style={{ background: `radial-gradient(circle at 50% 0%, ${colors.accent}20 0%, transparent 50%)` }}
+                        animate={{ opacity: [0.5, 0.8, 0.5] }}
+                        transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                      />
+                    )}
+                    <div className="p-8 relative z-10">
                       <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-3">
                           <span className="text-4xl font-bold" style={{ color: highlight ? colors.accent : colors.accentDark }}>{step}</span>
-                          <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: `${colors.accent}15`, border: `1px solid ${colors.borderGold}` }}>
+                          <motion.div
+                            className="w-10 h-10 rounded-lg flex items-center justify-center"
+                            style={{ background: `${colors.accent}15`, border: `1px solid ${colors.borderGold}` }}
+                            animate={isStep4 ? { scale: [1, 1.1, 1] } : {}}
+                            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                          >
                             <Icon className="w-5 h-5" style={{ color: highlight ? colors.accent : colors.textMuted }} />
-                          </div>
+                          </motion.div>
                         </div>
-                        {highlight && (<span className="text-[10px] font-semibold px-3 py-1 rounded-full uppercase tracking-wider" style={{ background: `${colors.accent}20`, color: colors.accent, border: `1px solid ${colors.accent}40` }}>{t('common.auto_voice')}</span>)}
+                        {badge === 'common.auto_voice' && (
+                          <span className="text-[10px] font-semibold px-3 py-1 rounded-full uppercase tracking-wider" style={{ background: `${colors.accent}20`, color: colors.accent, border: `1px solid ${colors.accent}40` }}>{t('common.auto_voice')}</span>
+                        )}
+                        {badge === 'bonus' && (
+                          <motion.span
+                            className="text-[10px] font-semibold px-3 py-1 rounded-full uppercase tracking-wider flex items-center gap-1"
+                            style={{ background: 'linear-gradient(135deg, #4ADE80 0%, #22C55E 100%)', color: '#fff', boxShadow: '0 0 12px rgba(74, 222, 128, 0.4)' }}
+                            animate={{ scale: [1, 1.05, 1] }}
+                            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                          >
+                            <Sparkles className="w-3 h-3" />
+                            Bonus
+                          </motion.span>
+                        )}
                       </div>
                       <h3 className="text-xl font-bold mb-1" style={{ color: colors.text }}>{stepTitle}</h3>
                       <p className="text-xs uppercase tracking-wider mb-4 font-medium" style={{ color: colors.accentDark }}>{t(`landing.howto_step${num}_title_en`)}</p>
                       <p className="mb-6 leading-relaxed text-sm" style={{ color: colors.textMuted }}>{renderWithLineBreaks(t(`landing.howto_step${num}_desc`))}</p>
-                      <div className="rounded-xl overflow-hidden" style={{ border: `1px solid ${colors.borderGold}` }}>
+                      <div className="rounded-xl overflow-hidden relative" style={{ border: `1px solid ${colors.borderGold}` }}>
                         <img src={images[index]} alt={stepTitle} className="w-full h-auto object-cover" />
+                        {isStep4 && (
+                          <motion.div
+                            className="absolute inset-0 pointer-events-none"
+                            style={{ background: 'linear-gradient(45deg, transparent 0%, rgba(201, 168, 108, 0.15) 50%, transparent 100%)' }}
+                            animate={{ x: ['-100%', '200%'] }}
+                            transition={{ duration: 3, repeat: Infinity, repeatDelay: 2, ease: 'easeInOut' }}
+                          />
+                        )}
                       </div>
                     </div>
                   </Card>

@@ -697,7 +697,7 @@ export const translations = {
       solution_feature3_desc: '料金目安や客層など、入る前に知りたい情報が揃っています。女性や観光客も安心です。',
       // How to section
       howto_title: '使い方は、とてもシンプル',
-      howto_subtitle: '3 Easy Steps',
+      howto_subtitle: '4 Easy Steps',
       howto_step1_title: '次に行くお店を探す',
       howto_step1_title_en: 'Find',
       howto_step1_desc: '現在地周辺の空席があるお店をマップで確認します。「空席あり」のアイコンが表示されているお店が今すぐ入れるお店です。',
@@ -707,6 +707,9 @@ export const translations = {
       howto_step3_title: '席をキープする',
       howto_step3_title_en: 'Reserve',
       howto_step3_desc: '到着時間と人数、電話番号、名前を入力するだけ。自動音声があなたの代わりにお店へ電話します。',
+      howto_step4_title: '特典を受け取って楽しむ',
+      howto_step4_title_en: 'Enjoy & Reward',
+      howto_step4_desc: 'クーポンでお得に飲食を楽しもう。さらに、Google口コミ投稿＆お店のInstagramをフォローで追加特典をGET！あなたの一言が、次のお客様の二軒目を導きます。',
       // CTA section
       cta_title: '今夜の二軒目、ここで見つかる。',
       cta_body: '大分の夜は、まだ終わらない。\nNIKENME+で、次のお店を探しましょう。',
@@ -1417,7 +1420,7 @@ export const translations = {
       solution_feature3_desc: 'Price range, crowd type, and more info available upfront. Safe for women and tourists.',
       // How to section
       howto_title: 'Simple to Use',
-      howto_subtitle: '3 Easy Steps',
+      howto_subtitle: '4 Easy Steps',
       howto_step1_title: 'Find on Map',
       howto_step1_title_en: 'Find',
       howto_step1_desc: 'Check available venues near you on the map. Green pins mean "seats available now".',
@@ -1427,6 +1430,9 @@ export const translations = {
       howto_step3_title: 'Reserve Seat',
       howto_step3_title_en: 'Reserve',
       howto_step3_desc: 'Just enter arrival time and party size. Auto-voice will call the venue for you.',
+      howto_step4_title: 'Enjoy Exclusive Rewards',
+      howto_step4_title_en: 'Enjoy & Reward',
+      howto_step4_desc: 'Savor your experience with exclusive coupons. Leave a Google review & follow on Instagram for bonus perks! Your voice guides the next guest to their perfect spot.',
       // CTA section
       cta_title: 'Find Your Next Spot Tonight.',
       cta_body: "The night isn't over yet. Discover your next venue with NIKENME+.",
@@ -2129,7 +2135,7 @@ export const translations = {
       solution_feature3_desc: '가격대와 손님층 등 입장 전에 알고 싶은 정보가 갖춰져 있습니다. 여성이나 관광객도 안심입니다.',
       // How to section
       howto_title: '사용법은 매우 간단',
-      howto_subtitle: '3 Easy Steps',
+      howto_subtitle: '4 Easy Steps',
       howto_step1_title: '다음 갈 가게 찾기',
       howto_step1_title_en: 'Find',
       howto_step1_desc: '현재 위치 주변의 빈자리가 있는 가게를 지도에서 확인합니다. "빈자리 있음" 아이콘이 표시된 곳이 지금 바로 입장 가능한 가게입니다.',
@@ -2139,6 +2145,9 @@ export const translations = {
       howto_step3_title: '좌석 예약하기',
       howto_step3_title_en: 'Reserve',
       howto_step3_desc: '도착 시간과 인원, 전화번호, 이름만 입력하면 됩니다. 자동 음성이 당신 대신 가게에 전화합니다.',
+      howto_step4_title: '특전을 받고 즐기기',
+      howto_step4_title_en: 'Enjoy & Reward',
+      howto_step4_desc: '쿠폰으로 저렴하게 음식을 즐기세요. Google 리뷰 작성 & 가게 Instagram 팔로우로 추가 특전까지! 당신의 한마디가 다음 손님의 2차를 안내합니다.',
       // CTA section
       cta_title: '오늘 밤 2차, 여기서 찾으세요.',
       cta_body: '오이타의 밤은 아직 끝나지 않았습니다.\nNIKENME+로 다음 가게를 찾아보세요.',
@@ -2841,7 +2850,7 @@ export const translations = {
       solution_feature3_desc: '价格范围、顾客类型等入店前想知道的信息一应俱全。女性和游客也能安心。',
       // How to section
       howto_title: '使用方法非常简单',
-      howto_subtitle: '3 Easy Steps',
+      howto_subtitle: '4 Easy Steps',
       howto_step1_title: '寻找下一家店',
       howto_step1_title_en: 'Find',
       howto_step1_desc: '在地图上确认当前位置附近有空位的店铺。显示"有空位"图标的店铺是现在可以进入的店铺。',
@@ -2851,6 +2860,9 @@ export const translations = {
       howto_step3_title: '预留座位',
       howto_step3_title_en: 'Reserve',
       howto_step3_desc: '只需输入到达时间、人数、电话号码和姓名。自动语音会代替您致电店铺。',
+      howto_step4_title: '享受优惠特典',
+      howto_step4_title_en: 'Enjoy & Reward',
+      howto_step4_desc: '使用优惠券享受美食美酒。发布Google评论&关注店铺Instagram，还可获得额外特典！您的一句话，将引领下一位客人找到他的下一站。',
       // CTA section
       cta_title: '今晚的下一站，在这里找到。',
       cta_body: '大分的夜晚还没有结束。\n用NIKENME+寻找下一家店吧。',
