@@ -93,6 +93,7 @@ interface MapViewProps {
   enableLocationTracking?: boolean;
   enableCompass?: boolean;
   onBoundsChange?: (bounds: google.maps.LatLngBounds, zoom: number) => void;
+  selectedStoreId?: string | null;
 }
 
 interface GeolocationState {
@@ -840,6 +841,7 @@ export function MapView({
   enableLocationTracking = true,
   enableCompass = true,
   onBoundsChange,
+  selectedStoreId,
 }: MapViewProps) {
   // Refs
   const mapRef = useRef<HTMLDivElement>(null);
@@ -1195,6 +1197,23 @@ export function MapView({
       }
     });
   }, [stores, onStoreClick, mapReady]);
+
+  // ============================================================================
+  // 選択された店舗のマーカーをアニメーション（スワイプ時も反映）
+  // ============================================================================
+
+  useEffect(() => {
+    if (!selectedStoreId || !mapReady) return;
+
+    const markerData = storeMarkersRef.current.get(selectedStoreId);
+    if (markerData) {
+      // BOUNCEアニメーションを適用
+      markerData.marker.setAnimation(google.maps.Animation.BOUNCE);
+      setTimeout(() => {
+        markerData.marker.setAnimation(null);
+      }, 700);
+    }
+  }, [selectedStoreId, mapReady]);
 
   // ============================================================================
   // 方角付きユーザー位置マーカー（コンパス有効時のみ方角を表示）

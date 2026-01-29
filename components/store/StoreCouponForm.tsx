@@ -367,42 +367,36 @@ export function StoreCouponForm({
                         <Label htmlFor="original-price" className="text-xs font-medium text-gray-600">
                           元の価格<span className="text-red-500">*</span>
                         </Label>
-                        <div className="relative">
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold">¥</span>
-                          <Input
-                            id="original-price"
-                            type="number"
-                            min="0"
-                            step="100"
-                            value={values.originalPrice}
-                            onChange={(e) => handleChange('originalPrice', e.target.value)}
-                            placeholder="3500"
-                            disabled={disabled}
-                            className="font-bold bg-white text-gray-700 border-2 border-gray-300 placeholder:text-gray-400 pl-8"
-                            style={{ fontSize: '16px' }}
-                          />
-                        </div>
+                        <Input
+                          id="original-price"
+                          type="number"
+                          min="0"
+                          step="100"
+                          value={values.originalPrice}
+                          onChange={(e) => handleChange('originalPrice', e.target.value)}
+                          placeholder="3500"
+                          disabled={disabled}
+                          className="font-bold bg-white text-gray-700 border-2 border-gray-300 placeholder:text-gray-400"
+                          style={{ fontSize: '16px' }}
+                        />
                       </div>
                       <div className="flex-shrink-0 text-2xl font-bold text-amber-500 mt-5">→</div>
                       <div className="flex-1 space-y-1">
                         <Label htmlFor="discounted-price" className="text-xs font-medium text-gray-600">
                           特別価格<span className="text-red-500">*</span>
                         </Label>
-                        <div className="relative">
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-600 font-bold">¥</span>
-                          <Input
-                            id="discounted-price"
-                            type="number"
-                            min="0"
-                            step="100"
-                            value={values.discountedPrice}
-                            onChange={(e) => handleChange('discountedPrice', e.target.value)}
-                            placeholder="2000"
-                            disabled={disabled}
-                            className="font-bold bg-white text-amber-700 border-2 border-amber-400 placeholder:text-gray-400 pl-8"
-                            style={{ fontSize: '16px' }}
-                          />
-                        </div>
+                        <Input
+                          id="discounted-price"
+                          type="number"
+                          min="0"
+                          step="100"
+                          value={values.discountedPrice}
+                          onChange={(e) => handleChange('discountedPrice', e.target.value)}
+                          placeholder="2000"
+                          disabled={disabled}
+                          className="font-bold bg-white text-amber-700 border-2 border-amber-400 placeholder:text-gray-400"
+                          style={{ fontSize: '16px' }}
+                        />
                       </div>
                     </div>
                     
@@ -526,7 +520,6 @@ export function StoreCouponForm({
                 />
                 <p className="text-xs text-muted-foreground font-bold">
                   空欄の場合は無制限
-                  {currentUses > 0 && ` (現在の利用数: ${currentUses})`}
                 </p>
               </div>
 
@@ -547,7 +540,7 @@ export function StoreCouponForm({
                   style={{ fontSize: '16px' }}
                 />
                 <p className="text-xs text-muted-foreground font-bold">
-                  クーポン使用後に表示される追加特典（任意）
+                  次回利用できるクーポンをここに記載（任意）
                 </p>
               </div>
 

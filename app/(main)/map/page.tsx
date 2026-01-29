@@ -17,7 +17,7 @@
 import { useEffect, useState, Suspense, useRef, useCallback, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, List, ExternalLink, Building2, RefreshCw, Home, Star, AlertCircle, Loader2 } from 'lucide-react';
+import { X, List, ExternalLink, Building2, RefreshCw, Home, Star, AlertCircle, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { MapView } from '@/components/map/map-view';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -573,6 +573,7 @@ function MapPageContent() {
   const [refreshing, setRefreshing] = useState(false);
   const [currentBounds, setCurrentBounds] = useState<ViewportBounds | null>(null);
   const [isNavigating, setIsNavigating] = useState(false);
+  const [selectedStoreIndex, setSelectedStoreIndex] = useState(0);
 
   const { location: userLocation, refreshLocation } = useOptimizedLocation();
   const { stores, isLoading, error, retryCount, fetchStores, refreshStores } = useStores();
@@ -719,6 +720,71 @@ function MapPageContent() {
   const filteredStores = useMemo(() => {
     return filterStoresByViewport(stores, currentBounds);
   }, [stores, currentBounds]);
+
+  // 距離順にソートされた店舗リスト（スワイプカード用）
+  const sortedStoresByDistance = useMemo(() => {
+    if (!userLocation) return stores;
+    
+    const calcDist = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+      const R = 6371;
+      const dLat = ((lat2 - lat1) * Math.PI) / 180;
+      const dLon = ((lon2 - lon1) * Math.PI) / 180;
+      const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos((lat1 * Math.PI) / 180) *
+          Math.cos((lat2 * Math.PI) / 180) *
+          Math.sin(dLon / 2) *
+          Math.sin(dLon / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c;
+    };
+    
+    return [...stores].sort((a, b) => {
+      const distanceA = calcDist(
+        userLocation.lat,
+        userLocation.lng,
+        Number(a.latitude),
+        Number(a.longitude)
+      );
+      const distanceB = calcDist(
+        userLocation.lat,
+        userLocation.lng,
+        Number(b.latitude),
+        Number(b.longitude)
+      );
+      return distanceA - distanceB;
+    });
+  }, [stores, userLocation]);
+
+  // 店舗が選択されたときにインデックスを設定
+  const handleStoreSelect = useCallback((store: Store) => {
+    setSelectedStore(store);
+    const index = sortedStoresByDistance.findIndex(s => s.id === store.id);
+    if (index !== -1) {
+      setSelectedStoreIndex(index);
+    }
+    setIsNavigating(false);
+  }, [sortedStoresByDistance]);
+
+  // 次の店舗カードへスワイプ
+  const handleSwipeNext = useCallback(() => {
+    if (sortedStoresByDistance.length === 0) return;
+    const nextIndex = selectedStoreIndex < sortedStoresByDistance.length - 1 
+      ? selectedStoreIndex + 1 
+      : 0;
+    setSelectedStoreIndex(nextIndex);
+    setSelectedStore(sortedStoresByDistance[nextIndex]);
+  }, [sortedStoresByDistance, selectedStoreIndex]);
+
+  // 前の店舗カードへスワイプ
+  const handleSwipePrev = useCallback(() => {
+    if (sortedStoresByDistance.length === 0) return;
+    const prevIndex = selectedStoreIndex > 0 
+      ? selectedStoreIndex - 1 
+      : sortedStoresByDistance.length - 1;
+    setSelectedStoreIndex(prevIndex);
+    setSelectedStore(sortedStoresByDistance[prevIndex]);
+  }, [sortedStoresByDistance, selectedStoreIndex]);
 
   const getVacancyLabel = (status: string) => {
     switch (status) {
@@ -886,19 +952,31 @@ function MapPageContent() {
       <MapView
         stores={filteredStores}
         center={userLocation || undefined}
-        onStoreClick={setSelectedStore}
+        onStoreClick={handleStoreSelect}
         onBoundsChange={handleBoundsChange}
+        selectedStoreId={selectedStore?.id || null}
       />
 
-      {/* 店舗詳細カード */}
+      {/* 店舗詳細カード（スワイプ対応） */}
       <AnimatePresence>
         {selectedStore && (
           <motion.div
+            key={selectedStore.id}
             initial={{ y: 100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 100, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
             className="fixed bottom-0 left-0 right-0 z-30 safe-bottom touch-manipulation"
+            drag="x"
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={0.2}
+            onDragEnd={(_, info) => {
+              if (info.offset.x < -50) {
+                handleSwipeNext();
+              } else if (info.offset.x > 50) {
+                handleSwipePrev();
+              }
+            }}
           >
             <Card
               className="rounded-t-3xl rounded-b-none border-0 cursor-pointer transition-colors"
@@ -908,7 +986,24 @@ function MapPageContent() {
               }}
               onClick={() => handleNavigateToDetail(selectedStore.id)}
             >
-              <div className="p-4 space-y-3">
+              {/* スワイプインジケーター */}
+              <div className="flex items-center justify-center pt-2 pb-1">
+                <div className="flex items-center gap-2">
+                  <ChevronLeft 
+                    className="w-4 h-4 opacity-40" 
+                    style={{ color: colors.accent }}
+                  />
+                  <div 
+                    className="w-10 h-1 rounded-full"
+                    style={{ background: `${colors.accent}50` }}
+                  />
+                  <ChevronRight 
+                    className="w-4 h-4 opacity-40" 
+                    style={{ color: colors.accent }}
+                  />
+                </div>
+              </div>
+              <div className="px-4 pb-4 space-y-3">
                 <div className="flex gap-4">
                   {selectedStore.image_urls && selectedStore.image_urls.length > 0 ? (
                     <img
@@ -1030,23 +1125,6 @@ function MapPageContent() {
                         {getVacancyLabel(selectedStore.vacancy_status)}
                       </span>
                     </div>
-
-                    {/* キャンペーン情報 */}
-                    {selectedStore.has_campaign && selectedStore.campaign_name && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 5 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="mt-2 px-3 py-2 rounded-lg"
-                        style={{
-                          background: `linear-gradient(135deg, ${colors.accent}20 0%, ${colors.accent}10 100%)`,
-                          border: `1px solid ${colors.accent}40`,
-                        }}
-                      >
-                        <p className="text-sm font-bold" style={{ color: colors.accent }}>
-                          {selectedStore.campaign_name} 🍺
-                        </p>
-                      </motion.div>
-                    )}
                   </div>
                 </div>
 
