@@ -112,6 +112,71 @@ const PhotoGridSkeleton = () => (
 );
 
 /**
+ * 画像コンポーネント（ローディングスピナー付き）
+ */
+const ImageWithLoading = ({ 
+  src, 
+  alt, 
+  className,
+  onClick,
+  style,
+}: { 
+  src: string; 
+  alt: string; 
+  className?: string;
+  onClick?: () => void;
+  style?: React.CSSProperties;
+}) => {
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [hasError, setHasError] = useState(false);
+  
+  return (
+    <div className="relative w-full h-full">
+      {/* ローディングスピナー（画像ロード中） */}
+      <AnimatePresence>
+        {!isLoaded && !hasError && (
+          <motion.div
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="absolute inset-0 z-10 flex items-center justify-center"
+            style={{ backgroundColor: 'rgba(201, 168, 108, 0.05)' }}
+          >
+            <motion.div
+              className="w-8 h-8 rounded-full border-2"
+              style={{ 
+                borderColor: 'rgba(201, 168, 108, 0.2)',
+                borderTopColor: COLORS.champagneGold,
+              }}
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+      
+      {/* 実際の画像 */}
+      <motion.img
+        src={src}
+        alt={alt}
+        className={`${className} ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+        style={style}
+        onClick={onClick}
+        onLoad={() => setIsLoaded(true)}
+        onError={() => {
+          setHasError(true);
+          setIsLoaded(true);
+        }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: isLoaded ? 1 : 0 }}
+        transition={{ duration: 0.3 }}
+        loading="lazy"
+      />
+    </div>
+  );
+};
+
+/**
  * ゴールド装飾ディバイダー
  */
 const GoldDivider = () => (
@@ -1029,15 +1094,14 @@ export default function StoreDetailPage() {
                                     }
                                   }}
                                 >
-                                  <img
+                                  <ImageWithLoading
                                     src={photoUrl}
                                     alt={`${store.name}の写真 ${photoIndex + 1}`}
                                     className="w-full h-full object-cover"
-                                    loading="lazy"
                                   />
                                   {/* 拡大アイコンオーバーレイ */}
                                   <div 
-                                    className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                                    className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
                                     style={{ backgroundColor: 'rgba(10, 22, 40, 0.3)' }}
                                   >
                                     <div 

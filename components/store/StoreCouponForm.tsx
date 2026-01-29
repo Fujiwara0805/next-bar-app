@@ -60,6 +60,11 @@ export function StoreCouponForm({
     key: K,
     value: CouponFormValues[K]
   ) => {
+    // トグルOFF時にすべての入力値をリセット
+    if (key === 'isActive' && value === false) {
+      onChange(getDefaultCouponFormValues());
+      return;
+    }
     onChange({ ...values, [key]: value });
   };
 
@@ -70,6 +75,8 @@ export function StoreCouponForm({
         return <Percent className="w-4 h-4" />;
       case 'fixed':
         return <DollarSign className="w-4 h-4" />;
+      case 'special_price':
+        return <Sparkles className="w-4 h-4" />;
       case 'free_item':
         return <Gift className="w-4 h-4" />;
       default:
@@ -91,9 +98,32 @@ export function StoreCouponForm({
           {values.title && (
             <p className="font-bold text-gray-800">{values.title}</p>
           )}
-          {values.discountType && values.discountValue && (
+          {/* 特別価格の場合 */}
+          {values.discountType === 'special_price' && values.originalPrice && values.discountedPrice && (
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="text-lg text-gray-400 line-through">
+                  ¥{parseInt(values.originalPrice).toLocaleString()}
+                </span>
+                <span className="text-2xl font-bold text-amber-600">
+                  → ¥{parseInt(values.discountedPrice).toLocaleString()}
+                </span>
+              </div>
+              <p className="text-sm font-bold text-red-500">
+                ¥{(parseInt(values.originalPrice) - parseInt(values.discountedPrice)).toLocaleString()} お得！
+              </p>
+            </div>
+          )}
+          {/* %割引の場合 */}
+          {values.discountType === 'percentage' && values.discountValue && (
             <p className="text-2xl font-bold text-amber-600">
               {formatDiscountValue(values.discountType as CouponDiscountType, parseFloat(values.discountValue))}
+            </p>
+          )}
+          {/* 定額割引の場合 */}
+          {values.discountType === 'fixed' && values.discountValue && (
+            <p className="text-2xl font-bold text-amber-600">
+              ¥{parseInt(values.discountValue).toLocaleString()} OFF
             </p>
           )}
           {values.discountType === 'free_item' && (
@@ -153,9 +183,6 @@ export function StoreCouponForm({
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-sm font-bold text-gray-600">
-            {values.isActive ? 'ON' : 'OFF'}
-          </span>
           <Switch
             checked={values.isActive}
             onCheckedChange={(checked) => handleChange('isActive', checked)}
@@ -235,13 +262,19 @@ export function StoreCouponForm({
                     <SelectItem value="percentage">
                       <div className="flex items-center gap-2">
                         <Percent className="w-4 h-4" />
-                        割引
+                        %割引
                       </div>
                     </SelectItem>
                     <SelectItem value="fixed">
                       <div className="flex items-center gap-2">
                         <DollarSign className="w-4 h-4" />
-                        固定金額割引
+                        定額割引
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="special_price">
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="w-4 h-4" />
+                        特別価格
                       </div>
                     </SelectItem>
                     <SelectItem value="free_item">
@@ -260,33 +293,153 @@ export function StoreCouponForm({
                 )}
               </div>
 
-              {/* 割引値 */}
-              <div className="space-y-2">
-                <Label htmlFor="coupon-discount-value" className="font-bold">
-                  割引値{(values.discountType === 'percentage' || values.discountType === 'fixed') && <span className="text-red-500">*</span>}
-                  {values.discountType === 'percentage' && ' (%)'}
-                  {values.discountType === 'fixed' && ' (円)'}
-                </Label>
-                <Input
-                  id="coupon-discount-value"
-                  type="number"
-                  min="0"
-                  max={values.discountType === 'percentage' ? 100 : undefined}
-                  step={values.discountType === 'fixed' ? 100 : 1}
-                  value={values.discountValue}
-                  onChange={(e) => handleChange('discountValue', e.target.value)}
-                  placeholder={values.discountType === 'percentage' ? '例: 10' : '例: 500'}
-                  disabled={disabled || values.discountType === 'free_item'}
-                  className="font-bold bg-white text-gray-700 border-2 border-gray-300 placeholder:text-gray-400"
-                  style={{ fontSize: '16px' }}
-                />
-                {errors.discountValue && (
-                  <p className="text-xs text-red-500 flex items-center gap-1">
-                    <AlertCircle className="w-3 h-3" />
-                    {errors.discountValue}
-                  </p>
-                )}
-              </div>
+              {/* 割引値（%割引の場合） */}
+              {values.discountType === 'percentage' && (
+                <div className="space-y-2">
+                  <Label htmlFor="coupon-discount-value" className="font-bold">
+                    割引率 (%)<span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="coupon-discount-value"
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="1"
+                    value={values.discountValue}
+                    onChange={(e) => handleChange('discountValue', e.target.value)}
+                    placeholder="例: 10"
+                    disabled={disabled}
+                    className="font-bold bg-white text-gray-700 border-2 border-gray-300 placeholder:text-gray-400"
+                    style={{ fontSize: '16px' }}
+                  />
+                  {errors.discountValue && (
+                    <p className="text-xs text-red-500 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" />
+                      {errors.discountValue}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* 定額割引の場合 */}
+              {values.discountType === 'fixed' && (
+                <div className="space-y-2">
+                  <Label htmlFor="coupon-discount-value-fixed" className="font-bold">
+                    割引額 (円)<span className="text-red-500">*</span>
+                  </Label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold">¥</span>
+                    <Input
+                      id="coupon-discount-value-fixed"
+                      type="number"
+                      min="0"
+                      step="100"
+                      value={values.discountValue}
+                      onChange={(e) => handleChange('discountValue', e.target.value)}
+                      placeholder="例: 500"
+                      disabled={disabled}
+                      className="font-bold bg-white text-gray-700 border-2 border-gray-300 placeholder:text-gray-400 pl-8"
+                      style={{ fontSize: '16px' }}
+                    />
+                  </div>
+                  {errors.discountValue && (
+                    <p className="text-xs text-red-500 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" />
+                      {errors.discountValue}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* 特別価格の場合: 元の価格 → 特別価格 */}
+              {values.discountType === 'special_price' && (
+                <div className="space-y-4">
+                  <div 
+                    className="p-4 rounded-xl"
+                    style={{ backgroundColor: 'rgba(245, 158, 11, 0.08)', border: '1px solid rgba(245, 158, 11, 0.2)' }}
+                  >
+                    <p className="text-sm font-bold text-amber-700 mb-3 flex items-center gap-2">
+                      <Sparkles className="w-4 h-4" />
+                      特別価格設定
+                    </p>
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1 space-y-1">
+                        <Label htmlFor="original-price" className="text-xs font-medium text-gray-600">
+                          元の価格<span className="text-red-500">*</span>
+                        </Label>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold">¥</span>
+                          <Input
+                            id="original-price"
+                            type="number"
+                            min="0"
+                            step="100"
+                            value={values.originalPrice}
+                            onChange={(e) => handleChange('originalPrice', e.target.value)}
+                            placeholder="3500"
+                            disabled={disabled}
+                            className="font-bold bg-white text-gray-700 border-2 border-gray-300 placeholder:text-gray-400 pl-8"
+                            style={{ fontSize: '16px' }}
+                          />
+                        </div>
+                      </div>
+                      <div className="flex-shrink-0 text-2xl font-bold text-amber-500 mt-5">→</div>
+                      <div className="flex-1 space-y-1">
+                        <Label htmlFor="discounted-price" className="text-xs font-medium text-gray-600">
+                          特別価格<span className="text-red-500">*</span>
+                        </Label>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-600 font-bold">¥</span>
+                          <Input
+                            id="discounted-price"
+                            type="number"
+                            min="0"
+                            step="100"
+                            value={values.discountedPrice}
+                            onChange={(e) => handleChange('discountedPrice', e.target.value)}
+                            placeholder="2000"
+                            disabled={disabled}
+                            className="font-bold bg-white text-amber-700 border-2 border-amber-400 placeholder:text-gray-400 pl-8"
+                            style={{ fontSize: '16px' }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* 割引額の自動計算表示 */}
+                    {values.originalPrice && values.discountedPrice && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="mt-3 p-2 rounded-lg text-center"
+                        style={{ backgroundColor: 'rgba(245, 158, 11, 0.15)' }}
+                      >
+                        <span className="text-sm font-bold text-amber-700">
+                          お得額: ¥{(parseInt(values.originalPrice) - parseInt(values.discountedPrice)).toLocaleString()} OFF
+                        </span>
+                        {parseInt(values.originalPrice) > 0 && (
+                          <span className="text-xs text-amber-600 ml-2">
+                            ({Math.round(((parseInt(values.originalPrice) - parseInt(values.discountedPrice)) / parseInt(values.originalPrice)) * 100)}%割引)
+                          </span>
+                        )}
+                      </motion.div>
+                    )}
+                  </div>
+                  
+                  {errors.originalPrice && (
+                    <p className="text-xs text-red-500 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" />
+                      {errors.originalPrice}
+                    </p>
+                  )}
+                  {errors.discountedPrice && (
+                    <p className="text-xs text-red-500 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" />
+                      {errors.discountedPrice}
+                    </p>
+                  )}
+                </div>
+              )}
 
               {/* 利用条件 */}
               <div className="space-y-2">

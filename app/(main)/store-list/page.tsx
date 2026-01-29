@@ -288,12 +288,26 @@ function StoreListContent() {
 
   // キャンペーンが有効かどうかをチェック
   const hasCampaign = (store: Store): boolean => {
+    // has_campaignフラグがTrueの場合にバッジ表示
     if (!store.has_campaign) return false;
+    
     const now = new Date();
-    // 開始日チェック（開始日がある場合）
-    if (store.campaign_start_date && new Date(store.campaign_start_date) > now) return false;
-    // 終了日チェック（終了日がある場合）
-    if (store.campaign_end_date && new Date(store.campaign_end_date) < now) return false;
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // 今日の00:00:00
+    
+    // 開始日チェック（開始日がある場合、今日より未来なら非表示）
+    if (store.campaign_start_date) {
+      const startDate = new Date(store.campaign_start_date);
+      const startDateOnly = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+      if (startDateOnly > today) return false;
+    }
+    
+    // 終了日チェック（終了日がある場合、今日より過去なら非表示）
+    if (store.campaign_end_date) {
+      const endDate = new Date(store.campaign_end_date);
+      const endDateOnly = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+      if (endDateOnly < today) return false;
+    }
+    
     return true;
   };
 
@@ -755,7 +769,7 @@ function StoreListContent() {
                                 }}
                               >
                                 <PartyPopper className="w-3 h-3" />
-                                {t('store_list.filter_campaign') || 'キャンペーン'}
+                                {store.campaign_name || t('store_list.filter_campaign') || 'キャンペーン'}
                               </motion.div>
                             )}
                             {/* クーポンありバッジ */}

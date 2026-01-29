@@ -143,6 +143,11 @@ export function StoreCampaignForm({
     key: K,
     value: CampaignFormValues[K]
   ) => {
+    // トグルOFF時にすべての入力値をリセット
+    if (key === 'hasCampaign' && value === false) {
+      onChange(getDefaultCampaignFormValues());
+      return;
+    }
     onChange({ ...values, [key]: value });
   };
 
@@ -179,10 +184,18 @@ export function StoreCampaignForm({
   const remainingDays = selectedCampaign ? getCampaignRemainingDays(selectedCampaign) : null;
 
   return (
-    <Card className="overflow-hidden border-0 shadow-none bg-transparent">
+    <Card 
+      className="overflow-hidden border-0 shadow-none"
+      style={{ 
+        backgroundColor: values.hasCampaign ? 'rgba(236, 72, 153, 0.08)' : 'rgba(15, 23, 42, 0.04)',
+      }}
+    >
       {/* ヘッダー */}
       <div
-        className="p-4 flex items-center justify-between cursor-pointer hover:bg-gray-50 transition-colors rounded-xl"
+        className="p-4 flex items-center justify-between cursor-pointer transition-colors rounded-xl"
+        style={{
+          backgroundColor: values.hasCampaign ? 'rgba(236, 72, 153, 0.12)' : 'rgba(15, 23, 42, 0.06)',
+        }}
         onClick={() => handleChange('hasCampaign', !values.hasCampaign)}
       >
         <div className="flex items-center gap-3">
@@ -220,6 +233,7 @@ export function StoreCampaignForm({
             checked={values.hasCampaign}
             onCheckedChange={(checked) => handleChange('hasCampaign', checked)}
             disabled={disabled}
+            className="data-[state=checked]:bg-pink-500"
           />
           {isExpanded ? (
             <ChevronUp className="w-5 h-5 text-gray-400" />

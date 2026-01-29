@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Ticket,
@@ -21,6 +22,9 @@ import {
   Plane,
   Sparkles,
   Heart,
+  Download,
+  Lock,
+  Unlock,
 } from 'lucide-react';
 import { CustomModal } from '@/components/ui/custom-modal';
 import {
@@ -40,6 +44,7 @@ import { recordBonusClick } from '@/lib/actions/bonus-click';
 import { BonusClickType } from '@/lib/types/bonus-click';
 import { toast } from 'sonner';
 import { useLanguage } from '@/lib/i18n/context';
+import html2canvas from 'html2canvas';
 
 // ============================================
 // カラーパレット定義（ラグジュアリーテーマ）
@@ -274,6 +279,7 @@ interface ActionCardProps {
   gradientStyle: string;
   delay?: number;
   onClickTrack?: () => void; // トラッキング用コールバック
+  onExternalNavigate?: () => void; // 外部遷移検知用コールバック
 }
 
 const ActionCard = ({ 
@@ -285,11 +291,16 @@ const ActionCard = ({
   gradientStyle,
   delay = 0,
   onClickTrack,
+  onExternalNavigate,
 }: ActionCardProps) => {
   const handleClick = () => {
     // トラッキングを非同期で実行（UXを損なわないよう外部遷移と並行処理）
     if (onClickTrack) {
       onClickTrack();
+    }
+    // 外部遷移を通知
+    if (onExternalNavigate) {
+      onExternalNavigate();
     }
   };
 
@@ -367,6 +378,8 @@ export function CouponDisplayModal({
   googlePlaceId,
   onCouponUsed,
 }: CouponDisplayModalProps) {
+  const router = useRouter();
+  
   // ============================================
   // 多言語対応
   // ============================================
@@ -392,6 +405,12 @@ export function CouponDisplayModal({
   const [isRecording, setIsRecording] = useState(false);
   const [showAdditionalBonus, setShowAdditionalBonus] = useState(false);
   const [couponUsageId, setCouponUsageId] = useState<string | null>(null); // KPI計測用
+  
+  // 外部遷移検知と追加特典ロジック
+  const [hasVisitedExternalLink, setHasVisitedExternalLink] = useState(false);
+  const [bonusUnlocked, setBonusUnlocked] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const additionalBonusRef = useRef<HTMLDivElement>(null);
 
   const isValid = isCouponValid(coupon);
 
@@ -410,10 +429,33 @@ export function CouponDisplayModal({
         setIsUsed(false);
         setShowAdditionalBonus(false);
         setCouponUsageId(null);
+        setHasVisitedExternalLink(false);
+        setBonusUnlocked(false);
       }, 300);
       return () => clearTimeout(timer);
     }
   }, [isOpen]);
+
+  // 外部サイトから戻ってきた時の検知（Window Focus）
+  useEffect(() => {
+    if (!isUsed) return;
+    
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && hasVisitedExternalLink) {
+        // 外部サイトから戻ってきた
+        setBonusUnlocked(true);
+        toast.success(t('coupon.bonus_unlocked'), {
+          position: 'top-center',
+          duration: 2000,
+        });
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [isUsed, hasVisitedExternalLink, t]);
 
   // ============================================
   // ハンドラー
@@ -515,6 +557,44 @@ export function CouponDisplayModal({
       console.error('Failed to track bonus click:', error);
     }
   }, [storeId, couponUsageId]);
+
+  // 外部リンクをクリックした時のハンドラー
+  const handleExternalNavigate = useCallback(() => {
+    setHasVisitedExternalLink(true);
+  }, []);
+
+  // 追加特典画像のダウンロード
+  const handleDownloadBonus = useCallback(async () => {
+    if (!additionalBonusRef.current) return;
+    
+    setIsDownloading(true);
+    try {
+      const canvas = await html2canvas(additionalBonusRef.current, {
+        backgroundColor: '#0A1628',
+        scale: 2,
+        useCORS: true,
+        logging: false,
+      });
+      
+      const link = document.createElement('a');
+      link.download = `coupon-bonus-${storeName}-${Date.now()}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      
+      toast.success(t('coupon.download_success'), {
+        position: 'top-center',
+        duration: 2000,
+      });
+    } catch (error) {
+      console.error('Failed to download bonus image:', error);
+      toast.error(t('coupon.download_failed'), {
+        position: 'top-center',
+        duration: 2000,
+      });
+    } finally {
+      setIsDownloading(false);
+    }
+  }, [storeName, t]);
 
   // 初来店の回答
   const handleFirstVisitAnswer = (isFirst: boolean) => {
@@ -709,6 +789,43 @@ export function CouponDisplayModal({
                   >
                     {coupon.coupon_title || t('coupon.default_coupon_title')}
                   </p>
+                  {/* 特別価格の場合 - 元の価格→特別価格を表示 */}
+                  {coupon.coupon_discount_type === 'special_price' && coupon.coupon_description?.includes('【特別価格】') ? (
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-center gap-3">
+                        {(() => {
+                          const match = coupon.coupon_description?.match(/【特別価格】¥([\d,]+)\s*→\s*¥([\d,]+)/);
+                          const originalPrice = match ? match[1] : '';
+                          const discountedPrice = match ? match[2] : '';
+                          return (
+                            <>
+                              <span 
+                                className="text-lg line-through opacity-60"
+                                style={{ color: COLORS.warmGray }}
+                              >
+                                ¥{originalPrice}
+                              </span>
+                              <span 
+                                className="text-2xl font-bold"
+                                style={{ 
+                                  color: COLORS.champagneGold,
+                                  textShadow: '0 0 30px rgba(201, 168, 108, 0.3)',
+                                }}
+                              >
+                                → ¥{discountedPrice}
+                              </span>
+                            </>
+                          );
+                        })()}
+                      </div>
+                      <p 
+                        className="text-sm font-bold"
+                        style={{ color: '#F87171' }}
+                      >
+                        ¥{(coupon.coupon_discount_value || 0).toLocaleString()} お得！
+                      </p>
+                    </div>
+                  ) : (
                     <p 
                       className="text-3xl font-bold"
                       style={{ 
@@ -724,7 +841,8 @@ export function CouponDisplayModal({
                           )
                       }
                     </p>
-                  </motion.div>
+                  )}
+                </motion.div>
 
                 {/* 説明 */}
                 <motion.p
@@ -1042,21 +1160,59 @@ export function CouponDisplayModal({
                       <div className="flex-1 h-px" style={{ background: `linear-gradient(to right, transparent, ${COLORS.champagneGold}50, transparent)` }} />
                     </div>
 
-                    <p 
-                      className="text-4xl font-bold tracking-tight"
-                      style={{ 
-                        color: COLORS.champagneGold,
-                        textShadow: '0 0 30px rgba(201, 168, 108, 0.3)',
-                      }}
-                    >
-                      {coupon.coupon_discount_type === 'free_item' 
-                        ? t('coupon.free_item')
-                        : formatDiscountValue(
-                            coupon.coupon_discount_type as CouponDiscountType,
-                            coupon.coupon_discount_value || 0
-                          )
-                      }
-                    </p>
+                    {/* 特別価格の場合 - descriptionから元の価格→特別価格を抽出して表示 */}
+                    {coupon.coupon_discount_type === 'special_price' && coupon.coupon_description?.includes('【特別価格】') ? (
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-center gap-3">
+                          {(() => {
+                            const match = coupon.coupon_description?.match(/【特別価格】¥([\d,]+)\s*→\s*¥([\d,]+)/);
+                            const originalPrice = match ? match[1] : '';
+                            const discountedPrice = match ? match[2] : '';
+                            return (
+                              <>
+                                <span 
+                                  className="text-xl line-through opacity-60"
+                                  style={{ color: COLORS.warmGray }}
+                                >
+                                  ¥{originalPrice}
+                                </span>
+                                <span 
+                                  className="text-3xl font-bold"
+                                  style={{ 
+                                    color: COLORS.champagneGold,
+                                    textShadow: '0 0 30px rgba(201, 168, 108, 0.3)',
+                                  }}
+                                >
+                                  → ¥{discountedPrice}
+                                </span>
+                              </>
+                            );
+                          })()}
+                        </div>
+                        <p 
+                          className="text-sm font-bold"
+                          style={{ color: '#F87171' }}
+                        >
+                          ¥{(coupon.coupon_discount_value || 0).toLocaleString()} お得！
+                        </p>
+                      </div>
+                    ) : (
+                      <p 
+                        className="text-4xl font-bold tracking-tight"
+                        style={{ 
+                          color: COLORS.champagneGold,
+                          textShadow: '0 0 30px rgba(201, 168, 108, 0.3)',
+                        }}
+                      >
+                        {coupon.coupon_discount_type === 'free_item' 
+                          ? t('coupon.free_item')
+                          : formatDiscountValue(
+                              coupon.coupon_discount_type as CouponDiscountType,
+                              coupon.coupon_discount_value || 0
+                            )
+                        }
+                      </p>
+                    )}
 
                     <div className="flex items-center gap-4 mt-4">
                       <div className="flex-1 h-px" style={{ background: `linear-gradient(to right, transparent, ${COLORS.champagneGold}50, transparent)` }} />
@@ -1239,6 +1395,27 @@ export function CouponDisplayModal({
                     </div>
                   )}
 
+                  {/* 店員に見せてください案内（使用ボタンと同じ画面内） */}
+                  {isValid && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2 }}
+                      className="mb-4 rounded-xl p-4 text-center"
+                      style={{
+                        background: 'linear-gradient(135deg, rgba(201, 168, 108, 0.15) 0%, rgba(184, 149, 110, 0.1) 100%)',
+                        border: '2px dashed rgba(201, 168, 108, 0.4)',
+                      }}
+                    >
+                      <p 
+                        className="font-bold text-base"
+                        style={{ color: COLORS.champagneGold }}
+                      >
+                        {t('coupon.show_this_screen')}
+                      </p>
+                    </motion.div>
+                  )}
+
                   {/* 使用ボタン */}
                   {isValid && (
                     <motion.button
@@ -1324,25 +1501,6 @@ export function CouponDisplayModal({
                   </motion.p>
                 </motion.div>
 
-                {/* 店員に見せてください案内 */}
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.35 }}
-                  className="mb-4 rounded-xl p-4 text-center"
-                  style={{
-                    background: 'linear-gradient(135deg, rgba(201, 168, 108, 0.2) 0%, rgba(184, 149, 110, 0.15) 100%)',
-                    border: '2px solid rgba(201, 168, 108, 0.4)',
-                  }}
-                >
-                  <p 
-                    className="font-bold text-base"
-                    style={{ color: COLORS.champagneGold }}
-                  >
-                    {t('coupon.show_to_staff_payment')}
-                  </p>
-                </motion.div>
-
                 <GoldDivider />
 
                 {/* 追加特典案内 */}
@@ -1389,6 +1547,7 @@ export function CouponDisplayModal({
                         gradientStyle={COLORS.instagramGradient}
                         delay={0}
                         onClickTrack={() => trackBonusClick('instagram')}
+                        onExternalNavigate={handleExternalNavigate}
                       />
                     )}
 
@@ -1402,8 +1561,28 @@ export function CouponDisplayModal({
                       gradientStyle={COLORS.googleGradient}
                       delay={instagramUrl ? 0.1 : 0}
                       onClickTrack={() => trackBonusClick('google_review')}
+                      onExternalNavigate={handleExternalNavigate}
                     />
                   </div>
+                  
+                  {/* 追加特典のロック解除案内 */}
+                  {coupon.coupon_additional_bonus && coupon.coupon_additional_bonus.trim() !== '' && !bonusUnlocked && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.5 }}
+                      className="mt-4 p-3 rounded-lg text-center"
+                      style={{
+                        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                        border: '1px dashed rgba(255, 255, 255, 0.2)',
+                      }}
+                    >
+                      <div className="flex items-center justify-center gap-2 text-xs" style={{ color: COLORS.warmGray }}>
+                        <Lock className="w-4 h-4" />
+                        <span>{t('coupon.complete_action_to_unlock')}</span>
+                      </div>
+                    </motion.div>
+                  )}
                 </motion.div>
 
                 {/* 閉じるボタン */}
@@ -1424,27 +1603,39 @@ export function CouponDisplayModal({
                   {t('coupon.close')}
                 </motion.button>
 
-                {/* 追加特典ボタン（追加特典が登録されている場合のみ表示） */}
+                {/* 追加特典ボタン（外部サイト訪問後のみ有効化） */}
                 {coupon.coupon_additional_bonus && coupon.coupon_additional_bonus.trim() !== '' && (
                   <motion.button
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.7 }}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+                    whileHover={{ scale: bonusUnlocked ? 1.02 : 1 }}
+                    whileTap={{ scale: bonusUnlocked ? 0.98 : 1 }}
                     onClick={() => {
+                      if (!bonusUnlocked) return;
                       // トラッキングを記録
                       trackBonusClick('additional_bonus');
                       setShowAdditionalBonus(true);
                     }}
+                    disabled={!bonusUnlocked}
                     className="w-full py-4 mt-3 rounded-xl font-medium tracking-wider transition-all flex items-center justify-center gap-2"
                     style={{
-                      background: COLORS.goldGradient,
-                      color: COLORS.deepNavy,
-                      boxShadow: '0 8px 25px rgba(201, 168, 108, 0.35)',
+                      background: bonusUnlocked 
+                        ? COLORS.goldGradient 
+                        : 'linear-gradient(135deg, #6B7280 0%, #9CA3AF 50%, #6B7280 100%)',
+                      color: bonusUnlocked ? COLORS.deepNavy : '#FFFFFF',
+                      boxShadow: bonusUnlocked 
+                        ? '0 8px 25px rgba(201, 168, 108, 0.35)' 
+                        : '0 4px 12px rgba(107, 114, 128, 0.25)',
+                      opacity: bonusUnlocked ? 1 : 0.7,
+                      cursor: bonusUnlocked ? 'pointer' : 'not-allowed',
                     }}
                   >
-                    <Sparkles className="w-5 h-5" />
+                    {bonusUnlocked ? (
+                      <Unlock className="w-5 h-5" />
+                    ) : (
+                      <Lock className="w-5 h-5" />
+                    )}
                     {t('coupon.additional_bonus')}
                   </motion.button>
                 )}
@@ -1571,7 +1762,11 @@ export function CouponDisplayModal({
           <motion.button
             whileHover={{ scale: 1.1, opacity: 1 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => setShowAdditionalBonus(false)}
+            onClick={() => {
+              setShowAdditionalBonus(false);
+              onClose();
+              router.push('/store-list');
+            }}
             className="absolute top-4 right-4 z-20 p-2 rounded-full transition-colors"
             style={{ 
               color: COLORS.warmGray,
@@ -1583,37 +1778,61 @@ export function CouponDisplayModal({
             <X className="w-4 h-4" />
           </motion.button>
 
-          <div className="relative text-center pt-2">
-            <div 
+          {/* ダウンロード用にref設定するエリア */}
+          <div ref={additionalBonusRef} className="relative text-center pt-2 pb-4">
+            <motion.div 
               className="inline-flex items-center justify-center w-14 h-14 rounded-full mb-4"
               style={{
                 background: COLORS.goldGradient,
                 boxShadow: '0 10px 40px rgba(201, 168, 108, 0.4)',
               }}
+              animate={{ scale: [1, 1.1, 1] }}
+              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
             >
-              <Sparkles className="w-7 h-7" style={{ color: COLORS.deepNavy }} />
-            </div>
+              <Gift className="w-7 h-7" style={{ color: COLORS.deepNavy }} />
+            </motion.div>
             <h3 
               className="text-xl font-bold mb-2"
               style={{ color: COLORS.champagneGold }}
             >
               {t('coupon.additional_bonus')}
             </h3>
-            <p className="text-sm mb-6" style={{ color: COLORS.platinum }}>
-              {t('coupon.show_to_staff_payment')}
+            
+            {/* 「次回このクーポンをお見せください」テキスト */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="mb-4 p-3 rounded-xl text-center"
+              style={{
+                background: 'linear-gradient(135deg, rgba(74, 222, 128, 0.15) 0%, rgba(34, 197, 94, 0.1) 100%)',
+                border: '2px dashed rgba(74, 222, 128, 0.4)',
+              }}
+            >
+              <p 
+                className="font-bold text-sm"
+                style={{ color: '#4ADE80' }}
+              >
+                {t('coupon.show_next_visit')}
+              </p>
+            </motion.div>
+
+            {/* 店舗名 */}
+            <p className="text-xs mb-4" style={{ color: COLORS.warmGray }}>
+              {storeName}
             </p>
 
             {/* 追加特典内容 */}
             <div 
-              className="rounded-xl p-4 mb-6 text-left"
+              className="rounded-xl p-4 mb-4 text-left"
               style={{
-                backgroundColor: 'rgba(201, 168, 108, 0.1)',
-                border: '1px solid rgba(201, 168, 108, 0.3)',
+                backgroundColor: 'rgba(201, 168, 108, 0.15)',
+                border: '2px solid rgba(201, 168, 108, 0.4)',
               }}
             >
               {coupon.coupon_additional_bonus ? (
                 <p 
-                  className="font-medium whitespace-pre-wrap"
+                  className="font-bold text-base whitespace-pre-wrap"
                   style={{ color: COLORS.ivory }}
                 >
                   {coupon.coupon_additional_bonus}
@@ -1627,11 +1846,50 @@ export function CouponDisplayModal({
                 </p>
               )}
             </div>
+          </div>
 
+          {/* ボタンエリア（ダウンロード対象外） */}
+          <div className="space-y-3">
+            {/* ダウンロードボタン */}
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              onClick={() => setShowAdditionalBonus(false)}
+              onClick={handleDownloadBonus}
+              disabled={isDownloading}
+              className="w-full py-3.5 rounded-xl font-medium tracking-wider transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+              style={{
+                background: 'linear-gradient(135deg, #4ADE80 0%, #22C55E 100%)',
+                color: '#FFFFFF',
+                boxShadow: '0 8px 25px rgba(74, 222, 128, 0.35)',
+              }}
+            >
+              {isDownloading ? (
+                <>
+                  <motion.div
+                    className="w-5 h-5 border-2 rounded-full"
+                    style={{ borderColor: '#FFFFFF transparent' }}
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                  />
+                  {t('coupon.processing')}
+                </>
+              ) : (
+                <>
+                  <Download className="w-5 h-5" />
+                  {t('coupon.download_coupon')}
+                </>
+              )}
+            </motion.button>
+
+            {/* 閉じるボタン（店舗一覧に遷移） */}
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => {
+                setShowAdditionalBonus(false);
+                onClose();
+                router.push('/store-list');
+              }}
               className="w-full py-3.5 rounded-xl font-medium tracking-wider transition-all"
               style={{
                 background: COLORS.goldGradient,

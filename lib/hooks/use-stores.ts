@@ -45,7 +45,17 @@ const STORE_SELECT_COLUMNS = `
   description,
   business_hours,
   created_at,
-  updated_at
+  updated_at,
+  has_campaign,
+  campaign_id,
+  campaign_name,
+  campaign_start_date,
+  campaign_end_date,
+  coupon_is_active,
+  coupon_title,
+  coupon_expiry_date,
+  coupon_max_uses,
+  coupon_current_uses
 ` as const;
 
 // ============================================================================

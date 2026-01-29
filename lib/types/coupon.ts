@@ -8,6 +8,7 @@ import { z } from 'zod';
 export const CouponDiscountType = {
   PERCENTAGE: 'percentage',
   FIXED: 'fixed',
+  SPECIAL_PRICE: 'special_price', // 特別価格（元の価格→割引後の価格）
   FREE_ITEM: 'free_item',
 } as const;
 
@@ -38,6 +39,9 @@ export interface CouponFormValues {
   description: string;
   discountType: CouponDiscountType | '';
   discountValue: string;
+  // 定額割引用の新フィールド（元の価格と割引後の価格）
+  originalPrice: string;   // 元の価格 (例: 3500)
+  discountedPrice: string; // 割引後の価格 (例: 2000)
   conditions: string;
   startDate: string;
   expiryDate: string;
@@ -54,8 +58,11 @@ export interface CouponFormValues {
 export const couponFormSchema = z.object({
   title: z.string().min(1, 'クーポンタイトルは必須です').max(100, 'タイトルは100文字以内で入力してください'),
   description: z.string().optional().or(z.literal('')),
-  discountType: z.enum(['percentage', 'fixed', 'free_item', '']).optional(),
+  discountType: z.enum(['percentage', 'fixed', 'special_price', 'free_item', '']).optional(),
   discountValue: z.string().optional().or(z.literal('')),
+  // 特別価格用の新フィールド
+  originalPrice: z.string().optional().or(z.literal('')),
+  discountedPrice: z.string().optional().or(z.literal('')),
   conditions: z.string().optional().or(z.literal('')),
   startDate: z.string().min(1, '配布開始日は必須です'),
   expiryDate: z.string().min(1, '有効期限は必須です'),
@@ -76,8 +83,8 @@ export const couponFormSchema = z.object({
   message: '割引タイプを選択してください',
   path: ['discountType'],
 }).refine((data) => {
-  // クーポンが有効かつ割引タイプがpercentageまたはfixedの場合、割引値は必須
-  if (data.isActive && data.discountType && (data.discountType === 'percentage' || data.discountType === 'fixed')) {
+  // クーポンが有効かつ割引タイプがpercentageの場合、割引値は必須
+  if (data.isActive && data.discountType === 'percentage') {
     if (!data.discountValue || data.discountValue === '') {
       return false;
     }
@@ -86,6 +93,28 @@ export const couponFormSchema = z.object({
 }, {
   message: '割引値を入力してください',
   path: ['discountValue'],
+}).refine((data) => {
+  // クーポンが有効かつ割引タイプがfixedの場合、割引値は必須
+  if (data.isActive && data.discountType === 'fixed') {
+    if (!data.discountValue || data.discountValue === '') {
+      return false;
+    }
+  }
+  return true;
+}, {
+  message: '割引額を入力してください',
+  path: ['discountValue'],
+}).refine((data) => {
+  // クーポンが有効かつ割引タイプがspecial_priceの場合、元の価格と割引後の価格は必須
+  if (data.isActive && data.discountType === 'special_price') {
+    if (!data.originalPrice || data.originalPrice === '' || !data.discountedPrice || data.discountedPrice === '') {
+      return false;
+    }
+  }
+  return true;
+}, {
+  message: '特別価格の場合、元の価格と特別価格を入力してください',
+  path: ['originalPrice'],
 }).refine((data) => {
   // 割引タイプがpercentageの場合、値は0-100の範囲
   if (data.discountType === 'percentage' && data.discountValue) {
@@ -97,15 +126,34 @@ export const couponFormSchema = z.object({
   message: '%割引の場合、割引値は0〜100の範囲で入力してください',
   path: ['discountValue'],
 }).refine((data) => {
-  // 割引タイプがfixedの場合、値は0以上
-  if (data.discountType === 'fixed' && data.discountValue) {
-    const value = parseFloat(data.discountValue);
-    return !isNaN(value) && value >= 0;
+  // 特別価格の場合、割引後の価格は元の価格より小さい必要がある
+  if (data.discountType === 'special_price' && data.originalPrice && data.discountedPrice) {
+    const original = parseFloat(data.originalPrice);
+    const discounted = parseFloat(data.discountedPrice);
+    if (!isNaN(original) && !isNaN(discounted)) {
+      return discounted < original;
+    }
   }
   return true;
 }, {
-  message: '固定金額割引の場合、0以上の値を入力してください',
-  path: ['discountValue'],
+  message: '特別価格は元の価格より小さい値を設定してください',
+  path: ['discountedPrice'],
+}).refine((data) => {
+  // 特別価格の場合、価格は0以上
+  if (data.discountType === 'special_price') {
+    if (data.originalPrice) {
+      const original = parseFloat(data.originalPrice);
+      if (isNaN(original) || original < 0) return false;
+    }
+    if (data.discountedPrice) {
+      const discounted = parseFloat(data.discountedPrice);
+      if (isNaN(discounted) || discounted < 0) return false;
+    }
+  }
+  return true;
+}, {
+  message: '価格は0以上の値を入力してください',
+  path: ['originalPrice'],
 }).refine((data) => {
   // 有効期限は開始日より後である必要がある
   if (data.startDate && data.expiryDate) {
@@ -121,11 +169,35 @@ export type CouponFormSchema = z.infer<typeof couponFormSchema>;
 
 // フォーム値をDBカラム形式に変換
 export function couponFormToDbData(formValues: CouponFormValues): Partial<CouponData> {
+  // 特別価格の場合は、割引額（元の価格 - 割引後の価格）を計算
+  let discountValue: number | null = null;
+  if (formValues.discountType === 'special_price' && formValues.originalPrice && formValues.discountedPrice) {
+    const original = parseFloat(formValues.originalPrice);
+    const discounted = parseFloat(formValues.discountedPrice);
+    if (!isNaN(original) && !isNaN(discounted)) {
+      discountValue = original - discounted;
+    }
+  } else if (formValues.discountValue) {
+    discountValue = parseFloat(formValues.discountValue);
+  }
+  
+  // 特別価格の場合、descriptionに元の価格→特別価格を自動追記
+  let description = formValues.description || '';
+  if (formValues.discountType === 'special_price' && formValues.originalPrice && formValues.discountedPrice) {
+    const priceInfo = `【特別価格】¥${parseInt(formValues.originalPrice).toLocaleString()} → ¥${parseInt(formValues.discountedPrice).toLocaleString()}`;
+    // 既に価格情報がある場合は更新、なければ追加
+    if (description.includes('【特別価格】')) {
+      description = description.replace(/【特別価格】.*円?→.*円?/g, priceInfo);
+    } else if (!description.includes(priceInfo)) {
+      description = description ? `${description}\n\n${priceInfo}` : priceInfo;
+    }
+  }
+  
   return {
     coupon_title: formValues.title || null,
-    coupon_description: formValues.description || null,
+    coupon_description: description || null,
     coupon_discount_type: (formValues.discountType as CouponDiscountType) || null,
-    coupon_discount_value: formValues.discountValue ? parseFloat(formValues.discountValue) : null,
+    coupon_discount_value: discountValue,
     coupon_conditions: formValues.conditions || null,
     coupon_start_date: formValues.startDate || null,
     coupon_expiry_date: formValues.expiryDate || null,
@@ -145,11 +217,28 @@ export function dbDataToCouponForm(dbData: Partial<CouponData> | null): CouponFo
     return getDefaultCouponFormValues();
   }
   
+  // 特別価格の場合、descriptionから元の価格と特別価格を抽出
+  let originalPrice = '';
+  let discountedPrice = '';
+  let description = dbData.coupon_description || '';
+  
+  if (dbData.coupon_discount_type === 'special_price' && description) {
+    const priceMatch = description.match(/【特別価格】¥([\d,]+)\s*→\s*¥([\d,]+)/);
+    if (priceMatch) {
+      originalPrice = priceMatch[1].replace(/,/g, '');
+      discountedPrice = priceMatch[2].replace(/,/g, '');
+      // descriptionから価格情報を除去（編集時に重複しないよう）
+      description = description.replace(/\n*【特別価格】¥[\d,]+\s*→\s*¥[\d,]+/g, '').trim();
+    }
+  }
+  
   return {
     title: dbData.coupon_title || '',
-    description: dbData.coupon_description || '',
+    description: description,
     discountType: dbData.coupon_discount_type || '',
     discountValue: dbData.coupon_discount_value?.toString() || '',
+    originalPrice: originalPrice,
+    discountedPrice: discountedPrice,
     conditions: dbData.coupon_conditions || '',
     startDate: dbData.coupon_start_date ? dbData.coupon_start_date.split('T')[0] : '',
     expiryDate: dbData.coupon_expiry_date ? dbData.coupon_expiry_date.split('T')[0] : '',
@@ -176,6 +265,8 @@ export function getDefaultCouponFormValues(): CouponFormValues {
     description: '',
     discountType: '',
     discountValue: '',
+    originalPrice: '',
+    discountedPrice: '',
     conditions: '',
     startDate: getTodayString(), // デフォルトで今日の日付を設定
     expiryDate: '',
@@ -222,7 +313,9 @@ export function getDiscountTypeLabel(type: CouponDiscountType | null | ''): stri
     case 'percentage':
       return '%割引';
     case 'fixed':
-      return '固定金額割引';
+      return '定額割引';
+    case 'special_price':
+      return '特別価格';
     case 'free_item':
       return '無料サービス';
     default:
@@ -239,6 +332,8 @@ export function formatDiscountValue(type: CouponDiscountType | null | '', value:
       return `${value}%OFF`;
     case 'fixed':
       return `¥${value.toLocaleString()}OFF`;
+    case 'special_price':
+      return `¥${value.toLocaleString()}お得`;
     case 'free_item':
       return '無料';
     default:
