@@ -683,7 +683,7 @@ export const translations = {
       // Hero section
       hero_catchphrase: '楽しみは、ここから',
       hero_subcopy: 'The Next Spot is Ready',
-      hero_body: 'NIKENME+は、大分の夜を\n案内するNight Spot Mapです。',
+      hero_body: 'NIKENME+は、大分の夜を\n案内するはしご酒 Map 🍺です。',
       // Problems section
       problems_title: 'こんなお悩み、ありませんか？',
       problems_subtitle: 'Common Concerns',
@@ -1414,7 +1414,7 @@ export const translations = {
       // Hero section
       hero_catchphrase: 'Your Next Spot is Ready.',
       hero_subcopy: 'Find it now',
-      hero_body: 'NIKENME+ is a night spot map for Oita. Find available venues instantly and reserve your seat with auto-voice call.',
+      hero_body: 'NIKENME+ is a night spot map 🍺for Oita. Find available venues instantly and reserve your seat with auto-voice call.',
       // Problems section
       problems_title: 'Sound Familiar?',
       problems_subtitle: 'Common Concerns',
@@ -2137,7 +2137,7 @@ export const translations = {
       // Hero section
       hero_catchphrase: '즐거움은 여기서부터',
       hero_subcopy: 'The Next Spot is Ready',
-      hero_body: 'NIKENME+는 오이타의 밤을\n안내하는 Night Spot Map입니다.',
+      hero_body: 'NIKENME+는 오이타의 밤을\n안내하는 Night Spot Map 🍺입니다.',
       // Problems section
       problems_title: '이런 고민, 있으신가요?',
       problems_subtitle: 'Common Concerns',
@@ -2860,7 +2860,7 @@ export const translations = {
       // Hero section
       hero_catchphrase: '乐趣，从这里开始',
       hero_subcopy: 'The Next Spot is Ready',
-      hero_body: 'NIKENME+是一款介绍大分夜生活的Night Spot Map。',
+      hero_body: 'NIKENME+是一款介绍大分夜生活的Night Spot Map 🍺。',
       // Problems section
       problems_title: '有这些烦恼吗？',
       problems_subtitle: 'Common Concerns',
