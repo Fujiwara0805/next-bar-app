@@ -566,8 +566,12 @@ export default function StoreEditPage() {
     }
   };
 
-  // クーポンバリデーション
+  // クーポンバリデーション（クーポン設定OFFの場合はスキップ）
   const validateCoupon = (): boolean => {
+    if (!couponValues.isActive) {
+      setCouponErrors({});
+      return true;
+    }
     const result = couponFormSchema.safeParse(couponValues);
     if (!result.success) {
       const errors: Record<string, string> = {};

@@ -54,9 +54,9 @@ export interface CouponFormValues {
   isCampaign: boolean; // キャンペーン用クーポンかどうか
 }
 
-// Zodバリデーションスキーマ
+// Zodバリデーションスキーマ（クーポン設定OFFのときはタイトル・日付等は不要）
 export const couponFormSchema = z.object({
-  title: z.string().min(1, 'クーポンタイトルは必須です').max(100, 'タイトルは100文字以内で入力してください'),
+  title: z.string().max(100, 'タイトルは100文字以内で入力してください').optional().or(z.literal('')),
   description: z.string().optional().or(z.literal('')),
   discountType: z.enum(['percentage', 'fixed', 'special_price', 'free_item', '']).optional(),
   discountValue: z.string().optional().or(z.literal('')),
@@ -64,8 +64,8 @@ export const couponFormSchema = z.object({
   originalPrice: z.string().optional().or(z.literal('')),
   discountedPrice: z.string().optional().or(z.literal('')),
   conditions: z.string().optional().or(z.literal('')),
-  startDate: z.string().min(1, '配布開始日は必須です'),
-  expiryDate: z.string().min(1, '有効期限は必須です'),
+  startDate: z.string().optional().or(z.literal('')),
+  expiryDate: z.string().optional().or(z.literal('')),
   imageUrl: z.string().url('有効なURLを入力してください').optional().or(z.literal('')),
   isActive: z.boolean().default(false),
   maxUses: z.string().optional().or(z.literal('')),
@@ -73,7 +73,21 @@ export const couponFormSchema = z.object({
   barcodeUrl: z.string().url('有効なURLを入力してください').optional().or(z.literal('')),
   additionalBonus: z.string().optional().or(z.literal('')),
   isCampaign: z.boolean().default(false),
-}).refine((data) => {
+})
+  .refine((data) => {
+    // クーポン設定がONの場合のみ、タイトル・配布開始日・有効期限を必須にする
+    if (!data.isActive) return true;
+    return !!(data.title && data.title.trim());
+  }, { message: 'クーポンタイトルは必須です', path: ['title'] })
+  .refine((data) => {
+    if (!data.isActive) return true;
+    return !!(data.startDate && data.startDate.trim());
+  }, { message: '配布開始日は必須です', path: ['startDate'] })
+  .refine((data) => {
+    if (!data.isActive) return true;
+    return !!(data.expiryDate && data.expiryDate.trim());
+  }, { message: '有効期限は必須です', path: ['expiryDate'] })
+  .refine((data) => {
   // クーポンが有効な場合、割引タイプは必須
   if (data.isActive && !data.discountType) {
     return false;

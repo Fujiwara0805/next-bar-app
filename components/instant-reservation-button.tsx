@@ -212,7 +212,7 @@ export function InstantReservationButton({
               onChange={(e) => setGuestName(e.target.value)}
               disabled={requesting}
               className="font-bold bg-white border-[#2c5c6e]"
-              style={{ fontSize: '16px' }}
+              style={{ fontSize: '16px', color: '#7a9cad' }}
             />
           </motion.div>
 
@@ -233,7 +233,7 @@ export function InstantReservationButton({
               onChange={(e) => setGuestPhone(e.target.value)}
               disabled={requesting}
               className="font-bold bg-white border-[#2c5c6e]"
-              style={{ fontSize: '16px' }}
+              style={{ fontSize: '16px', color: '#7a9cad' }}
             />
           </motion.div>
 
