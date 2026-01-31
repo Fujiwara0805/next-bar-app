@@ -968,7 +968,7 @@ export function MapView({
 
       const map = new google.maps.Map(mapRef.current, {
         center: initialCenter,
-        zoom: 15,
+        zoom: 14,
         disableDefaultUI: true,
         zoomControl: false,
         mapTypeControl: false,

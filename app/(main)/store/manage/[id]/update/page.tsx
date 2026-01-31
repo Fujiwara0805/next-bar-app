@@ -714,7 +714,7 @@ export default function StoreUpdatePage() {
                         }}
                       >
                         <Key className="w-4 h-4 mr-2" />
-                        パスワード変更
+                        変更
                       </Button>
                     </motion.div>
                   )}
