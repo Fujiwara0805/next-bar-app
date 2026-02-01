@@ -241,7 +241,7 @@ export default function AdLandingPage() {
       num: '01',
       title: '「なんとなく」の経営から\n「データで勝つ」経営へ',
       titleEn: 'Data-Driven Growth',
-      desc: 'クーポン利用データで「新規 or リピーター」「県内 or 県外」を自動分析。勘や経験だけに頼らない、数字に基づく次の一手が見えてきます。',
+      desc: 'クーポン利用データで「新規 or リピーター」「県内 or 県外」を分析。勘や経験だけに頼らない、数字に基づく次の一手が見えてきます。',
     },
     {
       icon: TrendingUp,
@@ -272,14 +272,14 @@ export default function AdLandingPage() {
       num: '02',
       image: ASSETS.howItWorks3,
       title: '空席状況の更新はワンタップで完結',
-      titleEn: 'Zero Burden',
+      titleEn: 'One Tap Update',
       desc: '営業時間はGoogleマップと自動同期。店内の状況に合わせて「空席あり」「満席」をポチッと切り替られる。忙しい時は、無理に更新しなくても大丈夫。あなたのペースで使い続けられます。',
     },
     {
       num: '03',
       image: ASSETS.howItWorks2,
       title: '席のキープ予約にも対応',
-      titleEn: 'Your Digital Home',
+      titleEn: 'Reservation Support',
       desc: '自動音声からの席のキープ予約もキーパット操作で数秒で完結。これまでのお客様からの電話連絡にかかっていた時間を削減できます。',
     },
     {
@@ -466,7 +466,7 @@ export default function AdLandingPage() {
               <br className="sm:hidden" />
               お客様をつなぐ新しいプラットフォーム。
               <br />
-              あなたの店を、もっと多くの人に届けます。
+              あなたのお店を、もっと多くの人に届けます。
             </p>
 
             {/* CTA */}
@@ -567,10 +567,10 @@ export default function AdLandingPage() {
                   </p>
                   <p>
                     そんな瞬間が、5年後も、10年後も、20年後もあり続けてほしい。
-                    でも現実は、毎年たくさんの店が静かに灯りを消しています。
+                    でも現実は、毎年たくさんのお店が静かに灯りを消しています。
                   </p>
                   <p style={{ color: colors.charcoal, fontWeight: '600' }}>
-                    だから私たちは、大分の飲食店を本気で支えるサービスを作りました。
+                    だから私たちは、大分県内の飲食店を本気で支えるサービスを作りました。
                   </p>
                 </div>
               </div>
@@ -606,7 +606,7 @@ export default function AdLandingPage() {
                     className="text-sm leading-relaxed"
                     style={{ color: colors.warmGray }}
                   >
-                    県外からの観光客、増え続けるインバウンド。その需要を、大手チェーンではなく、地域の個店へ届けたい。あなたの店が、旅の思い出になる未来へ。
+                    県外からの観光客、増え続けるインバウンド。その需要を、大手チェーン店だけでなく、地域の個店へ届けたい。あなたのお店が、旅の思い出になる未来へ。
                   </p>
                 </div>
               </Card>
@@ -639,7 +639,7 @@ export default function AdLandingPage() {
                     className="text-sm leading-relaxed"
                     style={{ color: colors.warmGray }}
                   >
-                    あなたの店は、誰かにとって特別な場所。一軒一軒の個店が元気であることが、大分の街全体の魅力になる。私たちは、その灯りを絶やさない仕組みを作ります。
+                    あなたのお店は、誰かにとって特別な場所。一軒一軒の個店が元気であることが、大分の街全体の魅力になる。私たちは、その灯りを絶やさない仕組みを作ります。
                   </p>
                 </div>
               </Card>
@@ -1083,7 +1083,7 @@ export default function AdLandingPage() {
               className="text-xs sm:text-sm mt-6"
               style={{ color: colors.textSubtle }}
             >
-              ご不明点・ご質問は Instagram{' '}
+              ご不明点・ご質問は {' '}
               <a 
                 href={LINKS.instagram}
                 target="_blank"
@@ -1093,8 +1093,7 @@ export default function AdLandingPage() {
               >
                 @nikenme_nobody
               </a>
-              {' '}へお気軽にどうぞ
-            </p>
+              {' '}へお気軽にご連絡ください。            </p>
           </FadeInSection>
         </div>
       </section>
