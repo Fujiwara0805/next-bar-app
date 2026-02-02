@@ -4,14 +4,11 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   PartyPopper,
-  Calendar,
   ChevronDown,
   ChevronUp,
   Loader2,
   Info,
-  Pencil,
 } from 'lucide-react';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Card } from '@/components/ui/card';
@@ -33,10 +30,9 @@ import { getActiveCampaigns } from '@/lib/actions/campaign';
 export interface CampaignFormValues {
   hasCampaign: boolean;
   campaignId: string | null;      // マスタから選択したキャンペーンID
-  campaignName: string;           // 表示用 or カスタム入力用
+  campaignName: string;            // 表示用（マスタ選択時のみ）
   campaignStartDate: string;
   campaignEndDate: string;
-  isCustomCampaign: boolean;      // カスタム入力モードかどうか
 }
 
 export function getDefaultCampaignFormValues(): CampaignFormValues {
@@ -46,7 +42,6 @@ export function getDefaultCampaignFormValues(): CampaignFormValues {
     campaignName: '',
     campaignStartDate: '',
     campaignEndDate: '',
-    isCustomCampaign: false,
   };
 }
 
@@ -62,16 +57,12 @@ export function dbDataToCampaignForm(dbData: {
     return getDefaultCampaignFormValues();
   }
   
-  // campaign_idがある場合はマスタから選択、なければカスタム
-  const hasId = !!dbData.campaign_id;
-  
   return {
     hasCampaign: dbData.has_campaign || false,
     campaignId: dbData.campaign_id || null,
     campaignName: dbData.campaign_name || '',
     campaignStartDate: dbData.campaign_start_date ? dbData.campaign_start_date.split('T')[0] : '',
     campaignEndDate: dbData.campaign_end_date ? dbData.campaign_end_date.split('T')[0] : '',
-    isCustomCampaign: !hasId && !!dbData.campaign_name,
   };
 }
 
@@ -151,31 +142,17 @@ export function StoreCampaignForm({
     onChange({ ...values, [key]: value });
   };
 
-  // キャンペーン選択時の処理
+  // キャンペーン選択時の処理（マスタから選択のみ）
   const handleCampaignSelect = (campaignId: string) => {
-    if (campaignId === 'custom') {
-      // カスタム入力モードに切り替え
+    const selected = campaigns.find(c => c.id === campaignId);
+    if (selected) {
       onChange({
         ...values,
-        campaignId: null,
-        campaignName: '',
-        campaignStartDate: '',
-        campaignEndDate: '',
-        isCustomCampaign: true,
+        campaignId: selected.id,
+        campaignName: selected.name,
+        campaignStartDate: selected.startDate,
+        campaignEndDate: selected.endDate,
       });
-    } else {
-      // マスタから選択
-      const selected = campaigns.find(c => c.id === campaignId);
-      if (selected) {
-        onChange({
-          ...values,
-          campaignId: selected.id,
-          campaignName: selected.name,
-          campaignStartDate: selected.startDate,
-          campaignEndDate: selected.endDate,
-          isCustomCampaign: false,
-        });
-      }
     }
   };
 
@@ -267,52 +244,35 @@ export function StoreCampaignForm({
                   </div>
                 ) : (
                   <Select
-                    value={values.isCustomCampaign ? 'custom' : (values.campaignId || '')}
+                    value={values.campaignId || ''}
                     onValueChange={handleCampaignSelect}
                     disabled={disabled}
                   >
                     <SelectTrigger className="font-bold bg-white border-2 border-gray-300 h-12">
-                      <SelectValue placeholder="キャンペーンを選択してください" />
+                      <SelectValue placeholder={campaigns.length === 0 ? 'キャンペーンがありません' : 'キャンペーンを選択してください'} />
                     </SelectTrigger>
                     <SelectContent>
-                      {campaigns.length > 0 ? (
-                        <>
-                          {campaigns.map((campaign) => {
-                            const days = getCampaignRemainingDays(campaign);
-                            return (
-                              <SelectItem key={campaign.id} value={campaign.id}>
-                                <div className="flex items-center gap-2">
-                                  <span>{campaign.name}</span>
-                                  {days !== null && days <= 7 && (
-                                    <span className="text-xs text-pink-500 font-bold">
-                                      残り{days}日
-                                    </span>
-                                  )}
-                                </div>
-                              </SelectItem>
-                            );
-                          })}
-                          <SelectItem value="custom">
-                            <div className="flex items-center gap-2 text-gray-600">
-                              <Pencil className="w-3 h-3" />
-                              <span>その他（自由入力）</span>
+                      {campaigns.map((campaign) => {
+                        const days = getCampaignRemainingDays(campaign);
+                        return (
+                          <SelectItem key={campaign.id} value={campaign.id}>
+                            <div className="flex items-center gap-2">
+                              <span>{campaign.name}</span>
+                              {days !== null && days <= 7 && (
+                                <span className="text-xs text-pink-500 font-bold">
+                                  残り{days}日
+                                </span>
+                              )}
                             </div>
                           </SelectItem>
-                        </>
-                      ) : (
-                        <SelectItem value="custom">
-                          <div className="flex items-center gap-2 text-gray-600">
-                            <Pencil className="w-3 h-3" />
-                            <span>自由入力でキャンペーンを設定</span>
-                          </div>
-                        </SelectItem>
-                      )}
+                        );
+                      })}
                     </SelectContent>
                   </Select>
                 )}
                 
                 {/* 選択中のキャンペーン情報 */}
-                {selectedCampaign && !values.isCustomCampaign && (
+                {selectedCampaign && (
                   <div 
                     className="mt-3 p-3 rounded-lg flex items-start gap-2"
                     style={{ backgroundColor: 'rgba(236, 72, 153, 0.1)' }}
@@ -334,69 +294,6 @@ export function StoreCampaignForm({
                 )}
               </div>
 
-              {/* カスタム入力モード時のみ表示 */}
-              {values.isCustomCampaign && (
-                <>
-                  {/* キャンペーン名（自由入力） */}
-                  <div className="space-y-2">
-                    <Label htmlFor="campaign-name" className="font-bold flex items-center gap-2">
-                      <Pencil className="w-4 h-4" />
-                      {t('campaign.name')}
-                    </Label>
-                    <Input
-                      id="campaign-name"
-                      value={values.campaignName}
-                      onChange={(e) => handleChange('campaignName', e.target.value)}
-                      placeholder={t('campaign.name_placeholder')}
-                      disabled={disabled}
-                      className="font-bold bg-white text-gray-700 border-2 border-gray-300 placeholder:text-gray-300"
-                      style={{ fontSize: '16px' }}
-                    />
-                    {errors.campaignName && (
-                      <p className="text-xs text-red-500">{errors.campaignName}</p>
-                    )}
-                  </div>
-
-                  {/* 期間設定（自由入力モード時） */}
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="campaign-start-date" className="font-bold flex items-center gap-2">
-                        <Calendar className="w-3 h-3" />
-                        {t('campaign.start_date')}
-                      </Label>
-                      <Input
-                        id="campaign-start-date"
-                        type="date"
-                        value={values.campaignStartDate}
-                        onChange={(e) => handleChange('campaignStartDate', e.target.value)}
-                        disabled={disabled}
-                        className="font-bold bg-white text-gray-700 border-2 border-gray-300 h-12 placeholder:text-gray-300 w-full max-w-full"
-                        style={{ fontSize: '16px' }}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="campaign-end-date" className="font-bold flex items-center gap-2">
-                        <Calendar className="w-3 h-3" />
-                        {t('campaign.end_date')}
-                      </Label>
-                      <Input
-                        id="campaign-end-date"
-                        type="date"
-                        value={values.campaignEndDate}
-                        onChange={(e) => handleChange('campaignEndDate', e.target.value)}
-                        disabled={disabled}
-                        className="font-bold bg-white text-gray-700 border-2 border-gray-300 h-12 placeholder:text-gray-300 w-full max-w-full"
-                        style={{ fontSize: '16px' }}
-                      />
-                      {errors.campaignEndDate && (
-                        <p className="text-xs text-red-500">{errors.campaignEndDate}</p>
-                      )}
-                    </div>
-                  </div>
-                </>
-              )}
-
               {/* ヒントメッセージ */}
               <div 
                 className="p-3 rounded-lg"
@@ -404,7 +301,7 @@ export function StoreCampaignForm({
               >
                 <p className="text-xs text-gray-600">
                   💡 地域のイベントやキャンペーンに参加すると、より多くのお客様に見つけてもらえます。
-                  管理者が登録したキャンペーンから選択するか、お店独自のキャンペーンを自由入力できます。
+                  管理者が登録したキャンペーンから選択してください。
                 </p>
               </div>
             </div>

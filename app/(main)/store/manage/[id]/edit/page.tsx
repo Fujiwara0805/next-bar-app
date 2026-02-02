@@ -203,14 +203,20 @@ export default function StoreEditPage() {
   // キャンペーン関連のステート
   const [campaignValues, setCampaignValues] = useState<CampaignFormValues>(getDefaultCampaignFormValues());
 
-  // キャンペーン値変更時にクーポンのisCampaignフラグを連動させる
+  // キャンペーン値変更時にクーポンのisCampaignフラグと開始日・有効期限を連動させる
   const handleCampaignChange = (newCampaignValues: CampaignFormValues) => {
     setCampaignValues(newCampaignValues);
-    // キャンペーンがONの場合、クーポンをキャンペーン用に設定
+    // キャンペーンがONの場合、クーポンをキャンペーン用に設定し、開始日・有効期限をキャンペーン日付で反映
     // キャンペーンがOFFの場合、クーポンを通常に戻す
     setCouponValues(prev => ({
       ...prev,
       isCampaign: newCampaignValues.hasCampaign,
+      ...(newCampaignValues.hasCampaign && newCampaignValues.campaignStartDate && newCampaignValues.campaignEndDate
+        ? {
+            startDate: newCampaignValues.campaignStartDate,
+            expiryDate: newCampaignValues.campaignEndDate,
+          }
+        : {}),
     }));
   };
 
