@@ -25,7 +25,6 @@ import { Card } from '@/components/ui/card';
 import { supabase } from '@/lib/supabase/client';
 import type { Database } from '@/lib/supabase/types';
 import { useLanguage } from '@/lib/i18n/context';
-import { isWithinIsOpenUpdateWindow } from '@/lib/utils';
 import { ConciergeModal } from '@/components/concierge-modal';
 
 type Store = Database['public']['Tables']['stores']['Row'];
@@ -230,18 +229,13 @@ function StoreListContent() {
 
   /**
    * 【コスト最適化】初回マウント時のみis_open更新APIを呼び出す
-   * - JST 18:00〜28:00（翌4時）の時間帯のみ呼び出す
    * - 現在地から1km圏内の店舗のみ更新
    */
   useEffect(() => {
     const updateIsOpenOnce = async () => {
       if (isOpenUpdatedRef.current) return;
       if (!userLocation) return; // 位置情報が取得できるまで待機
-      if (!isWithinIsOpenUpdateWindow()) {
-        isOpenUpdatedRef.current = true;
-        return; // 時間帯外のため初回マウント時の更新はスキップ
-      }
-
+      
       isOpenUpdatedRef.current = true;
 
       try {
