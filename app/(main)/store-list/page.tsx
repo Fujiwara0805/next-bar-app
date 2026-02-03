@@ -9,6 +9,8 @@
  *       【追加】営業中フィルター機能
  *       【修正】おすすめバッジをカード内部に配置
  *       【修正】コンシェルジュ結果を上位3件に制限
+ *       【コスト最適化】Place API呼び出し削減
+ *         - 現在地から1km圏内の店舗のみis_open更新
  * ============================================
  */
 
@@ -55,6 +57,11 @@ const COLORS = {
 
 // コンシェルジュが提案する店舗数
 const CONCIERGE_RECOMMENDATION_LIMIT = 3;
+
+/**
+ * is_open更新の検索半径（km）- コスト削減のため1kmに制限
+ */
+const IS_OPEN_UPDATE_RADIUS_KM = 1.0;
 
 /**
  * 営業時間判定ユーティリティ
@@ -220,22 +227,31 @@ function StoreListContent() {
     }
   }, [searchParams]);
 
-  // 初回マウント時のみis_open更新APIを呼び出す
+  /**
+   * 【コスト最適化】初回マウント時のみis_open更新APIを呼び出す
+   * - 現在地から1km圏内の店舗のみ更新
+   */
   useEffect(() => {
     const updateIsOpenOnce = async () => {
       if (isOpenUpdatedRef.current) return;
+      if (!userLocation) return; // 位置情報が取得できるまで待機
+      
       isOpenUpdatedRef.current = true;
 
       try {
         const res = await fetch('/api/stores/update-is-open', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({}),
+          body: JSON.stringify({
+            userLat: userLocation.lat,
+            userLng: userLocation.lng,
+            radiusKm: IS_OPEN_UPDATE_RADIUS_KM,
+          }),
         });
         const result = await res.json();
-        console.log('is_open update result:', result);
+        console.log('is_open update result (1km radius):', result);
 
-        if (result.updated > 0 && userLocation) {
+        if (result.updated > 0) {
           fetchStoresOnly();
         }
       } catch (err) {
@@ -244,7 +260,7 @@ function StoreListContent() {
     };
 
     updateIsOpenOnce();
-  }, []);
+  }, [userLocation]);
 
   // 位置情報が設定されたら店舗を取得
   useEffect(() => {

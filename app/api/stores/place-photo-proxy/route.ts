@@ -2,7 +2,7 @@
  * ============================================
  * ファイルパス: app/api/stores/place-photo-proxy/route.ts
  * APIエンドポイント: /api/stores/place-photo-proxy
- * Google Place Photosをプロキシ経由で取得するAPI
+ * Google Place Photosをプロキシ経由で取得するAPI（24h サーバーキャッシュ）
  * CORS問題を回避するため、サーバー側で画像を取得して返す
  * ============================================
  */
@@ -11,9 +11,37 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
+/** サーバーキャッシュ TTL: 24時間 */
+const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+
+interface PhotoCacheEntry {
+  buffer: ArrayBuffer;
+  contentType: string;
+  expiresAt: number;
+}
+
+const photoProxyCache = new Map<string, PhotoCacheEntry>();
+
+function getCacheKey(photoReference: string, maxwidth: string): string {
+  return `${photoReference}|${maxwidth}`;
+}
+
+function getCachedPhoto(key: string): PhotoCacheEntry | null {
+  const entry = photoProxyCache.get(key);
+  if (!entry || Date.now() > entry.expiresAt) return null;
+  return entry;
+}
+
+function setCachedPhoto(key: string, buffer: ArrayBuffer, contentType: string): void {
+  photoProxyCache.set(key, {
+    buffer,
+    contentType,
+    expiresAt: Date.now() + CACHE_TTL_MS,
+  });
+}
+
 /**
- * Google Place Photoをプロキシ経由で取得
- * photoReferenceを受け取り、サーバー側でGoogle APIから画像を取得して返す
+ * Google Place Photoをプロキシ経由で取得（キャッシュヒット時は Place Photo API を叩かない）
  */
 export async function GET(request: NextRequest) {
   try {
@@ -29,11 +57,23 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Google Maps API key not configured' }, { status: 500 });
     }
 
+    const cacheKey = getCacheKey(photoReference, maxwidth);
+    const cached = getCachedPhoto(cacheKey);
+    if (cached) {
+      return new NextResponse(cached.buffer, {
+        status: 200,
+        headers: {
+          'Content-Type': cached.contentType,
+          'Cache-Control': 'public, max-age=86400, s-maxage=86400, stale-while-revalidate=86400',
+        },
+      });
+    }
+
     // Google Place Photos APIから画像を取得
     const photoUrl = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=${maxwidth}&photo_reference=${encodeURIComponent(photoReference)}&key=${GOOGLE_MAPS_API_KEY}`;
-    
+
     const photoResponse = await fetch(photoUrl);
-    
+
     if (!photoResponse.ok) {
       console.error(`Place Photo API error: ${photoResponse.status}`);
       return NextResponse.json(
@@ -42,16 +82,16 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // 画像データを取得
     const imageBuffer = await photoResponse.arrayBuffer();
     const contentType = photoResponse.headers.get('content-type') || 'image/jpeg';
 
-    // 画像をそのまま返す（プロキシとして機能）
+    setCachedPhoto(cacheKey, imageBuffer, contentType);
+
     return new NextResponse(imageBuffer, {
       status: 200,
       headers: {
         'Content-Type': contentType,
-        'Cache-Control': 'public, max-age=3600, s-maxage=3600', // 1時間キャッシュ
+        'Cache-Control': 'public, max-age=86400, s-maxage=86400, stale-while-revalidate=86400',
       },
     });
   } catch (error) {

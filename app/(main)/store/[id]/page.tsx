@@ -7,6 +7,7 @@
  *       - Google Place Photos の遅延読み込み・キャッシュ最適化
  *       - スケルトンローディングによるUX向上
  *       - 画像フルスクリーン表示（ライトボックス）
+ *       【コスト最適化】バックグラウンドis_open更新を削除
  * ============================================
  */
 
@@ -380,6 +381,7 @@ export default function StoreDetailPage() {
 
   // ============================================
   // 店舗データ取得
+  // 【コスト最適化】バックグラウンドis_open更新を削除
   // ============================================
   const fetchStore = useCallback(async (id: string) => {
     try {
@@ -395,12 +397,8 @@ export default function StoreDetailPage() {
         setStore(storeData);
         setImageUrls(storeData.image_urls || []);
         
-        // バックグラウンドでis_openを更新
-        if (storeData.google_place_id) {
-          fetch(`/api/stores/update-is-open?storeId=${id}`, { method: 'GET' })
-            .then((res) => res.json())
-            .catch(console.warn);
-        }
+        // 【削除】バックグラウンドでのis_open更新を行わない（コスト最適化）
+        // is_openの更新はマップページ・一覧ページの初回マウント時と更新ボタン押下時のみ
       }
     } catch (error) {
       console.error('Error fetching store:', error);

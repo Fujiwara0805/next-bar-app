@@ -9,6 +9,10 @@
  *       【最適化】メモリリーク対策
  *       【追加】詳細ボタンのローディング表示
  *       【デザイン】店舗詳細画面統一カラーパレット適用
+ *       【コスト最適化】Place API呼び出し削減
+ *         - LP遷移時の自動更新を削除
+ *         - 初回マウント時・更新ボタン押下時のみ更新
+ *         - 現在地から1km圏内の店舗を優先更新
  * ============================================
  */
 
@@ -105,6 +109,11 @@ const DEFAULT_LOCATION = {
 const MAX_RETRY_COUNT = 3;
 const BASE_RETRY_DELAY_MS = 1000;
 const DEBOUNCE_DELAY_MS = 600;
+
+/**
+ * is_open更新の検索半径（km）- コスト削減のため1kmに制限
+ */
+const IS_OPEN_UPDATE_RADIUS_KM = 1.0;
 
 // 必要なカラムのみ選択（パフォーマンス最適化）
 const STORE_SELECT_COLUMNS = `
@@ -581,20 +590,30 @@ function MapPageContent() {
   const isOpenUpdatedRef = useRef(false);
   const lastFetchBoundsRef = useRef<string | null>(null);
 
-  // 初回マウント時のみis_open更新APIを呼び出す
+  /**
+   * 【コスト最適化】is_open更新APIを呼び出す
+   * - 初回マウント時のみ実行
+   * - 現在地から1km圏内の店舗のみ更新
+   */
   useEffect(() => {
     const updateIsOpenOnce = async () => {
       if (isOpenUpdatedRef.current) return;
+      if (!userLocation) return; // 位置情報が取得できるまで待機
+      
       isOpenUpdatedRef.current = true;
 
       try {
         const res = await fetch('/api/stores/update-is-open', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({}),
+          body: JSON.stringify({
+            userLat: userLocation.lat,
+            userLng: userLocation.lng,
+            radiusKm: IS_OPEN_UPDATE_RADIUS_KM,
+          }),
         });
         const result = await res.json();
-        debugLog('is_open update result:', result);
+        debugLog('is_open update result (1km radius):', result);
 
         if (result.updated > 0) {
           fetchStores();
@@ -605,7 +624,7 @@ function MapPageContent() {
     };
 
     updateIsOpenOnce();
-  }, [fetchStores]);
+  }, [userLocation, fetchStores]);
 
   // Debounced bounds change handler
   const handleBoundsChangeInternal = useCallback(
@@ -637,27 +656,19 @@ function MapPageContent() {
 
   const handleBoundsChange = useDebouncedCallback(handleBoundsChangeInternal, DEBOUNCE_DELAY_MS);
 
-  // LPからの遷移時・初回ロード
+  /**
+   * 【コスト最適化】LP遷移時の自動更新を削除
+   * - 初回ロード時は店舗データのみ取得
+   * - is_open更新は初回マウント時のuseEffectで1回のみ
+   */
   useEffect(() => {
     const shouldRefresh = searchParams?.get('refresh') === 'true';
     const fromLanding = searchParams?.get('from') === 'landing';
 
     const loadData = async () => {
-      if (fromLanding || shouldRefresh) {
-        try {
-          const res = await fetch('/api/stores/update-is-open', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ forceUpdate: true }),
-          });
-          const result = await res.json();
-          debugLog('Auto refresh from landing result:', result);
-        } catch (err) {
-          debugWarn('Failed to auto-refresh is_open:', err);
-        }
-      }
-
-      await fetchStores(fromLanding || shouldRefresh);
+      // 【削除】LP遷移時のis_open更新APIを呼び出さない
+      // 店舗データのみ取得
+      await fetchStores(shouldRefresh || fromLanding);
 
       if (shouldRefresh || fromLanding) {
         router.replace('/map', { scroll: false });
@@ -672,7 +683,7 @@ function MapPageContent() {
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
         refreshLocation();
-        // キャッシュが無効なら取得
+        // キャッシュが無効なら取得（is_open更新は行わない）
         if (storesCache.isExpired()) {
           fetchStores(true);
         }
@@ -686,19 +697,30 @@ function MapPageContent() {
     };
   }, [refreshLocation, fetchStores]);
 
-  // 更新ボタン押下時
+  /**
+   * 【コスト最適化】更新ボタン押下時
+   * - 現在地から1km圏内の店舗のみis_open更新
+   */
   const handleRefresh = async () => {
     setRefreshing(true);
     try {
       refreshLocation();
 
-      const res = await fetch('/api/stores/update-is-open', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ forceUpdate: true }),
-      });
-      const result = await res.json();
-      debugLog('Force refresh result:', result);
+      // 現在地ベースでis_open更新
+      if (userLocation) {
+        const res = await fetch('/api/stores/update-is-open', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userLat: userLocation.lat,
+            userLng: userLocation.lng,
+            radiusKm: IS_OPEN_UPDATE_RADIUS_KM,
+            forceUpdate: true,
+          }),
+        });
+        const result = await res.json();
+        debugLog('Force refresh result (1km radius):', result);
+      }
 
       await refreshStores();
     } catch (err) {
