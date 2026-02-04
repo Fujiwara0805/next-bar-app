@@ -113,7 +113,7 @@ const DEBOUNCE_DELAY_MS = 600;
 /**
  * is_open更新の検索半径（km）- コスト削減のため1kmに制限
  */
-const IS_OPEN_UPDATE_RADIUS_KM = 1.0;
+const IS_OPEN_UPDATE_RADIUS_KM = 2.0;
 
 // 初回ロード時の is_open 更新APIの呼び出しを、ユーザーごとに毎回叩かないためのクールダウン
 // 同一エリア（位置を粗く丸めたバケット）では一定時間 is_open をDBの値として信頼する

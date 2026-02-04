@@ -49,7 +49,7 @@ const COLORS = {
 };
 
 const CONCIERGE_RECOMMENDATION_LIMIT = 3;
-const IS_OPEN_UPDATE_RADIUS_KM = 1.0;
+const IS_OPEN_UPDATE_RADIUS_KM = 2.0;
 
 // 初回ロード時の is_open 更新APIの呼び出しを、ユーザーごとに毎回叩かないためのクールダウン
 // （同じエリア周辺で短時間に何度も更新しても体感は変わりにくい一方、API/DB負荷が跳ねるため）

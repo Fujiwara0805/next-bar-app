@@ -32,7 +32,7 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 const CACHE_TTL_MS = 60 * 60 * 1000;
 
 const MANUAL_CLOSE_TTL_MS = 12 * 60 * 60 * 1000;
-const DEFAULT_RADIUS_KM = 1.0;
+const DEFAULT_RADIUS_KM = 2.0;
 
 const MAX_STORES_PER_REQUEST = 20;
 
