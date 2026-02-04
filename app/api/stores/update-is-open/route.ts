@@ -113,6 +113,7 @@ interface StoreData {
   manual_closed: boolean | null;
   closed_reason: string | null;
   manual_closed_at: string | null;
+  updated_at: string | null;
 }
 
 interface StoreWithDistance extends StoreData {
@@ -176,6 +177,7 @@ async function tryClaimIsOpenRefresh(
   return Array.isArray(data) && data.length > 0;
 }
 
+
 async function fetchLatestStore(storeId: string): Promise<StoreData | null> {
   const { data, error } = await supabase
     .from('stores')
@@ -185,6 +187,35 @@ async function fetchLatestStore(storeId: string): Promise<StoreData | null> {
 
   if (error || !data) return null;
   return data as StoreData;
+}
+
+/**
+ * 方案A: forceUpdate=true のとき、他リクエストが更新権を獲得していた場合でも
+ * ユーザー体験として「押したら最新化された結果」を返しやすくするために、短時間だけDB更新完了を待ちます。
+ *
+ * last_is_open_check_at は「更新権獲得時点」で先行更新されるため、
+ * 実際の値（is_open / vacancy_status / closed_reason 等）の反映完了は updated_at の変化で検知します。
+ */
+async function waitForStoreUpdate(
+  storeId: string,
+  observedUpdatedAt: string | null,
+  timeoutMs: number = 2500,
+  intervalMs: number = 250
+): Promise<StoreData | null> {
+  const started = Date.now();
+
+  while (Date.now() - started < timeoutMs) {
+    await new Promise((r) => setTimeout(r, intervalMs));
+
+    const latest = await fetchLatestStore(storeId);
+    if (!latest) continue;
+
+    if (latest.updated_at && latest.updated_at !== observedUpdatedAt) {
+      return latest;
+    }
+  }
+
+  return null;
 }
 
 async function updateSingleStore(
@@ -264,8 +295,14 @@ async function updateSingleStore(
     // Google API は叩かず、最新のDB状態を返す。
     const latest = await fetchLatestStore(store.id);
 
+    // 方案A: forceUpdate のときは短時間だけ更新完了を待ち、より新しい値を返す
+    let waited: StoreData | null = null;
+    if (forceUpdate && latest) {
+      waited = await waitForStoreUpdate(store.id, latest.updated_at ?? null);
+    }
+
     // 最新行が取れなければ、元の store から返す（最悪でも API は叩かない）
-    const source = latest ?? store;
+    const source = waited ?? latest ?? store;
 
     return {
       storeId: source.id,
