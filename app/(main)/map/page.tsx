@@ -115,6 +115,11 @@ const DEBOUNCE_DELAY_MS = 600;
  */
 const IS_OPEN_UPDATE_RADIUS_KM = 1.0;
 
+// 初回ロード時の is_open 更新APIの呼び出しを、ユーザーごとに毎回叩かないためのクールダウン
+// 同一エリア（位置を粗く丸めたバケット）では一定時間 is_open をDBの値として信頼する
+const IS_OPEN_UPDATE_COOLDOWN_MS = 10 * 60 * 1000; // 10分
+const IS_OPEN_UPDATE_LOCALSTORAGE_KEY = 'isOpenUpdate:lastRun';
+
 // 必要なカラムのみ選択（パフォーマンス最適化）
 const STORE_SELECT_COLUMNS = `
   id,
@@ -594,12 +599,39 @@ function MapPageContent() {
    * 【コスト最適化】is_open更新APIを呼び出す
    * - 初回マウント時のみ実行
    * - 現在地から1km圏内の店舗のみ更新
+   * - 同一エリアで短時間の連続アクセスは localStorage クールダウンでスキップ
+   * - ?refresh=true のときだけ forceUpdate で強制更新
    */
   useEffect(() => {
     const updateIsOpenOnce = async () => {
       if (isOpenUpdatedRef.current) return;
       if (!userLocation) return; // 位置情報が取得できるまで待機
-      
+
+      const refreshRequested = searchParams?.get('refresh') === 'true';
+
+      // 位置情報をざっくり丸めて「同一エリア扱い」にする（厳密すぎるとキーが増え続ける）
+      const latBucket = Math.round(userLocation.lat * 100) / 100;
+      const lngBucket = Math.round(userLocation.lng * 100) / 100;
+      const areaKey = `${latBucket},${lngBucket}`;
+
+      // refresh=true がない限り、一定時間内は update API を叩かずにDBの is_open を信頼する
+      if (!refreshRequested && typeof window !== 'undefined') {
+        try {
+          const raw = localStorage.getItem(IS_OPEN_UPDATE_LOCALSTORAGE_KEY);
+          if (raw) {
+            const parsed = JSON.parse(raw) as { ts: number; areaKey: string };
+            const age = Date.now() - (parsed.ts || 0);
+
+            // 同じエリア&クールダウン内ならスキップ
+            if (parsed.areaKey === areaKey && age >= 0 && age < IS_OPEN_UPDATE_COOLDOWN_MS) {
+              return;
+            }
+          }
+        } catch (e) {
+          // 破損していても無視
+        }
+      }
+
       isOpenUpdatedRef.current = true;
 
       try {
@@ -610,10 +642,30 @@ function MapPageContent() {
             userLat: userLocation.lat,
             userLng: userLocation.lng,
             radiusKm: IS_OPEN_UPDATE_RADIUS_KM,
+            forceUpdate: refreshRequested,
           }),
         });
         const result = await res.json();
         debugLog('is_open update result (1km radius):', result);
+
+        // 成功後にクールダウン情報を保存
+        if (typeof window !== 'undefined') {
+          try {
+            localStorage.setItem(
+              IS_OPEN_UPDATE_LOCALSTORAGE_KEY,
+              JSON.stringify({ ts: Date.now(), areaKey })
+            );
+          } catch (e) {
+            // ignore
+          }
+        }
+
+        // refresh=true で来た場合はURLから消す（以降の遷移で無駄に強制更新しない）
+        if (refreshRequested && typeof window !== 'undefined') {
+          const url = new URL(window.location.href);
+          url.searchParams.delete('refresh');
+          window.history.replaceState({}, '', url.toString());
+        }
 
         if (result.updated > 0) {
           fetchStores();
@@ -624,7 +676,7 @@ function MapPageContent() {
     };
 
     updateIsOpenOnce();
-  }, [userLocation, fetchStores]);
+  }, [userLocation, fetchStores, searchParams]);
 
   // Debounced bounds change handler
   const handleBoundsChangeInternal = useCallback(

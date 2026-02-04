@@ -2,10 +2,9 @@
  * ============================================
  * ファイルパス: app/api/stores/update-is-open/route.ts
  * APIエンドポイント: /api/stores/update-is-open
- * 
- * 【最適化】
- * - キャッシュ有効期間を60分に延長
- * - 現在地からの距離ベースフィルタリング対応
+ * * 機能: 営業状態更新API（Read-Through キャッシング）
+ * * 【最適化】
+ * - キャッシュ有効期間を60分に設定
  * - 優先度付き更新（近い店舗から順に）
  * ============================================
  */
@@ -24,28 +23,15 @@ if (!supabaseUrl || !supabaseAnonKey) {
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 /**
- * キャッシュ有効期間（60分）- コスト削減のため30分から延長
+ * キャッシュ有効期間（60分）
+ * これが「100人中99人はAPIを叩かない」を実現する核となる定数
  */
 const CACHE_TTL_MS = 60 * 60 * 1000;
 
-/**
- * 臨時休業の自動解除時間（12時間）
- */
 const MANUAL_CLOSE_TTL_MS = 12 * 60 * 60 * 1000;
-
-/**
- * デフォルトの検索半径（km）
- */
 const DEFAULT_RADIUS_KM = 1.0;
-
-/**
- * 最大同時更新店舗数（API呼び出し制限）
- */
 const MAX_STORES_PER_REQUEST = 20;
 
-/**
- * キャッシュが有効かどうかを判定
- */
 function isCacheValid(lastCheckAt: string | null): boolean {
   if (!lastCheckAt) return false;
   const lastCheck = new Date(lastCheckAt).getTime();
@@ -53,9 +39,6 @@ function isCacheValid(lastCheckAt: string | null): boolean {
   return (now - lastCheck) < CACHE_TTL_MS;
 }
 
-/**
- * 臨時休業が有効期限切れかどうかを判定
- */
 function isManualCloseExpired(manualClosedAt: string | null): boolean {
   if (!manualClosedAt) return true;
   const closedTime = new Date(manualClosedAt).getTime();
@@ -63,17 +46,13 @@ function isManualCloseExpired(manualClosedAt: string | null): boolean {
   return (now - closedTime) >= MANUAL_CLOSE_TTL_MS;
 }
 
-/**
- * 2点間の距離を計算（Haversine公式）
- * @returns 距離（km）
- */
 function calculateDistance(
   lat1: number,
   lng1: number,
   lat2: number,
   lng2: number
 ): number {
-  const R = 6371; // 地球の半径（km）
+  const R = 6371;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
   const dLng = ((lng2 - lng1) * Math.PI) / 180;
   const a =
@@ -86,9 +65,6 @@ function calculateDistance(
   return R * c;
 }
 
-/**
- * 営業状態とvacancy_statusを決定
- */
 function determineOpenStatusAndVacancy(
   googleIsOpen: boolean,
   manualClosed: boolean,
@@ -98,7 +74,6 @@ function determineOpenStatusAndVacancy(
   vacancyStatus: string;
   closedReason: 'manual' | 'business_hours' | null;
 } {
-  // 1. 手動で臨時休業の場合
   if (manualClosed) {
     return {
       isOpen: false,
@@ -107,7 +82,6 @@ function determineOpenStatusAndVacancy(
     };
   }
 
-  // 2. Google APIで「営業時間外」の場合
   if (!googleIsOpen) {
     return {
       isOpen: false,
@@ -116,7 +90,6 @@ function determineOpenStatusAndVacancy(
     };
   }
 
-  // 3. 営業中の場合
   const newVacancyStatus =
     currentVacancyStatus === 'closed' || !currentVacancyStatus
       ? 'open'
@@ -146,12 +119,8 @@ interface StoreWithDistance extends StoreData {
   distance?: number;
 }
 
-/**
- * 臨時休業を解除する
- */
 async function clearManualClose(storeId: string): Promise<boolean> {
   const now = new Date().toISOString();
-
   const { error } = await supabase
     .from('stores')
     .update({
@@ -167,14 +136,57 @@ async function clearManualClose(storeId: string): Promise<boolean> {
     console.error(`Error clearing manual_close for store ${storeId}:`, error);
     return false;
   }
-
   console.log(`Manual close expired and cleared for store ${storeId}`);
   return true;
 }
 
 /**
- * 単一店舗のis_openを更新
+ * 同一店舗に対して同時に複数リクエストが来た場合でも、Google Places API を叩くのは原則1回にするための
+ * 楽観的ロック（Compare-And-Set）です。
+ *
+ * - キャッシュ切れのタイミングで大量同時アクセスが起きても、最初に「更新権」を獲得した1リクエストだけが
+ *   last_is_open_check_at を now に進め、その後に Google API を叩きます。
+ * - 他のリクエストは「更新中」とみなして Google API を叩かず、DB値を返します。
  */
+async function tryClaimIsOpenRefresh(
+  storeId: string,
+  prevLastCheckAt: string | null,
+  claimTimeIso: string
+): Promise<boolean> {
+  const q = supabase
+    .from('stores')
+    .update({
+      // 先にタイムスタンプだけ進めて「更新権」を獲得する
+      last_is_open_check_at: claimTimeIso,
+      updated_at: claimTimeIso,
+    })
+    .eq('id', storeId);
+
+  // null は eq できないので分岐
+  const { data, error } = (prevLastCheckAt === null)
+    ? await q.is('last_is_open_check_at', null).select('id')
+    : await q.eq('last_is_open_check_at', prevLastCheckAt).select('id');
+
+  if (error) {
+    console.error(`Error claiming refresh lock for store ${storeId}:`, error);
+    return false;
+  }
+
+  // 1行更新できた=ロック獲得。0行=他リクエストが先に獲得済み。
+  return Array.isArray(data) && data.length > 0;
+}
+
+async function fetchLatestStore(storeId: string): Promise<StoreData | null> {
+  const { data, error } = await supabase
+    .from('stores')
+    .select('*')
+    .eq('id', storeId)
+    .single();
+
+  if (error || !data) return null;
+  return data as StoreData;
+}
+
 async function updateSingleStore(
   store: StoreData,
   forceUpdate: boolean = false
@@ -189,15 +201,11 @@ async function updateSingleStore(
 } | null> {
   let manualClosed = store.manual_closed ?? false;
 
-  // 臨時休業が12時間経過していたら自動解除
   if (manualClosed && isManualCloseExpired(store.manual_closed_at)) {
     const cleared = await clearManualClose(store.id);
-    if (cleared) {
-      manualClosed = false;
-    }
+    if (cleared) manualClosed = false;
   }
 
-  // 臨時休業中（12時間以内）の場合は、Google Maps APIを呼ばずに即座にclosedを返す
   if (manualClosed) {
     if (store.is_open === false && store.vacancy_status === 'closed') {
       return {
@@ -221,10 +229,7 @@ async function updateSingleStore(
       })
       .eq('id', store.id);
 
-    if (error) {
-      console.error(`Error updating manual_closed store ${store.id}:`, error);
-      return null;
-    }
+    if (error) return null;
 
     return {
       storeId: store.id,
@@ -236,7 +241,7 @@ async function updateSingleStore(
     };
   }
 
-  // キャッシュが有効ならスキップ（API呼び出し削減）
+  // ★ここが核心部分: forceUpdateがなく、キャッシュが有効ならAPIを叩かずに即リターン
   if (!forceUpdate && isCacheValid(store.last_is_open_check_at)) {
     return {
       storeId: store.id,
@@ -244,11 +249,36 @@ async function updateSingleStore(
       vacancyStatus: store.vacancy_status ?? 'closed',
       manualClosed: false,
       closedReason: store.closed_reason as 'manual' | 'business_hours' | null,
+      fromCache: true, // キャッシュ利用を明示
+    };
+  }
+
+  // ★大量同時アクセス対策: キャッシュ切れ時でも Google API を叩くのは原則1回
+  // 先に last_is_open_check_at を CAS 更新して「更新権」を獲得できたリクエストだけが Google API を叩く
+  // （forceUpdate=true のときは常に更新権獲得を試みる）
+  const claimTimeIso = new Date().toISOString();
+  const claimed = await tryClaimIsOpenRefresh(store.id, store.last_is_open_check_at, claimTimeIso);
+
+  if (!claimed) {
+    // 他のリクエストが先に更新権を獲得している（または直前で更新された）
+    // Google API は叩かず、最新のDB状態を返す。
+    const latest = await fetchLatestStore(store.id);
+
+    // 最新行が取れなければ、元の store から返す（最悪でも API は叩かない）
+    const source = latest ?? store;
+
+    return {
+      storeId: source.id,
+      isOpen: source.is_open ?? false,
+      vacancyStatus: source.vacancy_status ?? 'closed',
+      manualClosed: source.manual_closed ?? false,
+      closedReason: source.closed_reason as 'manual' | 'business_hours' | null,
       fromCache: true,
     };
   }
 
   try {
+    // 更新権を獲得したリクエストのみ Google API を叩く
     const googleIsOpen = await checkIsOpenFromGooglePlaceId(store.google_place_id);
 
     if (googleIsOpen === null) {
@@ -262,6 +292,7 @@ async function updateSingleStore(
       store.vacancy_status
     );
 
+    // claimTimeIso を last_is_open_check_at としてすでに書き込んでいるため、ここでは上書きしない。
     const now = new Date().toISOString();
 
     const { error } = await supabase
@@ -270,15 +301,11 @@ async function updateSingleStore(
         is_open: isOpen,
         vacancy_status: vacancyStatus,
         closed_reason: closedReason,
-        last_is_open_check_at: now,
         updated_at: now,
       })
       .eq('id', store.id);
 
-    if (error) {
-      console.error(`Error updating store ${store.id}:`, error);
-      return null;
-    }
+    if (error) return null;
 
     return {
       storeId: store.id,
@@ -290,13 +317,31 @@ async function updateSingleStore(
     };
   } catch (error) {
     console.error(`Error processing store ${store.id}:`, error);
+
+    // 失敗時はロック（last_is_open_check_at の先行更新）を巻き戻し、次のリクエストで再試行できるようにする
+    try {
+      const rollbackTime = new Date().toISOString();
+      const { error: rollbackError } = await supabase
+        .from('stores')
+        .update({
+          last_is_open_check_at: store.last_is_open_check_at,
+          updated_at: rollbackTime,
+        })
+        .eq('id', store.id)
+        // 自分が獲得した claim のみ戻す（他の更新を巻き込まない）
+        .eq('last_is_open_check_at', claimTimeIso);
+
+      if (rollbackError) {
+        console.error(`Rollback failed for store ${store.id}:`, rollbackError);
+      }
+    } catch (e) {
+      console.error(`Rollback exception for store ${store.id}:`, e);
+    }
+
     return null;
   }
 }
 
-/**
- * 店舗を距離でフィルタリングしてソート
- */
 function filterAndSortByDistance(
   stores: StoreData[],
   userLat: number,
@@ -332,93 +377,52 @@ export async function POST(request: NextRequest) {
       radiusKm = DEFAULT_RADIUS_KM,
     } = body;
 
-    // 特定の店舗を更新
     if (storeId) {
-      const { data: store, error: fetchError } = await supabase
+      const { data: store, error } = await supabase
         .from('stores')
-        .select(
-          'id, google_place_id, latitude, longitude, vacancy_status, last_is_open_check_at, is_open, manual_closed, closed_reason, manual_closed_at'
-        )
+        .select('*')
         .eq('id', storeId)
         .single();
 
-      if (fetchError || !store) {
-        return NextResponse.json({ error: 'Store not found' }, { status: 404 });
-      }
-
-      if (!store.google_place_id) {
-        return NextResponse.json({ error: 'Google Place ID not found' }, { status: 400 });
-      }
+      if (error || !store) return NextResponse.json({ error: 'Store not found' }, { status: 404 });
+      if (!store.google_place_id) return NextResponse.json({ error: 'Google Place ID not found' }, { status: 400 });
 
       const result = await updateSingleStore(store as StoreData, forceUpdate);
+      if (!result) return NextResponse.json({ error: 'Failed to update store' }, { status: 500 });
 
-      if (!result) {
-        return NextResponse.json({ error: 'Failed to update store' }, { status: 500 });
-      }
-
-      return NextResponse.json({
-        success: true,
-        ...result,
-        cacheTTL: CACHE_TTL_MS,
-      });
+      return NextResponse.json({ success: true, ...result, cacheTTL: CACHE_TTL_MS });
     }
 
-    // 全店舗または距離ベースで更新
-    const { data: stores, error: fetchError } = await supabase
+    const { data: stores, error } = await supabase
       .from('stores')
-      .select(
-        'id, google_place_id, latitude, longitude, vacancy_status, last_is_open_check_at, is_open, manual_closed, closed_reason, manual_closed_at'
-      )
+      .select('*')
       .not('google_place_id', 'is', null);
 
-    if (fetchError) {
-      return NextResponse.json({ error: 'Failed to fetch stores' }, { status: 500 });
-    }
-
-    if (!stores || stores.length === 0) {
-      return NextResponse.json({
-        success: true,
-        updated: 0,
-        message: 'No stores with google_place_id found',
-      });
-    }
+    if (error) return NextResponse.json({ error: 'Failed to fetch stores' }, { status: 500 });
+    if (!stores || stores.length === 0) return NextResponse.json({ success: true, updated: 0, message: 'No stores found' });
 
     let targetStores: StoreWithDistance[] = stores as StoreWithDistance[];
 
-    // 現在地が指定されている場合は距離でフィルタリング
     if (userLat !== undefined && userLng !== undefined) {
-      targetStores = filterAndSortByDistance(
-        stores as StoreData[],
-        userLat,
-        userLng,
-        radiusKm
-      );
-
-      console.log(
-        `Filtered stores by distance: ${targetStores.length} within ${radiusKm}km`
-      );
+      targetStores = filterAndSortByDistance(stores as StoreData[], userLat, userLng, radiusKm);
+      console.log(`Filtered stores by distance: ${targetStores.length} within ${radiusKm}km`);
     }
 
-    // API呼び出し制限のため最大数を制限
     const limitedStores = targetStores.slice(0, MAX_STORES_PER_REQUEST);
 
-    // キャッシュが有効な店舗をスキップしてAPI呼び出しを削減
+    // ★重要: キャッシュが有効な店舗をフィルタリングして除外する（APIコスト削減）
+    // forceUpdateがfalseなら、キャッシュ切れの店舗だけが更新対象になる
     const storesToUpdate = forceUpdate
       ? limitedStores
       : limitedStores.filter((store) => !isCacheValid(store.last_is_open_check_at));
 
-    console.log(
-      `Stores to update: ${storesToUpdate.length} (skipped ${limitedStores.length - storesToUpdate.length} cached)`
-    );
+    console.log(`Stores to update: ${storesToUpdate.length} (skipped ${limitedStores.length - storesToUpdate.length} cached)`);
 
-    const updatePromises = storesToUpdate.map((store) =>
-      updateSingleStore(store as StoreData, forceUpdate)
-    );
-
+    const updatePromises = storesToUpdate.map((store) => updateSingleStore(store as StoreData, forceUpdate));
     const results = await Promise.all(updatePromises);
     const successful = results.filter((r) => r !== null);
 
-    // キャッシュから返した店舗の情報も含める
+    // キャッシュ済みの店舗情報もレスポンスには含めておく（クライアント側の整合性のため）
     const cachedStores = limitedStores
       .filter((store) => !forceUpdate && isCacheValid(store.last_is_open_check_at))
       .map((store) => ({
@@ -443,59 +447,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error in update-is-open API:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
-}
-
-export async function GET(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const storeId = searchParams.get('storeId');
-    const forceUpdate = searchParams.get('forceUpdate') === 'true';
-
-    if (!storeId) {
-      return NextResponse.json({ error: 'storeId is required' }, { status: 400 });
-    }
-
-    const { data: store, error: fetchError } = await supabase
-      .from('stores')
-      .select(
-        'id, google_place_id, latitude, longitude, vacancy_status, last_is_open_check_at, is_open, manual_closed, closed_reason, manual_closed_at'
-      )
-      .eq('id', storeId)
-      .single();
-
-    if (fetchError || !store) {
-      return NextResponse.json({ error: 'Store not found' }, { status: 404 });
-    }
-
-    // キャッシュが有効な場合はAPI呼び出しをスキップ
-    if (!forceUpdate && isCacheValid(store.last_is_open_check_at)) {
-      return NextResponse.json({
-        success: true,
-        storeId: store.id,
-        isOpen: store.is_open ?? false,
-        vacancyStatus: store.vacancy_status ?? 'closed',
-        manualClosed: store.manual_closed ?? false,
-        closedReason: store.closed_reason,
-        fromCache: true,
-        cacheTTL: CACHE_TTL_MS,
-      });
-    }
-
-    const result = await updateSingleStore(store as StoreData, forceUpdate);
-
-    if (!result) {
-      return NextResponse.json({ error: 'Failed to update store' }, { status: 500 });
-    }
-
-    return NextResponse.json({
-      success: true,
-      ...result,
-      cacheTTL: CACHE_TTL_MS,
-    });
-  } catch (error) {
-    console.error('Error in GET update-is-open API:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
