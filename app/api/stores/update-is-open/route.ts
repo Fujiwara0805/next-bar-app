@@ -6,6 +6,9 @@
  * * 【最適化】
  * - キャッシュ有効期間を60分に設定
  * - 優先度付き更新（近い店舗から順に）
+ * * 【重要な仕様】
+ * - forceUpdate=true のときは CAS ロックをスキップして必ず Google Places API を叩く
+ * - これにより「更新ボタンを押せば必ず最新情報を取得できる」を保証
  * ============================================
  */
 
@@ -150,6 +153,8 @@ async function clearManualClose(storeId: string): Promise<boolean> {
  * - キャッシュ切れのタイミングで大量同時アクセスが起きても、最初に「更新権」を獲得した1リクエストだけが
  *   last_is_open_check_at を now に進め、その後に Google API を叩きます。
  * - 他のリクエストは「更新中」とみなして Google API を叩かず、DB値を返します。
+ * 
+ * ※ forceUpdate=true のときはこの機構をスキップするため、必ず Google API が叩かれます。
  */
 async function tryClaimIsOpenRefresh(
   storeId: string,
@@ -189,35 +194,6 @@ async function fetchLatestStore(storeId: string): Promise<StoreData | null> {
 
   if (error || !data) return null;
   return data as StoreData;
-}
-
-/**
- * 方案A: forceUpdate=true のとき、他リクエストが更新権を獲得していた場合でも
- * ユーザー体験として「押したら最新化された結果」を返しやすくするために、短時間だけDB更新完了を待ちます。
- *
- * last_is_open_check_at は「更新権獲得時点」で先行更新されるため、
- * 実際の値（is_open / vacancy_status / closed_reason 等）の反映完了は updated_at の変化で検知します。
- */
-async function waitForStoreUpdate(
-  storeId: string,
-  observedUpdatedAt: string | null,
-  timeoutMs: number = 2500,
-  intervalMs: number = 250
-): Promise<StoreData | null> {
-  const started = Date.now();
-
-  while (Date.now() - started < timeoutMs) {
-    await new Promise((r) => setTimeout(r, intervalMs));
-
-    const latest = await fetchLatestStore(storeId);
-    if (!latest) continue;
-
-    if (latest.updated_at && latest.updated_at !== observedUpdatedAt) {
-      return latest;
-    }
-  }
-
-  return null;
 }
 
 async function updateSingleStore(
@@ -286,50 +262,108 @@ async function updateSingleStore(
     };
   }
 
-  // ★大量同時アクセス対策: キャッシュ切れ時でも Google API を叩くのは原則1回
-  // 先に last_is_open_check_at を CAS 更新して「更新権」を獲得できたリクエストだけが Google API を叩く
-  // （forceUpdate=true のときは常に更新権獲得を試みる）
+  // ★forceUpdate=true のときは CAS ロックをスキップして必ず Google API を叩く
+  // これにより「更新ボタンを押せば必ず最新情報を取得できる」を保証する
   let claimTimeIso = new Date().toISOString();
-  let claimed = await tryClaimIsOpenRefresh(store.id, store.last_is_open_check_at, claimTimeIso);
+  let claimed = false;
 
+  if (!forceUpdate) {
+    // 通常のキャッシュ切れ時のみ CAS ロックを使用（大量同時アクセス対策）
+    claimed = await tryClaimIsOpenRefresh(store.id, store.last_is_open_check_at, claimTimeIso);
 
-  // forceUpdate では「押したら必ず最新化」に寄せるため、
-  // スナップショットが古くてCASに失敗した場合は、最新行を取り直してもう一度だけ獲得を試みる。
+    if (!claimed) {
+      // 他のリクエストが先に更新権を獲得している（または直前で更新された）
+      // Google API は叩かず、最新のDB状態を返す。
+      const latest = await fetchLatestStore(store.id);
+      const source = latest ?? store;
 
-  if (!claimed) {
-    // 他のリクエストが先に更新権を獲得している（または直前で更新された）
-    // Google API は叩かず、最新のDB状態を返す。
-    const latest = await fetchLatestStore(store.id);
-
-    // 方案A: forceUpdate のときは短時間だけ更新完了を待ち、より新しい値を返す
-    let waited: StoreData | null = null;
-    if (forceUpdate) {
-      const observed = latest?.updated_at ?? store.updated_at ?? null;
-      waited = await waitForStoreUpdate(store.id, observed);
+      return {
+        storeId: source.id,
+        isOpen: source.is_open ?? false,
+        vacancyStatus: source.vacancy_status ?? 'closed',
+        manualClosed: source.manual_closed ?? false,
+        closedReason: source.closed_reason as 'manual' | 'business_hours' | null,
+        fromCache: true,
+      };
     }
-
-    // 最新行が取れなければ、元の store から返す（最悪でも API は叩かない）
-    const source = waited ?? latest ?? store;
-
-    return {
-      storeId: source.id,
-      isOpen: source.is_open ?? false,
-      vacancyStatus: source.vacancy_status ?? 'closed',
-      manualClosed: source.manual_closed ?? false,
-      closedReason: source.closed_reason as 'manual' | 'business_hours' | null,
-      fromCache: true,
-    };
+  } else {
+    // forceUpdate=true: CAS ロックなしで直接進む（必ず Google API を叩く）
+    claimed = true;
+    console.log(`[forceUpdate] Store ${store.id}: Bypassing CAS lock, will call Google API directly`);
   }
 
   try {
-    // 更新権を獲得したリクエストのみ Google API を叩く
+    // 更新権を獲得したリクエスト、または forceUpdate=true のリクエストが Google API を叩く
     const googleIsOpen = await checkIsOpenFromGooglePlaceId(store.google_place_id);
 
+    console.log(`[Google API] Store ${store.id}: isOpen=${googleIsOpen}, forceUpdate=${forceUpdate}`);
 
     if (googleIsOpen === null) {
       console.warn(`Failed to get opening hours for store ${store.id}`);
 
-      // Google取得失敗時も claim を巻き戻し、次のforceUpdateで必ず再試行できるようにする
+      // forceUpdate=false で CAS ロックを獲得していた場合のみロールバック
+      if (!forceUpdate && claimed) {
+        try {
+          const rollbackTime = new Date().toISOString();
+          const { error: rollbackError } = await supabase
+            .from('stores')
+            .update({
+              last_is_open_check_at: store.last_is_open_check_at,
+              updated_at: rollbackTime,
+            })
+            .eq('id', store.id)
+            .eq('last_is_open_check_at', claimTimeIso);
+
+          if (rollbackError) {
+            console.error(`Rollback failed for store ${store.id}:`, rollbackError);
+          }
+        } catch (e) {
+          console.error(`Rollback exception for store ${store.id}:`, e);
+        }
+      }
+
+      return null;
+    }
+
+    const { isOpen, vacancyStatus, closedReason } = determineOpenStatusAndVacancy(
+      googleIsOpen,
+      manualClosed,
+      store.vacancy_status
+    );
+
+    const now = new Date().toISOString();
+
+    const { error } = await supabase
+      .from('stores')
+      .update({
+        is_open: isOpen,
+        vacancy_status: vacancyStatus,
+        closed_reason: closedReason,
+        last_is_open_check_at: now, // forceUpdate 時もここで更新
+        updated_at: now,
+      })
+      .eq('id', store.id);
+
+    if (error) {
+      console.error(`Error updating store ${store.id} after google result:`, error);
+      return null;
+    }
+
+    console.log(`[Updated] Store ${store.id}: isOpen=${isOpen}, vacancyStatus=${vacancyStatus}, fromCache=false`);
+
+    return {
+      storeId: store.id,
+      isOpen,
+      vacancyStatus,
+      manualClosed: false,
+      closedReason,
+      fromCache: false,
+    };
+  } catch (error) {
+    console.error(`Error processing store ${store.id}:`, error);
+
+    // forceUpdate=false で CAS ロックを獲得していた場合のみロールバック
+    if (!forceUpdate && claimed) {
       try {
         const rollbackTime = new Date().toISOString();
         const { error: rollbackError } = await supabase
@@ -347,64 +381,6 @@ async function updateSingleStore(
       } catch (e) {
         console.error(`Rollback exception for store ${store.id}:`, e);
       }
-
-      return null;
-    }
-
-    const { isOpen, vacancyStatus, closedReason } = determineOpenStatusAndVacancy(
-      googleIsOpen,
-      manualClosed,
-      store.vacancy_status
-    );
-
-    // claimTimeIso を last_is_open_check_at としてすでに書き込んでいるため、ここでは上書きしない。
-    const now = new Date().toISOString();
-
-    const { error } = await supabase
-      .from('stores')
-      .update({
-        is_open: isOpen,
-        vacancy_status: vacancyStatus,
-        closed_reason: closedReason,
-        updated_at: now,
-      })
-      .eq('id', store.id);
-
-    if (error) {
-      console.error(`Error updating store ${store.id} after google result:`, error);
-      return null;
-    }
-
-
-    return {
-      storeId: store.id,
-      isOpen,
-      vacancyStatus,
-      manualClosed: false,
-      closedReason,
-      fromCache: false,
-    };
-  } catch (error) {
-    console.error(`Error processing store ${store.id}:`, error);
-
-    // 失敗時はロック（last_is_open_check_at の先行更新）を巻き戻し、次のリクエストで再試行できるようにする
-    try {
-      const rollbackTime = new Date().toISOString();
-      const { error: rollbackError } = await supabase
-        .from('stores')
-        .update({
-          last_is_open_check_at: store.last_is_open_check_at,
-          updated_at: rollbackTime,
-        })
-        .eq('id', store.id)
-        // 自分が獲得した claim のみ戻す（他の更新を巻き込まない）
-        .eq('last_is_open_check_at', claimTimeIso);
-
-      if (rollbackError) {
-        console.error(`Rollback failed for store ${store.id}:`, rollbackError);
-      }
-    } catch (e) {
-      console.error(`Rollback exception for store ${store.id}:`, e);
     }
 
     return null;
