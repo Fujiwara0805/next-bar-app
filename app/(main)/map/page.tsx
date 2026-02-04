@@ -752,32 +752,90 @@ function MapPageContent() {
   /**
    * 更新ボタン押下時
    * - 全キャッシュをクリアしてから位置情報・店舗を再取得
+   * - 必ず現在地を取得し、APIを forceUpdate で叩く
+   * - localStorage クールダウン解除、初回更新フラグリセット
    */
   const handleRefresh = async () => {
     setRefreshing(true);
+
+    // 現在地を確実に取得する（失敗時はキャッシュ or DEFAULT_LOCATION にフォールバック）
+    const getFreshLocation = async (): Promise<{ lat: number; lng: number }> => {
+      // 1) 既にstateがあるならそれを使う（最も速い）
+      if (userLocation) return userLocation;
+
+      // 2) 共有キャッシュにあれば使う
+      const cached = locationCache.get();
+      if (cached && !cached.isDefault) {
+        return { lat: cached.lat, lng: cached.lng };
+      }
+
+      // 3) できるだけ新しい位置を取得
+      if (typeof navigator !== 'undefined' && navigator.geolocation) {
+        try {
+          const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+              enableHighAccuracy: false,
+              timeout: 2500,
+              maximumAge: 0,
+            });
+          });
+
+          const fresh = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+
+          // locationCache を更新（他画面とも共有）
+          locationCache.set({
+            lat: fresh.lat,
+            lng: fresh.lng,
+            accuracy: pos.coords.accuracy,
+            isDefault: false,
+          });
+
+          return fresh;
+        } catch (e) {
+          // fallthrough
+        }
+      }
+
+      // 4) 最後はデフォルト
+      return DEFAULT_LOCATION;
+    };
+
     try {
       // キャッシュで保存している情報を全てクリア
       cacheManager.clearAll();
 
-      // 位置情報を再取得（getCurrentPosition でキャッシュに再保存される）
-      refreshLocation();
-
-      // 現在地ベースでis_open更新（位置取得完了前の state を使う場合あり）
-      if (userLocation) {
-        const res = await fetch('/api/stores/update-is-open', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userLat: userLocation.lat,
-            userLng: userLocation.lng,
-            radiusKm: IS_OPEN_UPDATE_RADIUS_KM,
-            forceUpdate: true,
-          }),
-        });
-        const result = await res.json();
-        debugLog('Force refresh result (1km radius):', result);
+      // localStorage クールダウンを解除（更新ボタンは常に最新化したい）
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.removeItem(IS_OPEN_UPDATE_LOCALSTORAGE_KEY);
+        } catch (e) {
+          // ignore
+        }
       }
 
+      // 初回更新フラグもリセット（以後の挙動一貫性のため）
+      isOpenUpdatedRef.current = false;
+
+      // 位置情報を再取得（バックグラウンド更新）
+      refreshLocation();
+
+      // ★更新ボタンは必ず /api/stores/update-is-open を forceUpdate=true で叩く
+      const loc = await getFreshLocation();
+      const res = await fetch('/api/stores/update-is-open', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userLat: loc.lat,
+          userLng: loc.lng,
+          radiusKm: IS_OPEN_UPDATE_RADIUS_KM,
+          forceUpdate: true,
+        }),
+      });
+
+      const result = await res.json();
+      debugLog('Force refresh result (1km radius):', result);
+
+      // 更新が走った直後は DB 取り直しを強制
       await refreshStores();
     } catch (err) {
       debugWarn('Error refreshing:', err);

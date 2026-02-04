@@ -287,8 +287,27 @@ async function updateSingleStore(
   // ★大量同時アクセス対策: キャッシュ切れ時でも Google API を叩くのは原則1回
   // 先に last_is_open_check_at を CAS 更新して「更新権」を獲得できたリクエストだけが Google API を叩く
   // （forceUpdate=true のときは常に更新権獲得を試みる）
-  const claimTimeIso = new Date().toISOString();
-  const claimed = await tryClaimIsOpenRefresh(store.id, store.last_is_open_check_at, claimTimeIso);
+  let claimTimeIso = new Date().toISOString();
+  let claimed = await tryClaimIsOpenRefresh(store.id, store.last_is_open_check_at, claimTimeIso);
+
+  // forceUpdate では「押したら必ず最新化」に寄せるため、
+  // スナップショットが古くてCASに失敗した場合は、最新行を取り直してもう一度だけ獲得を試みる。
+  if (!claimed && forceUpdate) {
+    const latestForClaim = await fetchLatestStore(store.id);
+    if (latestForClaim) {
+      const retryClaimTimeIso = new Date().toISOString();
+      const retryClaimed = await tryClaimIsOpenRefresh(
+        store.id,
+        latestForClaim.last_is_open_check_at,
+        retryClaimTimeIso
+      );
+
+      if (retryClaimed) {
+        claimTimeIso = retryClaimTimeIso;
+        claimed = true;
+      }
+    }
+  }
 
   if (!claimed) {
     // 他のリクエストが先に更新権を獲得している（または直前で更新された）
@@ -297,8 +316,9 @@ async function updateSingleStore(
 
     // 方案A: forceUpdate のときは短時間だけ更新完了を待ち、より新しい値を返す
     let waited: StoreData | null = null;
-    if (forceUpdate && latest) {
-      waited = await waitForStoreUpdate(store.id, latest.updated_at ?? null);
+    if (forceUpdate) {
+      const observed = latest?.updated_at ?? store.updated_at ?? null;
+      waited = await waitForStoreUpdate(store.id, observed);
     }
 
     // 最新行が取れなければ、元の store から返す（最悪でも API は叩かない）
@@ -320,6 +340,26 @@ async function updateSingleStore(
 
     if (googleIsOpen === null) {
       console.warn(`Failed to get opening hours for store ${store.id}`);
+
+      // Google取得失敗時も claim を巻き戻し、次のforceUpdateで必ず再試行できるようにする
+      try {
+        const rollbackTime = new Date().toISOString();
+        const { error: rollbackError } = await supabase
+          .from('stores')
+          .update({
+            last_is_open_check_at: store.last_is_open_check_at,
+            updated_at: rollbackTime,
+          })
+          .eq('id', store.id)
+          .eq('last_is_open_check_at', claimTimeIso);
+
+        if (rollbackError) {
+          console.error(`Rollback failed for store ${store.id}:`, rollbackError);
+        }
+      } catch (e) {
+        console.error(`Rollback exception for store ${store.id}:`, e);
+      }
+
       return null;
     }
 
