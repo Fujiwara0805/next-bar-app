@@ -698,15 +698,19 @@ function MapPageContent() {
   }, [refreshLocation, fetchStores]);
 
   /**
-   * 【コスト最適化】更新ボタン押下時
-   * - 現在地から1km圏内の店舗のみis_open更新
+   * 更新ボタン押下時
+   * - 全キャッシュをクリアしてから位置情報・店舗を再取得
    */
   const handleRefresh = async () => {
     setRefreshing(true);
     try {
+      // キャッシュで保存している情報を全てクリア
+      cacheManager.clearAll();
+
+      // 位置情報を再取得（getCurrentPosition でキャッシュに再保存される）
       refreshLocation();
 
-      // 現在地ベースでis_open更新
+      // 現在地ベースでis_open更新（位置取得完了前の state を使う場合あり）
       if (userLocation) {
         const res = await fetch('/api/stores/update-is-open', {
           method: 'POST',
