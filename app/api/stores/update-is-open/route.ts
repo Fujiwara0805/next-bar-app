@@ -30,7 +30,17 @@ const CACHE_TTL_MS = 60 * 60 * 1000;
 
 const MANUAL_CLOSE_TTL_MS = 12 * 60 * 60 * 1000;
 const DEFAULT_RADIUS_KM = 1.0;
+
 const MAX_STORES_PER_REQUEST = 20;
+
+function logForceUpdate(message: string, payload?: Record<string, any>) {
+  // Vercelログで追えるように forceUpdate 時だけ詳細ログを出す
+  if (payload) {
+    console.log(`[is-open][forceUpdate] ${message}`, payload);
+  } else {
+    console.log(`[is-open][forceUpdate] ${message}`);
+  }
+}
 
 function isCacheValid(lastCheckAt: string | null): boolean {
   if (!lastCheckAt) return false;
@@ -287,8 +297,26 @@ async function updateSingleStore(
   // ★大量同時アクセス対策: キャッシュ切れ時でも Google API を叩くのは原則1回
   // 先に last_is_open_check_at を CAS 更新して「更新権」を獲得できたリクエストだけが Google API を叩く
   // （forceUpdate=true のときは常に更新権獲得を試みる）
+  if (forceUpdate) {
+    logForceUpdate('start updateSingleStore', {
+      storeId: store.id,
+      placeId: store.google_place_id,
+      prev_last_is_open_check_at: store.last_is_open_check_at,
+      prev_is_open: store.is_open,
+      prev_vacancy_status: store.vacancy_status,
+    });
+  }
   let claimTimeIso = new Date().toISOString();
   let claimed = await tryClaimIsOpenRefresh(store.id, store.last_is_open_check_at, claimTimeIso);
+
+  if (forceUpdate) {
+    logForceUpdate('claim result (first)', {
+      storeId: store.id,
+      claimed,
+      claimTimeIso,
+      prev_last_is_open_check_at: store.last_is_open_check_at,
+    });
+  }
 
   // forceUpdate では「押したら必ず最新化」に寄せるため、
   // スナップショットが古くてCASに失敗した場合は、最新行を取り直してもう一度だけ獲得を試みる。
@@ -305,6 +333,20 @@ async function updateSingleStore(
       if (retryClaimed) {
         claimTimeIso = retryClaimTimeIso;
         claimed = true;
+        if (forceUpdate) {
+          logForceUpdate('claim result (retry) -> success', {
+            storeId: store.id,
+            claimTimeIso,
+            prev_last_is_open_check_at_latest: latestForClaim.last_is_open_check_at,
+          });
+        }
+      } else {
+        if (forceUpdate) {
+          logForceUpdate('claim result (retry) -> failed', {
+            storeId: store.id,
+            prev_last_is_open_check_at_latest: latestForClaim.last_is_open_check_at,
+          });
+        }
       }
     }
   }
@@ -324,6 +366,15 @@ async function updateSingleStore(
     // 最新行が取れなければ、元の store から返す（最悪でも API は叩かない）
     const source = waited ?? latest ?? store;
 
+    if (forceUpdate) {
+      logForceUpdate('could not claim -> returning DB value', {
+        storeId: source.id,
+        source_last_is_open_check_at: source.last_is_open_check_at,
+        source_is_open: source.is_open,
+        source_closed_reason: source.closed_reason,
+      });
+    }
+
     return {
       storeId: source.id,
       isOpen: source.is_open ?? false,
@@ -337,6 +388,14 @@ async function updateSingleStore(
   try {
     // 更新権を獲得したリクエストのみ Google API を叩く
     const googleIsOpen = await checkIsOpenFromGooglePlaceId(store.google_place_id);
+
+    if (forceUpdate) {
+      logForceUpdate('google result', {
+        storeId: store.id,
+        placeId: store.google_place_id,
+        googleIsOpen,
+      });
+    }
 
     if (googleIsOpen === null) {
       console.warn(`Failed to get opening hours for store ${store.id}`);
@@ -358,6 +417,14 @@ async function updateSingleStore(
         }
       } catch (e) {
         console.error(`Rollback exception for store ${store.id}:`, e);
+      }
+
+      if (forceUpdate) {
+        logForceUpdate('google result null -> rolled back claim', {
+          storeId: store.id,
+          rolledBackTo: store.last_is_open_check_at,
+          claimTimeIso,
+        });
       }
 
       return null;
@@ -382,7 +449,20 @@ async function updateSingleStore(
       })
       .eq('id', store.id);
 
-    if (error) return null;
+    if (error) {
+      console.error(`Error updating store ${store.id} after google result:`, error);
+      return null;
+    }
+
+    if (forceUpdate) {
+      logForceUpdate('db updated from google', {
+        storeId: store.id,
+        isOpen,
+        vacancyStatus,
+        closedReason,
+        claimTimeIso,
+      });
+    }
 
     return {
       storeId: store.id,
@@ -498,6 +578,17 @@ export async function POST(request: NextRequest) {
     const updatePromises = storesToUpdate.map((store) => updateSingleStore(store as StoreData, forceUpdate));
     const results = await Promise.all(updatePromises);
     const successful = results.filter((r) => r !== null);
+    const failed = results
+      .map((r, idx) => ({ r, idx }))
+      .filter(({ r }) => r === null)
+      .map(({ idx }) => {
+        const s = storesToUpdate[idx] as StoreWithDistance;
+        return {
+          storeId: s.id,
+          placeId: s.google_place_id,
+          last_is_open_check_at: s.last_is_open_check_at,
+        };
+      });
 
     // キャッシュ済みの店舗情報もレスポンスには含めておく（クライアント側の整合性のため）
     const cachedStores = limitedStores
@@ -521,6 +612,8 @@ export async function POST(request: NextRequest) {
       radiusKm: userLat !== undefined ? radiusKm : null,
       results: [...successful, ...cachedStores],
       cacheTTL: CACHE_TTL_MS,
+      forceUpdate,
+      failed,
     });
   } catch (error) {
     console.error('Error in update-is-open API:', error);
