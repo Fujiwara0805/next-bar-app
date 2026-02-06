@@ -196,7 +196,7 @@ export async function updateCampaign(
 }
 
 /**
- * キャンペーンを削除（論理削除）
+ * キャンペーンを削除（物理削除）
  */
 export async function deleteCampaign(id: string): Promise<{
   success: boolean;
@@ -205,13 +205,10 @@ export async function deleteCampaign(id: string): Promise<{
   try {
     const supabase = createServerSupabaseClient();
 
-    // 論理削除（is_activeをfalseに）
+    // 物理削除（campaignsテーブルから削除）
     const { error } = await supabase
       .from('campaigns')
-      .update({
-        is_active: false,
-        updated_at: new Date().toISOString(),
-      })
+      .delete()
       .eq('id', id);
 
     if (error) {

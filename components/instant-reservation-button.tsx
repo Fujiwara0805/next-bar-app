@@ -146,7 +146,7 @@ export function InstantReservationButton({
       <CustomModal
         isOpen={showDialog}
         onClose={handleCancel}
-        title={`⏰ ${t('reservation.title')}`}
+        title=""
         description={t('reservation.description_format').replace('{storeName}', storeName)}
       >
         <motion.div 
@@ -211,8 +211,8 @@ export function InstantReservationButton({
               value={guestName}
               onChange={(e) => setGuestName(e.target.value)}
               disabled={requesting}
-              className="font-bold bg-white border-[#2c5c6e]"
-              style={{ fontSize: '16px', color: '#7a9cad' }}
+              className="font-bold bg-white border-[#2c5c6e] placeholder:text-[#b0c4ce] placeholder:font-normal"
+              style={{ fontSize: '16px', color: '#2D3436' }}
             />
           </motion.div>
 
@@ -232,8 +232,8 @@ export function InstantReservationButton({
               value={guestPhone}
               onChange={(e) => setGuestPhone(e.target.value)}
               disabled={requesting}
-              className="font-bold bg-white border-[#2c5c6e]"
-              style={{ fontSize: '16px', color: '#7a9cad' }}
+              className="font-bold bg-white border-[#2c5c6e] placeholder:text-[#b0c4ce] placeholder:font-normal"
+              style={{ fontSize: '16px', color: '#2D3436' }}
             />
           </motion.div>
 

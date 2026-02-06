@@ -1084,7 +1084,6 @@ export function CouponDisplayModal({
                     ) : (
                       <>
                         {t('coupon.show_coupon')}
-                        <Gift className="w-4 h-4" />
                       </>
                     )}
                   </motion.button>
@@ -1106,44 +1105,9 @@ export function CouponDisplayModal({
                 transition={{ duration: 0.3, ease: 'easeInOut' }}
               >
                 {/* ヘッダー */}
-                <div className="relative px-6 pt-8 pb-4">
-                  {/* 店舗名バッジ */}
-                  <div 
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-4"
-                    style={{
-                      backgroundColor: 'rgba(201, 168, 108, 0.12)',
-                      border: `1px solid rgba(201, 168, 108, 0.25)`,
-                    }}
-                  >
-                    <Ticket className="w-4 h-4" style={{ color: COLORS.champagneGold }} />
-                    <span 
-                      className="text-xs font-medium tracking-widest uppercase"
-                      style={{ color: COLORS.champagneGold }}
-                    >
-                      Special Coupon
-                    </span>
-                  </div>
+                <div className="relative px-6 pt-6 pb-3">
 
-                  {/* タイトル */}
-                  <h2 
-                    className="text-2xl font-light tracking-wide mb-1 pr-8"
-                    style={{ 
-                      color: COLORS.ivory,
-                      fontFamily: '"Cormorant Garamond", "Noto Serif JP", serif',
-                    }}
-                  >
-                    {coupon.coupon_title || t('coupon.default_coupon_title')}
-                  </h2>
-                  <p 
-                    className="text-sm tracking-wide"
-                    style={{ color: COLORS.warmGray }}
-                  >
-                    {storeName}
-                  </p>
-
-                  <GoldDivider />
-
-                  {/* 割引表示 */}
+                  {/* 割引表示（タイトル含む） */}
                   <motion.div
                     initial={{ scale: 0.95, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
@@ -1154,7 +1118,24 @@ export function CouponDisplayModal({
                       border: `1px solid rgba(201, 168, 108, 0.2)`,
                     }}
                   >
-                    <div className="flex items-center gap-4 mb-4">
+                    {/* 店舗名 */}
+                    <p
+                      className="text-xs tracking-wide mb-1"
+                      style={{ color: COLORS.warmGray }}
+                    >
+                      {storeName}
+                    </p>
+                    {/* クーポンタイトル */}
+                    <h2
+                      className="text-lg font-bold tracking-wide mb-3 pr-6"
+                      style={{
+                        color: COLORS.ivory,
+                        fontFamily: '"Cormorant Garamond", "Noto Serif JP", serif',
+                      }}
+                    >
+                      {coupon.coupon_title || t('coupon.default_coupon_title')}
+                    </h2>
+                    <div className="flex items-center gap-4 mb-3">
                       <div className="flex-1 h-px" style={{ background: `linear-gradient(to right, transparent, ${COLORS.champagneGold}50, transparent)` }} />
                       <div className="w-2 h-2 rotate-45" style={{ backgroundColor: COLORS.champagneGold }} />
                       <div className="flex-1 h-px" style={{ background: `linear-gradient(to right, transparent, ${COLORS.champagneGold}50, transparent)` }} />
@@ -1214,7 +1195,7 @@ export function CouponDisplayModal({
                       </p>
                     )}
 
-                    <div className="flex items-center gap-4 mt-4">
+                    <div className="flex items-center gap-4 mt-3">
                       <div className="flex-1 h-px" style={{ background: `linear-gradient(to right, transparent, ${COLORS.champagneGold}50, transparent)` }} />
                       <div className="w-2 h-2 rotate-45" style={{ backgroundColor: COLORS.champagneGold }} />
                       <div className="flex-1 h-px" style={{ background: `linear-gradient(to right, transparent, ${COLORS.champagneGold}50, transparent)` }} />
@@ -1223,7 +1204,7 @@ export function CouponDisplayModal({
                 </div>
 
                 {/* コンテンツ */}
-                <div className="relative space-y-4 px-6 pb-6">
+                <div className="relative space-y-3 px-6 pb-6">
                   {/* クーポン画像 */}
                   {coupon.coupon_image_url && (
                     <div 
@@ -1510,30 +1491,33 @@ export function CouponDisplayModal({
                   transition={{ delay: 0.4 }}
                   className="mb-6"
                 >
-                  <div 
-                    className="rounded-xl p-4 mb-4"
-                    style={{
-                      backgroundColor: 'rgba(201, 168, 108, 0.1)',
-                      border: `1px solid rgba(201, 168, 108, 0.2)`,
-                    }}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div 
-                        className="flex-shrink-0 p-2 rounded-full"
-                        style={{ backgroundColor: 'rgba(201, 168, 108, 0.2)' }}
-                      >
-                        <Gift className="w-5 h-5" style={{ color: COLORS.champagneGold }} />
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-sm mb-1" style={{ color: COLORS.champagneGold }}>
-                          {t('coupon.extra_bonus')}
-                        </h3>
-                        <p className="text-xs leading-relaxed" style={{ color: COLORS.platinum }}>
-                          {t('coupon.bonus_instruction')}
-                        </p>
+                  {/* 追加特典テキスト（coupon_additional_bonusが設定されている場合のみ表示） */}
+                  {coupon.coupon_additional_bonus && coupon.coupon_additional_bonus.trim() !== '' && (
+                    <div
+                      className="rounded-xl p-4 mb-4"
+                      style={{
+                        backgroundColor: 'rgba(201, 168, 108, 0.1)',
+                        border: `1px solid rgba(201, 168, 108, 0.2)`,
+                      }}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div
+                          className="flex-shrink-0 p-2 rounded-full"
+                          style={{ backgroundColor: 'rgba(201, 168, 108, 0.2)' }}
+                        >
+                          <Gift className="w-5 h-5" style={{ color: COLORS.champagneGold }} />
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-sm mb-1" style={{ color: COLORS.champagneGold }}>
+                            {t('coupon.extra_bonus')}
+                          </h3>
+                          <p className="text-xs leading-relaxed" style={{ color: COLORS.platinum }}>
+                            {t('coupon.bonus_instruction')}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
 
                   <div className="space-y-3">
                     {/* Instagram導線（URLがある場合のみ表示） */}

@@ -31,6 +31,7 @@ import { Card } from '@/components/ui/card';
 import { useLanguage, SUPPORTED_LANGUAGES, LANGUAGE_META } from '@/lib/i18n/context';
 import type { Language } from '@/lib/i18n/translations';
 import { supabase } from '@/lib/supabase/client';
+import { locationCache } from '@/lib/cache';
 
 // ============================================
 // 統一カラーパレット（店舗詳細画面準拠）
@@ -274,9 +275,14 @@ export default function LandingPage() {
   const handleLocationPermission = async (allow: boolean) => {
     if (allow) {
       setLocationPermission('loading');
+      // 位置情報キャッシュをリセットして最新の位置を取得
+      locationCache.clear();
+      localStorage.removeItem('userLocation');
+      locationAttemptRef.current = false;
       try {
         const location = await getLocationWithFallback();
         localStorage.setItem('userLocation', JSON.stringify({ ...location, timestamp: Date.now() }));
+        locationCache.set({ lat: location.lat, lng: location.lng, isDefault: location.isDefault });
         setLocationPermission(location.isDefault ? 'denied' : 'granted');
         setTimeout(() => { setShowLocationModal(false); router.push('/map?from=landing'); }, 300);
       } catch {

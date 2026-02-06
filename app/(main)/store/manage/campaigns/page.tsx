@@ -25,16 +25,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+// AlertDialog removed - using CustomModal for delete confirmation
 import { CustomModal } from '@/components/ui/custom-modal';
 import { useAuth } from '@/lib/auth/context';
 import { toast } from 'sonner';
@@ -87,8 +78,8 @@ const COLORS = {
 // ============================================
 const inputStyles = {
   base: `
-    w-full px-4 py-3 rounded-xl
-    bg-white border-2 
+    w-full px-3 py-2.5 rounded-lg
+    bg-white border-2
     transition-all duration-200
     font-medium
     placeholder:text-gray-400
@@ -533,15 +524,15 @@ export default function CampaignsManagePage() {
         onClose={handleCloseModal}
         title=""
       >
-        <div className="space-y-5">
+        <div className="space-y-3">
           {/* キャンペーン名 */}
-          <div className="space-y-2">
-            <Label 
-              htmlFor="campaign-name" 
-              className="font-bold flex items-center gap-2"
+          <div className="space-y-1">
+            <Label
+              htmlFor="campaign-name"
+              className="text-sm font-bold flex items-center gap-1.5"
               style={{ color: COLORS.deepNavy }}
             >
-              <PartyPopper className="w-4 h-4" style={{ color: COLORS.champagneGold }} />
+              <PartyPopper className="w-3.5 h-3.5" style={{ color: COLORS.champagneGold }} />
               キャンペーン名 <span style={{ color: COLORS.champagneGold }}>*</span>
             </Label>
             <Input
@@ -562,10 +553,10 @@ export default function CampaignsManagePage() {
           </div>
 
           {/* 説明 */}
-          <div className="space-y-2">
-            <Label 
-              htmlFor="campaign-description" 
-              className="font-bold"
+          <div className="space-y-1">
+            <Label
+              htmlFor="campaign-description"
+              className="text-sm font-bold"
               style={{ color: COLORS.deepNavy }}
             >
               説明
@@ -575,25 +566,25 @@ export default function CampaignsManagePage() {
               value={formValues.description}
               onChange={(e) => handleFormChange('description', e.target.value)}
               placeholder="キャンペーンの詳細を入力してください"
-              rows={3}
+              rows={2}
               disabled={saving}
               className={getInputClassName(saving)}
-              style={{ fontSize: '16px', minHeight: '80px', color: COLORS.charcoal }}
+              style={{ fontSize: '16px', minHeight: '60px', color: COLORS.charcoal }}
             />
           </div>
 
           {/* キャンペーン画像 */}
-          <div className="space-y-2">
-            <Label 
-              className="font-bold flex items-center gap-2"
+          <div className="space-y-1">
+            <Label
+              className="text-sm font-bold flex items-center gap-1.5"
               style={{ color: COLORS.deepNavy }}
             >
-              <ImageIcon className="w-4 h-4" style={{ color: COLORS.champagneGold }} />
+              <ImageIcon className="w-3.5 h-3.5" style={{ color: COLORS.champagneGold }} />
               キャンペーン画像
             </Label>
-            
+
             {formValues.imageUrl ? (
-              <div className="relative rounded-xl overflow-hidden">
+              <div className="relative rounded-lg overflow-hidden">
                 <div className="aspect-video relative">
                   <Image
                     src={formValues.imageUrl}
@@ -622,59 +613,54 @@ export default function CampaignsManagePage() {
                 </div>
               </div>
             ) : (
-              <motion.div
-                whileHover={{ scale: 1.01 }}
-                whileTap={{ scale: 0.99 }}
+              <label
+                className="flex items-center justify-center gap-3 p-4 rounded-lg cursor-pointer transition-all"
+                style={{
+                  border: `2px dashed rgba(201, 168, 108, 0.4)`,
+                  backgroundColor: 'rgba(201, 168, 108, 0.05)',
+                }}
               >
-                <label
-                  className="flex flex-col items-center justify-center gap-3 p-6 rounded-xl cursor-pointer transition-all"
-                  style={{
-                    border: `2px dashed rgba(201, 168, 108, 0.4)`,
-                    backgroundColor: 'rgba(201, 168, 108, 0.05)',
-                  }}
-                >
-                  {uploadingImage ? (
-                    <Loader2 className="w-8 h-8 animate-spin" style={{ color: COLORS.champagneGold }} />
-                  ) : (
-                    <>
-                      <div 
-                        className="p-3 rounded-full"
-                        style={{ backgroundColor: 'rgba(201, 168, 108, 0.15)' }}
-                      >
-                        <Upload className="w-6 h-6" style={{ color: COLORS.champagneGold }} />
-                      </div>
-                      <div className="text-center">
-                        <p className="font-bold text-sm" style={{ color: COLORS.deepNavy }}>
-                          クリックして画像をアップロード
-                        </p>
-                        <p className="text-xs mt-1" style={{ color: COLORS.warmGray }}>
-                          PNG, JPG, WEBP（最大5MB）
-                        </p>
-                      </div>
-                    </>
-                  )}
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    disabled={saving || uploadingImage}
-                    className="hidden"
-                  />
-                </label>
-              </motion.div>
+                {uploadingImage ? (
+                  <Loader2 className="w-6 h-6 animate-spin" style={{ color: COLORS.champagneGold }} />
+                ) : (
+                  <>
+                    <div
+                      className="p-2 rounded-full"
+                      style={{ backgroundColor: 'rgba(201, 168, 108, 0.15)' }}
+                    >
+                      <Upload className="w-5 h-5" style={{ color: COLORS.champagneGold }} />
+                    </div>
+                    <div>
+                      <p className="font-bold text-sm" style={{ color: COLORS.deepNavy }}>
+                        画像をアップロード
+                      </p>
+                      <p className="text-xs" style={{ color: COLORS.warmGray }}>
+                        PNG, JPG, WEBP（最大5MB）
+                      </p>
+                    </div>
+                  </>
+                )}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  disabled={saving || uploadingImage}
+                  className="hidden"
+                />
+              </label>
             )}
           </div>
 
           {/* 期間設定 */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label 
-                htmlFor="campaign-start" 
-                className="font-bold flex items-center gap-2"
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <Label
+                htmlFor="campaign-start"
+                className="text-sm font-bold flex items-center gap-1.5"
                 style={{ color: COLORS.deepNavy }}
               >
-                <Calendar className="w-4 h-4" style={{ color: COLORS.champagneGold }} />
+                <Calendar className="w-3.5 h-3.5" style={{ color: COLORS.champagneGold }} />
                 開始日 <span style={{ color: COLORS.champagneGold }}>*</span>
               </Label>
               <Input
@@ -691,13 +677,13 @@ export default function CampaignsManagePage() {
               )}
             </div>
 
-            <div className="space-y-2">
-              <Label 
-                htmlFor="campaign-end" 
-                className="font-bold flex items-center gap-2"
+            <div className="space-y-1">
+              <Label
+                htmlFor="campaign-end"
+                className="text-sm font-bold flex items-center gap-1.5"
                 style={{ color: COLORS.deepNavy }}
               >
-                <Calendar className="w-4 h-4" style={{ color: COLORS.champagneGold }} />
+                <Calendar className="w-3.5 h-3.5" style={{ color: COLORS.champagneGold }} />
                 終了日 <span style={{ color: COLORS.champagneGold }}>*</span>
               </Label>
               <Input
@@ -716,19 +702,19 @@ export default function CampaignsManagePage() {
           </div>
 
           {/* アクティブ状態 */}
-          <div 
-            className="flex items-center justify-between p-4 rounded-xl" 
-            style={{ 
+          <div
+            className="flex items-center justify-between p-3 rounded-lg"
+            style={{
               backgroundColor: 'rgba(201, 168, 108, 0.1)',
               border: `1px solid rgba(201, 168, 108, 0.2)`,
             }}
           >
             <div>
-              <Label className="font-bold" style={{ color: COLORS.deepNavy }}>
+              <Label className="text-sm font-bold" style={{ color: COLORS.deepNavy }}>
                 キャンペーンを有効にする
               </Label>
-              <p className="text-xs mt-1" style={{ color: COLORS.warmGray }}>
-                有効にすると店舗側で選択できるようになります
+              <p className="text-xs" style={{ color: COLORS.warmGray }}>
+                有効にすると店舗側で選択できます
               </p>
             </div>
             <Switch
@@ -738,30 +724,14 @@ export default function CampaignsManagePage() {
             />
           </div>
 
-          {/* ゴールドの装飾ライン */}
-          <div className="flex items-center justify-center gap-3 py-2">
-            <div 
-              className="h-px flex-1"
-              style={{ background: `linear-gradient(90deg, transparent, ${COLORS.champagneGold}40)` }}
-            />
-            <div 
-              className="w-1.5 h-1.5 rotate-45"
-              style={{ backgroundColor: COLORS.champagneGold }}
-            />
-            <div 
-              className="h-px flex-1"
-              style={{ background: `linear-gradient(90deg, ${COLORS.champagneGold}40, transparent)` }}
-            />
-          </div>
-
           {/* ボタン */}
-          <div className="flex gap-3 pt-2">
+          <div className="flex gap-3 pt-1">
             <Button
               variant="outline"
               className="flex-1 font-bold rounded-xl"
               onClick={handleCloseModal}
               disabled={saving}
-              style={{ 
+              style={{
                 borderColor: 'rgba(201, 168, 108, 0.3)',
                 backgroundColor: 'rgba(201, 168, 108, 0.08)',
                 color: COLORS.charcoal,
@@ -773,7 +743,7 @@ export default function CampaignsManagePage() {
               className="flex-1 font-bold rounded-xl"
               onClick={handleSave}
               disabled={saving}
-              style={{ 
+              style={{
                 background: COLORS.goldGradient,
                 color: COLORS.deepNavy,
                 boxShadow: '0 8px 25px rgba(201, 168, 108, 0.35)',
@@ -794,29 +764,52 @@ export default function CampaignsManagePage() {
         </div>
       </CustomModal>
 
-      {/* 削除確認ダイアログ */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>キャンペーンを削除しますか？</AlertDialogTitle>
-            <AlertDialogDescription>
-              {campaignToDelete && (
-                <>
-                  <span className="font-bold">{campaignToDelete.name}</span>
-                  を削除します。この操作により、キャンペーンは非アクティブになります。
-                  <br />
-                  <br />
-                  このキャンペーンを選択している店舗は影響を受けません。
-                </>
-              )}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting}>キャンセル</AlertDialogCancel>
-            <AlertDialogAction
+      {/* 削除確認ダイアログ（CustomModal） */}
+      <CustomModal
+        isOpen={deleteDialogOpen}
+        onClose={() => !deleting && setDeleteDialogOpen(false)}
+        title=""
+        showCloseButton={!deleting}
+      >
+        <div className="space-y-4">
+          <div className="text-center">
+            <div
+              className="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center"
+              style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)' }}
+            >
+              <Trash2 className="w-6 h-6 text-red-500" />
+            </div>
+            <h3 className="text-lg font-bold" style={{ color: COLORS.deepNavy }}>
+              キャンペーンを削除しますか？
+            </h3>
+          </div>
+          {campaignToDelete && (
+            <p className="text-sm text-center" style={{ color: COLORS.warmGray }}>
+              <span className="font-bold" style={{ color: COLORS.charcoal }}>{campaignToDelete.name}</span>
+              を完全に削除します。この操作は取り消せません。
+              <br />
+              <br />
+              このキャンペーンを選択している店舗は影響を受けません。
+            </p>
+          )}
+          <div className="flex gap-3 pt-2">
+            <Button
+              variant="outline"
+              className="flex-1 font-bold rounded-xl"
+              onClick={() => setDeleteDialogOpen(false)}
+              disabled={deleting}
+              style={{
+                borderColor: 'rgba(201, 168, 108, 0.3)',
+                backgroundColor: 'rgba(201, 168, 108, 0.08)',
+                color: COLORS.charcoal,
+              }}
+            >
+              キャンセル
+            </Button>
+            <Button
+              className="flex-1 font-bold rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={handleDeleteConfirm}
               disabled={deleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {deleting ? (
                 <>
@@ -824,12 +817,15 @@ export default function CampaignsManagePage() {
                   削除中...
                 </>
               ) : (
-                '削除'
+                <>
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  削除
+                </>
               )}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            </Button>
+          </div>
+        </div>
+      </CustomModal>
     </div>
   );
 }

@@ -21,7 +21,7 @@
 import { useEffect, useState, Suspense, useRef, useCallback, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, List, ExternalLink, Building2, RefreshCw, Home, Star, AlertCircle, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X, List, ExternalLink, Building2, RefreshCw, Home, Star, AlertCircle, Loader2, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { MapView } from '@/components/map/map-view';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -1016,8 +1016,8 @@ function MapPageContent() {
                   }}
                   title={t('map.home')}
                 >
-                  <Home className="w-5 h-5" style={{ color: colors.accent }} />
-                  <span className="text-[10px] font-bold" style={{ color: colors.accent }}>
+                  <Home className="w-5 h-5" style={{ color: '#FFFFFF' }} />
+                  <span className="text-[10px] font-bold" style={{ color: '#FFFFFF' }}>
                     {t('map.home')}
                   </span>
                 </Button>
@@ -1042,8 +1042,8 @@ function MapPageContent() {
                   }}
                   title={t('map.store_list')}
                 >
-                  <List className="w-5 h-5" style={{ color: colors.accent }} />
-                  <span className="text-[10px] font-bold" style={{ color: colors.accent }}>
+                  <List className="w-5 h-5" style={{ color: '#FFFFFF' }} />
+                  <span className="text-[10px] font-bold" style={{ color: '#FFFFFF' }}>
                     {t('map.store_list')}
                   </span>
                 </Button>
@@ -1072,9 +1072,9 @@ function MapPageContent() {
                 >
                   <RefreshCw
                     className={`w-5 h-5 ${refreshing ? 'animate-spin' : ''}`}
-                    style={{ color: colors.accent }}
+                    style={{ color: '#FFFFFF' }}
                   />
-                  <span className="text-[10px] font-bold" style={{ color: colors.accent }}>
+                  <span className="text-[10px] font-bold" style={{ color: '#FFFFFF' }}>
                     {t('map.refresh')}
                   </span>
                 </Button>
@@ -1382,27 +1382,16 @@ function MapPageLoading() {
   return (
     <div
       className="flex items-center justify-center h-screen"
-      style={{ background: colors.background }}
+      style={{ background: 'linear-gradient(165deg, #0A1628 0%, #162447 50%, #1F4068 100%)' }}
     >
       <div className="text-center">
-        <div className="relative w-14 h-14 mx-auto mb-5">
-          <div
-            className="absolute inset-0 rounded-full"
-            style={{ border: `2px solid ${colors.borderGold}` }}
-          />
-          <div
-            className="absolute inset-0 rounded-full animate-spin"
-            style={{
-              border: '2px solid transparent',
-              borderTopColor: colors.accent,
-            }}
-          />
-          <div
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full"
-            style={{ background: colors.accent }}
-          />
-        </div>
-        <p style={{ color: colors.textMuted }} className="text-sm font-medium">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+        >
+          <Sparkles className="w-10 h-10 mx-auto mb-2" style={{ color: colors.accent }} />
+        </motion.div>
+        <p className="text-sm font-bold" style={{ color: '#FDFBF7' }}>
           {t('common.loading')}
         </p>
       </div>

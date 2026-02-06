@@ -801,8 +801,8 @@ function StoreListContent() {
                   }}
                   title={t('store_list.filter')}
                 >
-                  <Filter className="w-5 h-5" style={{ color: activeFilterCount > 0 ? '#0A1628' : '#C9A86C' }} />
-                  <span className="text-[10px] font-bold" style={{ color: activeFilterCount > 0 ? '#0A1628' : '#C9A86C' }}>{t('store_list.filter')}</span>
+                  <Filter className="w-5 h-5" style={{ color: activeFilterCount > 0 ? '#0A1628' : '#FFFFFF' }} />
+                  <span className="text-[10px] font-bold" style={{ color: activeFilterCount > 0 ? '#0A1628' : '#FFFFFF' }}>{t('store_list.filter')}</span>
                   {activeFilterCount > 0 && (
                     <span className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center text-xs font-bold text-white">
                       {activeFilterCount}
@@ -912,8 +912,8 @@ function StoreListContent() {
                 }}
                 title="Map"
               >
-                <MapIcon className="w-5 h-5" style={{ color: '#C9A86C' }} />
-                <span className="text-[10px] font-bold" style={{ color: '#C9A86C' }}>Map</span>
+                <MapIcon className="w-5 h-5" style={{ color: '#FFFFFF' }} />
+                <span className="text-[10px] font-bold" style={{ color: '#FFFFFF' }}>Map</span>
               </Button>
             </motion.div>
           </motion.div>
@@ -931,10 +931,15 @@ function StoreListContent() {
 
 function StoreListLoading() {
   return (
-    <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#1C1E26' }}>
+    <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(165deg, #0A1628 0%, #162447 50%, #1F4068 100%)' }}>
       <div className="text-center">
-        <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" style={{ color: '#C9A86C' }} />
-        <p className="text-sm font-bold" style={{ color: '#636E72' }}>読み込み中...</p>
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+        >
+          <Sparkles className="w-10 h-10 mx-auto mb-2" style={{ color: '#C9A86C' }} />
+        </motion.div>
+        <p className="text-sm font-bold" style={{ color: '#FDFBF7' }}>読み込み中...</p>
       </div>
     </div>
   );
