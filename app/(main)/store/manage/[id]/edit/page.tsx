@@ -478,8 +478,8 @@ export default function StoreEditPage() {
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
         
-        if (file.size > 5 * 1024 * 1024) {
-          toast.error(`${file.name}は5MBを超えています`, { 
+        if (file.size > 10 * 1024 * 1024) {
+          toast.error(`${file.name}は10MBを超えています`, { 
             position: 'top-center',
             duration: 3000,
             className: 'bg-gray-100'
@@ -1218,7 +1218,7 @@ export default function StoreEditPage() {
               <SectionHeader 
                 icon={ImageIcon} 
                 title="店舗画像" 
-                description="最大5枚まで画像をアップロードできます（1枚あたり最大5MB）"
+                description="最大5枚まで画像をアップロードできます（1枚あたり最大10MB）"
               />
 
               <div className="grid grid-cols-3 gap-4 mb-4">

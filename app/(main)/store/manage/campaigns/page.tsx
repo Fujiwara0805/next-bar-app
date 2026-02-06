@@ -176,8 +176,8 @@ export default function CampaignsManagePage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('画像は5MB以下にしてください', { position: 'top-center' });
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('画像は10MB以下にしてください', { position: 'top-center' });
       return;
     }
 
@@ -635,7 +635,7 @@ export default function CampaignsManagePage() {
                         画像をアップロード
                       </p>
                       <p className="text-xs" style={{ color: COLORS.warmGray }}>
-                        PNG, JPG, WEBP（最大5MB）
+                        PNG, JPG, WEBP（最大10MB）
                       </p>
                     </div>
                   </>
