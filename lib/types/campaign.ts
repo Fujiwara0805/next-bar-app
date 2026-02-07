@@ -134,14 +134,22 @@ export function isCampaignValid(campaign: Campaign | CampaignOption): boolean {
   if (!isActive) return false;
   
   const now = new Date();
-  const startDate = new Date('startDate' in campaign ? campaign.startDate : campaign.start_date);
-  const endDate = new Date('endDate' in campaign ? campaign.endDate : campaign.end_date);
-  
+  const startStr = ('startDate' in campaign ? campaign.startDate : campaign.start_date).split('T')[0];
+  const endStr = ('endDate' in campaign ? campaign.endDate : campaign.end_date).split('T')[0];
+
+  // ローカルタイムゾーンの0時として開始日を比較
+  const [sy, sm, sd] = startStr.split('-').map(Number);
+  const startLocal = new Date(sy, sm - 1, sd, 0, 0, 0);
+
+  // ローカルタイムゾーンの23:59:59として終了日を比較
+  const [ey, em, ed] = endStr.split('-').map(Number);
+  const endLocal = new Date(ey, em - 1, ed, 23, 59, 59);
+
   // 開始日前はまだ有効でない
-  if (startDate > now) return false;
-  
+  if (startLocal > now) return false;
+
   // 終了日を過ぎている
-  if (endDate < now) return false;
+  if (endLocal < now) return false;
   
   return true;
 }

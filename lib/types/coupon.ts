@@ -297,17 +297,27 @@ export function getDefaultCouponFormValues(): CouponFormValues {
 // クーポンが有効かどうかをチェック
 export function isCouponValid(coupon: Partial<CouponData>): boolean {
   if (!coupon.coupon_is_active) return false;
-  
+
   const now = new Date();
-  
-  // 開始日チェック
-  if (coupon.coupon_start_date && new Date(coupon.coupon_start_date) > now) {
-    return false;
+
+  // 開始日チェック（日付のみの文字列はローカルタイムゾーンの0時として比較）
+  if (coupon.coupon_start_date) {
+    const startStr = coupon.coupon_start_date.split('T')[0]; // "YYYY-MM-DD"
+    const [y, m, d] = startStr.split('-').map(Number);
+    const startLocal = new Date(y, m - 1, d, 0, 0, 0); // ローカルタイムゾーンの0時
+    if (startLocal > now) {
+      return false;
+    }
   }
-  
-  // 有効期限チェック
-  if (coupon.coupon_expiry_date && new Date(coupon.coupon_expiry_date) < now) {
-    return false;
+
+  // 有効期限チェック（日付のみの文字列はローカルタイムゾーンの23:59:59として比較）
+  if (coupon.coupon_expiry_date) {
+    const expiryStr = coupon.coupon_expiry_date.split('T')[0]; // "YYYY-MM-DD"
+    const [y, m, d] = expiryStr.split('-').map(Number);
+    const expiryLocal = new Date(y, m - 1, d, 23, 59, 59); // ローカルタイムゾーンの23:59:59
+    if (expiryLocal < now) {
+      return false;
+    }
   }
   
   // 発行上限チェック

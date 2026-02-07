@@ -1439,43 +1439,43 @@ export function CouponDisplayModal({
                 animate="center"
                 exit="exit"
                 transition={{ duration: 0.3, ease: 'easeInOut' }}
-                className="px-6 py-8"
+                className="px-5 py-5"
               >
                 {/* お祝いヘッダー */}
                 <motion.div
                   initial={{ scale: 0, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-                  className="text-center mb-6"
+                  className="text-center mb-4"
                 >
-                  <div 
-                    className="inline-flex items-center justify-center w-20 h-20 rounded-full mb-4"
+                  <div
+                    className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-3"
                     style={{
                       background: COLORS.goldGradient,
-                      boxShadow: '0 10px 40px rgba(201, 168, 108, 0.4)',
+                      boxShadow: '0 8px 30px rgba(201, 168, 108, 0.4)',
                     }}
                   >
-                    <PartyPopper className="w-10 h-10" style={{ color: COLORS.deepNavy }} />
+                    <PartyPopper className="w-8 h-8" style={{ color: COLORS.deepNavy }} />
                   </div>
-                  
+
                   <motion.h2
                     initial={{ y: 20, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay: 0.2 }}
-                    className="text-2xl font-bold mb-2"
-                    style={{ 
+                    className="text-xl font-bold mb-1"
+                    style={{
                       color: COLORS.champagneGold,
                       fontFamily: '"Cormorant Garamond", "Noto Serif JP", serif',
                     }}
                   >
                     {t('coupon.thank_you')}
                   </motion.h2>
-                  
+
                   <motion.p
                     initial={{ y: 20, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay: 0.3 }}
-                    className="text-sm"
+                    className="text-xs"
                     style={{ color: COLORS.platinum }}
                   >
                     {t('coupon.enjoy_time')}
@@ -1489,12 +1489,12 @@ export function CouponDisplayModal({
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.4 }}
-                  className="mb-6"
+                  className="mb-4"
                 >
                   {/* 追加特典テキスト（coupon_additional_bonusが設定されている場合のみ表示） */}
                   {coupon.coupon_additional_bonus && coupon.coupon_additional_bonus.trim() !== '' && (
                     <div
-                      className="rounded-xl p-4 mb-4"
+                      className="rounded-xl p-3 mb-3"
                       style={{
                         backgroundColor: 'rgba(201, 168, 108, 0.1)',
                         border: `1px solid rgba(201, 168, 108, 0.2)`,
@@ -1555,70 +1555,51 @@ export function CouponDisplayModal({
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.5 }}
-                      className="mt-4 p-3 rounded-lg text-center"
+                      className="mt-3 p-2.5 rounded-lg text-center"
                       style={{
                         backgroundColor: 'rgba(255, 255, 255, 0.05)',
                         border: '1px dashed rgba(255, 255, 255, 0.2)',
                       }}
                     >
                       <div className="flex items-center justify-center gap-2 text-xs" style={{ color: COLORS.warmGray }}>
-                        <Lock className="w-4 h-4" />
+                        <Lock className="w-3.5 h-3.5" />
                         <span>{t('coupon.complete_action_to_unlock')}</span>
                       </div>
                     </motion.div>
                   )}
                 </motion.div>
 
-                {/* 閉じるボタン */}
-                <motion.button
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.6 }}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={onClose}
-                  className="w-full py-4 rounded-xl font-medium tracking-wider transition-all"
-                  style={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                    border: '1px solid rgba(255, 255, 255, 0.15)',
-                    color: COLORS.platinum,
-                  }}
-                >
-                  {t('coupon.close')}
-                </motion.button>
-
                 {/* 追加特典ボタン（外部サイト訪問後のみ有効化） */}
                 {coupon.coupon_additional_bonus && coupon.coupon_additional_bonus.trim() !== '' && (
                   <motion.button
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.7 }}
+                    transition={{ delay: 0.6 }}
                     whileHover={{ scale: bonusUnlocked ? 1.02 : 1 }}
                     whileTap={{ scale: bonusUnlocked ? 0.98 : 1 }}
                     onClick={() => {
                       if (!bonusUnlocked) return;
-                      // トラッキングを記録
                       trackBonusClick('additional_bonus');
                       setShowAdditionalBonus(true);
                     }}
                     disabled={!bonusUnlocked}
-                    className="w-full py-4 mt-3 rounded-xl font-medium tracking-wider transition-all flex items-center justify-center gap-2"
+                    className="w-full py-3 mt-2 rounded-xl font-medium tracking-wider transition-all flex items-center justify-center gap-2 text-sm"
                     style={{
-                      background: bonusUnlocked 
-                        ? COLORS.goldGradient 
+                      background: bonusUnlocked
+                        ? COLORS.goldGradient
                         : 'linear-gradient(135deg, #6B7280 0%, #9CA3AF 50%, #6B7280 100%)',
                       color: bonusUnlocked ? COLORS.deepNavy : '#FFFFFF',
-                      boxShadow: bonusUnlocked 
-                        ? '0 8px 25px rgba(201, 168, 108, 0.35)' 
+                      boxShadow: bonusUnlocked
+                        ? '0 8px 25px rgba(201, 168, 108, 0.35)'
                         : '0 4px 12px rgba(107, 114, 128, 0.25)',
                       opacity: bonusUnlocked ? 1 : 0.7,
                       cursor: bonusUnlocked ? 'pointer' : 'not-allowed',
                     }}
                   >
                     {bonusUnlocked ? (
-                      <Unlock className="w-5 h-5" />
+                      <Unlock className="w-4 h-4" />
                     ) : (
-                      <Lock className="w-5 h-5" />
+                      <Lock className="w-4 h-4" />
                     )}
                     {t('coupon.additional_bonus')}
                   </motion.button>
@@ -1742,7 +1723,7 @@ export function CouponDisplayModal({
           />
         </div>
 
-        <div className="relative z-10 -m-6 p-6">
+        <div className="relative z-10 -m-6 p-5">
           <motion.button
             whileHover={{ scale: 1.1, opacity: 1 }}
             whileTap={{ scale: 0.95 }}
@@ -1751,8 +1732,8 @@ export function CouponDisplayModal({
               onClose();
               router.push('/store-list');
             }}
-            className="absolute top-4 right-4 z-20 p-2 rounded-full transition-colors"
-            style={{ 
+            className="absolute top-3 right-3 z-20 p-2 rounded-full transition-colors"
+            style={{
               color: COLORS.warmGray,
               backgroundColor: 'rgba(255, 255, 255, 0.08)',
               border: '1px solid rgba(255, 255, 255, 0.1)',
@@ -1763,38 +1744,38 @@ export function CouponDisplayModal({
           </motion.button>
 
           {/* ダウンロード用にref設定するエリア */}
-          <div ref={additionalBonusRef} className="relative text-center pt-2 pb-4">
-            <motion.div 
-              className="inline-flex items-center justify-center w-14 h-14 rounded-full mb-4"
+          <div ref={additionalBonusRef} className="relative text-center pt-1 pb-3">
+            <motion.div
+              className="inline-flex items-center justify-center w-12 h-12 rounded-full mb-3"
               style={{
                 background: COLORS.goldGradient,
-                boxShadow: '0 10px 40px rgba(201, 168, 108, 0.4)',
+                boxShadow: '0 8px 30px rgba(201, 168, 108, 0.4)',
               }}
               animate={{ scale: [1, 1.1, 1] }}
               transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
             >
-              <Gift className="w-7 h-7" style={{ color: COLORS.deepNavy }} />
+              <Gift className="w-6 h-6" style={{ color: COLORS.deepNavy }} />
             </motion.div>
-            <h3 
-              className="text-xl font-bold mb-2"
+            <h3
+              className="text-lg font-bold mb-2"
               style={{ color: COLORS.champagneGold }}
             >
               {t('coupon.additional_bonus')}
             </h3>
-            
+
             {/* 「次回このクーポンをお見せください」テキスト */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="mb-4 p-3 rounded-xl text-center"
+              className="mb-3 p-2.5 rounded-xl text-center"
               style={{
                 background: 'linear-gradient(135deg, rgba(74, 222, 128, 0.15) 0%, rgba(34, 197, 94, 0.1) 100%)',
                 border: '2px dashed rgba(74, 222, 128, 0.4)',
               }}
             >
-              <p 
-                className="font-bold text-sm"
+              <p
+                className="font-bold text-xs"
                 style={{ color: '#4ADE80' }}
               >
                 {t('coupon.show_next_visit')}
@@ -1802,27 +1783,27 @@ export function CouponDisplayModal({
             </motion.div>
 
             {/* 店舗名 */}
-            <p className="text-xs mb-4" style={{ color: COLORS.warmGray }}>
+            <p className="text-xs mb-3" style={{ color: COLORS.warmGray }}>
               {storeName}
             </p>
 
             {/* 追加特典内容 */}
-            <div 
-              className="rounded-xl p-4 mb-4 text-left"
+            <div
+              className="rounded-xl p-3 mb-3 text-left"
               style={{
                 backgroundColor: 'rgba(201, 168, 108, 0.15)',
                 border: '2px solid rgba(201, 168, 108, 0.4)',
               }}
             >
               {coupon.coupon_additional_bonus ? (
-                <p 
-                  className="font-bold text-base whitespace-pre-wrap"
+                <p
+                  className="font-bold text-sm whitespace-pre-wrap"
                   style={{ color: COLORS.ivory }}
                 >
                   {coupon.coupon_additional_bonus}
                 </p>
               ) : (
-                <p 
+                <p
                   className="text-sm italic"
                   style={{ color: COLORS.warmGray }}
                 >
@@ -1833,14 +1814,14 @@ export function CouponDisplayModal({
           </div>
 
           {/* ボタンエリア（ダウンロード対象外） */}
-          <div className="space-y-3">
+          <div>
             {/* ダウンロードボタン */}
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={handleDownloadBonus}
               disabled={isDownloading}
-              className="w-full py-3.5 rounded-xl font-medium tracking-wider transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full py-3 rounded-xl font-medium tracking-wider transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-50"
               style={{
                 background: 'linear-gradient(135deg, #4ADE80 0%, #22C55E 100%)',
                 color: '#FFFFFF',
@@ -1850,7 +1831,7 @@ export function CouponDisplayModal({
               {isDownloading ? (
                 <>
                   <motion.div
-                    className="w-5 h-5 border-2 rounded-full"
+                    className="w-4 h-4 border-2 rounded-full"
                     style={{ borderColor: '#FFFFFF transparent' }}
                     animate={{ rotate: 360 }}
                     transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
@@ -1859,29 +1840,10 @@ export function CouponDisplayModal({
                 </>
               ) : (
                 <>
-                  <Download className="w-5 h-5" />
+                  <Download className="w-4 h-4" />
                   {t('coupon.download_coupon')}
                 </>
               )}
-            </motion.button>
-
-            {/* 閉じるボタン（店舗一覧に遷移） */}
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => {
-                setShowAdditionalBonus(false);
-                onClose();
-                router.push('/store-list');
-              }}
-              className="w-full py-3.5 rounded-xl font-medium tracking-wider transition-all"
-              style={{
-                background: COLORS.goldGradient,
-                color: COLORS.deepNavy,
-                boxShadow: '0 10px 30px rgba(201, 168, 108, 0.3)',
-              }}
-            >
-              {t('coupon.close')}
             </motion.button>
           </div>
         </div>

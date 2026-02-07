@@ -8,16 +8,6 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { CustomModal } from '@/components/ui/custom-modal';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/auth/context';
 import { toast } from 'sonner';
@@ -420,29 +410,52 @@ export default function StoreManagePage() {
         </motion.div>
       </main>
 
-      {/* 削除確認ダイアログ */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>店舗を削除しますか？</AlertDialogTitle>
-            <AlertDialogDescription>
-              {storeToDelete && (
-                <>
-                  <span className="font-bold">{storeToDelete.name}</span>
-                  を削除します。この操作は取り消せません。
-                  <br />
-                  <br />
-                  店舗のログインアカウントも削除されますが、Supabase Authからは手動で削除する必要があります。
-                </>
-              )}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting}>キャンセル</AlertDialogCancel>
-            <AlertDialogAction
+      {/* 削除確認ダイアログ（CustomModal） */}
+      <CustomModal
+        isOpen={deleteDialogOpen}
+        onClose={() => !deleting && setDeleteDialogOpen(false)}
+        title=""
+        showCloseButton={!deleting}
+      >
+        <div className="space-y-4">
+          <div className="text-center">
+            <div
+              className="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center"
+              style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)' }}
+            >
+              <Trash2 className="w-6 h-6 text-red-500" />
+            </div>
+            <h3 className="text-lg font-bold" style={{ color: COLORS.deepNavy }}>
+              店舗を削除しますか？
+            </h3>
+          </div>
+          {storeToDelete && (
+            <p className="text-sm text-center" style={{ color: COLORS.warmGray }}>
+              <span className="font-bold" style={{ color: COLORS.charcoal }}>{storeToDelete.name}</span>
+              を削除します。この操作は取り消せません。
+              <br />
+              <br />
+              店舗のログインアカウントも削除されますが、Supabase Authからは手動で削除する必要があります。
+            </p>
+          )}
+          <div className="flex gap-3 pt-2">
+            <Button
+              variant="outline"
+              className="flex-1 font-bold rounded-xl"
+              onClick={() => setDeleteDialogOpen(false)}
+              disabled={deleting}
+              style={{
+                borderColor: 'rgba(201, 168, 108, 0.3)',
+                backgroundColor: 'rgba(201, 168, 108, 0.08)',
+                color: COLORS.charcoal,
+              }}
+            >
+              キャンセル
+            </Button>
+            <Button
+              className="flex-1 font-bold rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={handleDeleteConfirm}
               disabled={deleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {deleting ? (
                 <>
@@ -450,12 +463,15 @@ export default function StoreManagePage() {
                   削除中...
                 </>
               ) : (
-                '削除'
+                <>
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  削除
+                </>
               )}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            </Button>
+          </div>
+        </div>
+      </CustomModal>
 
       {/* パスワードリセット確認モーダル */}
       <CustomModal
