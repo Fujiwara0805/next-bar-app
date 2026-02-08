@@ -47,6 +47,13 @@ export const recordCouponUsageSchema = z.object({
   // キャンペーン関連（どのキャンペーンでクーポンが使用されたか追跡）
   campaignId: z.string().uuid('キャンペーンIDが不正です').optional().nullable(),
   campaignName: z.string().optional().nullable(),
+  // クーポン詳細（どのクーポンが使用されたか追跡）
+  couponTitle: z.string().optional().nullable(),
+  couponDiscountType: z.string().optional().nullable(),
+  couponDiscountValue: z.number().optional().nullable(),
+  couponConditions: z.string().optional().nullable(),
+  couponCode: z.string().optional().nullable(),
+  couponAdditionalBonus: z.string().optional().nullable(),
 });
 
 // リクエスト型
@@ -75,6 +82,13 @@ export interface CouponUsage {
   // キャンペーン関連
   campaign_id: string | null;
   campaign_name: string | null;
+  // クーポン詳細
+  coupon_title: string | null;
+  coupon_discount_type: string | null;
+  coupon_discount_value: number | null;
+  coupon_conditions: string | null;
+  coupon_code: string | null;
+  coupon_additional_bonus: string | null;
 }
 
 // クーポン利用統計の型

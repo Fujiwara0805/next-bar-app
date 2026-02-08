@@ -44,6 +44,7 @@ import { recordBonusClick } from '@/lib/actions/bonus-click';
 import { BonusClickType } from '@/lib/types/bonus-click';
 import { toast } from 'sonner';
 import { useLanguage } from '@/lib/i18n/context';
+import { useAuth } from '@/lib/auth/context';
 import html2canvas from 'html2canvas';
 
 // ============================================
@@ -366,6 +367,8 @@ interface CouponDisplayModalProps {
   instagramUrl?: string;
   googlePlaceId?: string;
   onCouponUsed?: () => void;
+  campaignId?: string | null;
+  campaignName?: string | null;
 }
 
 export function CouponDisplayModal({
@@ -377,9 +380,16 @@ export function CouponDisplayModal({
   instagramUrl,
   googlePlaceId,
   onCouponUsed,
+  campaignId,
+  campaignName,
 }: CouponDisplayModalProps) {
   const router = useRouter();
-  
+
+  // ============================================
+  // 認証情報
+  // ============================================
+  const { user } = useAuth();
+
   // ============================================
   // 多言語対応
   // ============================================
@@ -509,8 +519,19 @@ export function CouponDisplayModal({
         storeId,
         storeName,
         sessionId,
+        userId: user?.id,
         isFirstVisit: surveyAnswers.isFirstVisit!,
         isLocalResident: surveyAnswers.isLocalResident!,
+        // キャンペーン情報
+        campaignId: campaignId ?? undefined,
+        campaignName: campaignName ?? undefined,
+        // クーポン詳細のスナップショット
+        couponTitle: coupon.coupon_title ?? undefined,
+        couponDiscountType: coupon.coupon_discount_type ?? undefined,
+        couponDiscountValue: coupon.coupon_discount_value ?? undefined,
+        couponConditions: coupon.coupon_conditions ?? undefined,
+        couponCode: coupon.coupon_code ?? undefined,
+        couponAdditionalBonus: coupon.coupon_additional_bonus ?? undefined,
       });
 
       if (!result.success) {
@@ -551,12 +572,17 @@ export function CouponDisplayModal({
         couponUsageId: couponUsageId || undefined,
         clickType,
         sessionId,
+        // 詳細データのスナップショット
+        storeName,
+        instagramUrl: clickType === 'instagram' ? (instagramUrl ?? null) : null,
+        googlePlaceId: clickType === 'google_review' ? (googlePlaceId ?? null) : null,
+        additionalBonusText: clickType === 'additional_bonus' ? (coupon.coupon_additional_bonus ?? null) : null,
       });
     } catch (error) {
       // トラッキングエラーはログのみ、UXに影響を与えない
       console.error('Failed to track bonus click:', error);
     }
-  }, [storeId, couponUsageId]);
+  }, [storeId, couponUsageId, storeName, instagramUrl, googlePlaceId, coupon.coupon_additional_bonus]);
 
   // 外部リンクをクリックした時のハンドラー
   const handleExternalNavigate = useCallback(() => {

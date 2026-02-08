@@ -76,6 +76,13 @@ export async function recordCouponUsage(
         // キャンペーン関連（Aという店舗でBキャンペーンにてCクーポンが使用された記録）
         campaign_id: validatedData.campaignId || null,
         campaign_name: validatedData.campaignName || null,
+        // クーポン詳細（どのクーポンが使用されたかのスナップショット）
+        coupon_title: validatedData.couponTitle || null,
+        coupon_discount_type: validatedData.couponDiscountType || null,
+        coupon_discount_value: validatedData.couponDiscountValue ?? null,
+        coupon_conditions: validatedData.couponConditions || null,
+        coupon_code: validatedData.couponCode || null,
+        coupon_additional_bonus: validatedData.couponAdditionalBonus || null,
       })
       .select('id')
       .single();

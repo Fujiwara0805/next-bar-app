@@ -53,6 +53,11 @@ export async function recordBonusClick(
         session_id: validatedData.sessionId,
         user_agent: userAgent,
         referrer: referrer,
+        // 詳細データ（どのボーナスが使用されたかのスナップショット）
+        store_name: validatedData.storeName || null,
+        instagram_url: validatedData.instagramUrl || null,
+        google_place_id: validatedData.googlePlaceId || null,
+        additional_bonus_text: validatedData.additionalBonusText || null,
       })
       .select('id')
       .single();

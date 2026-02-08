@@ -28,6 +28,11 @@ export interface BonusClick {
   user_agent: string | null;
   referrer: string | null;
   clicked_at: string;
+  // 詳細データ
+  store_name: string | null;
+  instagram_url: string | null;
+  google_place_id: string | null;
+  additional_bonus_text: string | null;
 }
 
 /**
@@ -40,6 +45,11 @@ export const recordBonusClickSchema = z.object({
     errorMap: () => ({ message: 'クリックタイプが不正です' }),
   }),
   sessionId: z.string().min(1, 'セッションIDは必須です'),
+  // 詳細データ（どのボーナスが使用されたか追跡）
+  storeName: z.string().optional().nullable(),
+  instagramUrl: z.string().optional().nullable(),
+  googlePlaceId: z.string().optional().nullable(),
+  additionalBonusText: z.string().optional().nullable(),
 });
 
 export type RecordBonusClickRequest = z.infer<typeof recordBonusClickSchema>;

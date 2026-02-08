@@ -67,6 +67,11 @@ export interface Database {
           user_agent: string | null
           referrer: string | null
           clicked_at: string
+          // 詳細データ
+          store_name: string | null
+          instagram_url: string | null
+          google_place_id: string | null
+          additional_bonus_text: string | null
         }
         Insert: {
           id?: string
@@ -77,6 +82,10 @@ export interface Database {
           user_agent?: string | null
           referrer?: string | null
           clicked_at?: string
+          store_name?: string | null
+          instagram_url?: string | null
+          google_place_id?: string | null
+          additional_bonus_text?: string | null
         }
         Update: {
           id?: string
@@ -87,6 +96,10 @@ export interface Database {
           user_agent?: string | null
           referrer?: string | null
           clicked_at?: string
+          store_name?: string | null
+          instagram_url?: string | null
+          google_place_id?: string | null
+          additional_bonus_text?: string | null
         }
       }
       // ============================================
@@ -107,6 +120,13 @@ export interface Database {
           // キャンペーン関連
           campaign_id: string | null
           campaign_name: string | null
+          // クーポン詳細
+          coupon_title: string | null
+          coupon_discount_type: string | null
+          coupon_discount_value: number | null
+          coupon_conditions: string | null
+          coupon_code: string | null
+          coupon_additional_bonus: string | null
         }
         Insert: {
           id?: string
@@ -122,6 +142,13 @@ export interface Database {
           // キャンペーン関連
           campaign_id?: string | null
           campaign_name?: string | null
+          // クーポン詳細
+          coupon_title?: string | null
+          coupon_discount_type?: string | null
+          coupon_discount_value?: number | null
+          coupon_conditions?: string | null
+          coupon_code?: string | null
+          coupon_additional_bonus?: string | null
         }
         Update: {
           id?: string
@@ -137,6 +164,13 @@ export interface Database {
           // キャンペーン関連
           campaign_id?: string | null
           campaign_name?: string | null
+          // クーポン詳細
+          coupon_title?: string | null
+          coupon_discount_type?: string | null
+          coupon_discount_value?: number | null
+          coupon_conditions?: string | null
+          coupon_code?: string | null
+          coupon_additional_bonus?: string | null
         }
       }
       profiles: {
@@ -251,6 +285,10 @@ export interface Database {
           coupon_barcode_url: string | null
           /** InstagramのURL */
           instagram_url: string | null
+          /** 追加特典テキスト */
+          coupon_additional_bonus: string | null
+          /** キャンペーン用クーポンかどうか */
+          coupon_is_campaign: boolean
           // ============================================
           // キャンペーン関連のカラム
           // ============================================
@@ -317,6 +355,8 @@ export interface Database {
           coupon_code?: string | null
           coupon_barcode_url?: string | null
           instagram_url?: string | null
+          coupon_additional_bonus?: string | null
+          coupon_is_campaign?: boolean
           // キャンペーン関連（すべてオプショナル）
           has_campaign?: boolean
           campaign_id?: string | null
@@ -376,6 +416,8 @@ export interface Database {
           coupon_code?: string | null
           coupon_barcode_url?: string | null
           instagram_url?: string | null
+          coupon_additional_bonus?: string | null
+          coupon_is_campaign?: boolean
           // キャンペーン関連（すべてオプショナル）
           has_campaign?: boolean
           campaign_id?: string | null

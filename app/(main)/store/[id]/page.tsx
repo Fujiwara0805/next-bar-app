@@ -1399,9 +1399,11 @@ export default function StoreDetailPage() {
           coupon={store as Partial<CouponData>}
           storeName={store.name}
           storeId={store.id}
-          instagramUrl={(store as any).instagram_url ?? (store.website_url?.includes('instagram.com') ? store.website_url : undefined) ?? undefined}
+          instagramUrl={store.instagram_url ?? (store.website_url?.includes('instagram.com') ? store.website_url : undefined) ?? undefined}
           googlePlaceId={store.google_place_id ?? undefined}
           onCouponUsed={() => fetchStore(store.id)}
+          campaignId={store.campaign_id}
+          campaignName={store.campaign_name}
         />
       )}
 
