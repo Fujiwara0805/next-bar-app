@@ -1260,6 +1260,14 @@ function MapPageContent() {
                       <span className="text-xl font-bold" style={{ color: colors.text }}>
                         {getVacancyLabel(selectedStore.vacancy_status)}
                       </span>
+                      {selectedStore.vacancy_status === 'vacant' && selectedStore.vacant_seats != null && selectedStore.vacant_seats > 0 && (
+                        <span className="text-sm font-bold px-2 py-0.5 rounded-lg" style={{
+                          backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                          color: '#16a34a',
+                        }}>
+                          {t('store_detail.vacant_seats').replace('{count}', String(selectedStore.vacant_seats))}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>

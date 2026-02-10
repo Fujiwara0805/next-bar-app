@@ -851,7 +851,7 @@ export default function StoreDetailPage() {
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                 >
-                  <img 
+                  <img
                     src={getVacancyIcon(store.vacancy_status)}
                     alt={getVacancyLabel(store.vacancy_status)}
                     className="w-8 h-8 object-contain"
@@ -859,6 +859,14 @@ export default function StoreDetailPage() {
                   <span className="text-lg font-bold" style={{ color: COLORS.deepNavy }}>
                     {getVacancyLabel(store.vacancy_status)}
                   </span>
+                  {store.vacancy_status === 'vacant' && store.vacant_seats != null && store.vacant_seats > 0 && (
+                    <span className="text-sm font-bold px-2 py-0.5 rounded-lg" style={{
+                      backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                      color: '#16a34a',
+                    }}>
+                      {t('store_detail.vacant_seats').replace('{count}', String(store.vacant_seats))}
+                    </span>
+                  )}
                 </motion.div>
 
                 {/* 高級感のあるクーポンボタン */}
@@ -986,20 +994,6 @@ export default function StoreDetailPage() {
                 </div>
               )}
 
-              {/* 来客層（男女ともに0人の場合は非表示） */}
-              {(store.male_ratio > 0 || store.female_ratio > 0) && (
-                <div className="flex items-start gap-3">
-                  <Users className="w-5 h-5 shrink-0 mt-0.5" style={{ color: COLORS.champagneGold }} />
-                  <div className="flex-1">
-                    <p className="text-sm font-bold mb-1" style={{ color: COLORS.deepNavy }}>
-                      {t('store_detail.customer_demographics')}
-                    </p>
-                    <p className="text-sm font-medium" style={{ color: COLORS.warmGray }}>
-                      {t('store_detail.male')} {store.male_ratio}{t('store_detail.people')} / {t('store_detail.female')} {store.female_ratio}{t('store_detail.people')}
-                    </p>
-                  </div>
-                </div>
-              )}
 
               {/* 電話番号 */}
               {store.phone && (

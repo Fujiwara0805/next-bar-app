@@ -758,6 +758,14 @@ function StoreListContent() {
                               <motion.div className="flex items-center gap-2 pt-1" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}>
                                 <img src={getVacancyIcon(store.vacancy_status)} alt={getVacancyLabel(store.vacancy_status)} className="w-6 h-6 object-contain" />
                                 <span className="text-lg font-bold" style={{ color: COLORS.deepNavy }}>{getVacancyLabel(store.vacancy_status)}</span>
+                                {store.vacancy_status === 'vacant' && store.vacant_seats != null && store.vacant_seats > 0 && (
+                                  <span className="text-sm font-bold px-2 py-0.5 rounded-lg" style={{
+                                    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                                    color: '#16a34a',
+                                  }}>
+                                    {t('store_detail.vacant_seats').replace('{count}', String(store.vacant_seats))}
+                                  </span>
+                                )}
                               </motion.div>
                               
                               {store.status_message && (

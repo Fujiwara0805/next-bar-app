@@ -22,8 +22,6 @@ import {
   Image as ImageIcon,
   Edit,
   Trash2,
-  ChevronDown,
-  ChevronUp,
   User,
   Users,
   CheckCircle2,
@@ -44,7 +42,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useAuth } from '@/lib/auth/context';
 import { supabase } from '@/lib/supabase/client';
 import { toast } from 'sonner';
@@ -177,8 +174,7 @@ export default function StoreUpdatePage() {
   // 店舗状況フォーム
   const [vacancyStatus, setVacancyStatus] = useState<'vacant' | 'open' | 'full' | 'closed'>('closed');
   const [statusMessage, setStatusMessage] = useState('');
-  const [maleCount, setMaleCount] = useState(0);
-  const [femaleCount, setFemaleCount] = useState(0);
+  const [vacantSeats, setVacantSeats] = useState<number | null>(null);
 
   // 画像関連のstate
   const [imageUrls, setImageUrls] = useState<string[]>([]);
@@ -189,9 +185,6 @@ export default function StoreUpdatePage() {
   const [loadingReservations, setLoadingReservations] = useState(false);
   const [activeTab, setActiveTab] = useState('status');
   
-  // 男女数トグルのstate
-  const [isGenderCountOpen, setIsGenderCountOpen] = useState(false);
-
   // 臨時休業中かどうかを表示するためのstate
   const [isManualClosed, setIsManualClosed] = useState(false);
 
@@ -250,8 +243,7 @@ export default function StoreUpdatePage() {
         }
         
         setStatusMessage(storeData.status_message || '');
-        setMaleCount(storeData.male_ratio ?? 0);
-        setFemaleCount(storeData.female_ratio ?? 0);
+        setVacantSeats(storeData.vacant_seats ?? null);
 
         // 画像URLの設定
         setImageUrls(storeData.image_urls || []);
@@ -359,8 +351,7 @@ export default function StoreUpdatePage() {
         vacancy_status: vacancyStatus,
         status_message: statusMessage.trim() || null,
         is_open: !isClosed,
-        male_ratio: maleCount,
-        female_ratio: femaleCount,
+        vacant_seats: vacancyStatus === 'vacant' && vacantSeats !== null ? vacantSeats : null,
         last_updated: now,
         updated_at: now,
         manual_closed: isClosed, // 閉店ならtrue, それ以外はfalse
@@ -844,103 +835,61 @@ export default function StoreUpdatePage() {
                   )}
                 </Card>
 
-                <Card 
-                  className="p-6 rounded-2xl shadow-lg"
-                  style={{ 
-                    background: '#FFFFFF',
-                    border: `1px solid rgba(201, 168, 108, 0.15)`,
-                  }}
-                >
-                  <Collapsible open={isGenderCountOpen} onOpenChange={setIsGenderCountOpen}>
-                    <CollapsibleTrigger className="w-full">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div 
-                            className="p-2 rounded-lg"
-                            style={{ 
-                              background: COLORS.goldGradient,
-                              boxShadow: '0 2px 8px rgba(201, 168, 108, 0.25)',
-                            }}
-                          >
-                            <Users className="w-4 h-4" style={{ color: COLORS.deepNavy }} />
-                          </div>
-                          <h2 className="text-lg font-bold" style={{ color: COLORS.deepNavy }}>
-                            男女数
-                          </h2>
-                        </div>
-                        {isGenderCountOpen ? (
-                          <ChevronUp className="w-5 h-5" style={{ color: COLORS.warmGray }} />
-                        ) : (
-                          <ChevronDown className="w-5 h-5" style={{ color: COLORS.warmGray }} />
-                        )}
-                      </div>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent>
-                      <div className="space-y-4 mt-4">
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label 
-                              htmlFor="maleCount" 
-                              className="font-bold text-sm"
-                              style={{ color: COLORS.deepNavy }}
-                            >
-                              男性数
-                            </Label>
-                            <Input
-                              id="maleCount"
-                              type="text"
-                              value={maleCount}
-                              onChange={(e) => setMaleCount(parseInt(e.target.value) || 0)}
-                              placeholder="0"
-                              disabled={loading}
-                              className="rounded-xl border-2 font-medium transition-all duration-200 focus:border-[#C9A86C] focus:ring-2 focus:ring-[#C9A86C]/20"
-                              style={{ 
-                                fontSize: '16px',
-                                borderColor: 'rgba(201, 168, 108, 0.3)',
-                                backgroundColor: '#ffffff',
-                              }}
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label 
-                              htmlFor="femaleCount" 
-                              className="font-bold text-sm"
-                              style={{ color: COLORS.deepNavy }}
-                            >
-                              女性数
-                            </Label>
-                            <Input
-                              id="femaleCount"
-                              type="text"
-                              value={femaleCount}
-                              onChange={(e) => setFemaleCount(parseInt(e.target.value) || 0)}
-                              placeholder="0"
-                              disabled={loading}
-                              className="rounded-xl border-2 font-medium transition-all duration-200 focus:border-[#C9A86C] focus:ring-2 focus:ring-[#C9A86C]/20"
-                              style={{ 
-                                fontSize: '16px',
-                                borderColor: 'rgba(201, 168, 108, 0.3)',
-                                backgroundColor: '#ffffff',
-                              }}
-                            />
-                          </div>
-                        </div>
-                        <div 
-                          className="flex items-center justify-between p-4 rounded-xl"
-                          style={{ 
-                            backgroundColor: 'rgba(201, 168, 108, 0.08)',
-                            border: `1px solid rgba(201, 168, 108, 0.2)`,
-                          }}
+                {/* 空席数入力（空席ありの場合のみ表示） */}
+                {vacancyStatus === 'vacant' && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                  >
+                    <Card
+                      className="p-6 rounded-2xl shadow-lg"
+                      style={{
+                        background: '#FFFFFF',
+                        border: `1px solid rgba(201, 168, 108, 0.15)`,
+                      }}
+                    >
+                      <SectionHeader icon={Users} title="空席数" />
+                      <div className="space-y-2">
+                        <Label
+                          htmlFor="vacantSeats"
+                          className="font-bold text-sm"
+                          style={{ color: COLORS.deepNavy }}
                         >
-                          <span className="text-sm font-bold" style={{ color: COLORS.charcoal }}>合計人数</span>
-                          <span className="text-xl font-bold" style={{ color: COLORS.deepNavy }}>
-                            {maleCount + femaleCount}人
-                          </span>
-                        </div>
+                          空席数（任意）
+                        </Label>
+                        <Input
+                          id="vacantSeats"
+                          type="text"
+                          inputMode="numeric"
+                          value={vacantSeats !== null ? vacantSeats : ''}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            if (val === '') {
+                              setVacantSeats(null);
+                            } else {
+                              const num = parseInt(val);
+                              if (!isNaN(num) && num >= 0) {
+                                setVacantSeats(num);
+                              }
+                            }
+                          }}
+                          placeholder="例: 5"
+                          disabled={loading}
+                          className="rounded-xl border-2 font-medium transition-all duration-200 focus:border-[#C9A86C] focus:ring-2 focus:ring-[#C9A86C]/20"
+                          style={{
+                            fontSize: '16px',
+                            borderColor: 'rgba(201, 168, 108, 0.3)',
+                            backgroundColor: '#ffffff',
+                          }}
+                        />
+                        <p className="text-xs" style={{ color: COLORS.warmGray }}>
+                          空席数を入力すると、お客様に表示されます
+                        </p>
                       </div>
-                    </CollapsibleContent>
-                  </Collapsible>
-                </Card>
+                    </Card>
+                  </motion.div>
+                )}
 
                 <Card 
                   className="p-6 rounded-2xl shadow-lg"

@@ -612,8 +612,6 @@ export default function NewStorePage() {
           facilities: facilities,
           is_open: false,
           vacancy_status: 'vacant',
-          male_ratio: 0,
-          female_ratio: 0,
           google_place_id: googlePlaceId,
           google_rating: googleRating,
           google_reviews_count: googleReviewsCount,

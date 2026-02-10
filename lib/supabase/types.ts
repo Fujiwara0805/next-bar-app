@@ -233,6 +233,8 @@ export interface Database {
           status_message: string | null
           male_ratio: number
           female_ratio: number
+          /** 空席数（空席ありの場合に任意入力） */
+          vacant_seats: number | null
           last_updated: string
           created_at: string
           updated_at: string
@@ -327,6 +329,7 @@ export interface Database {
           status_message?: string | null
           male_ratio?: number
           female_ratio?: number
+          vacant_seats?: number | null
           last_updated?: string
           created_at?: string
           updated_at?: string
@@ -388,6 +391,7 @@ export interface Database {
           status_message?: string | null
           male_ratio?: number
           female_ratio?: number
+          vacant_seats?: number | null
           last_updated?: string
           created_at?: string
           updated_at?: string
