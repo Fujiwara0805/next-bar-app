@@ -36,6 +36,8 @@ import {
 import {
   SurveyAnswers,
   SurveyStep,
+  GenderType,
+  AgeGroupType,
   getOrCreateSessionId,
   isSurveyComplete,
 } from '@/lib/types/coupon-usage';
@@ -404,6 +406,8 @@ export function CouponDisplayModal({
   const [surveyAnswers, setSurveyAnswers] = useState<SurveyAnswers>({
     isFirstVisit: null,
     isLocalResident: null,
+    gender: null,
+    ageGroup: null,
   });
   const [slideDirection, setSlideDirection] = useState(1);
   
@@ -434,7 +438,7 @@ export function CouponDisplayModal({
       // 少し遅延させてアニメーション後にリセット
       const timer = setTimeout(() => {
         setSurveyStep('intro');
-        setSurveyAnswers({ isFirstVisit: null, isLocalResident: null });
+        setSurveyAnswers({ isFirstVisit: null, isLocalResident: null, gender: null, ageGroup: null });
         setSlideDirection(1);
         setIsUsed(false);
         setShowAdditionalBonus(false);
@@ -474,7 +478,7 @@ export function CouponDisplayModal({
   // ステップを進める
   const handleNextStep = useCallback(() => {
     setSlideDirection(1);
-    
+
     switch (surveyStep) {
       case 'intro':
         setSurveyStep('first_visit');
@@ -486,6 +490,16 @@ export function CouponDisplayModal({
         break;
       case 'residence':
         if (surveyAnswers.isLocalResident !== null) {
+          setSurveyStep('gender');
+        }
+        break;
+      case 'gender':
+        if (surveyAnswers.gender !== null) {
+          setSurveyStep('age_group');
+        }
+        break;
+      case 'age_group':
+        if (surveyAnswers.ageGroup !== null) {
           handleSurveyComplete();
         }
         break;
@@ -495,13 +509,19 @@ export function CouponDisplayModal({
   // ステップを戻る
   const handlePrevStep = useCallback(() => {
     setSlideDirection(-1);
-    
+
     switch (surveyStep) {
       case 'first_visit':
         setSurveyStep('intro');
         break;
       case 'residence':
         setSurveyStep('first_visit');
+        break;
+      case 'gender':
+        setSurveyStep('residence');
+        break;
+      case 'age_group':
+        setSurveyStep('gender');
         break;
     }
   }, [surveyStep]);
@@ -522,6 +542,8 @@ export function CouponDisplayModal({
         userId: user?.id,
         isFirstVisit: surveyAnswers.isFirstVisit!,
         isLocalResident: surveyAnswers.isLocalResident!,
+        gender: surveyAnswers.gender,
+        ageGroup: surveyAnswers.ageGroup,
         // キャンペーン情報
         campaignId: campaignId ?? undefined,
         campaignName: campaignName ?? undefined,
@@ -701,7 +723,7 @@ export function CouponDisplayModal({
   };
 
   const remainingDays = getRemainingDays();
-  const stepNumber = surveyStep === 'intro' ? 0 : surveyStep === 'first_visit' ? 1 : surveyStep === 'residence' ? 2 : 3;
+  const stepNumber = surveyStep === 'intro' ? 0 : surveyStep === 'first_visit' ? 1 : surveyStep === 'residence' ? 2 : surveyStep === 'gender' ? 3 : surveyStep === 'age_group' ? 4 : 5;
 
   // ============================================
   // レンダリング
@@ -918,7 +940,7 @@ export function CouponDisplayModal({
                 transition={{ duration: 0.3, ease: 'easeInOut' }}
                 className="px-6 py-8"
               >
-                <StepIndicator currentStep={0} totalSteps={2} />
+                <StepIndicator currentStep={0} totalSteps={4} />
                 
                 <div className="text-center mb-6">
                   <h3 
@@ -1018,7 +1040,7 @@ export function CouponDisplayModal({
                 transition={{ duration: 0.3, ease: 'easeInOut' }}
                 className="px-6 py-8"
               >
-                <StepIndicator currentStep={1} totalSteps={2} />
+                <StepIndicator currentStep={1} totalSteps={4} />
                 
                 <div className="text-center mb-6">
                   <h3 
@@ -1083,17 +1105,247 @@ export function CouponDisplayModal({
                     whileHover={{ scale: surveyAnswers.isLocalResident !== null ? 1.02 : 1 }}
                     whileTap={{ scale: surveyAnswers.isLocalResident !== null ? 0.98 : 1 }}
                     onClick={handleNextStep}
-                    disabled={surveyAnswers.isLocalResident === null || isRecording}
+                    disabled={surveyAnswers.isLocalResident === null}
                     className="flex-1 py-3.5 rounded-xl font-medium tracking-wider transition-all flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
                     style={{
-                      background: surveyAnswers.isLocalResident !== null 
-                        ? COLORS.goldGradient 
+                      background: surveyAnswers.isLocalResident !== null
+                        ? COLORS.goldGradient
                         : 'rgba(255, 255, 255, 0.1)',
-                      color: surveyAnswers.isLocalResident !== null 
-                        ? COLORS.deepNavy 
+                      color: surveyAnswers.isLocalResident !== null
+                        ? COLORS.deepNavy
                         : COLORS.warmGray,
-                      boxShadow: surveyAnswers.isLocalResident !== null 
-                        ? '0 10px 30px rgba(201, 168, 108, 0.3)' 
+                      boxShadow: surveyAnswers.isLocalResident !== null
+                        ? '0 10px 30px rgba(201, 168, 108, 0.3)'
+                        : 'none',
+                    }}
+                  >
+                    {t('coupon.next')}
+                    <ChevronRight className="w-4 h-4" />
+                  </motion.button>
+                </div>
+              </motion.div>
+            )}
+
+            {/* ============================================
+                Step 3: 性別確認
+                ============================================ */}
+            {surveyStep === 'gender' && (
+              <motion.div
+                key="gender"
+                custom={slideDirection}
+                variants={slideVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ duration: 0.3, ease: 'easeInOut' }}
+                className="px-6 py-8"
+              >
+                <StepIndicator currentStep={2} totalSteps={4} />
+
+                <div className="text-center mb-6">
+                  <h3
+                    className="text-xl font-bold mb-2"
+                    style={{
+                      color: COLORS.ivory,
+                      fontFamily: '"Cormorant Garamond", "Noto Serif JP", serif',
+                    }}
+                  >
+                    {t('coupon.gender_question')}
+                  </h3>
+                  <p
+                    className="text-sm"
+                    style={{ color: COLORS.warmGray }}
+                  >
+                    {t('coupon.gender_sub')}
+                  </p>
+                </div>
+
+                <div className="space-y-3 mb-6">
+                  <ChoiceButton
+                    icon={<User className="w-6 h-6" />}
+                    label={t('coupon.gender_male')}
+                    sublabel={t('coupon.gender_male_desc')}
+                    isSelected={surveyAnswers.gender === 'male'}
+                    onClick={() => {
+                      setSurveyAnswers(prev => ({ ...prev, gender: 'male' }));
+                    }}
+                    delay={0.1}
+                  />
+                  <ChoiceButton
+                    icon={<Heart className="w-6 h-6" />}
+                    label={t('coupon.gender_female')}
+                    sublabel={t('coupon.gender_female_desc')}
+                    isSelected={surveyAnswers.gender === 'female'}
+                    onClick={() => {
+                      setSurveyAnswers(prev => ({ ...prev, gender: 'female' }));
+                    }}
+                    delay={0.2}
+                  />
+                  <ChoiceButton
+                    icon={<Sparkles className="w-6 h-6" />}
+                    label={t('coupon.gender_other')}
+                    sublabel={t('coupon.gender_other_desc')}
+                    isSelected={surveyAnswers.gender === 'other'}
+                    onClick={() => {
+                      setSurveyAnswers(prev => ({ ...prev, gender: 'other' }));
+                    }}
+                    delay={0.3}
+                  />
+                </div>
+
+                {/* ナビゲーション */}
+                <div className="flex gap-3">
+                  <motion.button
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.3 }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={handlePrevStep}
+                    className="flex-1 py-3.5 rounded-xl font-medium tracking-wider transition-all flex items-center justify-center gap-2"
+                    style={{
+                      backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      color: COLORS.warmGray,
+                    }}
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    {t('coupon.back')}
+                  </motion.button>
+                  <motion.button
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.3 }}
+                    whileHover={{ scale: surveyAnswers.gender !== null ? 1.02 : 1 }}
+                    whileTap={{ scale: surveyAnswers.gender !== null ? 0.98 : 1 }}
+                    onClick={handleNextStep}
+                    disabled={surveyAnswers.gender === null}
+                    className="flex-1 py-3.5 rounded-xl font-medium tracking-wider transition-all flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
+                    style={{
+                      background: surveyAnswers.gender !== null
+                        ? COLORS.goldGradient
+                        : 'rgba(255, 255, 255, 0.1)',
+                      color: surveyAnswers.gender !== null
+                        ? COLORS.deepNavy
+                        : COLORS.warmGray,
+                      boxShadow: surveyAnswers.gender !== null
+                        ? '0 10px 30px rgba(201, 168, 108, 0.3)'
+                        : 'none',
+                    }}
+                  >
+                    {t('coupon.next')}
+                    <ChevronRight className="w-4 h-4" />
+                  </motion.button>
+                </div>
+              </motion.div>
+            )}
+
+            {/* ============================================
+                Step 4: 年代確認
+                ============================================ */}
+            {surveyStep === 'age_group' && (
+              <motion.div
+                key="age_group"
+                custom={slideDirection}
+                variants={slideVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ duration: 0.3, ease: 'easeInOut' }}
+                className="px-6 py-8"
+              >
+                <StepIndicator currentStep={3} totalSteps={4} />
+
+                <div className="text-center mb-6">
+                  <h3
+                    className="text-xl font-bold mb-2"
+                    style={{
+                      color: COLORS.ivory,
+                      fontFamily: '"Cormorant Garamond", "Noto Serif JP", serif',
+                    }}
+                  >
+                    {t('coupon.age_question')}
+                  </h3>
+                  <p
+                    className="text-sm"
+                    style={{ color: COLORS.warmGray }}
+                  >
+                    {t('coupon.age_sub')}
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 mb-6">
+                  {(['10s', '20s', '30s', '40s', '50s', '60plus'] as AgeGroupType[]).map((age, index) => (
+                    age && (
+                      <motion.button
+                        key={age}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 + index * 0.05 }}
+                        whileHover={{ scale: 1.03 }}
+                        whileTap={{ scale: 0.97 }}
+                        onClick={() => {
+                          setSurveyAnswers(prev => ({ ...prev, ageGroup: age }));
+                        }}
+                        className="py-3.5 px-3 rounded-xl font-medium tracking-wider transition-all text-center"
+                        style={{
+                          background: surveyAnswers.ageGroup === age
+                            ? COLORS.goldGradient
+                            : 'rgba(255, 255, 255, 0.05)',
+                          border: surveyAnswers.ageGroup === age
+                            ? `2px solid ${COLORS.champagneGold}`
+                            : '1px solid rgba(255, 255, 255, 0.1)',
+                          color: surveyAnswers.ageGroup === age
+                            ? COLORS.deepNavy
+                            : COLORS.ivory,
+                          boxShadow: surveyAnswers.ageGroup === age
+                            ? '0 8px 25px rgba(201, 168, 108, 0.3)'
+                            : 'none',
+                        }}
+                      >
+                        {t(`coupon.age_${age}`)}
+                      </motion.button>
+                    )
+                  ))}
+                </div>
+
+                {/* ナビゲーション */}
+                <div className="flex gap-3">
+                  <motion.button
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.3 }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={handlePrevStep}
+                    className="flex-1 py-3.5 rounded-xl font-medium tracking-wider transition-all flex items-center justify-center gap-2"
+                    style={{
+                      backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      color: COLORS.warmGray,
+                    }}
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    {t('coupon.back')}
+                  </motion.button>
+                  <motion.button
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.3 }}
+                    whileHover={{ scale: surveyAnswers.ageGroup !== null ? 1.02 : 1 }}
+                    whileTap={{ scale: surveyAnswers.ageGroup !== null ? 0.98 : 1 }}
+                    onClick={handleNextStep}
+                    disabled={surveyAnswers.ageGroup === null || isRecording}
+                    className="flex-1 py-3.5 rounded-xl font-medium tracking-wider transition-all flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
+                    style={{
+                      background: surveyAnswers.ageGroup !== null
+                        ? COLORS.goldGradient
+                        : 'rgba(255, 255, 255, 0.1)',
+                      color: surveyAnswers.ageGroup !== null
+                        ? COLORS.deepNavy
+                        : COLORS.warmGray,
+                      boxShadow: surveyAnswers.ageGroup !== null
+                        ? '0 10px 30px rgba(201, 168, 108, 0.3)'
                         : 'none',
                     }}
                   >

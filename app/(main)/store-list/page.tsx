@@ -53,7 +53,7 @@ const IS_OPEN_UPDATE_RADIUS_KM = 2.0;
 
 // 初回ロード時の is_open 更新APIの呼び出しを、ユーザーごとに毎回叩かないためのクールダウン
 // （同じエリア周辺で短時間に何度も更新しても体感は変わりにくい一方、API/DB負荷が跳ねるため）
-const IS_OPEN_UPDATE_COOLDOWN_MS = 10 * 60 * 1000; // 10分
+const IS_OPEN_UPDATE_COOLDOWN_MS = 60 * 60 * 1000; // 1時間
 const IS_OPEN_UPDATE_LOCALSTORAGE_KEY = 'isOpenUpdate:lastRun';
 
 interface BusinessHours {
@@ -290,6 +290,78 @@ function StoreListContent() {
 
     return () => {
       supabase.removeChannel(channel);
+    };
+  }, [userLocation]);
+
+  // Visibility change handler（バックグラウンド復帰時 + PWA復帰対応）
+  useEffect(() => {
+    const handleVisibilityChange = async () => {
+      if (document.visibilityState !== 'visible') return;
+      if (!userLocation) return;
+
+      // 店舗データの再取得（常にリフレッシュ）
+      fetchStoresOnly();
+
+      // is_openクールダウンが切れていれば初回ロード相当の更新を再実行
+      const latBucket = Math.round(userLocation.lat * 100) / 100;
+      const lngBucket = Math.round(userLocation.lng * 100) / 100;
+      const areaKey = `${latBucket},${lngBucket}`;
+
+      let shouldUpdate = true;
+      try {
+        const raw = localStorage.getItem(IS_OPEN_UPDATE_LOCALSTORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw) as { ts: number; areaKey: string };
+          const age = Date.now() - (parsed.ts || 0);
+          if (parsed.areaKey === areaKey && age >= 0 && age < IS_OPEN_UPDATE_COOLDOWN_MS) {
+            shouldUpdate = false;
+          }
+        }
+      } catch {
+        // 破損していたら更新を走らせる
+      }
+
+      if (!shouldUpdate) return;
+
+      isOpenUpdatedRef.current = true; // 二重呼び出し防止
+
+      try {
+        console.log('Visibility resume: is_open cooldown expired, updating...');
+        const res = await fetch('/api/stores/update-is-open', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userLat: userLocation.lat,
+            userLng: userLocation.lng,
+            radiusKm: IS_OPEN_UPDATE_RADIUS_KM,
+            forceUpdate: false,
+          }),
+        });
+        const result = await res.json();
+        console.log('Visibility resume: is_open update result:', result);
+
+        // クールダウン情報を更新
+        try {
+          localStorage.setItem(
+            IS_OPEN_UPDATE_LOCALSTORAGE_KEY,
+            JSON.stringify({ ts: Date.now(), areaKey })
+          );
+        } catch {
+          // ignore
+        }
+
+        if (result.updated > 0) {
+          fetchStoresOnly();
+        }
+      } catch (err) {
+        console.warn('Visibility resume: Failed to update is_open:', err);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [userLocation]);
 

@@ -6,17 +6,25 @@
 import { z } from 'zod';
 
 // アンケートのステップ
-export type SurveyStep = 'intro' | 'first_visit' | 'residence' | 'complete';
+export type SurveyStep = 'intro' | 'first_visit' | 'residence' | 'gender' | 'age_group' | 'complete';
+
+// 性別の選択肢
+export type GenderType = 'male' | 'female' | 'other' | null;
+
+// 年代の選択肢
+export type AgeGroupType = '10s' | '20s' | '30s' | '40s' | '50s' | '60plus' | null;
 
 // アンケートの回答
 export interface SurveyAnswers {
   isFirstVisit: boolean | null;
   isLocalResident: boolean | null;
+  gender: GenderType;
+  ageGroup: AgeGroupType;
 }
 
 // アンケートが完了しているかチェック
 export function isSurveyComplete(answers: SurveyAnswers): boolean {
-  return answers.isFirstVisit !== null && answers.isLocalResident !== null;
+  return answers.isFirstVisit !== null && answers.isLocalResident !== null && answers.gender !== null && answers.ageGroup !== null;
 }
 
 // セッションIDの取得または作成
@@ -44,6 +52,9 @@ export const recordCouponUsageSchema = z.object({
   userId: z.string().uuid('ユーザーIDが不正です').optional(),
   isFirstVisit: z.boolean().default(false),
   isLocalResident: z.boolean().default(false),
+  // デモグラフィック情報
+  gender: z.enum(['male', 'female', 'other']).optional().nullable(),
+  ageGroup: z.enum(['10s', '20s', '30s', '40s', '50s', '60plus']).optional().nullable(),
   // キャンペーン関連（どのキャンペーンでクーポンが使用されたか追跡）
   campaignId: z.string().uuid('キャンペーンIDが不正です').optional().nullable(),
   campaignName: z.string().optional().nullable(),
@@ -76,6 +87,8 @@ export interface CouponUsage {
   user_id: string | null;
   is_first_visit: boolean;
   is_local_resident: boolean;
+  gender: string | null;
+  age_group: string | null;
   user_agent: string | null;
   referrer: string | null;
   used_at: string;
@@ -100,5 +113,8 @@ export interface CouponUsageStats {
   visitorCount: number;
   firstVisitRate: number;
   localResidentRate: number;
+  // デモグラフィック統計
+  genderStats: { male: number; female: number; other: number };
+  ageGroupStats: { '10s': number; '20s': number; '30s': number; '40s': number; '50s': number; '60plus': number };
   rawData: CouponUsage[];
 }

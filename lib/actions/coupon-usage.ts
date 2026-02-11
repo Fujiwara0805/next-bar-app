@@ -71,6 +71,8 @@ export async function recordCouponUsage(
         user_id: validatedData.userId || null,
         is_first_visit: validatedData.isFirstVisit,
         is_local_resident: validatedData.isLocalResident,
+        gender: validatedData.gender || null,
+        age_group: validatedData.ageGroup || null,
         user_agent: userAgent,
         referrer: referrer,
         // キャンペーン関連（Aという店舗でBキャンペーンにてCクーポンが使用された記録）
@@ -167,6 +169,21 @@ export async function getCouponUsageStats(
     const firstVisitCount = data?.filter((u) => u.is_first_visit).length || 0;
     const localResidentCount = data?.filter((u) => u.is_local_resident).length || 0;
 
+    // デモグラフィック統計
+    const genderStats = {
+      male: data?.filter((u) => u.gender === 'male').length || 0,
+      female: data?.filter((u) => u.gender === 'female').length || 0,
+      other: data?.filter((u) => u.gender === 'other').length || 0,
+    };
+    const ageGroupStats = {
+      '10s': data?.filter((u) => u.age_group === '10s').length || 0,
+      '20s': data?.filter((u) => u.age_group === '20s').length || 0,
+      '30s': data?.filter((u) => u.age_group === '30s').length || 0,
+      '40s': data?.filter((u) => u.age_group === '40s').length || 0,
+      '50s': data?.filter((u) => u.age_group === '50s').length || 0,
+      '60plus': data?.filter((u) => u.age_group === '60plus').length || 0,
+    };
+
     return {
       success: true,
       data: {
@@ -177,6 +194,8 @@ export async function getCouponUsageStats(
         visitorCount: totalUsages - localResidentCount,
         firstVisitRate: totalUsages > 0 ? (firstVisitCount / totalUsages) * 100 : 0,
         localResidentRate: totalUsages > 0 ? (localResidentCount / totalUsages) * 100 : 0,
+        genderStats,
+        ageGroupStats,
         rawData: data,
       },
     };

@@ -423,11 +423,11 @@ export default function LandingPage() {
                 </Button>
                 <motion.div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" style={{ background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%)' }} animate={{ x: ['-100%', '200%'] }} transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 1 }} />
               </motion.div>
-              <a href="https://forms.gle/18LmBfyJAJ1txmF56" target="_blank" rel="noopener noreferrer">
+              <Link href="/ad-lp">
                 <Button size="lg" variant="ghost" className="text-base px-8 py-6 rounded-full font-medium border transition-all hover:scale-105" style={{ borderColor: colors.borderGold, color: colors.textMuted, background: `${colors.accent}08` }}>
-                  <Store className="w-5 h-5 mr-2" />{t('landing.cta_button_secondary')}
+                  <Sparkles className="w-5 h-5 mr-2" />{t('landing.cta_button_secondary')}
                 </Button>
-              </a>
+              </Link>
             </div>
           </motion.div>
         </div>
@@ -1039,9 +1039,9 @@ export default function LandingPage() {
                 <Button size="lg" onClick={handleMapClick} className="text-xl px-12 py-7 rounded-full font-semibold relative z-10" style={{ background: colors.goldGradient, color: colors.background }}><MapPin className="w-6 h-6 mr-3" />{t('landing.cta_button_primary')}</Button>
                 <motion.div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" style={{ background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%)' }} animate={{ x: ['-100%', '200%'] }} transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 1 }} />
               </motion.div>
-              <a href="https://forms.gle/18LmBfyJAJ1txmF56" target="_blank" rel="noopener noreferrer">
-                <Button size="lg" variant="ghost" className="text-base px-8 py-6 rounded-full font-medium border transition-all hover:scale-105" style={{ borderColor: colors.borderGold, color: colors.textMuted, background: `${colors.accent}08` }}><Store className="w-5 h-5 mr-2" />{t('landing.cta_button_secondary')}</Button>
-              </a>
+              <Link href="/ad-lp">
+                <Button size="lg" variant="ghost" className="text-base px-8 py-6 rounded-full font-medium border transition-all hover:scale-105" style={{ borderColor: colors.borderGold, color: colors.textMuted, background: `${colors.accent}08` }}><Sparkles className="w-5 h-5 mr-2" />{t('landing.cta_button_secondary')}</Button>
+              </Link>
             </div>
           </motion.div>
         </div>
@@ -1130,6 +1130,42 @@ export default function LandingPage() {
 
       {/* フローティングボタン群（画面右下） */}
       <div className="fixed bottom-6 right-6 z-20 flex flex-col gap-3 items-end safe-bottom">
+        {/* 加盟店募集ボタン */}
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ delay: 0.2 }}
+        >
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <a
+              href="https://docs.google.com/forms/d/e/1FAIpQLSceOuH6VBiSjYhJuly0SI6bZDaQrqxJ15vpMxGxT-CAXS2I4Q/viewform"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Button
+                className="flex flex-col items-center justify-center gap-1 px-3 py-2 touch-manipulation active:scale-95 rounded-lg"
+                style={{
+                  background: 'rgba(5,5,5,0.7)',
+                  backdropFilter: 'blur(20px)',
+                  border: '1px solid rgba(201,168,108,0.3)',
+                  boxShadow: '0 0 20px rgba(201,168,108,0.2)',
+                  minWidth: '56px',
+                  minHeight: '56px',
+                }}
+                title={t('landing.cta_button_recruitment')}
+              >
+                <Store className="w-5 h-5" style={{ color: colors.accent }} />
+                <span className="text-[9px] font-bold leading-tight text-center" style={{ color: colors.accent }}>
+                  {t('landing.cta_button_recruitment').length > 6 ? t('landing.cta_button_recruitment').slice(0, 6) : t('landing.cta_button_recruitment')}
+                </span>
+              </Button>
+            </a>
+          </motion.div>
+        </motion.div>
+
         {/* 言語変更ボタン */}
         <div className="relative language-menu-container">
           <motion.div

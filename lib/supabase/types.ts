@@ -114,6 +114,8 @@ export interface Database {
           user_id: string | null
           is_first_visit: boolean
           is_local_resident: boolean
+          gender: string | null
+          age_group: string | null
           user_agent: string | null
           referrer: string | null
           used_at: string
@@ -136,6 +138,8 @@ export interface Database {
           user_id?: string | null
           is_first_visit?: boolean
           is_local_resident?: boolean
+          gender?: string | null
+          age_group?: string | null
           user_agent?: string | null
           referrer?: string | null
           used_at?: string
@@ -158,6 +162,8 @@ export interface Database {
           user_id?: string | null
           is_first_visit?: boolean
           is_local_resident?: boolean
+          gender?: string | null
+          age_group?: string | null
           user_agent?: string | null
           referrer?: string | null
           used_at?: string

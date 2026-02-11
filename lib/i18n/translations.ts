@@ -423,6 +423,24 @@ export const translations = {
       coupon_image_alt: 'クーポン',
       barcode_alt: 'バーコード',
       free: '無料',
+      // 性別質問
+      gender_question: '性別を教えてください',
+      gender_sub: 'よりよいサービスのために',
+      gender_male: '男性',
+      gender_male_desc: '男性のお客様',
+      gender_female: '女性',
+      gender_female_desc: '女性のお客様',
+      gender_other: 'その他・回答しない',
+      gender_other_desc: 'どなたでも歓迎です',
+      // 年代質問
+      age_question: '年代を教えてください',
+      age_sub: 'お客様の傾向把握のために',
+      age_10s: '10代',
+      age_20s: '20代',
+      age_30s: '30代',
+      age_40s: '40代',
+      age_50s: '50代',
+      age_60plus: '60代以上',
     },
     // マップ関連
     map_direction: {
@@ -724,7 +742,8 @@ export const translations = {
       cta_title: '今夜の二軒目、ここで見つかる。',
       cta_body: '大分の夜は、まだ終わらない。\nNIKENME+で、次のお店を探しましょう。',
       cta_button_primary: 'お店を探す',
-      cta_button_secondary: '加盟店募集中',
+      cta_button_secondary: 'NIKENME+のビジョン',
+      cta_button_recruitment: '加盟店募集中',
       // Campaign section
       campaign_section_title: '開催中のキャンペーン',
       campaign_section_subtitle: 'Special Campaign',
@@ -1156,6 +1175,24 @@ export const translations = {
       coupon_image_alt: 'Coupon',
       barcode_alt: 'Barcode',
       free: 'Free',
+      // Gender question
+      gender_question: 'What is your gender?',
+      gender_sub: 'To improve our service',
+      gender_male: 'Male',
+      gender_male_desc: 'Male customer',
+      gender_female: 'Female',
+      gender_female_desc: 'Female customer',
+      gender_other: 'Other / Prefer not to say',
+      gender_other_desc: 'Everyone is welcome',
+      // Age group question
+      age_question: 'What is your age group?',
+      age_sub: 'To understand our customers better',
+      age_10s: 'Teens',
+      age_20s: '20s',
+      age_30s: '30s',
+      age_40s: '40s',
+      age_50s: '50s',
+      age_60plus: '60+',
     },
     // Map direction
     map_direction: {
@@ -1457,7 +1494,8 @@ export const translations = {
       cta_title: 'Find Your Next Spot Tonight.',
       cta_body: "The night isn't over yet. Discover your next venue with NIKENME+.",
       cta_button_primary: 'View Map',
-      cta_button_secondary: 'Partner With Us',
+      cta_button_secondary: 'Our Vision',
+      cta_button_recruitment: 'Partner With Us',
       // Campaign section
       campaign_section_title: 'Current Campaigns',
       campaign_section_subtitle: 'Special Campaign',
@@ -1886,6 +1924,24 @@ export const translations = {
       coupon_image_alt: '쿠폰',
       barcode_alt: '바코드',
       free: '무료',
+      // 성별 질문
+      gender_question: '성별을 알려주세요',
+      gender_sub: '더 나은 서비스를 위해',
+      gender_male: '남성',
+      gender_male_desc: '남성 고객',
+      gender_female: '여성',
+      gender_female_desc: '여성 고객',
+      gender_other: '기타 / 무응답',
+      gender_other_desc: '모든 분을 환영합니다',
+      // 연령대 질문
+      age_question: '연령대를 알려주세요',
+      age_sub: '고객 동향 파악을 위해',
+      age_10s: '10대',
+      age_20s: '20대',
+      age_30s: '30대',
+      age_40s: '40대',
+      age_50s: '50대',
+      age_60plus: '60대 이상',
     },
     // Map direction
     map_direction: {
@@ -2182,7 +2238,8 @@ export const translations = {
       cta_title: '오늘 밤 2차, 여기서 찾으세요.',
       cta_body: '오이타의 밤은 아직 끝나지 않았습니다.\nNIKENME+로 다음 가게를 찾아보세요.',
       cta_button_primary: '가게 찾기',
-      cta_button_secondary: '파트너 매장 모집 중',
+      cta_button_secondary: 'NIKENME+의 비전',
+      cta_button_recruitment: '파트너 매장 모집 중',
       // Campaign section
       campaign_section_title: '진행 중인 캠페인',
       campaign_section_subtitle: 'Special Campaign',
@@ -2611,6 +2668,24 @@ export const translations = {
       coupon_image_alt: '优惠券',
       barcode_alt: '条形码',
       free: '免费',
+      // 性别问题
+      gender_question: '请告诉我们您的性别',
+      gender_sub: '为了提供更好的服务',
+      gender_male: '男性',
+      gender_male_desc: '男性顾客',
+      gender_female: '女性',
+      gender_female_desc: '女性顾客',
+      gender_other: '其他 / 不愿回答',
+      gender_other_desc: '欢迎所有人',
+      // 年龄段问题
+      age_question: '请告诉我们您的年龄段',
+      age_sub: '为了了解顾客趋势',
+      age_10s: '10多岁',
+      age_20s: '20多岁',
+      age_30s: '30多岁',
+      age_40s: '40多岁',
+      age_50s: '50多岁',
+      age_60plus: '60岁以上',
     },
     // Map direction
     map_direction: {
@@ -2907,7 +2982,8 @@ export const translations = {
       cta_title: '今晚的下一站，在这里找到。',
       cta_body: '大分的夜晚还没有结束。\n用NIKENME+寻找下一家店吧。',
       cta_button_primary: '寻找店铺',
-      cta_button_secondary: '招募合作店铺',
+      cta_button_secondary: 'NIKENME+的愿景',
+      cta_button_recruitment: '招募合作店铺',
       // Campaign section
       campaign_section_title: '进行中的活动',
       campaign_section_subtitle: 'Special Campaign',
