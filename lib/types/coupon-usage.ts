@@ -11,8 +11,8 @@ export type SurveyStep = 'intro' | 'first_visit' | 'residence' | 'gender' | 'age
 // 性別の選択肢
 export type GenderType = 'male' | 'female' | 'other' | null;
 
-// 年代の選択肢
-export type AgeGroupType = '10s' | '20s' | '30s' | '40s' | '50s' | '60plus' | null;
+// 年代の選択肢（20代〜60代、70代以上）
+export type AgeGroupType = '20s' | '30s' | '40s' | '50s' | '60s' | '70plus' | null;
 
 // アンケートの回答
 export interface SurveyAnswers {
@@ -54,7 +54,7 @@ export const recordCouponUsageSchema = z.object({
   isLocalResident: z.boolean().default(false),
   // デモグラフィック情報
   gender: z.enum(['male', 'female', 'other']).optional().nullable(),
-  ageGroup: z.enum(['10s', '20s', '30s', '40s', '50s', '60plus']).optional().nullable(),
+  ageGroup: z.enum(['20s', '30s', '40s', '50s', '60s', '70plus']).optional().nullable(),
   // キャンペーン関連（どのキャンペーンでクーポンが使用されたか追跡）
   campaignId: z.string().uuid('キャンペーンIDが不正です').optional().nullable(),
   campaignName: z.string().optional().nullable(),
@@ -115,6 +115,6 @@ export interface CouponUsageStats {
   localResidentRate: number;
   // デモグラフィック統計
   genderStats: { male: number; female: number; other: number };
-  ageGroupStats: { '10s': number; '20s': number; '30s': number; '40s': number; '50s': number; '60plus': number };
+  ageGroupStats: { '20s': number; '30s': number; '40s': number; '50s': number; '60s': number; '70plus': number };
   rawData: CouponUsage[];
 }

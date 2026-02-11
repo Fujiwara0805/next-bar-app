@@ -172,7 +172,7 @@ export const translations = {
       title: '今すぐ入れるお店を探そう',
       subtitle: 'ログイン不要、今すぐマップ画面へ',
       button: 'マップを見る',
-      recruiting_stores: '加盟店募集中',
+      recruiting_stores: '加盟登録',
     },
     // Footer
     footer: {
@@ -435,12 +435,12 @@ export const translations = {
       // 年代質問
       age_question: '年代を教えてください',
       age_sub: 'お客様の傾向把握のために',
-      age_10s: '10代',
       age_20s: '20代',
       age_30s: '30代',
       age_40s: '40代',
       age_50s: '50代',
-      age_60plus: '60代以上',
+      age_60s: '60代',
+      age_70plus: '70代以上',
     },
     // マップ関連
     map_direction: {
@@ -743,7 +743,7 @@ export const translations = {
       cta_body: '大分の夜は、まだ終わらない。\nNIKENME+で、次のお店を探しましょう。',
       cta_button_primary: 'お店を探す',
       cta_button_secondary: 'NIKENME+のビジョン',
-      cta_button_recruitment: '加盟店募集中',
+      cta_button_recruitment: '加盟登録',
       // Campaign section
       campaign_section_title: '開催中のキャンペーン',
       campaign_section_subtitle: 'Special Campaign',
@@ -1187,12 +1187,12 @@ export const translations = {
       // Age group question
       age_question: 'What is your age group?',
       age_sub: 'To understand our customers better',
-      age_10s: 'Teens',
       age_20s: '20s',
       age_30s: '30s',
       age_40s: '40s',
       age_50s: '50s',
-      age_60plus: '60+',
+      age_60s: '60s',
+      age_70plus: '70+',
     },
     // Map direction
     map_direction: {
@@ -1936,12 +1936,12 @@ export const translations = {
       // 연령대 질문
       age_question: '연령대를 알려주세요',
       age_sub: '고객 동향 파악을 위해',
-      age_10s: '10대',
       age_20s: '20대',
       age_30s: '30대',
       age_40s: '40대',
       age_50s: '50대',
-      age_60plus: '60대 이상',
+      age_60s: '60대',
+      age_70plus: '70대 이상',
     },
     // Map direction
     map_direction: {
@@ -2680,12 +2680,12 @@ export const translations = {
       // 年龄段问题
       age_question: '请告诉我们您的年龄段',
       age_sub: '为了了解顾客趋势',
-      age_10s: '10多岁',
       age_20s: '20多岁',
       age_30s: '30多岁',
       age_40s: '40多岁',
       age_50s: '50多岁',
-      age_60plus: '60岁以上',
+      age_60s: '60多岁',
+      age_70plus: '70岁以上',
     },
     // Map direction
     map_direction: {

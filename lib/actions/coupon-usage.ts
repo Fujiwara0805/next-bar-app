@@ -176,12 +176,12 @@ export async function getCouponUsageStats(
       other: data?.filter((u) => u.gender === 'other').length || 0,
     };
     const ageGroupStats = {
-      '10s': data?.filter((u) => u.age_group === '10s').length || 0,
       '20s': data?.filter((u) => u.age_group === '20s').length || 0,
       '30s': data?.filter((u) => u.age_group === '30s').length || 0,
       '40s': data?.filter((u) => u.age_group === '40s').length || 0,
       '50s': data?.filter((u) => u.age_group === '50s').length || 0,
-      '60plus': data?.filter((u) => u.age_group === '60plus').length || 0,
+      '60s': (data?.filter((u) => u.age_group === '60s').length || 0) + (data?.filter((u) => u.age_group === '60plus').length || 0),
+      '70plus': data?.filter((u) => u.age_group === '70plus').length || 0,
     };
 
     return {

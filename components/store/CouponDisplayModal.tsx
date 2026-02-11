@@ -1275,7 +1275,7 @@ export function CouponDisplayModal({
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 mb-6">
-                  {(['10s', '20s', '30s', '40s', '50s', '60plus'] as AgeGroupType[]).map((age, index) => (
+                  {(['20s', '30s', '40s', '50s', '60s', '70plus'] as AgeGroupType[]).map((age, index) => (
                     age && (
                       <motion.button
                         key={age}
