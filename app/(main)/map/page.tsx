@@ -127,6 +127,7 @@ const STORE_SELECT_COLUMNS = `
   latitude,
   longitude,
   vacancy_status,
+  vacant_seats,
   status_message,
   image_urls,
   google_rating,
@@ -669,9 +670,9 @@ function MapPageContent() {
           window.history.replaceState({}, '', url.toString());
         }
 
-        if (result.updated > 0) {
-          fetchStores();
-        }
+        // API更新後、DBから最新データを再取得してからローディングを解除
+        // （is_open/vacancy_statusの変更がUIに反映されるまで待つ）
+        await fetchStores(true);
       } catch (err) {
         debugWarn('Failed to update is_open:', err);
       } finally {
@@ -773,6 +774,7 @@ function MapPageContent() {
       // isOpenUpdatedRefをリセットして再実行可能にする
       isOpenUpdatedRef.current = true; // 二重呼び出し防止
 
+      setIsUpdatingOpenStatus(true);
       try {
         debugLog('Visibility resume: is_open cooldown expired, updating...');
         const res = await fetch('/api/stores/update-is-open', {
@@ -798,11 +800,12 @@ function MapPageContent() {
           // ignore
         }
 
-        if (result.updated > 0) {
-          fetchStores(true);
-        }
+        // API更新後、DBから最新データを再取得してからローディングを解除
+        await fetchStores(true);
       } catch (err) {
         debugWarn('Visibility resume: Failed to update is_open:', err);
+      } finally {
+        setIsUpdatingOpenStatus(false);
       }
     };
 
