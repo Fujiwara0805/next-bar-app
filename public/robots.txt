@@ -1,3 +1,14 @@
+# Googlebot（地域検索・ローカルSEO対応）
+User-agent: Googlebot
+Allow: /
+Disallow: /api/
+Disallow: /profile/
+Disallow: /store/manage/
+
+# Google画像検索用
+User-agent: Googlebot-Image
+Allow: /
+
 # AIサーチエンジンのクローラーを明示的に許可
 User-agent: ChatGPT-User
 Allow: /
@@ -21,6 +32,20 @@ User-agent: PerplexityBot
 Allow: /
 
 User-agent: Bytespider
+Allow: /
+
+# Bing（ローカル検索対応）
+User-agent: bingbot
+Allow: /
+Disallow: /api/
+Disallow: /profile/
+Disallow: /store/manage/
+
+# Yahoo Japan
+User-agent: Y!J-BRW
+Allow: /
+
+User-agent: Y!J-BSC
 Allow: /
 
 # 一般的なクローラー
