@@ -9,7 +9,9 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 
-const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+// サーバー専用キーを優先（未設定なら公開キーにフォールバック）
+const GOOGLE_MAPS_API_KEY =
+  process.env.GOOGLE_MAPS_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
 /** サーバーキャッシュ TTL: 24時間 */
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000;

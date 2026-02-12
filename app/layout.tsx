@@ -9,11 +9,11 @@ import { GoogleAnalytics } from '@/components/analytics/GoogleAnalytics';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'NIKENME+(ニケンメプラス) | 大分の2軒目探しに特化した空席情報マップ',
-  description: '大分で『いま入れるお店』が地図でひと目でわかる。2軒目、バー、スナック、居酒屋の空席情報をリアルタイムで確認。はしご酒・飲み歩きに最適。ログイン不要で今すぐ使える。',
-  
+  title: 'NIKENME+(ニケンメプラス) | 大分の飲食店・バー・スナック・居酒屋の空席情報マップ',
+  description: '大分で飲食店・バー・スナック・居酒屋を探すなら NIKENME+。今すぐ入れるお店が地図でひと目でわかる空席情報マップ。大分市都町・中央町エリアの2軒目探し、はしご酒、飲み歩きに最適。観光客・出張ビジネスマンにもおすすめ。ログイン不要で無料。',
+
   // AI検索エンジン向けの詳細な説明を追加
-  abstract: 'NIKENME+（ニケンメプラス）は、大分県内全域で2軒目・バー・スナック・居酒屋を探すユーザー向けの空席情報マップサービスです。リアルタイムで店舗の空席状況を確認でき、ログイン不要で即座に利用できます。はしご酒や飲み歩きをする際に、待たずに入れるお店を地図上で簡単に見つけられます。',
+  abstract: 'NIKENME+（ニケンメプラス）は、大分県大分市を中心に飲食店・バー・スナック・居酒屋の空席情報をリアルタイムで提供するマップサービスです。大分市都町・中央町の繁華街エリアを中心に、今すぐ入れるお店を地図上で簡単に見つけられます。出張ビジネスマンや観光客（インバウンド含む）のはしご酒・飲み歩きに最適。ログイン不要で即座に利用可能です。',
   
   manifest: '/manifest.json',
   
@@ -43,42 +43,75 @@ export const metadata: Metadata = {
     'ニケンメ',
     'にけんめプラス',
     'にけんめ',
-    '2けんめ',
-    '2軒目',
-    '二軒目',
     'nikenme',
-    
-    // コアキーワード（優先度：高）
+
+    // ★ 主要検索キーワード（ビジネスマン・観光客が検索する語句）
+    '大分 飲食店',
+    '大分 バー',
+    '大分 スナック',
+    '大分 居酒屋',
+    '大分市 飲食店',
+    '大分市 バー',
+    '大分市 スナック',
+    '大分市 居酒屋',
+    '大分 飲み屋',
+    '大分 夜 飲み',
+
+    // エリア特化キーワード
+    '大分 都町 バー',
+    '大分 都町 スナック',
+    '大分 都町 居酒屋',
+    '大分 都町 飲食店',
+    '大分 中央町 バー',
+    '大分 中央町 居酒屋',
+    '大分 繁華街',
+    '大分駅 バー',
+    '大分駅 居酒屋',
+    '大分駅前 飲み屋',
+
+    // 2軒目・はしご酒キーワード
     '大分 二軒目',
     '大分 2軒目',
-    '大分市 二軒目',
     '二軒目 大分',
     '2軒目 大分',
-    
-    // ロングテールキーワード（優先度：中〜高）
+    '大分 はしご酒',
+    '大分 飲み歩き',
+    '大分 梯子酒',
+
+    // シーン別キーワード
     '大分 今入れる店',
     '大分 空席 バー',
     '大分 空席情報',
-    '大分 はしご酒',
-    '大分 飲み歩き',
-    '大分市 バー 空席',
-    '大分市 スナック',
-    '大分 二軒目 マップ',
-    '大分 居酒屋 空席',
-    
-    // 用途キーワード
-    '今入れる店',
-    '待たずに入れる店',
-    '空席 リアルタイム',
-    'バー 空席情報',
-    'スナック 空席',
-    '深夜 営業 大分',
-    
-    // 機能キーワード
+    '大分 深夜営業',
+    '大分 一人飲み',
+    '大分 一人 バー',
+    '大分 おすすめ バー',
+    '大分 おすすめ スナック',
+    '大分 おすすめ 居酒屋',
+    '大分 人気 バー',
+
+    // ビジネスマン・出張キーワード
+    '大分 出張 飲み',
+    '大分 出張 バー',
+    '大分 出張 おすすめ',
+    '大分 ビジネス 飲食',
+
+    // 観光・インバウンドキーワード
+    '大分 観光 夜',
+    '大分 観光 バー',
+    '大分 観光 グルメ',
+    'Oita bar',
+    'Oita nightlife',
+    'Oita izakaya',
+    'Oita restaurant',
+    'bars in Oita',
+
+    // 機能・利便性キーワード
     '空席マップ',
-    '店舗地図',
     '飲食店 空席',
-    '近くの店',
+    '近くの バー',
+    '近くの 居酒屋',
+    '今入れる店',
   ].join(', '),
   authors: [{ name: 'NIKENME+ (ニケンメプラス)' }],
   creator: 'NIKENME+',
@@ -100,13 +133,17 @@ export const metadata: Metadata = {
     // AI検索エンジンへの信号
     'ai-indexable': 'true',
     'citation-worthy': 'true',
-    
+
     // サービスの詳細情報（AIが理解しやすい形式）
-    'service-type': 'real-time availability map service',
-    'target-audience': '大分市で飲み歩き・はしご酒をする人々',
-    'primary-location': '大分県大分市',
-    'key-features': 'リアルタイム空席情報、ログイン不要、地図表示、無料利用',
-    'use-cases': '2軒目探し、バー検索、スナック検索、居酒屋検索、はしご酒、飲み歩き',
+    'service-type': 'real-time restaurant availability map service',
+    'target-audience': '大分市で飲食店・バー・スナック・居酒屋を探すビジネスマン、観光客、地元の方',
+    'primary-location': '大分県大分市（都町・中央町エリア中心）',
+    'key-features': 'リアルタイム空席情報、ログイン不要、地図表示、無料利用、多言語対応',
+    'use-cases': '大分の飲食店探し、バー検索、スナック検索、居酒屋検索、2軒目探し、はしご酒、飲み歩き、出張時の飲食店探し、観光客向け夜の飲食店ガイド',
+    'geo.region': 'JP-44',
+    'geo.placename': '大分市',
+    'geo.position': '33.2382;131.6126',
+    'ICBM': '33.2382, 131.6126',
   },
   
   alternates: {
@@ -123,23 +160,23 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     siteName: 'NIKENME+ (ニケンメプラス)',
-    title: 'NIKENME+ | 大分の2軒目探しに特化した空席情報マップ',
-    description: 'ログイン不要、位置情報を許可して地図を開くだけで大分の二軒目・バー・スナックの空席をチェック。はしご酒・飲み歩きに最適。',
+    title: 'NIKENME+ | 大分の飲食店・バー・スナック・居酒屋の空席マップ',
+    description: '大分で飲食店・バー・スナック・居酒屋を探すならNIKENME+。今すぐ入れるお店が地図でわかる。大分市都町・中央町エリアの2軒目探し、はしご酒に最適。出張・観光にも。ログイン不要・無料。',
     url: 'https://nikenme.jp',
     images: [
       {
         url: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%83%BC%E3%83%92%E3%82%99%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png',
         width: 1200,
         height: 630,
-        alt: 'NIKENME+ (ニケンメプラス) - 大分の2軒目探しの決定版',
+        alt: 'NIKENME+ - 大分の飲食店・バー・スナック・居酒屋の空席情報マップ',
       },
     ],
     locale: 'ja_JP',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'NIKENME+ | 大分の2軒目探しに特化した空席情報マップ',
-    description: '大分の2軒目・バー・スナックの空席をリアルタイムでチェック。ログイン不要で今すぐ使える。',
+    title: 'NIKENME+ | 大分の飲食店・バー・スナック・居酒屋を今すぐ探せる空席マップ',
+    description: '大分で飲食店・バー・スナック・居酒屋をお探しなら。空席情報をリアルタイムで確認、ログイン不要で今すぐ使える。',
     images: ['https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%83%BC%E3%83%92%E3%82%99%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png'],
     creator: '@nikenme',
   },
@@ -187,7 +224,7 @@ export default function RootLayout({
               browserRequirements: 'Requires JavaScript. Requires HTML5.',
               
               // AIが理解しやすい詳細な説明
-              description: 'NIKENME+（ニケンメプラス）は、大分県大分市における飲食店の空席情報をリアルタイムで提供するWebアプリケーションです。主に2軒目、バー、スナック、居酒屋を探すユーザーを対象としており、地図上で現在空席のある店舗を視覚的に確認できます。ログイン不要で即座に利用可能で、はしご酒や飲み歩きを楽しむ人々に最適なサービスです。',
+              description: 'NIKENME+（ニケンメプラス）は、大分県大分市の飲食店・バー・スナック・居酒屋の空席情報をリアルタイムで地図上に表示するWebアプリです。大分市都町・中央町の繁華街を中心に、今すぐ入れるお店が一目でわかります。出張ビジネスマンや観光客（インバウンド含む）の2軒目探し、はしご酒、飲み歩きに最適。ログイン不要・完全無料で利用可能。English, Korean, Chinese supported.',
               
               offers: {
                 '@type': 'Offer',
@@ -205,12 +242,14 @@ export default function RootLayout({
               
               // 主な機能を明示
               featureList: [
-                'リアルタイム空席情報表示',
-                '地図ベースの店舗検索',
-                'ログイン不要の即時利用',
-                '大分市内のバー・スナック・居酒屋情報',
-                '無料で利用可能',
+                '大分市の飲食店・バー・スナック・居酒屋のリアルタイム空席情報',
+                '地図ベースの店舗検索（大分市都町・中央町エリア対応）',
+                'ログイン不要・完全無料で即時利用',
+                '多言語対応（日本語・英語・韓国語・中国語）',
                 '位置情報による近隣店舗表示',
+                '出張ビジネスマン・観光客向けガイド',
+                'はしご酒・飲み歩きルート支援',
+                'Google Maps連携ナビゲーション',
               ],
               
               areaServed: {
@@ -221,15 +260,17 @@ export default function RootLayout({
                   name: '大分県',
                 },
               },
-              availableLanguage: {
-                '@type': 'Language',
-                name: '日本語',
-              },
+              availableLanguage: [
+                { '@type': 'Language', name: 'Japanese', alternateName: 'ja' },
+                { '@type': 'Language', name: 'English', alternateName: 'en' },
+                { '@type': 'Language', name: 'Korean', alternateName: 'ko' },
+                { '@type': 'Language', name: 'Chinese', alternateName: 'zh' },
+              ],
               
               // 対象ユーザー
               audience: {
                 '@type': 'Audience',
-                audienceType: '大分市で飲み歩き・はしご酒をする成人',
+                audienceType: '大分市で飲食店・バー・スナック・居酒屋を探す方（地元の方、出張ビジネスマン、観光客・インバウンド客）',
               },
             }),
           }}
@@ -265,14 +306,16 @@ export default function RootLayout({
             __html: JSON.stringify({
               '@context': 'https://schema.org',
               '@type': 'LocalBusiness',
+              '@id': 'https://nikenme.jp/#business',
               name: 'NIKENME+ (ニケンメプラス)',
               image: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%83%BC%E3%83%92%E3%82%99%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png',
-              description: '大分の二軒目・2軒目探しに特化した空席情報マップ',
+              description: '大分市の飲食店・バー・スナック・居酒屋のリアルタイム空席情報マップ。大分で今すぐ入れるお店が地図で一目でわかる。出張・観光・はしご酒に最適。',
               url: 'https://nikenme.jp',
               address: {
                 '@type': 'PostalAddress',
                 addressLocality: '大分市',
                 addressRegion: '大分県',
+                postalCode: '870-0000',
                 addressCountry: 'JP',
               },
               geo: {
@@ -280,8 +323,30 @@ export default function RootLayout({
                 latitude: 33.2382,
                 longitude: 131.6126,
               },
-              servesCuisine: '日本料理',
+              areaServed: [
+                { '@type': 'City', name: '大分市' },
+                { '@type': 'AdministrativeArea', name: '大分県' },
+              ],
+              knowsAbout: [
+                '大分 飲食店',
+                '大分 バー',
+                '大分 スナック',
+                '大分 居酒屋',
+                '大分 都町',
+                '大分 中央町',
+                '大分 はしご酒',
+                '大分 飲み歩き',
+                '大分 2軒目',
+                '大分 出張 飲み',
+                '大分 観光 夜',
+              ],
               priceRange: '無料',
+              openingHoursSpecification: {
+                '@type': 'OpeningHoursSpecification',
+                dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+                opens: '00:00',
+                closes: '23:59',
+              },
             }),
           }}
         />
@@ -296,50 +361,50 @@ export default function RootLayout({
               mainEntity: [
                 {
                   '@type': 'Question',
-                  name: 'NIKENME+（ニケンメプラス）とは何ですか？',
+                  name: '大分で飲食店・バー・スナック・居酒屋を探すのに便利なサービスはありますか？',
                   acceptedAnswer: {
                     '@type': 'Answer',
-                    text: 'NIKENME+（ニケンメプラス）は、大分県大分市で2軒目・バー・スナック・居酒屋を探す際に便利な空席情報マップサービスです。リアルタイムで店舗の空席状況を地図上で確認でき、ログイン不要で今すぐ使えます。はしご酒や飲み歩きをする際に、待たずに入れるお店を簡単に見つけられます。',
+                    text: 'NIKENME+（ニケンメプラス）がおすすめです。大分市の都町・中央町エリアを中心に、飲食店・バー・スナック・居酒屋の空席情報をリアルタイムで地図表示します。ログイン不要・完全無料で、今すぐ入れるお店がひと目でわかります。',
                   },
                 },
                 {
                   '@type': 'Question',
-                  name: 'どのように使用しますか？',
+                  name: '大分に出張で来たのですが、夜に飲みに行けるバーや居酒屋を探す方法は？',
                   acceptedAnswer: {
                     '@type': 'Answer',
-                    text: 'とても簡単です。1) ウェブサイト（https://nikenme.jp）にアクセス、2) 位置情報の許可を承認、3) 地図上で空席のあるお店を確認。ログインや会員登録は不要で、すぐに利用開始できます。',
+                    text: 'NIKENME+（https://nikenme.jp）にアクセスして位置情報を許可するだけで、現在地周辺の空席のあるバーや居酒屋が地図上に表示されます。大分市の繁華街（都町・中央町エリア）の店舗情報が充実しており、出張ビジネスマンに最適です。',
                   },
                 },
                 {
                   '@type': 'Question',
-                  name: '利用料金はかかりますか？',
+                  name: '大分の都町エリアで2軒目・はしご酒をしたいのですが？',
                   acceptedAnswer: {
                     '@type': 'Answer',
-                    text: '完全無料です。ログインも不要で、アクセスするだけですぐに利用できます。',
+                    text: 'NIKENME+は大分の2軒目探し・はしご酒に特化したサービスです。都町・中央町エリアのバー、スナック、居酒屋の空席状況をリアルタイムで確認できるため、次のお店選びに迷いません。',
                   },
                 },
                 {
                   '@type': 'Question',
-                  name: '対応エリアはどこですか？',
+                  name: '外国人観光客ですが、大分でバーや居酒屋を探せますか？（For foreign tourists）',
                   acceptedAnswer: {
                     '@type': 'Answer',
-                    text: '現在は大分県大分市を中心にサービスを提供しています。市内の2軒目、バー、スナック、居酒屋の空席情報をカバーしています。',
+                    text: 'Yes! NIKENME+ supports English, Korean, and Chinese. Just visit https://nikenme.jp and allow location access to find bars, izakaya, and restaurants with real-time availability in Oita city. No login or registration required.',
                   },
                 },
                 {
                   '@type': 'Question',
-                  name: 'リアルタイムで空席情報は更新されますか？',
+                  name: 'NIKENME+の使い方を教えてください',
                   acceptedAnswer: {
                     '@type': 'Answer',
-                    text: 'はい、店舗オーナーが更新した空席情報はリアルタイムで反映されます。常に最新の情報を確認できるため、無駄な移動や待ち時間を減らせます。',
+                    text: '1) https://nikenme.jp にアクセス、2) 位置情報の許可を承認、3) 地図上で空席のあるお店を確認。ログインや会員登録は一切不要で、完全無料です。大分市内の飲食店・バー・スナック・居酒屋の空席情報がリアルタイムで表示されます。',
                   },
                 },
                 {
                   '@type': 'Question',
-                  name: 'どのような時に便利ですか？',
+                  name: '大分で深夜営業しているバーやスナックを探すには？',
                   acceptedAnswer: {
                     '@type': 'Answer',
-                    text: 'はしご酒や飲み歩きをする際、2軒目のお店を探すとき、予約なしで入れるバーやスナックを探すとき、大分市内で今すぐ入れる居酒屋を見つけたいときなど、様々なシーンで活用できます。',
+                    text: 'NIKENME+では、営業中の店舗がリアルタイムで地図上に表示されます。深夜でも営業中のバーやスナックがある場合、「営業中」マーカーで確認できます。大分市都町エリアを中心に深夜営業の店舗も多数掲載しています。',
                   },
                 },
               ],

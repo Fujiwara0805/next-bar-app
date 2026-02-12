@@ -588,6 +588,7 @@ function MapPageContent() {
   const [currentBounds, setCurrentBounds] = useState<ViewportBounds | null>(null);
   const [isNavigating, setIsNavigating] = useState(false);
   const [selectedStoreIndex, setSelectedStoreIndex] = useState(0);
+  const [isUpdatingOpenStatus, setIsUpdatingOpenStatus] = useState(false);
 
   const { location: userLocation, refreshLocation } = useOptimizedLocation();
   const { stores, isLoading, error, retryCount, fetchStores, refreshStores } = useStores();
@@ -633,6 +634,7 @@ function MapPageContent() {
       }
 
       isOpenUpdatedRef.current = true;
+      setIsUpdatingOpenStatus(true);
 
       try {
         const res = await fetch('/api/stores/update-is-open', {
@@ -672,6 +674,8 @@ function MapPageContent() {
         }
       } catch (err) {
         debugWarn('Failed to update is_open:', err);
+      } finally {
+        setIsUpdatingOpenStatus(false);
       }
     };
 
@@ -1045,6 +1049,58 @@ function MapPageContent() {
             retryCount={retryCount}
             onRetry={() => refreshStores()}
           />
+        )}
+      </AnimatePresence>
+
+      {/* 営業状態更新インジケーター */}
+      <AnimatePresence>
+        {isUpdatingOpenStatus && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.3 }}
+            className="fixed top-4 left-1/2 -translate-x-1/2 z-50 safe-top"
+          >
+            <div
+              className="flex items-center gap-2.5 px-4 py-2.5 rounded-full shadow-lg"
+              style={{
+                background: `${colors.surface}F5`,
+                backdropFilter: 'blur(16px)',
+                border: `1px solid ${colors.borderGold}`,
+                boxShadow: `0 4px 20px rgba(0,0,0,0.3), 0 0 10px ${colors.accent}20`,
+              }}
+            >
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
+              >
+                <RefreshCw className="w-4 h-4" style={{ color: colors.accent }} />
+              </motion.div>
+              <span className="text-xs font-bold" style={{ color: colors.text }}>
+                {t('map.updating_status')}
+              </span>
+              <motion.div
+                className="flex gap-0.5"
+                initial="start"
+                animate="end"
+              >
+                {[0, 1, 2].map((i) => (
+                  <motion.div
+                    key={i}
+                    className="w-1 h-1 rounded-full"
+                    style={{ backgroundColor: colors.accent }}
+                    animate={{ opacity: [0.3, 1, 0.3] }}
+                    transition={{
+                      duration: 1.2,
+                      repeat: Infinity,
+                      delay: i * 0.3,
+                    }}
+                  />
+                ))}
+              </motion.div>
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
 

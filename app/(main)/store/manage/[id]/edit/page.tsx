@@ -410,17 +410,14 @@ export default function StoreEditPage() {
 
     setGeocoding(true);
 
+    // サーバーサイドAPIルート経由でGeocoding（APIキーを隠蔽）
     try {
-      if (!GOOGLE_MAPS_API_KEY) throw new Error('APIキー未設定');
-      const resp = await fetch(
-        `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${GOOGLE_MAPS_API_KEY}&language=ja&region=JP`
-      );
+      const resp = await fetch(`/api/geocode?address=${encodeURIComponent(address)}`);
       const data = await resp.json();
-      if (data.status === 'OK' && data.results && data.results[0]) {
-        const loc = data.results[0].geometry.location;
-        setLatitude(String(loc.lat));
-        setLongitude(String(loc.lng));
-        toast.success('位置情報を取得しました', { 
+      if (data.lat && data.lng) {
+        setLatitude(String(data.lat));
+        setLongitude(String(data.lng));
+        toast.success('位置情報を取得しました', {
           position: 'top-center',
           duration: 1000,
           className: 'bg-gray-100'
@@ -429,11 +426,11 @@ export default function StoreEditPage() {
         return true;
       }
     } catch (err) {
-      console.error('Geocode REST error:', err);
+      console.error('Geocode API error:', err);
     }
 
     setGeocoding(false);
-    toast.error('位置情報を取得できませんでした', { 
+    toast.error('位置情報を取得できませんでした', {
       position: 'top-center',
       duration: 3000,
       className: 'bg-gray-100'

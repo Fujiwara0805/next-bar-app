@@ -207,6 +207,7 @@ export const translations = {
       error_fetch_failed: 'データの取得に失敗しました',
       error_retrying: 'リトライ中: {retryCount}/{maxRetryCount}',
       retry: '再試行',
+      updating_status: '営業情報を取得中',
     },
     store_list: {
       title: '店舗一覧画面',
@@ -959,6 +960,7 @@ export const translations = {
       error_fetch_failed: 'Failed to fetch data',
       error_retrying: 'Retrying: {retryCount}/{maxRetryCount}',
       retry: 'Retry',
+      updating_status: 'Updating status',
     },
     store_list: {
       title: 'Store List',
@@ -1711,6 +1713,7 @@ export const translations = {
       error_fetch_failed: '데이터를 가져오지 못했습니다',
       error_retrying: '재시도 중: {retryCount}/{maxRetryCount}',
       retry: '재시도',
+      updating_status: '영업 정보 확인 중',
     },
     store_list: {
       title: '매장 목록',
@@ -2455,6 +2458,7 @@ export const translations = {
       error_fetch_failed: '数据获取失败',
       error_retrying: '重试中: {retryCount}/{maxRetryCount}',
       retry: '重试',
+      updating_status: '正在获取营业信息',
     },
     store_list: {
       title: '店铺列表',
