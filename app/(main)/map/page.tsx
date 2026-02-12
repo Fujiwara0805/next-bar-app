@@ -1060,7 +1060,7 @@ function MapPageContent() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.3 }}
-            className="fixed top-4 left-1/2 -translate-x-1/2 z-50 safe-top"
+            className="fixed top-4 left-3 sm:left-4 z-50 safe-top"
           >
             <div
               className="flex items-center gap-2.5 px-4 py-2.5 rounded-full shadow-lg"
