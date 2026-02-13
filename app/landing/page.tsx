@@ -413,7 +413,7 @@ export default function LandingPage() {
         </div>
         <div className="container mx-auto max-w-5xl relative z-10">
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }} className="text-center">
-            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.6 }} className="flex justify-center mb-8">
+            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.6 }} className="flex justify-center mb-8" style={{ marginTop: 24 }}>
               <div className="relative">
                 <motion.div className="absolute inset-0 -m-8" animate={{ opacity: [0.3, 0.6, 0.3] }} transition={{ duration: 4, repeat: Infinity }} style={{ background: `radial-gradient(circle, ${colors.accent}40 0%, transparent 70%)`, filter: 'blur(40px)' }} />
                 <img src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png" alt="NIKENME+" className="relative h-28 sm:h-36 w-auto object-contain" style={{ filter: `drop-shadow(0 0 30px ${colors.accent}60)` }} />
