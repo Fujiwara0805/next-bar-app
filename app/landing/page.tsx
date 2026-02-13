@@ -967,6 +967,68 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* SEO エリアガイドセクション */}
+      <section className="relative py-20 px-4 overflow-hidden" style={{ background: colors.background }}>
+        <div className="container mx-auto max-w-4xl">
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
+            <GoldDivider />
+            <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4" style={{ color: colors.accent }}>{t('landing.area_guide_label')}</span>
+            <h2 className="text-2xl sm:text-3xl font-bold mb-4" style={{ color: colors.text }}>{renderWithLineBreaks(t('landing.area_guide_title'))}</h2>
+            <p className="text-base max-w-2xl mx-auto" style={{ color: colors.textMuted }}>{renderWithLineBreaks(t('landing.area_guide_subtitle'))}</p>
+          </motion.div>
+
+          <div className="space-y-8">
+            {/* 都町エリア */}
+            <motion.article initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="rounded-2xl overflow-hidden" style={{ background: `${colors.surface}60`, border: `1px solid ${colors.borderSubtle}` }}>
+              <div className="aspect-[16/9] w-full overflow-hidden">
+                <img src="https://res.cloudinary.com/dz9trbwma/image/upload/v1770942497/Gemini_Generated_Image_8eyd8x8eyd8x8eyd_fy2omk.png" alt={t('landing.area_guide_miyako_title')} className="w-full h-full object-cover" />
+              </div>
+              <div className="p-6">
+                <h3 className="text-xl font-bold mb-3" style={{ color: colors.text }}>{t('landing.area_guide_miyako_title')}</h3>
+                <p className="text-sm leading-relaxed mb-3" style={{ color: colors.textMuted }}>{t('landing.area_guide_miyako_desc1')}</p>
+                <p className="text-sm leading-relaxed" style={{ color: colors.textMuted }}>{t('landing.area_guide_miyako_desc2')}</p>
+              </div>
+            </motion.article>
+
+            {/* 中央町・大分駅周辺エリア */}
+            <motion.article initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="rounded-2xl overflow-hidden" style={{ background: `${colors.surface}60`, border: `1px solid ${colors.borderSubtle}` }}>
+              <div className="aspect-[16/9] w-full overflow-hidden">
+                <img src="https://res.cloudinary.com/dz9trbwma/image/upload/v1770942633/Gemini_Generated_Image_f6wtfvf6wtfvf6wt_aovpzh.png" alt={t('landing.area_guide_chuo_title')} className="w-full h-full object-cover" />
+              </div>
+              <div className="p-6">
+                <h3 className="text-xl font-bold mb-3" style={{ color: colors.text }}>{t('landing.area_guide_chuo_title')}</h3>
+                <p className="text-sm leading-relaxed mb-3" style={{ color: colors.textMuted }}>{t('landing.area_guide_chuo_desc1')}</p>
+                <p className="text-sm leading-relaxed" style={{ color: colors.textMuted }}>{t('landing.area_guide_chuo_desc2')}</p>
+              </div>
+            </motion.article>
+
+            {/* シーン別おすすめ */}
+            <motion.article initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="p-6 rounded-2xl" style={{ background: `${colors.surface}60`, border: `1px solid ${colors.borderSubtle}` }}>
+              <h3 className="text-xl font-bold mb-3" style={{ color: colors.text }}>{t('landing.area_guide_scene_title')}</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <h4 className="text-sm font-bold mb-2" style={{ color: colors.accent }}>{t('landing.area_guide_scene_date_title')}</h4>
+                  <p className="text-xs leading-relaxed" style={{ color: colors.textMuted }}>{t('landing.area_guide_scene_date_desc')}</p>
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold mb-2" style={{ color: colors.accent }}>{t('landing.area_guide_scene_solo_title')}</h4>
+                  <p className="text-xs leading-relaxed" style={{ color: colors.textMuted }}>{t('landing.area_guide_scene_solo_desc')}</p>
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold mb-2" style={{ color: colors.accent }}>{t('landing.area_guide_scene_girls_title')}</h4>
+                  <p className="text-xs leading-relaxed" style={{ color: colors.textMuted }}>{t('landing.area_guide_scene_girls_desc')}</p>
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold mb-2" style={{ color: colors.accent }}>{t('landing.area_guide_scene_hopping_title')}</h4>
+                  <p className="text-xs leading-relaxed" style={{ color: colors.textMuted }}>{t('landing.area_guide_scene_hopping_desc')}</p>
+                </div>
+              </div>
+            </motion.article>
+          </div>
+        </div>
+        <motion.div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${colors.accent}40, transparent)` }} />
+      </section>
+
       {/* Partner Stores Section */}
       {partnerStores.length > 0 && (
         <section className="relative py-24 px-4 overflow-hidden" style={{ background: colors.background }}>
@@ -1045,66 +1107,6 @@ export default function LandingPage() {
             </div>
           </motion.div>
         </div>
-      </section>
-
-      {/* SEO エリアガイドセクション */}
-      <section className="relative py-20 px-4 overflow-hidden" style={{ background: colors.background }}>
-        <div className="container mx-auto max-w-4xl">
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
-            <GoldDivider />
-            <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4" style={{ color: colors.accent }}>Area Guide</span>
-            <h2 className="text-2xl sm:text-3xl font-bold mb-4" style={{ color: colors.text }}>大分のおすすめ夜の飲食店ガイド</h2>
-            <p className="text-base max-w-2xl mx-auto" style={{ color: colors.textMuted }}>大分県内でバー・スナック・居酒屋をお探しの方へ</p>
-          </motion.div>
-
-          <div className="space-y-8">
-            {/* 都町エリア */}
-            <motion.article initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="p-6 rounded-2xl" style={{ background: `${colors.surface}60`, border: `1px solid ${colors.borderSubtle}` }}>
-              <h3 className="text-xl font-bold mb-3" style={{ color: colors.text }}>大分・都町エリアのおすすめバー・スナック</h3>
-              <p className="text-sm leading-relaxed mb-3" style={{ color: colors.textMuted }}>
-                大分市最大の繁華街・都町エリアには、オーセンティックバーやカクテルバー、カラオケスナック、ダイニングバーなど多彩なお店が軒を連ねます。デートにおすすめの隠れ家バーから、一人飲みで気軽に立ち寄れるカウンターバー、出張先での夜をゆったり過ごせるラウンジまで、シーンに合わせたお店選びが可能です。
-              </p>
-              <p className="text-sm leading-relaxed" style={{ color: colors.textMuted }}>
-                NIKENME+なら、都町エリアのおすすめバー・スナックの空席状況をリアルタイムで確認。人気店でも今すぐ入れるかどうかが地図上でひと目でわかります。
-              </p>
-            </motion.article>
-
-            {/* 中央町・大分駅周辺エリア */}
-            <motion.article initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="p-6 rounded-2xl" style={{ background: `${colors.surface}60`, border: `1px solid ${colors.borderSubtle}` }}>
-              <h3 className="text-xl font-bold mb-3" style={{ color: colors.text }}>大分駅周辺・中央町のおすすめ居酒屋・バー</h3>
-              <p className="text-sm leading-relaxed mb-3" style={{ color: colors.textMuted }}>
-                大分駅から徒歩圏内の中央町エリアは、地元の方はもちろん出張ビジネスマンや観光客にも便利な立地です。大分の新鮮な海の幸を味わえる居酒屋や、地元の焼酎・日本酒が楽しめるバーが集まるエリア。忘年会・新年会・歓送迎会の二次会にもぴったりのお店が見つかります。
-              </p>
-              <p className="text-sm leading-relaxed" style={{ color: colors.textMuted }}>
-                深夜営業のお店も多く、遅い時間からでもおすすめのバーや居酒屋を探せます。NIKENME+で空席情報をチェックして、待ち時間なしで大分の夜を楽しみましょう。
-              </p>
-            </motion.article>
-
-            {/* シーン別おすすめ */}
-            <motion.article initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="p-6 rounded-2xl" style={{ background: `${colors.surface}60`, border: `1px solid ${colors.borderSubtle}` }}>
-              <h3 className="text-xl font-bold mb-3" style={{ color: colors.text }}>シーン別・大分の夜の過ごし方</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <h4 className="text-sm font-bold mb-2" style={{ color: colors.accent }}>デート・記念日</h4>
-                  <p className="text-xs leading-relaxed" style={{ color: colors.textMuted }}>大分の隠れ家バーやおしゃれなダイニングバーで特別な夜を。雰囲気の良いおすすめ店をNIKENME+で検索。</p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-bold mb-2" style={{ color: colors.accent }}>一人飲み・出張</h4>
-                  <p className="text-xs leading-relaxed" style={{ color: colors.textMuted }}>カウンター席のあるバーや落ち着いた居酒屋など、一人でも気軽に楽しめる大分のおすすめ店をご紹介。</p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-bold mb-2" style={{ color: colors.accent }}>女子会・飲み会</h4>
-                  <p className="text-xs leading-relaxed" style={{ color: colors.textMuted }}>おしゃれな空間でカクテルやワインが楽しめる、大分の女子会におすすめのバー・居酒屋をチェック。</p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-bold mb-2" style={{ color: colors.accent }}>はしご酒・二次会</h4>
-                  <p className="text-xs leading-relaxed" style={{ color: colors.textMuted }}>大分の都町で2軒目・3軒目を探すなら、リアルタイム空席情報で次のお店がすぐ見つかるNIKENME+が便利。</p>
-                </div>
-              </div>
-            </motion.article>
-          </div>
-        </div>
-        <motion.div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${colors.accent}40, transparent)` }} />
       </section>
 
       {/* Footer */}
