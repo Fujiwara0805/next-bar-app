@@ -133,8 +133,10 @@ export const translations = {
       privacy: 'プライバシーポリシー',
       faq: 'よくある質問 (FAQ)',
       release_notes: 'リリースノート',
+      contact: 'お問い合わせ',
+      official_account: '公式アカウント',
       language: '言語設定',
-      version: 'Version 1.0.0',
+      version: 'Version 1.2.0',
     },
     // Hero Section
     hero: {
@@ -905,8 +907,10 @@ export const translations = {
       privacy: 'Privacy Policy',
       faq: 'FAQ',
       release_notes: 'Release Notes',
+      contact: 'Contact Us',
+      official_account: 'Official Account',
       language: 'Language Settings',
-      version: 'Version 1.0.0',
+      version: 'Version 1.2.0',
     },
     // Hero Section
     hero: {
@@ -1677,8 +1681,10 @@ export const translations = {
       privacy: '개인정보 처리방침',
       faq: '자주 묻는 질문 (FAQ)',
       release_notes: '릴리스 노트',
+      contact: '문의하기',
+      official_account: '공식 계정',
       language: '언어 설정',
-      version: 'Version 1.0.0',
+      version: 'Version 1.2.0',
     },
     // Hero Section
     hero: {
@@ -2441,8 +2447,10 @@ export const translations = {
       privacy: '隐私政策',
       faq: '常见问题 (FAQ)',
       release_notes: '发布说明',
+      contact: '联系我们',
+      official_account: '官方账号',
       language: '语言设置',
-      version: 'Version 1.0.0',
+      version: 'Version 1.2.0',
     },
     // Hero Section
     hero: {

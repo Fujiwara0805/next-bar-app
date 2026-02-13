@@ -23,6 +23,8 @@ import {
   Sparkles,
   PartyPopper,
   Gift,
+  MessageCircle,
+  Instagram,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -261,6 +263,7 @@ export default function LandingPage() {
     { icon: Shield, label: t('menu.privacy'), href: '/privacy' },
     { icon: HelpCircle, label: t('menu.faq'), href: '/faq' },
     { icon: FileText, label: t('menu.release_notes'), href: '/release-notes' },
+    { icon: MessageCircle, label: t('menu.contact'), href: '/contact' },
   ];
 
   const footerLinks = [
@@ -380,7 +383,14 @@ export default function LandingPage() {
                     );
                   })}
                 </nav>
-                <div className="mt-12 pt-6" style={{ borderTop: `1px solid ${colors.borderGold}` }}>
+                {/* Official Account */}
+                <div className="mt-8 pt-6" style={{ borderTop: `1px solid ${colors.borderGold}` }}>
+                  <p className="text-sm font-medium mb-3" style={{ color: colors.textMuted }}>{t('menu.official_account')}</p>
+                  <a href="https://www.instagram.com/nikenme_plus/" target="_blank" rel="noopener noreferrer" onClick={() => setShowMenu(false)} className="flex items-center gap-3 p-4 rounded-lg transition-colors group" style={{ color: colors.textMuted }}>
+                    <Instagram className="w-5 h-5" style={{ color: colors.accent }} /><span className="group-hover:opacity-100 font-medium">Instagram</span><ChevronRight className="w-4 h-4 ml-auto opacity-30" />
+                  </a>
+                </div>
+                <div className="mt-6 pt-6" style={{ borderTop: `1px solid ${colors.borderGold}` }}>
                   <p className="text-xs text-center" style={{ color: colors.textSubtle }}>© 2025 NIKENME+<br />{t('menu.version')}</p>
                 </div>
               </div>
@@ -413,8 +423,7 @@ export default function LandingPage() {
               <motion.div animate={{ opacity: [1, 0.5, 1] }} transition={{ duration: 2, repeat: Infinity }} className="w-1.5 h-1.5 rounded-full" style={{ background: colors.accent }} />
               <span className="text-[10px] font-medium tracking-[0.25em] uppercase" style={{ color: colors.accent }}>Night Spot Map</span>
             </motion.div>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 leading-tight"><span style={{ color: colors.text }}>{t('landing.hero_catchphrase')}</span></h1>
-            <p className="text-lg sm:text-xl md:text-2xl mb-6" style={{ color: colors.textMuted }}>{t('landing.hero_subcopy')}</p>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight"><span style={{ color: colors.text }}>{t('landing.hero_catchphrase')}</span></h1>
             <p className="text-base sm:text-lg mb-10 max-w-2xl mx-auto leading-relaxed" style={{ color: colors.textMuted }}>{renderWithLineBreaks(t('landing.hero_body'))}</p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <motion.div whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.98 }} className="rounded-full relative overflow-hidden group" style={{ boxShadow: colors.shadowGold }}>
