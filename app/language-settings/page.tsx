@@ -7,6 +7,21 @@ import { Card } from '@/components/ui/card';
 import { ArrowLeft, Check } from 'lucide-react';
 import { useLanguage, SUPPORTED_LANGUAGES, LANGUAGE_META, type Language } from '@/lib/i18n/context';
 
+// マップ画面・LPと統一したカラーパレット
+const colors = {
+  background: '#0A1628',
+  surface: '#162447',
+  surfaceLight: '#1F4068',
+  accent: '#C9A86C',
+  accentLight: '#E8D5B7',
+  text: '#FDFBF7',
+  textMuted: 'rgba(253, 251, 247, 0.7)',
+  textSubtle: 'rgba(253, 251, 247, 0.5)',
+  luxuryGradient: 'linear-gradient(165deg, #0A1628 0%, #162447 50%, #1F4068 100%)',
+  borderGold: 'rgba(201, 168, 108, 0.3)',
+  goldGradient: 'linear-gradient(135deg, #C9A86C 0%, #E8D5B7 50%, #B8956E 100%)',
+};
+
 export default function LanguageSettingsPage() {
   const { language, setLanguage, t } = useLanguage();
 
@@ -18,12 +33,23 @@ export default function LanguageSettingsPage() {
   }));
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-sm border-b">
+    <div className="min-h-screen" style={{ background: colors.background }}>
+      <header
+        className="sticky top-0 z-50 backdrop-blur-sm"
+        style={{
+          background: colors.luxuryGradient,
+          borderBottom: `1px solid ${colors.borderGold}`,
+        }}
+      >
         <div className="container mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center">
           <Link href="/landing">
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="w-4 h-4 mr-2" />
+            <Button
+              variant="ghost"
+              size="sm"
+              className="hover:opacity-90"
+              style={{ color: colors.text }}
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" style={{ color: colors.text }} />
               {t('static_pages.back')}
             </Button>
           </Link>
@@ -36,10 +62,10 @@ export default function LanguageSettingsPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <h1 className="text-3xl sm:text-4xl font-bold mb-4">
+          <h1 className="text-3xl sm:text-4xl font-bold mb-4" style={{ color: colors.text }}>
             {t('language_settings_page.title')}
           </h1>
-          <p className="text-muted-foreground mb-8">
+          <p className="mb-8" style={{ color: colors.textMuted }}>
             {t('language_settings_page.description')}
           </p>
 
@@ -52,19 +78,23 @@ export default function LanguageSettingsPage() {
                 transition={{ duration: 0.3, delay: index * 0.1 }}
               >
                 <Card
-                  className={`p-6 cursor-pointer transition-all hover:shadow-lg ${
-                    language === lang.code
-                      ? 'border-2 border-primary bg-primary/5'
-                      : 'border hover:border-primary/50'
-                  }`}
+                  className="p-6 cursor-pointer transition-all hover:shadow-lg"
+                  style={{
+                    background: language === lang.code ? `${colors.accent}15` : `${colors.surface}99`,
+                    border: language === lang.code ? `2px solid ${colors.accent}` : `1px solid ${colors.borderGold}`,
+                  }}
                   onClick={() => setLanguage(lang.code as Language)}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <span className="text-2xl">{lang.flag}</span>
                       <div>
-                        <h3 className="text-xl font-bold mb-1">{lang.nativeName}</h3>
-                        <p className="text-sm text-muted-foreground">{lang.name}</p>
+                        <h3 className="text-xl font-bold mb-1" style={{ color: colors.text }}>
+                          {lang.nativeName}
+                        </h3>
+                        <p className="text-sm" style={{ color: colors.textMuted }}>
+                          {lang.name}
+                        </p>
                       </div>
                     </div>
                     {language === lang.code && (
@@ -73,8 +103,11 @@ export default function LanguageSettingsPage() {
                         animate={{ scale: 1 }}
                         transition={{ type: 'spring', stiffness: 200, damping: 10 }}
                       >
-                        <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
-                          <Check className="w-6 h-6 text-white" />
+                        <div
+                          className="w-10 h-10 rounded-full flex items-center justify-center"
+                          style={{ background: colors.goldGradient }}
+                        >
+                          <Check className="w-6 h-6" style={{ color: colors.background }} />
                         </div>
                       </motion.div>
                     )}
@@ -84,11 +117,17 @@ export default function LanguageSettingsPage() {
             ))}
           </div>
 
-          <div className="mt-8 p-6 bg-accent rounded-lg">
-            <h3 className="font-bold mb-2">
+          <div
+            className="mt-8 p-6 rounded-lg"
+            style={{
+              background: `${colors.surface}99`,
+              border: `1px solid ${colors.borderGold}`,
+            }}
+          >
+            <h3 className="font-bold mb-2" style={{ color: colors.text }}>
               {t('language_settings_page.about_title')}
             </h3>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm" style={{ color: colors.textMuted }}>
               {t('language_settings_page.about_description')}
             </p>
           </div>

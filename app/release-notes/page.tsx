@@ -23,7 +23,7 @@ const releaseTranslations = {
   ja: [
     {
       version: '1.2.0',
-      date: '2025年6月',
+      date: '2026年2月',
       changes: [
         { icon: Ticket, title: 'クーポン＆ボーナス特典', desc: 'お店のクーポンを取得可能に。さらにGoogle口コミ投稿やInstagramフォローで追加特典がもらえるようになりました。' },
         { icon: Users, title: 'コンシェルジュ機能', desc: 'あなたの好みに合わせてAIがおすすめのお店を提案。雰囲気・予算・客層などの条件で最適な店舗を見つけられます。' },
@@ -32,7 +32,7 @@ const releaseTranslations = {
     },
     {
       version: '1.1.0',
-      date: '2025年3月',
+      date: '2025年12月',
       changes: [
         { icon: Phone, title: '自動音声予約機能', desc: '到着時間・人数を入力するだけで、自動音声がお店に電話して席をキープ。電話が苦手な方でも簡単に予約できます。' },
         { icon: MapPin, title: 'エリアガイド追加', desc: '大分・都町エリアと中央町エリアのおすすめ店舗ガイドを追加。シーン別の夜の過ごし方もご紹介。' },
@@ -41,7 +41,7 @@ const releaseTranslations = {
     },
     {
       version: '1.0.0',
-      date: '2025年1月30日',
+      date: '2025年11月01日',
       changes: [
         { icon: Star, title: '初回リリース', desc: 'NIKENME+の正式リリース。大分市内の店舗の空席情報をリアルタイムで確認できるようになりました。' },
         { icon: Zap, title: 'リアルタイム更新機能', desc: '店舗の空席情報がリアルタイムで地図上に反映されます。' },
@@ -52,7 +52,7 @@ const releaseTranslations = {
   en: [
     {
       version: '1.2.0',
-      date: 'June 2025',
+      date: 'February 2026',
       changes: [
         { icon: Ticket, title: 'Coupons & Bonus Rewards', desc: 'Get coupons from partner stores. Earn extra bonuses by posting Google reviews or following store Instagram accounts.' },
         { icon: Users, title: 'Concierge Feature', desc: 'AI recommends stores based on your preferences. Find the perfect venue by atmosphere, budget, crowd type, and more.' },
@@ -61,7 +61,7 @@ const releaseTranslations = {
     },
     {
       version: '1.1.0',
-      date: 'March 2025',
+      date: 'December 2025',
       changes: [
         { icon: Phone, title: 'Auto-Voice Reservation', desc: 'Just enter arrival time and party size. Auto-voice calls the store and reserves your seat - no awkward phone calls needed.' },
         { icon: MapPin, title: 'Area Guide Added', desc: 'Added recommended store guides for Miyako-machi and Chuo-machi areas in Oita, with scene-based nightlife suggestions.' },
@@ -70,7 +70,7 @@ const releaseTranslations = {
     },
     {
       version: '1.0.0',
-      date: 'January 30, 2025',
+      date: 'November 01, 2025',
       changes: [
         { icon: Star, title: 'Initial Release', desc: 'Official release of NIKENME+. Real-time vacancy checking for stores in Oita City is now available.' },
         { icon: Zap, title: 'Real-time Updates', desc: 'Store vacancy information is reflected on the map in real-time.' },
@@ -81,7 +81,7 @@ const releaseTranslations = {
   ko: [
     {
       version: '1.2.0',
-      date: '2025년 6월',
+      date: '2026년 2월',
       changes: [
         { icon: Ticket, title: '쿠폰 & 보너스 특전', desc: '가맹점 쿠폰을 받을 수 있게 되었습니다. Google 리뷰 작성이나 Instagram 팔로우로 추가 특전도 받을 수 있습니다.' },
         { icon: Users, title: '컨시어지 기능', desc: '당신의 취향에 맞게 AI가 추천 매장을 제안합니다. 분위기·예산·손님층 등의 조건으로 최적의 매장을 찾을 수 있습니다.' },
@@ -90,7 +90,7 @@ const releaseTranslations = {
     },
     {
       version: '1.1.0',
-      date: '2025년 3월',
+      date: '2025년 12월',
       changes: [
         { icon: Phone, title: '자동 음성 예약 기능', desc: '도착 시간과 인원을 입력하면 자동 음성이 매장에 전화하여 좌석을 예약합니다. 전화가 부담스러운 분도 쉽게 예약할 수 있습니다.' },
         { icon: MapPin, title: '에어리어 가이드 추가', desc: '오이타·미야코마치 지역과 주오마치 지역의 추천 매장 가이드를 추가했습니다.' },
@@ -99,7 +99,7 @@ const releaseTranslations = {
     },
     {
       version: '1.0.0',
-      date: '2025년 1월 30일',
+      date: '2025년 11월 01일',
       changes: [
         { icon: Star, title: '초기 릴리스', desc: 'NIKENME+ 정식 출시. 오이타시 내 매장의 좌석 정보를 실시간으로 확인할 수 있게 되었습니다.' },
         { icon: Zap, title: '실시간 업데이트 기능', desc: '매장의 좌석 정보가 실시간으로 지도에 반영됩니다.' },
@@ -110,7 +110,7 @@ const releaseTranslations = {
   zh: [
     {
       version: '1.2.0',
-      date: '2025年6月',
+      date: '2026年2月',
       changes: [
         { icon: Ticket, title: '优惠券和奖励特典', desc: '可以获取加盟店的优惠券。通过发表Google评价或关注Instagram还可以获得额外特典。' },
         { icon: Users, title: '礼宾功能', desc: 'AI根据您的喜好推荐合适的店铺。可以通过氛围、预算、客层等条件找到最佳店铺。' },
@@ -119,7 +119,7 @@ const releaseTranslations = {
     },
     {
       version: '1.1.0',
-      date: '2025年3月',
+      date: '2025年12月',
       changes: [
         { icon: Phone, title: '自动语音预约功能', desc: '只需输入到达时间和人数，自动语音即会致电店铺为您预留座位。不擅长打电话的人也可以轻松预约。' },
         { icon: MapPin, title: '地区指南追加', desc: '追加了大分·都町地区和中央町地区的推荐店铺指南，以及各种场景的夜间游玩方式。' },
@@ -128,7 +128,7 @@ const releaseTranslations = {
     },
     {
       version: '1.0.0',
-      date: '2025年1月30日',
+      date: '2025年11月01日',
       changes: [
         { icon: Star, title: '首次发布', desc: 'NIKENME+正式上线。现在可以实时查看大分市内店铺的座位信息。' },
         { icon: Zap, title: '实时更新功能', desc: '店铺座位信息实时反映在地图上。' },

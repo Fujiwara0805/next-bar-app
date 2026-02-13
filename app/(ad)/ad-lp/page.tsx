@@ -1178,8 +1178,8 @@ export default function AdLandingPage() {
               title="使ってみる"
             >
               <Link href="/landing" className="flex flex-col items-center justify-center gap-1">
-                <Beer className="w-5 h-5" style={{ color: colors.accent }} />
-                <span className="text-[10px] font-bold" style={{ color: colors.accent }}>
+                <Beer className="w-5 h-5" style={{ color: colors.text }} />
+                <span className="text-[10px] font-bold" style={{ color: colors.text }}>
                   使ってみる
                 </span>
               </Link>
