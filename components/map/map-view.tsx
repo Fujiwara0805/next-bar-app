@@ -25,6 +25,7 @@ import type { Database } from '@/lib/supabase/types';
 
 import { locationCache, compassCache, cacheManager } from '@/lib/cache';
 import { useLanguage } from '@/lib/i18n/context';
+import { sendGAEvent } from '@/lib/analytics';
 
 type Store = Database['public']['Tables']['stores']['Row'];
 
@@ -1177,6 +1178,11 @@ export function MapView({
         // クリックイベント（クロージャでstoreをキャプチャ）
         const handleClick = () => {
           if (onStoreClick) {
+            sendGAEvent('map_pin_click', {
+              store_id: store.id,
+              store_name: store.name,
+              vacancy_status: store.vacancy_status,
+            });
             marker.setAnimation(google.maps.Animation.BOUNCE);
             setTimeout(() => marker.setAnimation(null), 700);
             onStoreClick(store);

@@ -49,6 +49,7 @@ import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { CouponDisplayModal } from '@/components/store/CouponDisplayModal';
 import { isCouponValid, type CouponData } from '@/lib/types/coupon';
 import { ImageLightbox } from '@/components/ui/ImageLightbox';
+import { sendGAEvent } from '@/lib/analytics';
 
 type Store = Database['public']['Tables']['stores']['Row'];
 
@@ -396,7 +397,13 @@ export default function StoreDetailPage() {
         const storeData = data as Store;
         setStore(storeData);
         setImageUrls(storeData.image_urls || []);
-        
+
+        // GA4: 店舗詳細閲覧イベント
+        sendGAEvent('store_detail_view', {
+          store_id: storeData.id,
+          store_name: storeData.name,
+        });
+
         // 【削除】バックグラウンドでのis_open更新を行わない（コスト最適化）
         // is_openの更新はマップページ・一覧ページの初回マウント時と更新ボタン押下時のみ
       }
@@ -935,6 +942,10 @@ export default function StoreDetailPage() {
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => {
+                        sendGAEvent('route_search_click', {
+                          store_id: store.id,
+                          store_name: store.name,
+                        });
                         const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.name || '')}`;
                         window.open(mapsUrl, '_blank');
                       }}

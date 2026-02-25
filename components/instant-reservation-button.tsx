@@ -17,6 +17,7 @@ import {
 import { toast } from 'sonner';
 import { ReservationStatusTracker } from '@/components/reservation-status-tracker';
 import { useLanguage } from '@/lib/i18n/context';
+import { sendGAEvent } from '@/lib/analytics';
 
 interface InstantReservationButtonProps {
   storeId: string;
@@ -87,10 +88,17 @@ export function InstantReservationButton({
       }
 
       const result = await response.json();
-      
+
+      // GA4: 自動音声予約（席キープ）イベント
+      sendGAEvent('tel_click', {
+        store_id: storeId,
+        store_name: storeName,
+        party_size: parseInt(partySize),
+      });
+
       setRequesting(false);
       setShowDialog(false);
-      
+
       // 予約IDを保存
       setReservationId(result.reservationId);
       

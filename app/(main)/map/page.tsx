@@ -33,12 +33,13 @@ import { useLanguage } from '@/lib/i18n/context';
 // 共通モジュールのインポート
 // ============================================================================
 
-import { 
-  locationCache, 
-  storesCache, 
+import {
+  locationCache,
+  storesCache,
   cacheManager,
-  type LocationCacheData 
+  type LocationCacheData
 } from '@/lib/cache';
+import { sendGAEvent } from '@/lib/analytics';
 
 type Store = Database['public']['Tables']['stores']['Row'];
 
@@ -704,6 +705,14 @@ function MapPageContent() {
 
       lastFetchBoundsRef.current = boundsKey;
       setCurrentBounds(newBounds);
+
+      // GA4: エリア移動イベント
+      const center = bounds.getCenter();
+      sendGAEvent('area_move', {
+        center_lat: Math.round(center.lat() * 10000) / 10000,
+        center_lng: Math.round(center.lng() * 10000) / 10000,
+        zoom,
+      });
 
       // キャッシュ付きで取得
       fetchStores(false, boundsKey);
