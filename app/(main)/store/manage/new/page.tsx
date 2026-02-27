@@ -43,6 +43,15 @@ import {
   couponFormSchema,
 } from '@/lib/types/coupon';
 
+// おごり酒関連のインポート
+import { StoreOgoriForm } from '@/components/store/StoreOgoriForm';
+import {
+  OgoriFormValues,
+  getDefaultOgoriFormValues,
+  ogoriFormToDbData,
+  OGORI_FIXED_AMOUNT,
+} from '@/lib/types/ogori';
+
 // キャンペーン関連のインポート
 import {
   StoreCampaignForm,
@@ -181,6 +190,9 @@ export default function NewStorePage() {
   const [budgetMax, setBudgetMax] = useState<number>(0);
   const [paymentMethods, setPaymentMethods] = useState<string[]>([]);
   const [facilities, setFacilities] = useState<string[]>([]);
+
+  // おごり酒関連のステート
+  const [ogoriValues, setOgoriValues] = useState<OgoriFormValues>(getDefaultOgoriFormValues());
 
   // クーポン関連のステート
   const [couponValues, setCouponValues] = useState<CouponFormValues>(getDefaultCouponFormValues());
@@ -595,6 +607,9 @@ export default function NewStorePage() {
       // キャンペーンデータをDB形式に変換
       const campaignDbData = campaignFormToDbData(campaignValues);
 
+      // おごり酒データをDB形式に変換
+      const ogoriDbData = ogoriFormToDbData(ogoriValues);
+
       const { error: storeError } = await supabase
         .from('stores')
         .insert({
@@ -623,11 +638,31 @@ export default function NewStorePage() {
           ...couponDbData,
           // キャンペーン関連カラム
           ...campaignDbData,
+          // おごり酒関連カラム
+          ...ogoriDbData,
         } as any);
 
       if (storeError) {
         console.error('Store error:', storeError);
         throw new Error(`店舗情報の登録に失敗: ${storeError.message}`);
+      }
+
+      // おごり酒のドリンクメニューを保存（金額は固定1,000円のため保存不要）
+      if (ogoriValues.isEnabled && newStoreUserId) {
+        if (ogoriValues.drinks.length > 0) {
+          const drinksToInsert = ogoriValues.drinks
+            .filter(d => d.name.trim())
+            .map((drink, index) => ({
+              store_id: newStoreUserId,
+              name: drink.name.trim(),
+              price: OGORI_FIXED_AMOUNT,
+              is_active: drink.isActive,
+              sort_order: index,
+            }));
+          if (drinksToInsert.length > 0) {
+            await supabase.from('ogori_drinks').insert(drinksToInsert as any);
+          }
+        }
       }
 
       toast.success('店舗を登録しました', {
@@ -1139,10 +1174,25 @@ export default function NewStorePage() {
               />
             </Card>
 
-            {/* ========== クーポン設定セクション ========== */}
-            <Card 
+            {/* ========== おごり酒設定セクション ========== */}
+            <Card
               className="p-6 rounded-2xl shadow-lg"
-              style={{ 
+              style={{
+                background: '#FFFFFF',
+                border: `1px solid rgba(201, 168, 108, 0.15)`,
+              }}
+            >
+              <StoreOgoriForm
+                values={ogoriValues}
+                onChange={setOgoriValues}
+                disabled={loading}
+              />
+            </Card>
+
+            {/* ========== クーポン設定セクション ========== */}
+            <Card
+              className="p-6 rounded-2xl shadow-lg"
+              style={{
                 background: '#FFFFFF',
                 border: `1px solid rgba(201, 168, 108, 0.15)`,
               }}

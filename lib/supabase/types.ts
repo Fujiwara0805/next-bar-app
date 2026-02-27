@@ -298,6 +298,11 @@ export interface Database {
           /** キャンペーン用クーポンかどうか */
           coupon_is_campaign: boolean
           // ============================================
+          // おごり酒関連のカラム
+          // ============================================
+          /** おごり酒機能ON/OFF */
+          ogori_enabled: boolean
+          // ============================================
           // キャンペーン関連のカラム
           // ============================================
           /** キャンペーン実施フラグ */
@@ -366,6 +371,8 @@ export interface Database {
           instagram_url?: string | null
           coupon_additional_bonus?: string | null
           coupon_is_campaign?: boolean
+          // おごり酒関連（オプショナル）
+          ogori_enabled?: boolean
           // キャンペーン関連（すべてオプショナル）
           has_campaign?: boolean
           campaign_id?: string | null
@@ -428,12 +435,128 @@ export interface Database {
           instagram_url?: string | null
           coupon_additional_bonus?: string | null
           coupon_is_campaign?: boolean
+          // おごり酒関連（オプショナル）
+          ogori_enabled?: boolean
           // キャンペーン関連（すべてオプショナル）
           has_campaign?: boolean
           campaign_id?: string | null
           campaign_name?: string | null
           campaign_start_date?: string | null
           campaign_end_date?: string | null
+        }
+      }
+      // ============================================
+      // おごり酒チケットテーブル
+      // ============================================
+      ogori_tickets: {
+        Row: {
+          id: string
+          store_id: string
+          purchaser_id: string | null
+          amount: number
+          drink_id: string | null
+          drink_name: string | null
+          stripe_payment_id: string | null
+          status: 'available' | 'used' | 'expired'
+          used_by: string | null
+          used_at: string | null
+          used_drink_id: string | null
+          used_drink_name: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          store_id: string
+          purchaser_id?: string | null
+          amount: number
+          drink_id?: string | null
+          drink_name?: string | null
+          stripe_payment_id?: string | null
+          status?: 'available' | 'used' | 'expired'
+          used_by?: string | null
+          used_at?: string | null
+          used_drink_id?: string | null
+          used_drink_name?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          store_id?: string
+          purchaser_id?: string | null
+          amount?: number
+          drink_id?: string | null
+          drink_name?: string | null
+          stripe_payment_id?: string | null
+          status?: 'available' | 'used' | 'expired'
+          used_by?: string | null
+          used_at?: string | null
+          used_drink_id?: string | null
+          used_drink_name?: string | null
+          created_at?: string
+        }
+      }
+      // ============================================
+      // おごり酒ドリンクメニューテーブル
+      // ============================================
+      ogori_drinks: {
+        Row: {
+          id: string
+          store_id: string
+          name: string
+          price: number
+          image_url: string | null
+          is_active: boolean
+          sort_order: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          store_id: string
+          name: string
+          price: number
+          image_url?: string | null
+          is_active?: boolean
+          sort_order?: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          store_id?: string
+          name?: string
+          price?: number
+          image_url?: string | null
+          is_active?: boolean
+          sort_order?: number
+          created_at?: string
+        }
+      }
+      // ============================================
+      // おごり酒金額設定テーブル
+      // ============================================
+      ogori_price_options: {
+        Row: {
+          id: string
+          store_id: string
+          amount: number
+          is_active: boolean
+          sort_order: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          store_id: string
+          amount: number
+          is_active?: boolean
+          sort_order?: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          store_id?: string
+          amount?: number
+          is_active?: boolean
+          sort_order?: number
+          created_at?: string
         }
       }
       quick_reservations: {

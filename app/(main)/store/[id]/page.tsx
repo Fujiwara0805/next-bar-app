@@ -50,6 +50,7 @@ import { CouponDisplayModal } from '@/components/store/CouponDisplayModal';
 import { isCouponValid, type CouponData } from '@/lib/types/coupon';
 import { ImageLightbox } from '@/components/ui/ImageLightbox';
 import { sendGAEvent } from '@/lib/analytics';
+import { OgoriSection } from '@/components/ogori/OgoriSection';
 
 type Store = Database['public']['Tables']['stores']['Row'];
 
@@ -1040,6 +1041,13 @@ export default function StoreDetailPage() {
                   <InstantReservationButton storeId={store.id} storeName={store.name} />
                 </div>
               </div>
+
+              {/* おごり酒セクション */}
+              <OgoriSection
+                storeId={store.id}
+                storeName={store.name}
+                ogoriEnabled={store.ogori_enabled ?? false}
+              />
 
               {/* 写真セクション（遅延読み込み） */}
               {store.google_place_id && (

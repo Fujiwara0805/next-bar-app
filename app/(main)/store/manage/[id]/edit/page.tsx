@@ -54,6 +54,15 @@ import {
   dbDataToCampaignForm,
 } from '@/components/store/StoreCampaignForm';
 
+// おごり酒関連のインポート
+import { StoreOgoriForm } from '@/components/store/StoreOgoriForm';
+import {
+  OgoriFormValues,
+  getDefaultOgoriFormValues,
+  ogoriFormToDbData,
+  OGORI_FIXED_AMOUNT,
+} from '@/lib/types/ogori';
+
 type Store = Database['public']['Tables']['stores']['Row'];
 
 // Store型を拡張してクーポンフィールドを追加
@@ -203,6 +212,9 @@ export default function StoreEditPage() {
   // キャンペーン関連のステート
   const [campaignValues, setCampaignValues] = useState<CampaignFormValues>(getDefaultCampaignFormValues());
 
+  // おごり酒関連のステート
+  const [ogoriValues, setOgoriValues] = useState<OgoriFormValues>(getDefaultOgoriFormValues());
+
   // キャンペーン値変更時にクーポンのisCampaignフラグと開始日・有効期限を連動させる
   const handleCampaignChange = (newCampaignValues: CampaignFormValues) => {
     setCampaignValues(newCampaignValues);
@@ -285,6 +297,9 @@ export default function StoreEditPage() {
         
         // キャンペーンデータの読み込み
         setCampaignValues(dbDataToCampaignForm(storeData));
+
+        // おごり酒データの読み込み
+        setOgoriValues(prev => ({ ...prev, isEnabled: storeData.ogori_enabled ?? false }));
       }
     } catch (error) {
       console.error('Error fetching store:', error);
@@ -353,7 +368,10 @@ export default function StoreEditPage() {
           
           // キャンペーンデータの読み込み
           setCampaignValues(dbDataToCampaignForm(storeData));
-          
+
+          // おごり酒データの読み込み
+          setOgoriValues(prev => ({ ...prev, isEnabled: storeData.ogori_enabled ?? false }));
+
           setFetchingStore(false);
         }
       }
@@ -647,9 +665,12 @@ export default function StoreEditPage() {
     try {
       // クーポンデータをDB形式に変換
       const couponDbData = couponFormToDbData(couponValues);
-      
+
       // キャンペーンデータをDB形式に変換
       const campaignDbData = campaignFormToDbData(campaignValues);
+
+      // おごり酒データをDB形式に変換
+      const ogoriDbData = ogoriFormToDbData(ogoriValues);
 
       let query = (supabase.from('stores') as any)
         .update({
@@ -672,6 +693,8 @@ export default function StoreEditPage() {
           ...couponDbData,
           // キャンペーン関連カラム
           ...campaignDbData,
+          // おごり酒関連カラム
+          ...ogoriDbData,
         })
         .eq('id', params.id as string);
 
@@ -684,6 +707,36 @@ export default function StoreEditPage() {
       const { error } = await query;
 
       if (error) throw error;
+
+      // おごり酒ドリンクメニューを更新（既存を削除して再挿入）
+      const storeId = params.id as string;
+      if (ogoriValues.isEnabled) {
+        // 既存ドリンクを削除
+        await (supabase.from('ogori_drinks') as any)
+          .delete()
+          .eq('store_id', storeId);
+
+        // 新しいドリンクを挿入
+        if (ogoriValues.drinks.length > 0) {
+          const drinksToInsert = ogoriValues.drinks
+            .filter(d => d.name.trim())
+            .map((drink, index) => ({
+              store_id: storeId,
+              name: drink.name.trim(),
+              price: OGORI_FIXED_AMOUNT,
+              is_active: drink.isActive,
+              sort_order: index,
+            }));
+          if (drinksToInsert.length > 0) {
+            await supabase.from('ogori_drinks').insert(drinksToInsert as any);
+          }
+        }
+      } else {
+        // おごり酒が無効の場合、ドリンクを削除
+        await (supabase.from('ogori_drinks') as any)
+          .delete()
+          .eq('store_id', storeId);
+      }
 
       // 更新後のデータを取得してsessionStorageを更新
       const { data: updatedData } = await supabase
@@ -1351,6 +1404,22 @@ export default function StoreEditPage() {
               <StoreCampaignForm
                 values={campaignValues}
                 onChange={handleCampaignChange}
+                disabled={loading}
+              />
+            </Card>
+
+            {/* ========== おごり酒設定セクション ========== */}
+            <Card
+              className="p-6 rounded-2xl shadow-lg"
+              style={{
+                background: '#FFFFFF',
+                border: `1px solid rgba(201, 168, 108, 0.15)`,
+              }}
+            >
+              <StoreOgoriForm
+                values={ogoriValues}
+                onChange={setOgoriValues}
+                storeId={params.id as string}
                 disabled={loading}
               />
             </Card>

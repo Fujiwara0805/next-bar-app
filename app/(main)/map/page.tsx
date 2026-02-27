@@ -40,6 +40,7 @@ import {
   type LocationCacheData
 } from '@/lib/cache';
 import { sendGAEvent } from '@/lib/analytics';
+import { OgoriTicketBadge } from '@/components/ogori/OgoriTicketBadge';
 
 type Store = Database['public']['Tables']['stores']['Row'];
 
@@ -1399,6 +1400,9 @@ function MapPageContent() {
                     </div>
                   </div>
                 </div>
+
+                {/* おごりチケット */}
+                <OgoriTicketBadge storeId={selectedStore.id} compact />
 
                 {selectedStore.status_message && (
                   <div

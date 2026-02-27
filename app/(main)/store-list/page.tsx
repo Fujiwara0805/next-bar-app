@@ -26,6 +26,7 @@ import { supabase } from '@/lib/supabase/client';
 import type { Database } from '@/lib/supabase/types';
 import { useLanguage } from '@/lib/i18n/context';
 import { ConciergeModal } from '@/components/concierge-modal';
+import { OgoriTicketBadge } from '@/components/ogori/OgoriTicketBadge';
 
 type Store = Database['public']['Tables']['stores']['Row'];
 
@@ -840,6 +841,9 @@ function StoreListContent() {
                                 )}
                               </motion.div>
                               
+                              {/* おごりチケット */}
+                              <OgoriTicketBadge storeId={store.id} compact />
+
                               {store.status_message && (
                                 <p className="text-sm font-bold line-clamp-2 pt-1" style={{ color: COLORS.deepNavy }}>{store.status_message}</p>
                               )}
