@@ -2,7 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Home } from 'lucide-react';
 import {
   Breadcrumb,
   BreadcrumbList,
@@ -148,11 +148,12 @@ export function Breadcrumbs({ className, storeName }: BreadcrumbsProps) {
                   <BreadcrumbLink asChild>
                     <Link
                       href={crumb.href}
-                      className="transition-colors hover:opacity-80"
+                      className="transition-colors hover:opacity-80 flex items-center gap-1"
                       style={{
                         color: '#F2EBDD',
                       }}
                     >
+                      {index === 0 && <Home className="w-3.5 h-3.5" />}
                       {crumb.label}
                     </Link>
                   </BreadcrumbLink>

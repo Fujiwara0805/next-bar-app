@@ -240,7 +240,7 @@ export const translations = {
       filter_title: '店舗を絞り込み',
       filter_clear: 'フィルター解除',
       filter_show_all: 'すべて表示',
-      filter_has_coupon: 'クーポンあり',
+      filter_has_coupon: 'クーポン',
       filter_campaign: 'キャンペーン中',
     },
     // コンシェルジュモーダル
@@ -1061,7 +1061,7 @@ export const translations = {
       filter_title: 'Filter stores',
       filter_clear: 'Clear filters',
       filter_show_all: 'Show all',
-      filter_has_coupon: 'Has Coupon',
+      filter_has_coupon: 'Coupon',
       filter_campaign: 'Campaign',
     },
     // Concierge modal
@@ -1880,7 +1880,7 @@ export const translations = {
       filter_title: '매장 필터',
       filter_clear: '필터 해제',
       filter_show_all: '전체 보기',
-      filter_has_coupon: '쿠폰 있음',
+      filter_has_coupon: '쿠폰',
       filter_campaign: '캠페인 중',
     },
     // Concierge modal
@@ -2693,7 +2693,7 @@ export const translations = {
       filter_title: '筛选店铺',
       filter_clear: '清除筛选',
       filter_show_all: '显示全部',
-      filter_has_coupon: '有优惠券',
+      filter_has_coupon: '优惠券',
       filter_campaign: '活动中',
     },
     // Concierge modal

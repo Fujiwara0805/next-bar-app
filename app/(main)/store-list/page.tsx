@@ -367,12 +367,14 @@ function StoreListContent() {
   }, [userLocation]);
 
   const hasCoupon = (store: Store): boolean => {
-    return !!(
-      store.coupon_is_active && 
-      store.coupon_title &&
-      (!store.coupon_expiry_date || new Date(store.coupon_expiry_date) > new Date()) &&
-      (!store.coupon_max_uses || (store.coupon_current_uses || 0) < store.coupon_max_uses)
-    );
+    if (!store.coupon_is_active || !store.coupon_title) return false;
+    if (store.coupon_expiry_date) {
+      const expiry = new Date(store.coupon_expiry_date);
+      expiry.setHours(23, 59, 59, 999);
+      if (expiry < new Date()) return false;
+    }
+    if (store.coupon_max_uses && (store.coupon_current_uses || 0) >= store.coupon_max_uses) return false;
+    return true;
   };
 
   const hasCampaign = (store: Store): boolean => {
@@ -762,10 +764,10 @@ function StoreListContent() {
                               <motion.div
                                 initial={{ scale: 0, opacity: 0 }}
                                 animate={{ scale: 1, opacity: 1 }}
-                                className="px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1 bg-amber-500 text-white"
+                                className="px-1.5 py-0.5 rounded-full text-[10px] font-bold flex items-center gap-0.5 bg-amber-500 text-white"
                                 style={{ boxShadow: '0 2px 8px rgba(245, 158, 11, 0.3)' }}
                               >
-                                <Ticket className="w-3 h-3" />
+                                <Ticket className="w-2.5 h-2.5" />
                                 {t('store_list.filter_has_coupon')}
                               </motion.div>
                             )}

@@ -365,16 +365,6 @@ export default function LoginPage() {
                       {t('auth.back_to_home')}
                       <ArrowRight className="w-4 h-4" />
                     </Link>
-                    <div>
-                      <Link 
-                        href="/ad-lp" 
-                        className="inline-flex items-center gap-1 text-sm font-bold transition-colors hover:opacity-80"
-                        style={{ color: COLORS.royalNavy }}
-                      >
-                        {t('auth.vision_link_text')}
-                        <ArrowRight className="w-4 h-4" />
-                      </Link>
-                    </div>
                   </div>
                 </form>
               </div>
