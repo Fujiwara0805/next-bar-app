@@ -1637,8 +1637,6 @@ export const translations = {
       area_guide_scene_girls_desc: "Check out recommended bars and izakayas in Oita for girls' night out, where you can enjoy cocktails and wine in stylish spaces.",
       area_guide_scene_hopping_title: 'Bar Hopping & After Party',
       area_guide_scene_hopping_desc: "Looking for a 2nd or 3rd stop in Oita's Miyako-machi? NIKENME+ makes it easy to find your next spot with real-time seat availability.",
-      // Footer
-      footer_copyright: '© 2025 NIKENME+ All rights reserved.',
     },
   },
   ko: {
@@ -2450,8 +2448,6 @@ export const translations = {
       area_guide_scene_girls_desc: '세련된 공간에서 칵테일과 와인을 즐길 수 있는, 오이타 여자 모임에 추천하는 바・이자카야를 체크.',
       area_guide_scene_hopping_title: '술집 탐방・2차',
       area_guide_scene_hopping_desc: '오이타 미야코마치에서 2차・3차를 찾는다면, 실시간 빈자리 정보로 다음 가게를 바로 찾을 수 있는 NIKENME+가 편리합니다.',
-      // Footer
-      footer_copyright: '© 2025 NIKENME+ All rights reserved.',
     },
   },
   zh: {
@@ -3263,8 +3259,6 @@ export const translations = {
       area_guide_scene_girls_desc: '看看大分闺蜜聚会推荐的酒吧・居酒屋，在时尚的空间里享受鸡尾酒和葡萄酒。',
       area_guide_scene_hopping_title: '续摊・二次会',
       area_guide_scene_hopping_desc: '在大分都町寻找第2站・第3站的话，通过实时空位信息轻松找到下一家店的NIKENME+很方便。',
-      // Footer
-      footer_copyright: '© 2025 NIKENME+ All rights reserved.',
     },
   },
 };

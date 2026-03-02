@@ -397,9 +397,9 @@ export default function StoreManagePage() {
             type="button"
             variant="outline"
             className="w-full font-bold rounded-xl"
-            style={{ 
+            style={{
               borderColor: 'rgba(201, 168, 108, 0.3)',
-              backgroundColor: 'rgba(201, 168, 108, 0.08)',
+              backgroundColor: COLORS.ivory,
               color: COLORS.charcoal,
             }}
             onClick={handleSignOut}

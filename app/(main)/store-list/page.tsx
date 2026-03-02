@@ -27,6 +27,7 @@ import type { Database } from '@/lib/supabase/types';
 import { useLanguage } from '@/lib/i18n/context';
 import { ConciergeModal } from '@/components/concierge-modal';
 import { OgoriTicketBadge } from '@/components/ogori/OgoriTicketBadge';
+import { isCouponValid } from '@/lib/types/coupon';
 
 type Store = Database['public']['Tables']['stores']['Row'];
 
@@ -367,14 +368,8 @@ function StoreListContent() {
   }, [userLocation]);
 
   const hasCoupon = (store: Store): boolean => {
-    if (!store.coupon_is_active || !store.coupon_title) return false;
-    if (store.coupon_expiry_date) {
-      const expiry = new Date(store.coupon_expiry_date);
-      expiry.setHours(23, 59, 59, 999);
-      if (expiry < new Date()) return false;
-    }
-    if (store.coupon_max_uses && (store.coupon_current_uses || 0) >= store.coupon_max_uses) return false;
-    return true;
+    if (!store.coupon_title) return false;
+    return isCouponValid(store);
   };
 
   const hasCampaign = (store: Store): boolean => {

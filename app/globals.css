@@ -196,21 +196,16 @@ html {
 
 /* タッチ操作の最適化 */
 button,
-a {
+a,
+[role="button"],
+.cursor-pointer {
   -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
 }
 
 /* スクロールの最適化 */
 * {
   -webkit-overflow-scrolling: touch;
-}
-
-/* タッチ操作のフィードバック強化 */
-button,
-a,
-.cursor-pointer {
-  -webkit-tap-highlight-color: rgba(44, 95, 111, 0.1);
-  -webkit-touch-callout: none;
 }
 
 /* ポインターイベントの最適化 */
