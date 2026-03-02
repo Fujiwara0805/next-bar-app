@@ -25,14 +25,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
-    if (!baseUrl) {
-      console.error('NEXT_PUBLIC_BASE_URL が設定されていません');
+    const rawBaseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXT_PUBLIC_APP_URL;
+    if (!rawBaseUrl) {
+      console.error('NEXT_PUBLIC_BASE_URL または NEXT_PUBLIC_APP_URL が設定されていません');
       return NextResponse.json(
         { error: 'サーバー設定エラー' },
         { status: 500 }
       );
     }
+    // 末尾スラッシュを除去して正規化
+    const baseUrl = rawBaseUrl.replace(/\/+$/, '');
 
     // Stripe Checkout セッションを作成（固定金額 1,000円）
     const session = await stripe.checkout.sessions.create({

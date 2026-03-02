@@ -306,7 +306,7 @@ export function OgoriUseTicketModal({
                   onClick={() => setStep('drink')}
                   variant="outline"
                   className="flex-1 rounded-xl font-bold h-11"
-                  style={{ borderColor: COLORS.champagneGold, color: COLORS.deepNavy }}
+                  style={{ borderColor: 'rgba(201, 168, 108, 0.3)', backgroundColor: COLORS.ivory, color: COLORS.deepNavy }}
                 >
                   <ChevronLeft className="w-4 h-4 mr-1" />
                   {t('store_detail.ogori_back')}
