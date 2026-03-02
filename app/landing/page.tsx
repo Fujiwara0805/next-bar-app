@@ -907,10 +907,10 @@ export default function LandingPage() {
               const stepIcons = [MapPin, Store, Phone, Gift];
               const Icon = stepIcons[index];
               const images = [
-                'https://res.cloudinary.com/dz9trbwma/image/upload/v1767761406/26ef2985-e460-4b06-a245-8e5e0f65a459_lk9q5d.png',
-                'https://res.cloudinary.com/dz9trbwma/image/upload/v1767762176/Gemini_Generated_Image_4tiamt4tiamt4tia_bnxmn9.png',
-                'https://res.cloudinary.com/dz9trbwma/image/upload/v1767763441/Gemini_Generated_Image_3qcvnq3qcvnq3qcv_acv91j.png',
-                'https://res.cloudinary.com/dz9trbwma/image/upload/v1769578961/Gemini_Generated_Image_4o9bjm4o9bjm4o9b_j6hwmu.png',
+                'https://res.cloudinary.com/dz9trbwma/image/upload/v1772413015/Gemini_Generated_Image_kklaofkklaofkkla_faupob_c_pad_b_gen_fill_w_1024_h_1024_puu1hp.png',
+                'https://res.cloudinary.com/dz9trbwma/image/upload/v1772413014/Gemini_Generated_Image_4et50r4et50r4et5_zo8vh4_c_pad_b_gen_fill_w_1024_h_1024_entmxs.png',
+                'https://res.cloudinary.com/dz9trbwma/image/upload/v1772413152/Gemini_Generated_Image_3qcvnq3qcvnq3qcv_acv91j_c_pad_w_1024_h_1024_sr05n9.png',
+                'https://res.cloudinary.com/dz9trbwma/image/upload/v1772412891/Gemini_Generated_Image_4o9bjm4o9bjm4o9b_j6hwmu_c_pad_b_gen_fill_w_1024_h_1024_gmu92v.png',
               ];
               const stepTitle = t(`landing.howto_step${num}_title`);
               const isStep4 = num === 4;
@@ -990,7 +990,7 @@ export default function LandingPage() {
             {/* 都町エリア */}
             <motion.article initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="rounded-2xl overflow-hidden" style={{ background: `${colors.surface}60`, border: `1px solid ${colors.borderSubtle}` }}>
               <div className="aspect-[16/9] w-full overflow-hidden">
-                <img src="https://res.cloudinary.com/dz9trbwma/image/upload/v1770942497/Gemini_Generated_Image_8eyd8x8eyd8x8eyd_fy2omk.png" alt={t('landing.area_guide_miyako_title')} className="w-full h-full object-cover" />
+                <img src="https://res.cloudinary.com/dz9trbwma/image/upload/v1772414070/Gemini_Generated_Image_8eyd8x8eyd8x8eyd_fy2omk_c_pad_b_gen_fill_w_1024_h_1024_x3jvuh.png" alt={t('landing.area_guide_miyako_title')} className="w-full h-full object-cover" />
               </div>
               <div className="p-6">
                 <h3 className="text-xl font-bold mb-3" style={{ color: colors.text }}>{t('landing.area_guide_miyako_title')}</h3>
@@ -1002,7 +1002,7 @@ export default function LandingPage() {
             {/* 中央町・大分駅周辺エリア */}
             <motion.article initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="rounded-2xl overflow-hidden" style={{ background: `${colors.surface}60`, border: `1px solid ${colors.borderSubtle}` }}>
               <div className="aspect-[16/9] w-full overflow-hidden">
-                <img src="https://res.cloudinary.com/dz9trbwma/image/upload/v1770942633/Gemini_Generated_Image_f6wtfvf6wtfvf6wt_aovpzh.png" alt={t('landing.area_guide_chuo_title')} className="w-full h-full object-cover" />
+                <img src="https://res.cloudinary.com/dz9trbwma/image/upload/v1772414069/Gemini_Generated_Image_f6wtfvf6wtfvf6wt_aovpzh_c_pad_b_gen_fill_w_1024_h_1024_dmxlqs.png" alt={t('landing.area_guide_chuo_title')} className="w-full h-full object-cover" />
               </div>
               <div className="p-6">
                 <h3 className="text-xl font-bold mb-3" style={{ color: colors.text }}>{t('landing.area_guide_chuo_title')}</h3>

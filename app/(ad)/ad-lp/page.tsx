@@ -86,14 +86,14 @@ const ASSETS = {
   // 温かみのあるバー・カウンター照明（Unsplash）
   heroBackground: 'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=1920&q=80',
   // OUR VISION カード画像
-  visionCard1: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1769856687/Gemini_Generated_Image_akgwg8akgwg8akgw_qvtshv.png',
-  visionCard2: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1769846555/Gemini_Generated_Image_zf386wzf386wzf38_gx0w2z.png',
-  visionCard3: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1769846555/Gemini_Generated_Image_cna9bocna9bocna9_tjgx9a.png',
+  visionCard1: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1772415075/Gemini_Generated_Image_akgwg8akgwg8akgw_qvtshv_c_pad_b_gen_fill_w_1024_h_1024_liouy6.png',
+  visionCard2: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1772415075/Gemini_Generated_Image_zf386wzf386wzf38_gx0w2z_c_pad_b_gen_fill_w_1024_h_1024_k3gu0m.png',
+  visionCard3: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1772415072/Gemini_Generated_Image_cna9bocna9bocna9_tjgx9a_c_pad_b_gen_fill_w_1024_h_1024_nx5o02.png',
   // HOW IT WORKS カード画像
-  howItWorks1: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1769847283/Gemini_Generated_Image_bb2iplbb2iplbb2i_pzcvnj.png',
-  howItWorks2: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1769846555/Gemini_Generated_Image_73dbk173dbk173db_sv3wdi.png',
-  howItWorks3: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1769846555/Gemini_Generated_Image_numtmcnumtmcnumt_dwbl0y.png',
-  howItWorks4: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1769846554/Gemini_Generated_Image_uagpjpuagpjpuagp_cjfjwb.png',
+  howItWorks1: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1772415070/Gemini_Generated_Image_bb2iplbb2iplbb2i_pzcvnj_c_pad_b_gen_fill_w_1024_h_1024_xuexwd.png',
+  howItWorks2: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1772415068/Gemini_Generated_Image_numtmcnumtmcnumt_dwbl0y_c_pad_b_gen_fill_w_1024_h_1024_h1eros.png',
+  howItWorks3: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1772415069/Gemini_Generated_Image_73dbk173dbk173db_sv3wdi_c_pad_b_gen_fill_w_1024_h_1024_siavdm.png',
+  howItWorks4: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1772415067/Gemini_Generated_Image_uagpjpuagpjpuagp_cjfjwb_c_pad_b_gen_fill_w_1024_h_1024_jjmlgz.png',
 };
 
 // ============================================
