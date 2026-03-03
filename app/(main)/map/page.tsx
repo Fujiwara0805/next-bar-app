@@ -21,7 +21,7 @@
 import { useEffect, useState, Suspense, useRef, useCallback, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, List, ExternalLink, Building2, RefreshCw, Home, Star, AlertCircle, Loader2, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
+import { X, List, ExternalLink, Building2, RefreshCw, Home, Star, AlertCircle, Loader2, ChevronLeft, ChevronRight, Sparkles, MapPin } from 'lucide-react';
 import { MapView } from '@/components/map/map-view';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -1366,20 +1366,6 @@ function MapPageContent() {
                       );
                     })()}
 
-                    <a
-                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                        selectedStore.name
-                      )}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-sm hover:underline font-bold"
-                      style={{ color: colors.accent }}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      {t('map.open_in_google_maps')}
-                      <ExternalLink className="w-3 h-3" />
-                    </a>
-
                     <div className="flex items-center gap-2 pt-1">
                       <img
                         src={getVacancyIcon(selectedStore.vacancy_status)}
@@ -1418,39 +1404,57 @@ function MapPageContent() {
                   </div>
                 )}
 
-                {/* 詳細を見るボタン（ローディング付き） */}
-                <motion.button
-                  whileHover={{ scale: isNavigating ? 1 : 1.02 }}
-                  whileTap={{ scale: isNavigating ? 1 : 0.98 }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (!isNavigating) {
-                      handleNavigateToDetail(selectedStore.id);
-                    }
-                  }}
-                  disabled={isNavigating}
-                  className="w-full py-3.5 px-4 rounded-xl font-bold transition-all touch-manipulation flex items-center justify-center gap-2"
-                  style={{
-                    background: isNavigating 
-                      ? colors.accentDark
-                      : colors.goldGradient,
-                    color: colors.background,
-                    boxShadow: isNavigating 
-                      ? 'none'
-                      : colors.shadowGold,
-                    opacity: isNavigating ? 0.8 : 1,
-                    cursor: isNavigating ? 'not-allowed' : 'pointer',
-                  }}
-                >
-                  {isNavigating ? (
-                    <>
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      <span>{t('common.loading')}</span>
-                    </>
-                  ) : (
-                    t('map.view_details')
-                  )}
-                </motion.button>
+                <div className="flex gap-2">
+                  <motion.button
+                    whileHover={{ scale: isNavigating ? 1 : 1.02 }}
+                    whileTap={{ scale: isNavigating ? 1 : 0.98 }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (!isNavigating) {
+                        handleNavigateToDetail(selectedStore.id);
+                      }
+                    }}
+                    disabled={isNavigating}
+                    className="flex-1 py-3.5 px-4 rounded-xl font-bold transition-all touch-manipulation flex items-center justify-center gap-2"
+                    style={{
+                      background: isNavigating 
+                        ? colors.accentDark
+                        : colors.goldGradient,
+                      color: colors.background,
+                      boxShadow: isNavigating 
+                        ? 'none'
+                        : colors.shadowGold,
+                      opacity: isNavigating ? 0.8 : 1,
+                      cursor: isNavigating ? 'not-allowed' : 'pointer',
+                    }}
+                  >
+                    {isNavigating ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        <span>{t('common.loading')}</span>
+                      </>
+                    ) : (
+                      t('map.view_details')
+                    )}
+                  </motion.button>
+                  <motion.a
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(selectedStore.name)}&travelmode=walking`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    className="flex-1 py-3.5 px-4 rounded-xl font-bold transition-all touch-manipulation flex items-center justify-center gap-2"
+                    style={{
+                      background: `${colors.accent}15`,
+                      color: colors.accent,
+                      border: `1px solid ${colors.borderGold}`,
+                    }}
+                  >
+                    <MapPin className="w-4 h-4" />
+                    {t('map.go_to_store')}
+                  </motion.a>
+                </div>
               </div>
             </Card>
           </motion.div>

@@ -129,6 +129,7 @@ export const translations = {
     menu: {
       title: 'メニュー',
       subtitle: 'NIKENME+の詳細情報',
+      news: 'お知らせ',
       terms: '利用規約',
       privacy: 'プライバシーポリシー',
       faq: 'よくある質問 (FAQ)',
@@ -205,6 +206,7 @@ export const translations = {
       open_in_google_maps: 'Googleマップで開く',
       distance_from_current: '現在地から',
       view_details: '詳細を見る',
+      go_to_store: '現地へ行く',
       sorted_by_distance: '近い順',
       error_fetch_failed: 'データの取得に失敗しました',
       error_retrying: 'リトライ中: {retryCount}/{maxRetryCount}',
@@ -731,6 +733,10 @@ export const translations = {
       last_updated: '最終更新日：2025年1月1日',
     },
     // リリースノートページ
+    news_page: {
+      title: 'お知らせ',
+      subtitle: 'NIKENME+の最新情報やサービスに関するお知らせをご確認いただけます。',
+    },
     release_notes_page: {
       title: 'リリースノート',
       subtitle: 'NIKENME+の最新アップデート情報と変更履歴をご確認いただけます。',
@@ -793,7 +799,7 @@ export const translations = {
       cta_body: '大分の夜は、まだ終わらない。\nNIKENME+で、次のお店を探しましょう。',
       cta_button_primary: 'お店を探す',
       cta_button_secondary: 'NIKENME+のビジョン',
-      cta_button_recruitment: '加盟登録',
+      cta_button_recruitment: '加盟店登録',
       // Campaign section
       campaign_section_title: '開催中のキャンペーン',
       campaign_section_subtitle: 'Special Campaign',
@@ -818,6 +824,37 @@ export const translations = {
       area_guide_scene_hopping_desc: '大分の都町で2軒目・3軒目を探すなら、リアルタイム空席情報で次のお店がすぐ見つかるNIKENME+が便利。',
       // Footer
       footer_copyright: '© 2025 NIKENME+ All rights reserved.',
+      // News
+      news_title: 'お知らせ',
+      news_item1: 'NIKENME+ v1.2をリリースしました。クーポン機能が追加されました。',
+      news_item2: 'キャンペーン参加店舗が追加されました。',
+      news_item3: 'NIKENME+ 正式リリースしました。',
+      news_view_all: 'すべてのお知らせを見る',
+      // FAQ
+      faq_title: 'よくある質問',
+      faq_subtitle: 'NIKENME+に関するよくある質問をまとめました',
+      faq_q1: 'NIKENME+は無料で使えますか？',
+      faq_a1: 'はい、ユーザーの方は完全無料でご利用いただけます。会員登録やログインも不要です。',
+      faq_q2: '空席情報はリアルタイムですか？',
+      faq_a2: 'はい、各店舗がリアルタイムで空席状況を更新しています。',
+      faq_q3: '加盟店になるにはどうすればいいですか？',
+      faq_a3: 'ヘッダーの「加盟店登録」ボタンからお申し込みいただけます。',
+      faq_view_all: 'すべてのFAQを確認',
+      // Contact
+      contact_title: 'お問い合わせ',
+      contact_subtitle: 'ご不明な点やご要望がございましたら、\nお気軽にお問い合わせください。',
+      contact_button: 'お問い合わせフォームへ',
+      // Company
+      company_title: '会社概要',
+      company_name_label: '会社名',
+      company_name_value: '株式会社Nobody',
+      company_address_label: '所在地',
+      company_address_value: '大分県大分市大字旦野原700番地\n大分大学研究マネジメント棟4階423（2026年4月〜）',
+      company_ceo_label: '代表者',
+      company_ceo_value: '藤原泰樹（FUJIWARA TAIKI）',
+      company_business_label: '事業内容',
+      company_business_value: 'NIKENME+の企画・開発・運営',
+      company_website: 'コーポレートサイトを見る',
     },
   },
   en: {
@@ -950,6 +987,7 @@ export const translations = {
     menu: {
       title: 'Menu',
       subtitle: 'NIKENME+ Information',
+      news: 'News',
       terms: 'Terms of Service',
       privacy: 'Privacy Policy',
       faq: 'FAQ',
@@ -1026,6 +1064,7 @@ export const translations = {
       open_in_google_maps: 'Open in Google Maps',
       distance_from_current: 'Distance',
       view_details: 'View Details',
+      go_to_store: 'Go There',
       sorted_by_distance: 'Nearest',
       error_fetch_failed: 'Failed to fetch data',
       error_retrying: 'Retrying: {retryCount}/{maxRetryCount}',
@@ -1552,6 +1591,10 @@ export const translations = {
       last_updated: 'Last Updated: January 1, 2025',
     },
     // Release notes page
+    news_page: {
+      title: 'News',
+      subtitle: 'Check the latest news and announcements about NIKENME+.',
+    },
     release_notes_page: {
       title: 'Release Notes',
       subtitle: 'Check the latest updates and changelog for NIKENME+.',
@@ -1637,6 +1680,39 @@ export const translations = {
       area_guide_scene_girls_desc: "Check out recommended bars and izakayas in Oita for girls' night out, where you can enjoy cocktails and wine in stylish spaces.",
       area_guide_scene_hopping_title: 'Bar Hopping & After Party',
       area_guide_scene_hopping_desc: "Looking for a 2nd or 3rd stop in Oita's Miyako-machi? NIKENME+ makes it easy to find your next spot with real-time seat availability.",
+      // Footer
+      footer_copyright: '© 2025 NIKENME+ All rights reserved.',
+      // News
+      news_title: 'News',
+      news_item1: 'NIKENME+ v1.2 released. Coupon feature added.',
+      news_item2: 'New campaign partner stores added.',
+      news_item3: 'NIKENME+ officially launched.',
+      news_view_all: 'View all news',
+      // FAQ
+      faq_title: 'Frequently Asked Questions',
+      faq_subtitle: 'Common questions about NIKENME+',
+      faq_q1: 'Is NIKENME+ free to use?',
+      faq_a1: 'Yes, it is completely free for users. No registration or login required.',
+      faq_q2: 'Is seat availability real-time?',
+      faq_a2: 'Yes, each store updates their seat availability in real-time.',
+      faq_q3: 'How can I become a partner store?',
+      faq_a3: 'You can apply through the "Partner Registration" button in the header.',
+      faq_view_all: 'View all FAQs',
+      // Contact
+      contact_title: 'Contact Us',
+      contact_subtitle: 'If you have any questions or requests,\nplease feel free to contact us.',
+      contact_button: 'Go to Contact Form',
+      // Company
+      company_title: 'Company Info',
+      company_name_label: 'Company',
+      company_name_value: 'Nobody Inc.',
+      company_address_label: 'Address',
+      company_address_value: '4F-423 Research Management Bldg,\nOita University, 700 Dannoharu, Oita City (From Apr 2026)',
+      company_ceo_label: 'CEO',
+      company_ceo_value: 'Taiki Fujiwara (FUJIWARA TAIKI)',
+      company_business_label: 'Business',
+      company_business_value: 'Planning, development and operation of NIKENME+',
+      company_website: 'Visit Corporate Website',
     },
   },
   ko: {
@@ -1769,6 +1845,7 @@ export const translations = {
     menu: {
       title: '메뉴',
       subtitle: 'NIKENME+ 상세 정보',
+      news: '공지사항',
       terms: '이용약관',
       privacy: '개인정보 처리방침',
       faq: '자주 묻는 질문 (FAQ)',
@@ -1845,6 +1922,7 @@ export const translations = {
       open_in_google_maps: 'Google 지도에서 열기',
       distance_from_current: '현재 위치에서',
       view_details: '상세 보기',
+      go_to_store: '현장으로 가기',
       sorted_by_distance: '가까운 순',
       error_fetch_failed: '데이터를 가져오지 못했습니다',
       error_retrying: '재시도 중: {retryCount}/{maxRetryCount}',
@@ -2363,6 +2441,10 @@ export const translations = {
       last_updated: '최종 업데이트: 2025년 1월 1일',
     },
     // 릴리스 노트 페이지
+    news_page: {
+      title: '공지사항',
+      subtitle: 'NIKENME+의 최신 뉴스와 공지사항을 확인하세요.',
+    },
     release_notes_page: {
       title: '릴리스 노트',
       subtitle: 'NIKENME+의 최신 업데이트 정보와 변경 내역을 확인하세요.',
@@ -2448,6 +2530,39 @@ export const translations = {
       area_guide_scene_girls_desc: '세련된 공간에서 칵테일과 와인을 즐길 수 있는, 오이타 여자 모임에 추천하는 바・이자카야를 체크.',
       area_guide_scene_hopping_title: '술집 탐방・2차',
       area_guide_scene_hopping_desc: '오이타 미야코마치에서 2차・3차를 찾는다면, 실시간 빈자리 정보로 다음 가게를 바로 찾을 수 있는 NIKENME+가 편리합니다.',
+      // Footer
+      footer_copyright: '© 2025 NIKENME+ All rights reserved.',
+      // News
+      news_title: '공지사항',
+      news_item1: 'NIKENME+ v1.2가 출시되었습니다. 쿠폰 기능이 추가되었습니다.',
+      news_item2: '캠페인 참여 매장이 추가되었습니다.',
+      news_item3: 'NIKENME+가 정식 출시되었습니다.',
+      news_view_all: '모든 공지사항 보기',
+      // FAQ
+      faq_title: '자주 묻는 질문',
+      faq_subtitle: 'NIKENME+에 관한 자주 묻는 질문을 정리했습니다',
+      faq_q1: 'NIKENME+는 무료로 사용할 수 있나요?',
+      faq_a1: '네, 사용자는 완전 무료로 이용할 수 있습니다. 회원가입이나 로그인도 필요 없습니다.',
+      faq_q2: '빈자리 정보는 실시간인가요?',
+      faq_a2: '네, 각 매장에서 실시간으로 빈자리 상황을 업데이트하고 있습니다.',
+      faq_q3: '가맹점이 되려면 어떻게 해야 하나요?',
+      faq_a3: '헤더의 "가맹점 등록" 버튼에서 신청하실 수 있습니다.',
+      faq_view_all: '모든 FAQ 확인',
+      // Contact
+      contact_title: '문의하기',
+      contact_subtitle: '궁금한 점이나 요청 사항이 있으시면\n편하게 문의해 주세요.',
+      contact_button: '문의 폼으로 이동',
+      // Company
+      company_title: '회사 개요',
+      company_name_label: '회사명',
+      company_name_value: '주식회사 Nobody',
+      company_address_label: '소재지',
+      company_address_value: '오이타현 오이타시 단노하루 700번지\n오이타대학 연구매니지먼트동 4층 423 (2026년 4월~)',
+      company_ceo_label: '대표자',
+      company_ceo_value: '후지와라 타이키 (FUJIWARA TAIKI)',
+      company_business_label: '사업 내용',
+      company_business_value: 'NIKENME+의 기획・개발・운영',
+      company_website: '기업 웹사이트 보기',
     },
   },
   zh: {
@@ -2580,6 +2695,7 @@ export const translations = {
     menu: {
       title: '菜单',
       subtitle: 'NIKENME+ 详细信息',
+      news: '通知',
       terms: '使用条款',
       privacy: '隐私政策',
       faq: '常见问题 (FAQ)',
@@ -2656,6 +2772,7 @@ export const translations = {
       open_in_google_maps: '在Google地图中打开',
       distance_from_current: '从当前位置',
       view_details: '查看详情',
+      go_to_store: '前往现场',
       sorted_by_distance: '距离最近',
       error_fetch_failed: '数据获取失败',
       error_retrying: '重试中: {retryCount}/{maxRetryCount}',
@@ -3174,6 +3291,10 @@ export const translations = {
       last_updated: '最后更新：2025年1月1日',
     },
     // 发布说明页面
+    news_page: {
+      title: '通知',
+      subtitle: '查看NIKENME+的最新消息和通知。',
+    },
     release_notes_page: {
       title: '发布说明',
       subtitle: '查看NIKENME+的最新更新信息和更改历史。',
@@ -3259,6 +3380,39 @@ export const translations = {
       area_guide_scene_girls_desc: '看看大分闺蜜聚会推荐的酒吧・居酒屋，在时尚的空间里享受鸡尾酒和葡萄酒。',
       area_guide_scene_hopping_title: '续摊・二次会',
       area_guide_scene_hopping_desc: '在大分都町寻找第2站・第3站的话，通过实时空位信息轻松找到下一家店的NIKENME+很方便。',
+      // Footer
+      footer_copyright: '© 2025 NIKENME+ All rights reserved.',
+      // News
+      news_title: '公告',
+      news_item1: 'NIKENME+ v1.2已发布。新增优惠券功能。',
+      news_item2: '新增活动参与店铺。',
+      news_item3: 'NIKENME+ 正式上线。',
+      news_view_all: '查看全部公告',
+      // FAQ
+      faq_title: '常见问题',
+      faq_subtitle: '关于NIKENME+的常见问题汇总',
+      faq_q1: 'NIKENME+可以免费使用吗？',
+      faq_a1: '是的，用户完全免费使用。无需注册或登录。',
+      faq_q2: '空位信息是实时的吗？',
+      faq_a2: '是的，各店铺会实时更新空位情况。',
+      faq_q3: '如何成为加盟店？',
+      faq_a3: '可以通过页面顶部的"加盟店注册"按钮进行申请。',
+      faq_view_all: '查看全部FAQ',
+      // Contact
+      contact_title: '联系我们',
+      contact_subtitle: '如有任何疑问或需求，\n请随时与我们联系。',
+      contact_button: '前往联系表单',
+      // Company
+      company_title: '公司概况',
+      company_name_label: '公司名称',
+      company_name_value: '株式会社Nobody',
+      company_address_label: '所在地',
+      company_address_value: '大分县大分市旦野原700番地\n大分大学研究管理栋4层423（2026年4月起）',
+      company_ceo_label: '代表人',
+      company_ceo_value: '藤原泰树（FUJIWARA TAIKI）',
+      company_business_label: '业务内容',
+      company_business_value: 'NIKENME+的策划・开发・运营',
+      company_website: '访问企业官网',
     },
   },
 };

@@ -17,14 +17,16 @@ import {
   CheckCircle,
   ChevronLeft,
   Building2,
-  Search,
-  Clock,
   AlertCircle,
   Sparkles,
   PartyPopper,
   Gift,
   MessageCircle,
   Instagram,
+  ArrowUp,
+  ChevronDown,
+  Mail,
+  ExternalLink,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -34,6 +36,7 @@ import { useLanguage, SUPPORTED_LANGUAGES, LANGUAGE_META } from '@/lib/i18n/cont
 import type { Language } from '@/lib/i18n/translations';
 import { supabase } from '@/lib/supabase/client';
 import { locationCache } from '@/lib/cache';
+import { newsTranslations } from '@/lib/news-data';
 
 // ============================================
 // 統一カラーパレット（店舗詳細画面準拠）
@@ -109,9 +112,6 @@ const DEFAULT_LOCATION = {
   isDefault: true,
 };
 
-// Problems section icons mapping
-const problemsIcons = [Search, Phone, Clock];
-
 const GoldDivider = () => (
   <div className="flex items-center justify-center gap-3 my-6">
     <div className="h-px flex-1 max-w-16" style={{ background: `linear-gradient(90deg, transparent, ${colors.accent}40)` }} />
@@ -133,6 +133,23 @@ export default function LandingPage() {
   const [campaignMasters, setCampaignMasters] = useState<CampaignMaster[]>([]);
   const [campaignSlide, setCampaignSlide] = useState(0);
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
+  const [howtoSlide, setHowtoSlide] = useState(0);
+  const [areaGuideSlide, setAreaGuideSlide] = useState(0);
+  const [concernsSlide, setConcernsSlide] = useState(0);
+  const [showTopButton, setShowTopButton] = useState(false);
+  const swipeStartRef = useRef<number | null>(null);
+
+  const handleSwipe = (setter: React.Dispatch<React.SetStateAction<number>>, total: number) => ({
+    onTouchStart: (e: React.TouchEvent) => { swipeStartRef.current = e.touches[0].clientX; },
+    onTouchEnd: (e: React.TouchEvent) => {
+      if (swipeStartRef.current === null) return;
+      const diff = swipeStartRef.current - e.changedTouches[0].clientX;
+      if (Math.abs(diff) > 50) {
+        setter((prev) => diff > 0 ? Math.min(prev + 1, total - 1) : Math.max(prev - 1, 0));
+      }
+      swipeStartRef.current = null;
+    },
+  });
   const carouselRef = useRef<HTMLDivElement>(null);
   const locationAttemptRef = useRef(false);
 
@@ -279,7 +296,16 @@ export default function LandingPage() {
     return () => clearInterval(interval);
   }, [partnerStores.length]);
 
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowTopButton(window.scrollY > window.innerHeight);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   const menuItems = [
+    { icon: Radio, label: t('menu.news'), href: '/news' },
     { icon: FileText, label: t('menu.terms'), href: '/terms' },
     { icon: Shield, label: t('menu.privacy'), href: '/privacy' },
     { icon: HelpCircle, label: t('menu.faq'), href: '/faq' },
@@ -289,6 +315,7 @@ export default function LandingPage() {
 
   const footerLinks = [
     { icon: Building2, label: t('landing.company_info'), href: 'https://www.nobody-inc.jp/' },
+    { icon: Radio, label: t('menu.news'), href: '/news' },
     { icon: FileText, label: t('static_pages.terms_title'), href: '/terms' },
     { icon: HelpCircle, label: t('static_pages.faq_title'), href: '/faq' },
     { icon: FileText, label: t('static_pages.release_notes_title'), href: '/release-notes' },
@@ -375,6 +402,7 @@ export default function LandingPage() {
           </motion.div>
           <div className="flex items-center gap-2 sm:gap-4">
 
+            <a href="https://docs.google.com/forms/d/e/1FAIpQLSceOuH6VBiSjYhJuly0SI6bZDaQrqxJ15vpMxGxT-CAXS2I4Q/viewform" target="_blank" rel="noopener noreferrer"><Button variant="outline" size="sm" className="text-xs font-medium transition-all duration-300 hover:scale-105" style={{ borderColor: colors.borderGold, color: colors.accent, background: `${colors.accent}08` }}>{t('landing.cta_button_recruitment')}</Button></a>
             <Link href="/login"><Button variant="outline" size="sm" className="text-xs font-medium transition-all duration-300 hover:scale-105" style={{ borderColor: colors.borderGold, color: colors.accent, background: `${colors.accent}08` }}>{t('header.store_login')}</Button></Link>
             <Button variant="ghost" size="icon" onClick={() => setShowMenu(!showMenu)} style={{ color: colors.textMuted }}>{showMenu ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}</Button>
           </div>
@@ -495,6 +523,40 @@ export default function LandingPage() {
         </motion.div>
 
         <motion.div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${colors.accent}60, transparent)` }} initial={{ scaleX: 0 }} whileInView={{ scaleX: 1 }} viewport={{ once: true }} transition={{ duration: 1.5, ease: 'easeOut' }} />
+      </section>
+
+      {/* お知らせセクション */}
+      <section className="relative py-16 px-4 overflow-hidden" style={{ background: colors.background }}>
+        <div className="container mx-auto max-w-3xl">
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-8">
+            <GoldDivider />
+            <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-3" style={{ color: colors.accent }}>News</span>
+            <h2 className="text-2xl sm:text-3xl font-bold" style={{ color: colors.text }}>{t('landing.news_title')}</h2>
+          </motion.div>
+          <div className="space-y-3">
+            {(newsTranslations[language] || newsTranslations.ja).slice(0, 3).map((item, index) => (
+              <motion.div key={index} initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.05 }} className="flex items-start gap-4 p-4 rounded-xl" style={{ background: `${colors.surface}60`, border: `1px solid ${colors.borderSubtle}` }}>
+                <span className="text-xs font-medium flex-shrink-0 pt-0.5" style={{ color: colors.accent }}>{item.date}</span>
+                <div>
+                  <p className="text-sm font-bold mb-0.5" style={{ color: colors.text }}>{item.title}</p>
+                  <p className="text-xs" style={{ color: colors.textMuted }}>{item.body}</p>
+                  {item.link && (
+                    <a href={item.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 mt-1.5 text-xs font-medium transition-all hover:opacity-80" style={{ color: colors.accent }}>
+                      <ExternalLink className="w-3 h-3" />
+                      {item.linkLabel || item.link}
+                    </a>
+                  )}
+                </div>
+              </motion.div>
+            ))}
+          </div>
+          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="text-center mt-6">
+            <Link href="/news" className="text-sm font-medium inline-flex items-center gap-1 transition-all hover:scale-105" style={{ color: colors.accent }}>
+              {t('landing.news_view_all')} <ChevronRight className="w-4 h-4" />
+            </Link>
+          </motion.div>
+        </div>
+        <motion.div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${colors.accent}40, transparent)` }} />
       </section>
 
       {/* キャンペーンセクション（campaignsテーブルからの動的データ） */}
@@ -883,28 +945,101 @@ export default function LandingPage() {
 
       {/* 課題提起セクション */}
       <section className="relative py-24 px-4 overflow-hidden" style={{ background: colors.surface }}>
-        <div className="container mx-auto max-w-4xl">
+        <div className="container mx-auto max-w-5xl">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
             <GoldDivider />
             <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4" style={{ color: colors.accent }}>{t('landing.problems_subtitle')}</span>
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold" style={{ color: colors.text }}>{t('landing.problems_title')}</h2>
           </motion.div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {[1, 2, 3].map((num, index) => {
-              const Icon = problemsIcons[index];
-              const itemText = t(`landing.problems_item${num}`);
+          {(() => {
+            const concernsData = [
+              {
+                image: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1772516026/Gemini_Generated_Image_tlb0sbtlb0sbtlb0_eyduk4_c_pad_b_gen_fill_w_1024_h_1024_urgdep.png',
+                text: t('landing.problems_item1'),
+              },
+              {
+                image: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1772516050/Gemini_Generated_Image_875iko875iko875i_k2i2bc_c_pad_b_gen_fill_w_1024_h_1024_zndtxt.png',
+                text: t('landing.problems_item2'),
+              },
+              {
+                image: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1772516019/Gemini_Generated_Image_tr2wh5tr2wh5tr2w_c3tjmr_c_pad_b_gen_fill_w_1024_h_1024_bolppa.png',
+                text: t('landing.problems_item3'),
+              },
+            ];
+            const renderConcernCard = (index: number) => {
+              const concern = concernsData[index];
               return (
-                <motion.div key={index} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.1 }}>
-                  <div className="flex items-start gap-4 p-5 rounded-xl" style={{ background: `${colors.background}80`, border: `1px solid ${colors.borderSubtle}` }}>
-                    <div className="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: `${colors.accent}15`, border: `1px solid ${colors.borderGold}` }}>
-                      <Icon className="w-5 h-5" style={{ color: colors.accent }} />
-                    </div>
-                    <p className="text-base leading-relaxed pt-1.5" style={{ color: colors.textMuted }}>{renderWithLineBreaks(itemText)}</p>
+                <Card
+                  className="h-full overflow-hidden relative"
+                  style={{
+                    background: `${colors.background}80`,
+                    border: `1px solid ${colors.borderGold}`,
+                  }}
+                >
+                  <div className="aspect-square w-full overflow-hidden">
+                    <img
+                      src={concern.image}
+                      alt={concern.text.replace('\n', ' ')}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
-                </motion.div>
+                  <div className="p-5 sm:p-6 text-center">
+                    <p className="text-base sm:text-lg font-bold leading-relaxed" style={{ color: colors.text }}>
+                      {renderWithLineBreaks(concern.text)}
+                    </p>
+                  </div>
+                </Card>
               );
-            })}
-          </div>
+            };
+            return (
+              <>
+                {/* モバイル: スワイプ */}
+                <div className="block lg:hidden relative">
+                  <div className="overflow-hidden rounded-2xl" {...handleSwipe(setConcernsSlide, concernsData.length)}>
+                    <AnimatePresence mode="wait">
+                      <motion.div
+                        key={concernsSlide}
+                        initial={{ opacity: 0, x: 80 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -80 }}
+                        transition={{ duration: 0.35 }}
+                      >
+                        {renderConcernCard(concernsSlide)}
+                      </motion.div>
+                    </AnimatePresence>
+                  </div>
+                  <div className="flex justify-center gap-2 mt-6">
+                    {concernsData.map((_, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setConcernsSlide(index)}
+                        className="h-2 rounded-full transition-all duration-300"
+                        style={{
+                          width: concernsSlide === index ? '24px' : '8px',
+                          background: concernsSlide === index ? colors.accent : `${colors.text}30`,
+                          boxShadow: concernsSlide === index ? `0 0 10px ${colors.accent}60` : 'none',
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+                {/* PC: 3列横並び */}
+                <div className="hidden lg:grid lg:grid-cols-3 gap-6">
+                  {concernsData.map((_, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, y: 30 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: index * 0.15 }}
+                    >
+                      {renderConcernCard(index)}
+                    </motion.div>
+                  ))}
+                </div>
+              </>
+            );
+          })()}
         </div>
         <motion.div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${colors.accent}40, transparent)` }} />
       </section>
@@ -951,82 +1086,79 @@ export default function LandingPage() {
             <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4" style={{ color: colors.accent }}>{t('landing.howto_subtitle')}</span>
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold" style={{ color: colors.text }}>{t('landing.howto_title')}</h2>
           </motion.div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {[
+          {(() => {
+            const howtoSteps = [
               { step: '01', num: 1, highlight: false },
               { step: '02', num: 2, highlight: false },
-              { step: '03', num: 3, highlight: true, badge: 'common.auto_voice' },
-              { step: '04', num: 4, highlight: true, badge: 'bonus' },
-            ].map(({ step, num, highlight, badge }, index) => {
-              const stepIcons = [MapPin, Store, Phone, Gift];
+              { step: '03', num: 3, highlight: true, badge: 'common.auto_voice' as const },
+              { step: '04', num: 4, highlight: true, badge: 'bonus' as const },
+            ];
+            const stepIcons = [MapPin, Store, Phone, Gift];
+            const images = [
+              'https://res.cloudinary.com/dz9trbwma/image/upload/v1772413015/Gemini_Generated_Image_kklaofkklaofkkla_faupob_c_pad_b_gen_fill_w_1024_h_1024_puu1hp.png',
+              'https://res.cloudinary.com/dz9trbwma/image/upload/v1772413014/Gemini_Generated_Image_4et50r4et50r4et5_zo8vh4_c_pad_b_gen_fill_w_1024_h_1024_entmxs.png',
+              'https://res.cloudinary.com/dz9trbwma/image/upload/v1772413152/Gemini_Generated_Image_3qcvnq3qcvnq3qcv_acv91j_c_pad_w_1024_h_1024_sr05n9.png',
+              'https://res.cloudinary.com/dz9trbwma/image/upload/v1772412891/Gemini_Generated_Image_4o9bjm4o9bjm4o9b_j6hwmu_c_pad_b_gen_fill_w_1024_h_1024_gmu92v.png',
+            ];
+            const renderStepCard = (index: number) => {
+              const { step, num, highlight, badge } = howtoSteps[index];
               const Icon = stepIcons[index];
-              const images = [
-                'https://res.cloudinary.com/dz9trbwma/image/upload/v1772413015/Gemini_Generated_Image_kklaofkklaofkkla_faupob_c_pad_b_gen_fill_w_1024_h_1024_puu1hp.png',
-                'https://res.cloudinary.com/dz9trbwma/image/upload/v1772413014/Gemini_Generated_Image_4et50r4et50r4et5_zo8vh4_c_pad_b_gen_fill_w_1024_h_1024_entmxs.png',
-                'https://res.cloudinary.com/dz9trbwma/image/upload/v1772413152/Gemini_Generated_Image_3qcvnq3qcvnq3qcv_acv91j_c_pad_w_1024_h_1024_sr05n9.png',
-                'https://res.cloudinary.com/dz9trbwma/image/upload/v1772412891/Gemini_Generated_Image_4o9bjm4o9bjm4o9b_j6hwmu_c_pad_b_gen_fill_w_1024_h_1024_gmu92v.png',
-              ];
               const stepTitle = t(`landing.howto_step${num}_title`);
               const isStep4 = num === 4;
               return (
-                <motion.div key={index} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.15 }}>
-                  <Card className="h-full overflow-hidden group relative" style={{ background: highlight ? `${colors.accent}10` : colors.background, border: highlight ? `2px solid ${colors.accent}` : `1px solid ${colors.borderGold}`, boxShadow: highlight ? colors.shadowGold : 'none' }}>
-                    {isStep4 && (
-                      <motion.div
-                        className="absolute inset-0 pointer-events-none"
-                        style={{ background: `radial-gradient(circle at 50% 0%, ${colors.accent}20 0%, transparent 50%)` }}
-                        animate={{ opacity: [0.5, 0.8, 0.5] }}
-                        transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-                      />
-                    )}
-                    <div className="p-8 relative z-10">
-                      <div className="flex items-center justify-between mb-6">
-                        <div className="flex items-center gap-3">
-                          <span className="text-4xl font-bold" style={{ color: highlight ? colors.accent : colors.accentDark }}>{step}</span>
-                          <motion.div
-                            className="w-10 h-10 rounded-lg flex items-center justify-center"
-                            style={{ background: `${colors.accent}15`, border: `1px solid ${colors.borderGold}` }}
-                            animate={isStep4 ? { scale: [1, 1.1, 1] } : {}}
-                            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-                          >
-                            <Icon className="w-5 h-5" style={{ color: highlight ? colors.accent : colors.textMuted }} />
-                          </motion.div>
-                        </div>
-                        {badge === 'common.auto_voice' && (
-                          <span className="text-[10px] font-semibold px-3 py-1 rounded-full uppercase tracking-wider" style={{ background: `${colors.accent}20`, color: colors.accent, border: `1px solid ${colors.accent}40` }}>{t('common.auto_voice')}</span>
-                        )}
-                        {badge === 'bonus' && (
-                          <motion.span
-                            className="text-[10px] font-semibold px-3 py-1 rounded-full uppercase tracking-wider flex items-center gap-1"
-                            style={{ background: 'linear-gradient(135deg, #4ADE80 0%, #22C55E 100%)', color: '#fff', boxShadow: '0 0 12px rgba(74, 222, 128, 0.4)' }}
-                            animate={{ scale: [1, 1.05, 1] }}
-                            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-                          >
-                            <Sparkles className="w-3 h-3" />
-                            Bonus
-                          </motion.span>
-                        )}
+                <Card className="h-full overflow-hidden group relative" style={{ background: highlight ? `${colors.accent}10` : colors.background, border: highlight ? `2px solid ${colors.accent}` : `1px solid ${colors.borderGold}`, boxShadow: highlight ? colors.shadowGold : 'none' }}>
+                  {isStep4 && (<motion.div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(circle at 50% 0%, ${colors.accent}20 0%, transparent 50%)` }} animate={{ opacity: [0.5, 0.8, 0.5] }} transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }} />)}
+                  <div className="p-6 sm:p-8 relative z-10">
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center gap-3">
+                        <span className="text-4xl font-bold" style={{ color: highlight ? colors.accent : colors.accentDark }}>{step}</span>
+                        <motion.div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: `${colors.accent}15`, border: `1px solid ${colors.borderGold}` }} animate={isStep4 ? { scale: [1, 1.1, 1] } : {}} transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}>
+                          <Icon className="w-5 h-5" style={{ color: highlight ? colors.accent : colors.textMuted }} />
+                        </motion.div>
                       </div>
-                      <h3 className="text-xl font-bold mb-1" style={{ color: colors.text }}>{stepTitle}</h3>
-                      <p className="text-xs uppercase tracking-wider mb-4 font-medium" style={{ color: colors.accentDark }}>{t(`landing.howto_step${num}_title_en`)}</p>
-                      <p className="mb-6 leading-relaxed text-sm" style={{ color: colors.textMuted }}>{renderWithLineBreaks(t(`landing.howto_step${num}_desc`))}</p>
-                      <div className="rounded-xl overflow-hidden relative" style={{ border: `1px solid ${colors.borderGold}` }}>
-                        <img src={images[index]} alt={stepTitle} className="w-full h-auto object-cover" />
-                        {isStep4 && (
-                          <motion.div
-                            className="absolute inset-0 pointer-events-none"
-                            style={{ background: 'linear-gradient(45deg, transparent 0%, rgba(201, 168, 108, 0.15) 50%, transparent 100%)' }}
-                            animate={{ x: ['-100%', '200%'] }}
-                            transition={{ duration: 3, repeat: Infinity, repeatDelay: 2, ease: 'easeInOut' }}
-                          />
-                        )}
-                      </div>
+                      {badge === 'common.auto_voice' && (<span className="text-[10px] font-semibold px-3 py-1 rounded-full uppercase tracking-wider" style={{ background: `${colors.accent}20`, color: colors.accent, border: `1px solid ${colors.accent}40` }}>{t('common.auto_voice')}</span>)}
+                      {badge === 'bonus' && (<motion.span className="text-[10px] font-semibold px-3 py-1 rounded-full uppercase tracking-wider flex items-center gap-1" style={{ background: 'linear-gradient(135deg, #4ADE80 0%, #22C55E 100%)', color: '#fff', boxShadow: '0 0 12px rgba(74, 222, 128, 0.4)' }} animate={{ scale: [1, 1.05, 1] }} transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}><Sparkles className="w-3 h-3" />Bonus</motion.span>)}
                     </div>
-                  </Card>
-                </motion.div>
+                    <h3 className="text-xl font-bold mb-1" style={{ color: colors.text }}>{stepTitle}</h3>
+                    <p className="text-xs uppercase tracking-wider mb-4 font-medium" style={{ color: colors.accentDark }}>{t(`landing.howto_step${num}_title_en`)}</p>
+                    <p className="mb-6 leading-relaxed text-sm" style={{ color: colors.textMuted }}>{renderWithLineBreaks(t(`landing.howto_step${num}_desc`))}</p>
+                    <div className="rounded-xl overflow-hidden relative" style={{ border: `1px solid ${colors.borderGold}` }}>
+                      <img src={images[index]} alt={stepTitle} className="w-full h-auto object-cover" />
+                      {isStep4 && (<motion.div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(45deg, transparent 0%, rgba(201, 168, 108, 0.15) 50%, transparent 100%)' }} animate={{ x: ['-100%', '200%'] }} transition={{ duration: 3, repeat: Infinity, repeatDelay: 2, ease: 'easeInOut' }} />)}
+                    </div>
+                  </div>
+                  <motion.div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ background: colors.goldGradient }} initial={{ scaleX: 0 }} whileHover={{ scaleX: 1 }} transition={{ duration: 0.3 }} />
+                </Card>
               );
-            })}
-          </div>
+            };
+            return (
+              <>
+                {/* モバイル: スライド */}
+                <div className="block lg:hidden relative">
+                  <div className="overflow-hidden rounded-2xl" {...handleSwipe(setHowtoSlide, howtoSteps.length)}>
+                    <AnimatePresence mode="wait">
+                      <motion.div key={howtoSlide} initial={{ opacity: 0, x: 80 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -80 }} transition={{ duration: 0.35 }}>
+                        {renderStepCard(howtoSlide)}
+                      </motion.div>
+                    </AnimatePresence>
+                  </div>
+                  <div className="flex justify-center gap-2 mt-6">
+                    {howtoSteps.map((_, index) => (
+                      <button key={index} onClick={() => setHowtoSlide(index)} className="h-2 rounded-full transition-all duration-300" style={{ width: howtoSlide === index ? '24px' : '8px', background: howtoSlide === index ? colors.accent : `${colors.text}30`, boxShadow: howtoSlide === index ? `0 0 10px ${colors.accent}60` : 'none' }} />
+                    ))}
+                  </div>
+                </div>
+                {/* PC: グリッド */}
+                <div className="hidden lg:grid lg:grid-cols-2 gap-8">
+                  {howtoSteps.map((_, index) => (
+                    <motion.div key={index} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.15 }}>
+                      {renderStepCard(index)}
+                    </motion.div>
+                  ))}
+                </div>
+              </>
+            );
+          })()}
         </div>
       </section>
 
@@ -1040,110 +1172,138 @@ export default function LandingPage() {
             <p className="text-base max-w-2xl mx-auto" style={{ color: colors.textMuted }}>{renderWithLineBreaks(t('landing.area_guide_subtitle'))}</p>
           </motion.div>
 
-          <div className="space-y-8">
-            {/* 都町エリア */}
-            <motion.article initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="rounded-2xl overflow-hidden" style={{ background: `${colors.surface}60`, border: `1px solid ${colors.borderSubtle}` }}>
-              <div className="aspect-[16/9] w-full overflow-hidden">
-                <img src="https://res.cloudinary.com/dz9trbwma/image/upload/v1772414070/Gemini_Generated_Image_8eyd8x8eyd8x8eyd_fy2omk_c_pad_b_gen_fill_w_1024_h_1024_x3jvuh.png" alt={t('landing.area_guide_miyako_title')} className="w-full h-full object-cover" />
-              </div>
-              <div className="p-6">
-                <h3 className="text-xl font-bold mb-3" style={{ color: colors.text }}>{t('landing.area_guide_miyako_title')}</h3>
-                <p className="text-sm leading-relaxed mb-3" style={{ color: colors.textMuted }}>{t('landing.area_guide_miyako_desc1')}</p>
-                <p className="text-sm leading-relaxed" style={{ color: colors.textMuted }}>{t('landing.area_guide_miyako_desc2')}</p>
-              </div>
-            </motion.article>
-
-            {/* 中央町・大分駅周辺エリア */}
-            <motion.article initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="rounded-2xl overflow-hidden" style={{ background: `${colors.surface}60`, border: `1px solid ${colors.borderSubtle}` }}>
-              <div className="aspect-[16/9] w-full overflow-hidden">
-                <img src="https://res.cloudinary.com/dz9trbwma/image/upload/v1772414069/Gemini_Generated_Image_f6wtfvf6wtfvf6wt_aovpzh_c_pad_b_gen_fill_w_1024_h_1024_dmxlqs.png" alt={t('landing.area_guide_chuo_title')} className="w-full h-full object-cover" />
-              </div>
-              <div className="p-6">
-                <h3 className="text-xl font-bold mb-3" style={{ color: colors.text }}>{t('landing.area_guide_chuo_title')}</h3>
-                <p className="text-sm leading-relaxed mb-3" style={{ color: colors.textMuted }}>{t('landing.area_guide_chuo_desc1')}</p>
-                <p className="text-sm leading-relaxed" style={{ color: colors.textMuted }}>{t('landing.area_guide_chuo_desc2')}</p>
-              </div>
-            </motion.article>
-
-            {/* シーン別おすすめ */}
-            <motion.article initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="p-6 rounded-2xl" style={{ background: `${colors.surface}60`, border: `1px solid ${colors.borderSubtle}` }}>
-              <h3 className="text-xl font-bold mb-3" style={{ color: colors.text }}>{t('landing.area_guide_scene_title')}</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <h4 className="text-sm font-bold mb-2" style={{ color: colors.accent }}>{t('landing.area_guide_scene_date_title')}</h4>
-                  <p className="text-xs leading-relaxed" style={{ color: colors.textMuted }}>{t('landing.area_guide_scene_date_desc')}</p>
+          {(() => {
+            const areaGuides = [
+              {
+                image: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1772414070/Gemini_Generated_Image_8eyd8x8eyd8x8eyd_fy2omk_c_pad_b_gen_fill_w_1024_h_1024_x3jvuh.png',
+                title: t('landing.area_guide_miyako_title'),
+                desc1: t('landing.area_guide_miyako_desc1'),
+                desc2: t('landing.area_guide_miyako_desc2'),
+              },
+              {
+                image: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1772414069/Gemini_Generated_Image_f6wtfvf6wtfvf6wt_aovpzh_c_pad_b_gen_fill_w_1024_h_1024_dmxlqs.png',
+                title: t('landing.area_guide_chuo_title'),
+                desc1: t('landing.area_guide_chuo_desc1'),
+                desc2: t('landing.area_guide_chuo_desc2'),
+              },
+            ];
+            const renderAreaCard = (index: number) => {
+              const guide = areaGuides[index];
+              return (
+                <article className="rounded-2xl overflow-hidden" style={{ background: `${colors.surface}60`, border: `1px solid ${colors.borderSubtle}` }}>
+                  <div className="aspect-[16/9] w-full overflow-hidden">
+                    <img src={guide.image} alt={guide.title} className="w-full h-full object-cover" />
+                  </div>
+                  <div className="p-6">
+                    <h3 className="text-xl font-bold mb-3" style={{ color: colors.text }}>{guide.title}</h3>
+                    <p className="text-sm leading-relaxed mb-3" style={{ color: colors.textMuted }}>{guide.desc1}</p>
+                    <p className="text-sm leading-relaxed" style={{ color: colors.textMuted }}>{guide.desc2}</p>
+                  </div>
+                </article>
+              );
+            };
+            return (
+              <>
+                {/* モバイル: スワイプ */}
+                <div className="block lg:hidden relative">
+                  <div className="overflow-hidden rounded-2xl" {...handleSwipe(setAreaGuideSlide, areaGuides.length + 1)}>
+                    <AnimatePresence mode="wait">
+                      <motion.div key={areaGuideSlide} initial={{ opacity: 0, x: 80 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -80 }} transition={{ duration: 0.35 }}>
+                        {areaGuideSlide < areaGuides.length ? renderAreaCard(areaGuideSlide) : (
+                          <article className="p-6 rounded-2xl" style={{ background: `${colors.surface}60`, border: `1px solid ${colors.borderSubtle}` }}>
+                            <h3 className="text-xl font-bold mb-3" style={{ color: colors.text }}>{t('landing.area_guide_scene_title')}</h3>
+                            <div className="space-y-4">
+                              {[
+                                { title: t('landing.area_guide_scene_date_title'), desc: t('landing.area_guide_scene_date_desc') },
+                                { title: t('landing.area_guide_scene_solo_title'), desc: t('landing.area_guide_scene_solo_desc') },
+                                { title: t('landing.area_guide_scene_girls_title'), desc: t('landing.area_guide_scene_girls_desc') },
+                                { title: t('landing.area_guide_scene_hopping_title'), desc: t('landing.area_guide_scene_hopping_desc') },
+                              ].map((s, i) => (
+                                <div key={i}>
+                                  <h4 className="text-sm font-bold mb-2" style={{ color: colors.accent }}>{s.title}</h4>
+                                  <p className="text-xs leading-relaxed" style={{ color: colors.textMuted }}>{s.desc}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </article>
+                        )}
+                      </motion.div>
+                    </AnimatePresence>
+                  </div>
+                  <div className="flex justify-center gap-2 mt-6">
+                    {[...areaGuides, null].map((_, index) => (
+                      <button key={index} onClick={() => setAreaGuideSlide(index)} className="h-2 rounded-full transition-all duration-300" style={{ width: areaGuideSlide === index ? '24px' : '8px', background: areaGuideSlide === index ? colors.accent : `${colors.text}30`, boxShadow: areaGuideSlide === index ? `0 0 10px ${colors.accent}60` : 'none' }} />
+                    ))}
+                  </div>
                 </div>
-                <div>
-                  <h4 className="text-sm font-bold mb-2" style={{ color: colors.accent }}>{t('landing.area_guide_scene_solo_title')}</h4>
-                  <p className="text-xs leading-relaxed" style={{ color: colors.textMuted }}>{t('landing.area_guide_scene_solo_desc')}</p>
+                {/* PC: 縦並び */}
+                <div className="hidden lg:block space-y-8">
+                  {areaGuides.map((_, index) => (
+                    <motion.div key={index} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+                      {renderAreaCard(index)}
+                    </motion.div>
+                  ))}
+                  <motion.article initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="p-6 rounded-2xl" style={{ background: `${colors.surface}60`, border: `1px solid ${colors.borderSubtle}` }}>
+                    <h3 className="text-xl font-bold mb-3" style={{ color: colors.text }}>{t('landing.area_guide_scene_title')}</h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      {[
+                        { title: t('landing.area_guide_scene_date_title'), desc: t('landing.area_guide_scene_date_desc') },
+                        { title: t('landing.area_guide_scene_solo_title'), desc: t('landing.area_guide_scene_solo_desc') },
+                        { title: t('landing.area_guide_scene_girls_title'), desc: t('landing.area_guide_scene_girls_desc') },
+                        { title: t('landing.area_guide_scene_hopping_title'), desc: t('landing.area_guide_scene_hopping_desc') },
+                      ].map((s, i) => (
+                        <div key={i}>
+                          <h4 className="text-sm font-bold mb-2" style={{ color: colors.accent }}>{s.title}</h4>
+                          <p className="text-xs leading-relaxed" style={{ color: colors.textMuted }}>{s.desc}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </motion.article>
                 </div>
-                <div>
-                  <h4 className="text-sm font-bold mb-2" style={{ color: colors.accent }}>{t('landing.area_guide_scene_girls_title')}</h4>
-                  <p className="text-xs leading-relaxed" style={{ color: colors.textMuted }}>{t('landing.area_guide_scene_girls_desc')}</p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-bold mb-2" style={{ color: colors.accent }}>{t('landing.area_guide_scene_hopping_title')}</h4>
-                  <p className="text-xs leading-relaxed" style={{ color: colors.textMuted }}>{t('landing.area_guide_scene_hopping_desc')}</p>
-                </div>
-              </div>
-            </motion.article>
-          </div>
+              </>
+            );
+          })()}
         </div>
         <motion.div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${colors.accent}40, transparent)` }} />
       </section>
 
-      {/* Partner Stores Section */}
+      {/* Partner Stores Section - 流れるマーキー */}
       {partnerStores.length > 0 && (
-        <section className="relative py-24 px-4 overflow-hidden" style={{ background: colors.background }}>
-          <div className="container mx-auto max-w-6xl relative z-10">
-            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
+        <section className="relative py-24 overflow-hidden" style={{ background: colors.background }}>
+          <div className="container mx-auto max-w-6xl relative z-10 px-4">
+            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
               <GoldDivider />
               <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4" style={{ color: colors.accent }}>Partner Stores</span>
               <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4" style={{ color: colors.text }}>{t('common.partner_stores')}</h2>
               <p className="text-lg max-w-xl mx-auto" style={{ color: colors.textMuted }}>{t('common.partner_stores_subtitle')}</p>
             </motion.div>
-
-            {/* モバイル: カルーセル表示 */}
-            <div className="block sm:hidden relative">
-              <div ref={carouselRef} className="overflow-hidden rounded-2xl cursor-pointer group" style={{ background: `${colors.surface}80`, border: `1px solid ${colors.borderGold}`, touchAction: 'pan-x pan-y' }} onClick={() => partnerStores[currentSlide] && handleStoreCardClick(partnerStores[currentSlide].id)}>
-                <div className="relative aspect-[4/3]">
-                  <AnimatePresence mode="wait">
-                    {partnerStores[currentSlide] && (
-                      <motion.div key={partnerStores[currentSlide].id} initial={{ opacity: 0, x: 100 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -100 }} transition={{ duration: 0.5 }} className="absolute inset-0">
-                        <img src={partnerStores[currentSlide].image_urls?.[0] || ''} alt={partnerStores[currentSlide].name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                        <div className="absolute inset-0" style={{ background: `linear-gradient(to top, ${colors.background} 0%, ${colors.background}60 40%, transparent 100%)` }} />
-                        <div className="absolute top-4 left-4"><h3 className="text-xl font-bold" style={{ color: colors.text, textShadow: '0 2px 10px rgba(0,0,0,0.8)' }}>{partnerStores[currentSlide].name}</h3></div>
-                        <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
-                          <motion.span className="text-sm font-medium px-4 py-2.5 rounded-full flex items-center gap-2" style={{ background: `${colors.accent}25`, color: colors.accent, border: `1px solid ${colors.accent}50`, backdropFilter: 'blur(8px)' }} whileHover={{ scale: 1.05 }}>
-                            <ChevronRight className="w-4 h-4" />{t('common.view_details')}
-                          </motion.span>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              </div>
-              <button onClick={(e) => { e.stopPropagation(); prevSlide(); }} className="absolute left-2 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95" style={{ background: `${colors.background}E6`, border: `1px solid ${colors.borderGold}`, backdropFilter: 'blur(10px)' }} aria-label="Previous slide"><ChevronLeft className="w-6 h-6" style={{ color: colors.text }} /></button>
-              <button onClick={(e) => { e.stopPropagation(); nextSlide(); }} className="absolute right-2 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95" style={{ background: `${colors.background}E6`, border: `1px solid ${colors.borderGold}`, backdropFilter: 'blur(10px)' }} aria-label="Next slide"><ChevronRight className="w-6 h-6" style={{ color: colors.text }} /></button>
-              <div className="flex justify-center gap-2 mt-6">
-                {partnerStores.map((_, index) => (<button key={index} onClick={() => setCurrentSlide(index)} className="h-2 rounded-full transition-all duration-300" style={{ width: currentSlide === index ? '24px' : '8px', background: currentSlide === index ? colors.accent : `${colors.text}30`, boxShadow: currentSlide === index ? `0 0 10px ${colors.accent}60` : 'none' }} aria-label={`Go to slide ${index + 1}`} />))}
-              </div>
-            </div>
-
-            {/* PC: グリッド表示 */}
-            <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {partnerStores.slice(0, 6).map((store, index) => (
-                <motion.div key={store.id} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.1 }} className="relative group cursor-pointer overflow-hidden rounded-2xl" style={{ background: `${colors.surface}80`, border: `1px solid ${colors.borderGold}` }} onClick={() => handleStoreCardClick(store.id)}>
+          </div>
+          <div className="relative w-full overflow-hidden">
+            <motion.div
+              className="flex gap-4"
+              animate={{ x: ['0%', '-50%'] }}
+              transition={{ x: { duration: partnerStores.length * 4, repeat: Infinity, ease: 'linear' } }}
+              style={{ width: 'max-content' }}
+            >
+              {[...partnerStores, ...partnerStores].map((store, index) => (
+                <div
+                  key={`${store.id}-${index}`}
+                  className="flex-shrink-0 w-[260px] sm:w-[320px] relative group cursor-pointer overflow-hidden rounded-2xl"
+                  style={{ border: `1px solid ${colors.borderGold}` }}
+                  onClick={() => handleStoreCardClick(store.id)}
+                >
                   <div className="relative aspect-[4/3]">
                     <img src={store.image_urls?.[0] || ''} alt={store.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                    <div className="absolute inset-0" style={{ background: `linear-gradient(to top, ${colors.background} 0%, ${colors.background}80 50%, transparent 100%)` }} />
-                    <div className="absolute top-4 left-4 right-4"><h3 className="text-lg sm:text-xl lg:text-2xl font-bold mb-2" style={{ color: colors.text, textShadow: '0 2px 10px rgba(0,0,0,0.8)' }}>{store.name}</h3></div>
-                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2"><motion.span className="text-sm font-medium px-4 py-2.5 rounded-full flex items-center gap-2" style={{ background: `${colors.accent}25`, color: colors.accent, border: `1px solid ${colors.accent}50`, backdropFilter: 'blur(8px)' }} whileHover={{ scale: 1.05 }}><ChevronRight className="w-4 h-4" />{t('common.view_details')}</motion.span></div>
+                    <div className="absolute inset-0" style={{ background: `linear-gradient(to top, ${colors.background} 0%, transparent 60%)` }} />
+                    <div className="absolute bottom-3 left-3 right-3">
+                      <h3 className="text-sm font-bold truncate" style={{ color: colors.text, textShadow: '0 1px 6px rgba(0,0,0,0.8)' }}>{store.name}</h3>
+                    </div>
                   </div>
-                </motion.div>
+                </div>
               ))}
-            </div>
-
+            </motion.div>
+          </div>
+          <div className="container mx-auto max-w-6xl relative z-10 px-4">
             <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mt-10">
               <Button onClick={() => router.push('/store-list')} className="inline-flex items-center gap-2 px-6 py-3 rounded-full font-medium transition-all hover:scale-105 min-h-[48px]" style={{ background: `${colors.accent}15`, border: `1px solid ${colors.borderGold}`, color: colors.accent }}><Store className="w-5 h-5" />{t('common.view_all_partners')}</Button>
             </motion.div>
@@ -1151,22 +1311,83 @@ export default function LandingPage() {
         </section>
       )}
 
-      {/* CTA Section */}
-      <section className="relative py-28 px-4 overflow-hidden" style={{ background: colors.surface }}>
-        <div className="absolute inset-0 z-0" style={{ background: `radial-gradient(ellipse at center, ${colors.accent}15 0%, transparent 50%)` }} />
-        <div className="container mx-auto max-w-4xl text-center relative z-10">
-          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+      {/* FAQ Section */}
+      <section className="relative py-24 px-4 overflow-hidden" style={{ background: colors.surface }}>
+        <div className="container mx-auto max-w-3xl">
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
             <GoldDivider />
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-6" style={{ color: colors.text }}>{t('landing.cta_title')}</h2>
-            <p className="text-lg sm:text-xl mb-10 max-w-2xl mx-auto" style={{ color: colors.textMuted }}>{renderWithLineBreaks(t('landing.cta_body'))}</p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <motion.div whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.98 }} className="rounded-full relative overflow-hidden group" style={{ boxShadow: colors.shadowGold }}>
-                <Button size="lg" onClick={handleMapClick} className="text-xl px-12 py-7 rounded-full font-semibold relative z-10" style={{ background: colors.goldGradient, color: colors.background }}><MapPin className="w-6 h-6 mr-3" />{t('landing.cta_button_primary')}</Button>
-                <motion.div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" style={{ background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%)' }} animate={{ x: ['-100%', '200%'] }} transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 1 }} />
+            <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4" style={{ color: colors.accent }}>FAQ</span>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4" style={{ color: colors.text }}>{t('landing.faq_title')}</h2>
+            <p className="text-base" style={{ color: colors.textMuted }}>{t('landing.faq_subtitle')}</p>
+          </motion.div>
+          <div className="space-y-3">
+            {[1, 2, 3].map((num) => (
+              <motion.details key={num} initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="group rounded-xl overflow-hidden" style={{ background: `${colors.background}80`, border: `1px solid ${colors.borderSubtle}` }}>
+                <summary className="flex items-center justify-between p-5 cursor-pointer list-none" style={{ color: colors.text }}>
+                  <span className="font-bold text-sm sm:text-base pr-4">{t(`landing.faq_q${num}`)}</span>
+                  <ChevronDown className="w-5 h-5 flex-shrink-0 transition-transform group-open:rotate-180" style={{ color: colors.accent }} />
+                </summary>
+                <div className="px-5 pb-5">
+                  <p className="text-sm leading-relaxed" style={{ color: colors.textMuted }}>{t(`landing.faq_a${num}`)}</p>
+                </div>
+              </motion.details>
+            ))}
+          </div>
+          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="text-center mt-8">
+            <Link href="/faq" className="inline-flex items-center gap-2 text-sm font-medium transition-all hover:scale-105" style={{ color: colors.accent }}>
+              {t('landing.faq_view_all')} <ExternalLink className="w-4 h-4" />
+            </Link>
+          </motion.div>
+        </div>
+        <motion.div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${colors.accent}40, transparent)` }} />
+      </section>
+
+      {/* Contact Section */}
+      <section className="relative py-24 px-4 overflow-hidden" style={{ background: colors.background }}>
+        <div className="container mx-auto max-w-3xl text-center">
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+            <GoldDivider />
+            <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4" style={{ color: colors.accent }}>Contact</span>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4" style={{ color: colors.text }}>{t('landing.contact_title')}</h2>
+            <p className="text-base mb-8" style={{ color: colors.textMuted }}>{renderWithLineBreaks(t('landing.contact_subtitle'))}</p>
+            <Link href="/contact">
+              <motion.div whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.98 }} className="inline-block">
+                <Button size="lg" className="text-base px-8 py-6 rounded-full font-semibold" style={{ background: colors.goldGradient, color: colors.background, boxShadow: colors.shadowGold }}>
+                  <Mail className="w-5 h-5 mr-2" />{t('landing.contact_button')}
+                </Button>
               </motion.div>
-              <Link href="/ad-lp">
-                <Button size="lg" variant="ghost" className="text-base px-8 py-6 rounded-full font-medium border transition-all hover:scale-105" style={{ borderColor: colors.borderGold, color: colors.textMuted, background: `${colors.accent}08` }}><Sparkles className="w-5 h-5 mr-2" />{t('landing.cta_button_secondary')}</Button>
-              </Link>
+            </Link>
+          </motion.div>
+        </div>
+        <motion.div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${colors.accent}40, transparent)` }} />
+      </section>
+
+      {/* Company Section */}
+      <section className="relative py-24 px-4 overflow-hidden" style={{ background: colors.surface }}>
+        <div className="container mx-auto max-w-3xl">
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
+            <GoldDivider />
+            <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4" style={{ color: colors.accent }}>Company</span>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold" style={{ color: colors.text }}>{t('landing.company_title')}</h2>
+          </motion.div>
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="rounded-2xl p-6 sm:p-8" style={{ background: `${colors.background}80`, border: `1px solid ${colors.borderSubtle}` }}>
+            <div className="space-y-4">
+              {[
+                { label: t('landing.company_name_label'), value: t('landing.company_name_value') },
+                { label: t('landing.company_address_label'), value: t('landing.company_address_value') },
+                { label: t('landing.company_ceo_label'), value: t('landing.company_ceo_value') },
+                { label: t('landing.company_business_label'), value: t('landing.company_business_value') },
+              ].map((item, index) => (
+                <div key={index} className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-4 py-3" style={{ borderBottom: `1px solid ${colors.borderSubtle}` }}>
+                  <span className="text-xs font-bold uppercase tracking-wider flex-shrink-0 sm:w-32" style={{ color: colors.accent }}>{item.label}</span>
+                  <span className="text-sm" style={{ color: colors.textMuted }}>{renderWithLineBreaks(item.value)}</span>
+                </div>
+              ))}
+            </div>
+            <div className="mt-6 text-center">
+              <a href="https://www.nobody-inc.jp/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm font-medium transition-all hover:scale-105" style={{ color: colors.accent }}>
+                {t('landing.company_website')} <ExternalLink className="w-4 h-4" />
+              </a>
             </div>
           </motion.div>
         </div>
@@ -1255,41 +1476,23 @@ export default function LandingPage() {
 
       {/* フローティングボタン群（画面右下） */}
       <div className="fixed bottom-6 right-6 z-20 flex flex-col gap-3 items-end safe-bottom">
-        {/* 加盟店募集ボタン */}
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ delay: 0.2 }}
-        >
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <a
-              href="https://docs.google.com/forms/d/e/1FAIpQLSceOuH6VBiSjYhJuly0SI6bZDaQrqxJ15vpMxGxT-CAXS2I4Q/viewform"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Button
-                className="flex flex-col items-center justify-center gap-1 px-3 py-2 touch-manipulation active:scale-95 rounded-lg"
-                style={{
-                  background: 'rgba(5,5,5,0.7)',
-                  backdropFilter: 'blur(20px)',
-                  border: '1px solid rgba(201,168,108,0.3)',
-                  boxShadow: '0 0 20px rgba(201,168,108,0.2)',
-                  minWidth: '56px',
-                  minHeight: '56px',
-                }}
-                title={t('landing.cta_button_recruitment')}
-              >
-                <Store className="w-5 h-5" style={{ color: colors.text }} />
-                <span className="text-[9px] font-bold leading-tight text-center" style={{ color: colors.text }}>
-                  {t('landing.cta_button_recruitment').length > 6 ? t('landing.cta_button_recruitment').slice(0, 6) : t('landing.cta_button_recruitment')}
-                </span>
-              </Button>
-            </a>
-          </motion.div>
-        </motion.div>
+        {/* TOPボタン */}
+        <AnimatePresence>
+          {showTopButton && (
+            <motion.div initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }} transition={{ duration: 0.2 }}>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button
+                  onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                  className="flex flex-col items-center justify-center gap-1 px-3 py-2 touch-manipulation active:scale-95 rounded-lg"
+                  style={{ background: 'rgba(5,5,5,0.7)', backdropFilter: 'blur(20px)', border: '1px solid rgba(201,168,108,0.3)', boxShadow: '0 0 20px rgba(201,168,108,0.2)', minWidth: '56px', minHeight: '56px' }}
+                >
+                  <ArrowUp className="w-5 h-5" style={{ color: colors.text }} />
+                  <span className="text-[9px] font-bold leading-tight text-center" style={{ color: colors.text }}>TOP</span>
+                </Button>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* 言語変更ボタン */}
         <div className="relative language-menu-container">
