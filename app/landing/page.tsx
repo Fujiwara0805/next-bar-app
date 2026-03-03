@@ -421,7 +421,7 @@ export default function LandingPage() {
       </AnimatePresence>
 
       {/* Hero Section */}
-      <section className="relative h-[100svh] lg:h-[75vh] flex items-end justify-center pb-24 lg:pb-20 px-4 overflow-hidden">
+      <section className="relative h-[100svh] lg:h-[75vh] flex flex-col px-4 overflow-hidden">
         <motion.div className="absolute inset-0 z-0" style={{ opacity: heroOpacity, scale: heroScale }}>
           <AnimatePresence mode="popLayout">
             <motion.div
@@ -441,39 +441,58 @@ export default function LandingPage() {
           <div className="absolute inset-0" style={{ background: `linear-gradient(to bottom, ${colors.background}90 0%, ${colors.background}60 40%, ${colors.background}CC 100%)` }} />
         </motion.div>
 
-        <div className="container mx-auto max-w-5xl relative z-10 px-4">
+        <div className="flex-1" />
+
+        <motion.div
+          className="relative z-10 text-center pb-8"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+        >
+          <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight">
+            <span style={{ color: colors.text }}>{renderWithLineBreaks(t('landing.hero_catchphrase'))}</span>
+          </h1>
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-center"
+            whileHover={{ scale: 1.03, y: -2 }}
+            whileTap={{ scale: 0.98 }}
+            className="rounded-full relative overflow-hidden group inline-block mb-6"
+            style={{ boxShadow: colors.shadowGold }}
           >
-            <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight">
-              <span style={{ color: colors.text }}>{renderWithLineBreaks(t('landing.hero_catchphrase'))}</span>
-            </h1>
-            <motion.div
-              whileHover={{ scale: 1.03, y: -2 }}
-              whileTap={{ scale: 0.98 }}
-              className="rounded-full relative overflow-hidden group inline-block"
-              style={{ boxShadow: colors.shadowGold }}
+            <Button
+              size="lg"
+              onClick={handleMapClick}
+              className="text-lg px-10 py-6 rounded-full font-semibold transition-all relative z-10"
+              style={{ background: colors.goldGradient, color: colors.background }}
             >
-              <Button
-                size="lg"
-                onClick={handleMapClick}
-                className="text-lg px-10 py-6 rounded-full font-semibold transition-all relative z-10"
-                style={{ background: colors.goldGradient, color: colors.background }}
-              >
-                <Store className="w-5 h-5 mr-2" />{t('landing.cta_button_primary')}
-              </Button>
-              <motion.div
-                className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
-                style={{ background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%)' }}
-                animate={{ x: ['-100%', '200%'] }}
-                transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 1 }}
-              />
-            </motion.div>
+              <Store className="w-5 h-5 mr-2" />{t('landing.cta_button_primary')}
+            </Button>
+            <motion.div
+              className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+              style={{ background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%)' }}
+              animate={{ x: ['-100%', '200%'] }}
+              transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 1 }}
+            />
           </motion.div>
-        </div>
+          <p className="text-xs sm:text-sm tracking-wider mb-3" style={{ color: colors.textMuted }}>
+            {t('landing.hero_subcopy')}
+          </p>
+          <span className="text-[10px] font-medium tracking-[0.3em] uppercase block mb-2" style={{ color: colors.textSubtle }}>
+            SCROLL
+          </span>
+          <motion.div
+            className="w-5 h-8 rounded-full flex items-start justify-center pt-1.5 mx-auto"
+            style={{ border: `1.5px solid ${colors.textSubtle}` }}
+            animate={{ opacity: [0.5, 1, 0.5] }}
+            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+          >
+            <motion.div
+              className="w-1 h-1.5 rounded-full"
+              style={{ background: colors.textMuted }}
+              animate={{ y: [0, 8, 0] }}
+              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+            />
+          </motion.div>
+        </motion.div>
 
         <motion.div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${colors.accent}60, transparent)` }} initial={{ scaleX: 0 }} whileInView={{ scaleX: 1 }} viewport={{ once: true }} transition={{ duration: 1.5, ease: 'easeOut' }} />
       </section>
