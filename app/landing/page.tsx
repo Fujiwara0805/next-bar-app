@@ -19,7 +19,6 @@ import {
   Building2,
   AlertCircle,
   Sparkles,
-  PartyPopper,
   Gift,
   MessageCircle,
   Instagram,
@@ -137,20 +136,6 @@ export default function LandingPage() {
   const [areaGuideSlide, setAreaGuideSlide] = useState(0);
   const [concernsSlide, setConcernsSlide] = useState(0);
   const [showTopButton, setShowTopButton] = useState(false);
-  const swipeStartRef = useRef<number | null>(null);
-
-  const handleSwipe = (setter: React.Dispatch<React.SetStateAction<number>>, total: number) => ({
-    onTouchStart: (e: React.TouchEvent) => { swipeStartRef.current = e.touches[0].clientX; },
-    onTouchEnd: (e: React.TouchEvent) => {
-      if (swipeStartRef.current === null) return;
-      const diff = swipeStartRef.current - e.changedTouches[0].clientX;
-      if (Math.abs(diff) > 50) {
-        setter((prev) => diff > 0 ? Math.min(prev + 1, total - 1) : Math.max(prev - 1, 0));
-      }
-      swipeStartRef.current = null;
-    },
-  });
-  const carouselRef = useRef<HTMLDivElement>(null);
   const locationAttemptRef = useRef(false);
 
   const renderWithLineBreaks = (text: string) => {
@@ -297,6 +282,27 @@ export default function LandingPage() {
   }, [partnerStores.length]);
 
   useEffect(() => {
+    const timer = setTimeout(() => {
+      setConcernsSlide((prev) => (prev + 1) % 3);
+    }, 4000);
+    return () => clearTimeout(timer);
+  }, [concernsSlide]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setHowtoSlide((prev) => (prev + 1) % 4);
+    }, 4000);
+    return () => clearTimeout(timer);
+  }, [howtoSlide]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setAreaGuideSlide((prev) => (prev + 1) % 3);
+    }, 4000);
+    return () => clearTimeout(timer);
+  }, [areaGuideSlide]);
+
+  useEffect(() => {
     const handleScroll = () => {
       setShowTopButton(window.scrollY > window.innerHeight);
     };
@@ -318,7 +324,6 @@ export default function LandingPage() {
     { icon: Radio, label: t('menu.news'), href: '/news' },
     { icon: FileText, label: t('static_pages.terms_title'), href: '/terms' },
     { icon: HelpCircle, label: t('static_pages.faq_title'), href: '/faq' },
-    { icon: FileText, label: t('static_pages.release_notes_title'), href: '/release-notes' },
   ];
 
   const handleMapClick = () => { setShowLocationModal(true); };
@@ -993,9 +998,9 @@ export default function LandingPage() {
             };
             return (
               <>
-                {/* モバイル: スワイプ */}
+                {/* モバイル: スライド */}
                 <div className="block lg:hidden relative">
-                  <div className="overflow-hidden rounded-2xl" {...handleSwipe(setConcernsSlide, concernsData.length)}>
+                  <div className="overflow-hidden rounded-2xl">
                     <AnimatePresence mode="wait">
                       <motion.div
                         key={concernsSlide}
@@ -1008,6 +1013,20 @@ export default function LandingPage() {
                       </motion.div>
                     </AnimatePresence>
                   </div>
+                  <button
+                    onClick={() => setConcernsSlide((prev) => (prev - 1 + concernsData.length) % concernsData.length)}
+                    className="absolute left-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 z-10"
+                    style={{ background: `${colors.background}E6`, border: `1px solid ${colors.borderGold}`, backdropFilter: 'blur(10px)' }}
+                  >
+                    <ChevronLeft className="w-5 h-5" style={{ color: colors.text }} />
+                  </button>
+                  <button
+                    onClick={() => setConcernsSlide((prev) => (prev + 1) % concernsData.length)}
+                    className="absolute right-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 z-10"
+                    style={{ background: `${colors.background}E6`, border: `1px solid ${colors.borderGold}`, backdropFilter: 'blur(10px)' }}
+                  >
+                    <ChevronRight className="w-5 h-5" style={{ color: colors.text }} />
+                  </button>
                   <div className="flex justify-center gap-2 mt-6">
                     {concernsData.map((_, index) => (
                       <button
@@ -1135,13 +1154,27 @@ export default function LandingPage() {
               <>
                 {/* モバイル: スライド */}
                 <div className="block lg:hidden relative">
-                  <div className="overflow-hidden rounded-2xl" {...handleSwipe(setHowtoSlide, howtoSteps.length)}>
+                  <div className="overflow-hidden rounded-2xl">
                     <AnimatePresence mode="wait">
                       <motion.div key={howtoSlide} initial={{ opacity: 0, x: 80 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -80 }} transition={{ duration: 0.35 }}>
                         {renderStepCard(howtoSlide)}
                       </motion.div>
                     </AnimatePresence>
                   </div>
+                  <button
+                    onClick={() => setHowtoSlide((prev) => (prev - 1 + howtoSteps.length) % howtoSteps.length)}
+                    className="absolute left-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 z-10"
+                    style={{ background: `${colors.background}E6`, border: `1px solid ${colors.borderGold}`, backdropFilter: 'blur(10px)' }}
+                  >
+                    <ChevronLeft className="w-5 h-5" style={{ color: colors.text }} />
+                  </button>
+                  <button
+                    onClick={() => setHowtoSlide((prev) => (prev + 1) % howtoSteps.length)}
+                    className="absolute right-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 z-10"
+                    style={{ background: `${colors.background}E6`, border: `1px solid ${colors.borderGold}`, backdropFilter: 'blur(10px)' }}
+                  >
+                    <ChevronRight className="w-5 h-5" style={{ color: colors.text }} />
+                  </button>
                   <div className="flex justify-center gap-2 mt-6">
                     {howtoSteps.map((_, index) => (
                       <button key={index} onClick={() => setHowtoSlide(index)} className="h-2 rounded-full transition-all duration-300" style={{ width: howtoSlide === index ? '24px' : '8px', background: howtoSlide === index ? colors.accent : `${colors.text}30`, boxShadow: howtoSlide === index ? `0 0 10px ${colors.accent}60` : 'none' }} />
@@ -1202,11 +1235,12 @@ export default function LandingPage() {
                 </article>
               );
             };
+            const totalAreaSlides = areaGuides.length + 1;
             return (
               <>
-                {/* モバイル: スワイプ */}
+                {/* モバイル: スライド */}
                 <div className="block lg:hidden relative">
-                  <div className="overflow-hidden rounded-2xl" {...handleSwipe(setAreaGuideSlide, areaGuides.length + 1)}>
+                  <div className="overflow-hidden rounded-2xl">
                     <AnimatePresence mode="wait">
                       <motion.div key={areaGuideSlide} initial={{ opacity: 0, x: 80 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -80 }} transition={{ duration: 0.35 }}>
                         {areaGuideSlide < areaGuides.length ? renderAreaCard(areaGuideSlide) : (
@@ -1230,6 +1264,20 @@ export default function LandingPage() {
                       </motion.div>
                     </AnimatePresence>
                   </div>
+                  <button
+                    onClick={() => setAreaGuideSlide((prev) => (prev - 1 + totalAreaSlides) % totalAreaSlides)}
+                    className="absolute left-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 z-10"
+                    style={{ background: `${colors.background}E6`, border: `1px solid ${colors.borderGold}`, backdropFilter: 'blur(10px)' }}
+                  >
+                    <ChevronLeft className="w-5 h-5" style={{ color: colors.text }} />
+                  </button>
+                  <button
+                    onClick={() => setAreaGuideSlide((prev) => (prev + 1) % totalAreaSlides)}
+                    className="absolute right-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 z-10"
+                    style={{ background: `${colors.background}E6`, border: `1px solid ${colors.borderGold}`, backdropFilter: 'blur(10px)' }}
+                  >
+                    <ChevronRight className="w-5 h-5" style={{ color: colors.text }} />
+                  </button>
                   <div className="flex justify-center gap-2 mt-6">
                     {[...areaGuides, null].map((_, index) => (
                       <button key={index} onClick={() => setAreaGuideSlide(index)} className="h-2 rounded-full transition-all duration-300" style={{ width: areaGuideSlide === index ? '24px' : '8px', background: areaGuideSlide === index ? colors.accent : `${colors.text}30`, boxShadow: areaGuideSlide === index ? `0 0 10px ${colors.accent}60` : 'none' }} />
