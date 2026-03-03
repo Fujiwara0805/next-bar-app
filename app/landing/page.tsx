@@ -156,7 +156,7 @@ export default function LandingPage() {
     'https://res.cloudinary.com/dz9trbwma/image/upload/v1772501853/q-u-i-n-g-u-y-e-n-Zrp9b3PMIy8-unsplash_xjz1dm.jpg',
     'https://res.cloudinary.com/dz9trbwma/image/upload/v1772501853/masahiro-miyagi-RLDNGblOqHU-unsplash_zadhp8.jpg',
     'https://res.cloudinary.com/dz9trbwma/image/upload/v1772501852/sergio-alves-santos-OxKFC5u0980-unsplash_z1u5mj.jpg',
-    
+
     'https://res.cloudinary.com/dz9trbwma/image/upload/v1772522900/ash-edmonds-fsI-_MRsic0-unsplash_fgf0lv.jpg',
     'https://res.cloudinary.com/dz9trbwma/image/upload/v1772501853/patrick-tomasso-GXXYkSwndP4-unsplash_w4c9df.jpg',
     'https://res.cloudinary.com/dz9trbwma/image/upload/v1772501852/jakub-dziubak-gj7BLlSzIFs-unsplash_virstu.jpg',
@@ -289,19 +289,7 @@ export default function LandingPage() {
     return () => clearTimeout(timer);
   }, [concernsSlide]);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setHowtoSlide((prev) => (prev + 1) % 4);
-    }, 4000);
-    return () => clearTimeout(timer);
-  }, [howtoSlide]);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setAreaGuideSlide((prev) => (prev + 1) % 2);
-    }, 4000);
-    return () => clearTimeout(timer);
-  }, [areaGuideSlide]);
 
   useEffect(() => {
     const handleScroll = () => {
