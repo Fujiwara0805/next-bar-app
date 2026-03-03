@@ -149,7 +149,7 @@ export default function LandingPage() {
 
   const [heroImageIndex, setHeroImageIndex] = useState(0);
   const heroImages = [
-    'https://res.cloudinary.com/dz9trbwma/image/upload/v1772501860/edward-howell-rdJhMyb4Yuc-unsplash_bkk31d.jpg',
+    'https://res.cloudinary.com/dz9trbwma/image/upload/v1772522900/ash-edmonds-fsI-_MRsic0-unsplash_fgf0lv.jpg',
     'https://res.cloudinary.com/dz9trbwma/image/upload/v1772501861/edgar-chaparro-Lwx-q6OdGAc-unsplash_x8q8jq.jpg',
     'https://res.cloudinary.com/dz9trbwma/image/upload/v1772501860/drew-beamer-bTN-zKFy9uA-unsplash_kmcnyo.jpg',
     'https://res.cloudinary.com/dz9trbwma/image/upload/v1772501854/kris-sevinc-NVX55qVyEkE-unsplash_pjwsez.jpg',
