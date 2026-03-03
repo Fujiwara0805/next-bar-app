@@ -149,7 +149,6 @@ export default function LandingPage() {
 
   const [heroImageIndex, setHeroImageIndex] = useState(0);
   const heroImages = [
-    'https://res.cloudinary.com/dz9trbwma/image/upload/v1772522900/ash-edmonds-fsI-_MRsic0-unsplash_fgf0lv.jpg',
     'https://res.cloudinary.com/dz9trbwma/image/upload/v1772501861/edgar-chaparro-Lwx-q6OdGAc-unsplash_x8q8jq.jpg',
     'https://res.cloudinary.com/dz9trbwma/image/upload/v1772501860/drew-beamer-bTN-zKFy9uA-unsplash_kmcnyo.jpg',
     'https://res.cloudinary.com/dz9trbwma/image/upload/v1772501854/kris-sevinc-NVX55qVyEkE-unsplash_pjwsez.jpg',
@@ -157,6 +156,8 @@ export default function LandingPage() {
     'https://res.cloudinary.com/dz9trbwma/image/upload/v1772501853/q-u-i-n-g-u-y-e-n-Zrp9b3PMIy8-unsplash_xjz1dm.jpg',
     'https://res.cloudinary.com/dz9trbwma/image/upload/v1772501853/masahiro-miyagi-RLDNGblOqHU-unsplash_zadhp8.jpg',
     'https://res.cloudinary.com/dz9trbwma/image/upload/v1772501852/sergio-alves-santos-OxKFC5u0980-unsplash_z1u5mj.jpg',
+    
+    'https://res.cloudinary.com/dz9trbwma/image/upload/v1772522900/ash-edmonds-fsI-_MRsic0-unsplash_fgf0lv.jpg',
     'https://res.cloudinary.com/dz9trbwma/image/upload/v1772501853/patrick-tomasso-GXXYkSwndP4-unsplash_w4c9df.jpg',
     'https://res.cloudinary.com/dz9trbwma/image/upload/v1772501852/jakub-dziubak-gj7BLlSzIFs-unsplash_virstu.jpg',
   ];
@@ -297,7 +298,7 @@ export default function LandingPage() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setAreaGuideSlide((prev) => (prev + 1) % 3);
+      setAreaGuideSlide((prev) => (prev + 1) % 2);
     }, 4000);
     return () => clearTimeout(timer);
   }, [areaGuideSlide]);
@@ -1235,7 +1236,6 @@ export default function LandingPage() {
                 </article>
               );
             };
-            const totalAreaSlides = areaGuides.length + 1;
             return (
               <>
                 {/* モバイル: スライド */}
@@ -1243,43 +1243,26 @@ export default function LandingPage() {
                   <div className="overflow-hidden rounded-2xl">
                     <AnimatePresence mode="wait">
                       <motion.div key={areaGuideSlide} initial={{ opacity: 0, x: 80 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -80 }} transition={{ duration: 0.35 }}>
-                        {areaGuideSlide < areaGuides.length ? renderAreaCard(areaGuideSlide) : (
-                          <article className="p-6 rounded-2xl" style={{ background: `${colors.surface}60`, border: `1px solid ${colors.borderSubtle}` }}>
-                            <h3 className="text-xl font-bold mb-3" style={{ color: colors.text }}>{t('landing.area_guide_scene_title')}</h3>
-                            <div className="space-y-4">
-                              {[
-                                { title: t('landing.area_guide_scene_date_title'), desc: t('landing.area_guide_scene_date_desc') },
-                                { title: t('landing.area_guide_scene_solo_title'), desc: t('landing.area_guide_scene_solo_desc') },
-                                { title: t('landing.area_guide_scene_girls_title'), desc: t('landing.area_guide_scene_girls_desc') },
-                                { title: t('landing.area_guide_scene_hopping_title'), desc: t('landing.area_guide_scene_hopping_desc') },
-                              ].map((s, i) => (
-                                <div key={i}>
-                                  <h4 className="text-sm font-bold mb-2" style={{ color: colors.accent }}>{s.title}</h4>
-                                  <p className="text-xs leading-relaxed" style={{ color: colors.textMuted }}>{s.desc}</p>
-                                </div>
-                              ))}
-                            </div>
-                          </article>
-                        )}
+                        {renderAreaCard(areaGuideSlide)}
                       </motion.div>
                     </AnimatePresence>
                   </div>
                   <button
-                    onClick={() => setAreaGuideSlide((prev) => (prev - 1 + totalAreaSlides) % totalAreaSlides)}
+                    onClick={() => setAreaGuideSlide((prev) => (prev - 1 + areaGuides.length) % areaGuides.length)}
                     className="absolute left-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 z-10"
                     style={{ background: `${colors.background}E6`, border: `1px solid ${colors.borderGold}`, backdropFilter: 'blur(10px)' }}
                   >
                     <ChevronLeft className="w-5 h-5" style={{ color: colors.text }} />
                   </button>
                   <button
-                    onClick={() => setAreaGuideSlide((prev) => (prev + 1) % totalAreaSlides)}
+                    onClick={() => setAreaGuideSlide((prev) => (prev + 1) % areaGuides.length)}
                     className="absolute right-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 z-10"
                     style={{ background: `${colors.background}E6`, border: `1px solid ${colors.borderGold}`, backdropFilter: 'blur(10px)' }}
                   >
                     <ChevronRight className="w-5 h-5" style={{ color: colors.text }} />
                   </button>
                   <div className="flex justify-center gap-2 mt-6">
-                    {[...areaGuides, null].map((_, index) => (
+                    {areaGuides.map((_, index) => (
                       <button key={index} onClick={() => setAreaGuideSlide(index)} className="h-2 rounded-full transition-all duration-300" style={{ width: areaGuideSlide === index ? '24px' : '8px', background: areaGuideSlide === index ? colors.accent : `${colors.text}30`, boxShadow: areaGuideSlide === index ? `0 0 10px ${colors.accent}60` : 'none' }} />
                     ))}
                   </div>
@@ -1291,22 +1274,6 @@ export default function LandingPage() {
                       {renderAreaCard(index)}
                     </motion.div>
                   ))}
-                  <motion.article initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="p-6 rounded-2xl" style={{ background: `${colors.surface}60`, border: `1px solid ${colors.borderSubtle}` }}>
-                    <h3 className="text-xl font-bold mb-3" style={{ color: colors.text }}>{t('landing.area_guide_scene_title')}</h3>
-                    <div className="grid grid-cols-2 gap-4">
-                      {[
-                        { title: t('landing.area_guide_scene_date_title'), desc: t('landing.area_guide_scene_date_desc') },
-                        { title: t('landing.area_guide_scene_solo_title'), desc: t('landing.area_guide_scene_solo_desc') },
-                        { title: t('landing.area_guide_scene_girls_title'), desc: t('landing.area_guide_scene_girls_desc') },
-                        { title: t('landing.area_guide_scene_hopping_title'), desc: t('landing.area_guide_scene_hopping_desc') },
-                      ].map((s, i) => (
-                        <div key={i}>
-                          <h4 className="text-sm font-bold mb-2" style={{ color: colors.accent }}>{s.title}</h4>
-                          <p className="text-xs leading-relaxed" style={{ color: colors.textMuted }}>{s.desc}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </motion.article>
                 </div>
               </>
             );
