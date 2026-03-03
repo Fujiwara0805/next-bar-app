@@ -145,6 +145,27 @@ export default function LandingPage() {
     ));
   };
 
+  const [heroImageIndex, setHeroImageIndex] = useState(0);
+  const heroImages = [
+    'https://res.cloudinary.com/dz9trbwma/image/upload/v1772501860/edward-howell-rdJhMyb4Yuc-unsplash_bkk31d.jpg',
+    'https://res.cloudinary.com/dz9trbwma/image/upload/v1772501861/edgar-chaparro-Lwx-q6OdGAc-unsplash_x8q8jq.jpg',
+    'https://res.cloudinary.com/dz9trbwma/image/upload/v1772501860/drew-beamer-bTN-zKFy9uA-unsplash_kmcnyo.jpg',
+    'https://res.cloudinary.com/dz9trbwma/image/upload/v1772501854/kris-sevinc-NVX55qVyEkE-unsplash_pjwsez.jpg',
+    'https://res.cloudinary.com/dz9trbwma/image/upload/v1772501854/nichika-sakurai-gUa30D-mL_M-unsplash_h9pskd.jpg',
+    'https://res.cloudinary.com/dz9trbwma/image/upload/v1772501853/q-u-i-n-g-u-y-e-n-Zrp9b3PMIy8-unsplash_xjz1dm.jpg',
+    'https://res.cloudinary.com/dz9trbwma/image/upload/v1772501853/masahiro-miyagi-RLDNGblOqHU-unsplash_zadhp8.jpg',
+    'https://res.cloudinary.com/dz9trbwma/image/upload/v1772501852/sergio-alves-santos-OxKFC5u0980-unsplash_z1u5mj.jpg',
+    'https://res.cloudinary.com/dz9trbwma/image/upload/v1772501853/patrick-tomasso-GXXYkSwndP4-unsplash_w4c9df.jpg',
+    'https://res.cloudinary.com/dz9trbwma/image/upload/v1772501852/jakub-dziubak-gj7BLlSzIFs-unsplash_virstu.jpg',
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setHeroImageIndex((prev) => (prev + 1) % heroImages.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [heroImages.length]);
+
   const { scrollY } = useScroll();
   const heroOpacity = useTransform(scrollY, [0, 400], [1, 0]);
   const heroScale = useTransform(scrollY, [0, 400], [1, 1.05]);
@@ -349,7 +370,7 @@ export default function LandingPage() {
       <header className="fixed top-0 left-0 right-0 z-50 safe-top" style={{ background: colors.luxuryGradient, backdropFilter: 'blur(20px)', borderBottom: `1px solid ${colors.borderGold}` }}>
         <div className="container mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-3">
-            <span className="text-lg font-bold tracking-wider" style={{ color: colors.accent }}>NIKENME+</span>
+            <img src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png" alt="NIKENME+" className="h-8 w-auto object-contain" />
             <span className="hidden sm:inline-block text-[9px] px-2 py-1 rounded-full font-medium tracking-[0.1em] uppercase" style={{ background: `${colors.accent}15`, border: `1px solid ${colors.borderGold}`, color: colors.accent }}>Night Spot</span>
           </motion.div>
           <div className="flex items-center gap-2 sm:gap-4">
@@ -400,46 +421,60 @@ export default function LandingPage() {
       </AnimatePresence>
 
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center pt-16 pb-20 px-4 overflow-hidden">
+      <section className="relative h-[100svh] lg:h-[75vh] flex items-end justify-center pb-24 lg:pb-20 px-4 overflow-hidden">
         <motion.div className="absolute inset-0 z-0" style={{ opacity: heroOpacity, scale: heroScale }}>
-          <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url('https://res.cloudinary.com/dz9trbwma/image/upload/v1761799700/12_hotel_bar_t3ti2i.jpg')`, opacity: 0.25 }} />
-          <div className="absolute inset-0" style={{ background: `radial-gradient(ellipse at center top, transparent 0%, ${colors.background}CC 50%, ${colors.background} 100%)` }} />
-          <div className="absolute inset-0" style={{ background: `linear-gradient(to bottom, transparent 0%, ${colors.background}80 50%, ${colors.background} 100%)` }} />
+          <AnimatePresence mode="popLayout">
+            <motion.div
+              key={heroImageIndex}
+              className="absolute inset-0"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 1.5, ease: [0.4, 0, 0.2, 1] }}
+            >
+              <div
+                className="absolute inset-0 bg-cover bg-center"
+                style={{ backgroundImage: `url('${heroImages[heroImageIndex]}')` }}
+              />
+            </motion.div>
+          </AnimatePresence>
+          <div className="absolute inset-0" style={{ background: `linear-gradient(to bottom, ${colors.background}90 0%, ${colors.background}60 40%, ${colors.background}CC 100%)` }} />
         </motion.div>
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {[...Array(8)].map((_, i) => (
-            <motion.div key={i} className="absolute w-1 h-1 rounded-full" style={{ left: `${10 + (i * 12) % 80}%`, top: `${20 + (i * 11) % 60}%`, background: colors.accent, boxShadow: `0 0 15px ${colors.accent}80` }} animate={{ opacity: [0.2, 0.6, 0.2], y: [0, -15, 0] }} transition={{ duration: 3 + i * 0.5, repeat: Infinity, delay: i * 0.6 }} />
-          ))}
-        </div>
-        <div className="container mx-auto max-w-5xl relative z-10">
-          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }} className="text-center">
-            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.6 }} className="flex justify-center mb-8" style={{ marginTop: 24 }}>
-              <div className="relative">
-                <motion.div className="absolute inset-0 -m-8" animate={{ opacity: [0.3, 0.6, 0.3] }} transition={{ duration: 4, repeat: Infinity }} style={{ background: `radial-gradient(circle, ${colors.accent}40 0%, transparent 70%)`, filter: 'blur(40px)' }} />
-                <img src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png" alt="NIKENME+" className="relative h-28 sm:h-36 w-auto object-contain" style={{ filter: `drop-shadow(0 0 30px ${colors.accent}60)` }} />
-              </div>
+
+        <div className="container mx-auto max-w-5xl relative z-10 px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="text-center"
+          >
+            <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight">
+              <span style={{ color: colors.text }}>{renderWithLineBreaks(t('landing.hero_catchphrase'))}</span>
+            </h1>
+            <motion.div
+              whileHover={{ scale: 1.03, y: -2 }}
+              whileTap={{ scale: 0.98 }}
+              className="rounded-full relative overflow-hidden group inline-block"
+              style={{ boxShadow: colors.shadowGold }}
+            >
+              <Button
+                size="lg"
+                onClick={handleMapClick}
+                className="text-lg px-10 py-6 rounded-full font-semibold transition-all relative z-10"
+                style={{ background: colors.goldGradient, color: colors.background }}
+              >
+                <Store className="w-5 h-5 mr-2" />{t('landing.cta_button_primary')}
+              </Button>
+              <motion.div
+                className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+                style={{ background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%)' }}
+                animate={{ x: ['-100%', '200%'] }}
+                transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 1 }}
+              />
             </motion.div>
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="inline-flex items-center gap-2 px-4 py-2 mb-6 rounded-full" style={{ background: `${colors.accent}10`, border: `1px solid ${colors.borderGold}` }}>
-              <motion.div animate={{ opacity: [1, 0.5, 1] }} transition={{ duration: 2, repeat: Infinity }} className="w-1.5 h-1.5 rounded-full" style={{ background: colors.accent }} />
-              <span className="text-[10px] font-medium tracking-[0.25em] uppercase" style={{ color: colors.accent }}>Night Spot Map</span>
-            </motion.div>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight"><span style={{ color: colors.text }}>{t('landing.hero_catchphrase')}</span></h1>
-            <p className="text-base sm:text-lg mb-10 max-w-2xl mx-auto leading-relaxed" style={{ color: colors.textMuted }}>{renderWithLineBreaks(t('landing.hero_body'))}</p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <motion.div whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.98 }} className="rounded-full relative overflow-hidden group" style={{ boxShadow: colors.shadowGold }}>
-                <Button size="lg" onClick={handleMapClick} className="text-lg px-10 py-6 rounded-full font-semibold transition-all relative z-10" style={{ background: colors.goldGradient, color: colors.background }}>
-                  <Store className="w-5 h-5 mr-2" />{t('landing.cta_button_primary')}
-                </Button>
-                <motion.div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" style={{ background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%)' }} animate={{ x: ['-100%', '200%'] }} transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 1 }} />
-              </motion.div>
-              <Link href="/ad-lp">
-                <Button size="lg" variant="ghost" className="text-base px-8 py-6 rounded-full font-medium border transition-all hover:scale-105" style={{ borderColor: colors.borderGold, color: colors.textMuted, background: `${colors.accent}08` }}>
-                  <Sparkles className="w-5 h-5 mr-2" />{t('landing.cta_button_secondary')}
-                </Button>
-              </Link>
-            </div>
           </motion.div>
         </div>
+
         <motion.div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${colors.accent}60, transparent)` }} initial={{ scaleX: 0 }} whileInView={{ scaleX: 1 }} viewport={{ once: true }} transition={{ duration: 1.5, ease: 'easeOut' }} />
       </section>
 

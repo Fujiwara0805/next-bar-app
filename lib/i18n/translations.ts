@@ -751,7 +751,7 @@ export const translations = {
       seats_available: '空席があります',
       night_spot: 'Night Spot',
       // Hero section
-      hero_catchphrase: '楽しみは、ここから',
+      hero_catchphrase: '「2軒目、どうする？」\nその答えが、ここにある。',
       hero_subcopy: 'The Next Spot is Ready',
       hero_body: 'NIKENME+は、大分の夜を\n案内するはしご酒 Map 🍺です。',
       // Problems section
@@ -1572,7 +1572,7 @@ export const translations = {
       seats_available: 'Seats available now',
       night_spot: 'Night Spot',
       // Hero section
-      hero_catchphrase: 'Your Next Spot is Ready.',
+      hero_catchphrase: '"Where to next?"\nThe answer is right here.',
       hero_subcopy: 'Find it now',
       hero_body: 'NIKENME+ is a night spot map 🍺for Oita. Find available venues instantly and reserve your seat with auto-voice call.',
       // Problems section
@@ -2383,7 +2383,7 @@ export const translations = {
       seats_available: '좌석 이용 가능',
       night_spot: 'Night Spot',
       // Hero section
-      hero_catchphrase: '즐거움은 여기서부터',
+      hero_catchphrase: '「2차, 어디 갈까?」\n그 답이 여기에 있다.',
       hero_subcopy: 'The Next Spot is Ready',
       hero_body: 'NIKENME+는 오이타의 밤을\n안내하는 Night Spot Map 🍺입니다.',
       // Problems section
@@ -3194,7 +3194,7 @@ export const translations = {
       seats_available: '现有空座',
       night_spot: 'Night Spot',
       // Hero section
-      hero_catchphrase: '乐趣，从这里开始',
+      hero_catchphrase: '「续摊去哪？」\n答案就在这里。',
       hero_subcopy: 'The Next Spot is Ready',
       hero_body: 'NIKENME+是一款介绍大分夜生活的Night Spot Map 🍺。',
       // Problems section
