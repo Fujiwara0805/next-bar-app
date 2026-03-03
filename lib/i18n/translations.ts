@@ -764,7 +764,7 @@ export const translations = {
       problems_title: 'こんなお悩み、ありませんか？',
       problems_subtitle: 'Common Concerns',
       problems_item1: '土地勘がなく、どのお店に\n行けばいいかわからない',
-      problems_item2: '電話予約が苦手',
+      problems_item2: 'すぐに席を予約したいけど、\n電話予約が苦手',
       problems_item3: '混んでいるか空いているか、\n行く前に知りたい',
       // Solution section
       solution_title: 'だから、NIKENME+',
@@ -1622,7 +1622,7 @@ export const translations = {
       problems_title: 'Sound Familiar?',
       problems_subtitle: 'Common Concerns',
       problems_item1: "Don't know the area or where to go next",
-      problems_item2: 'Calling to reserve feels awkward or troublesome',
+      problems_item2: 'Want to reserve a seat right away,\nbut calling feels awkward',
       problems_item3: 'Want to know if a place is busy before going',
       // Solution section
       solution_title: "That's Why NIKENME+",
@@ -2472,7 +2472,7 @@ export const translations = {
       problems_title: '이런 고민, 있으신가요?',
       problems_subtitle: 'Common Concerns',
       problems_item1: '지리를 몰라서 어떤 가게에\n가야 할지 모르겠다',
-      problems_item2: '전화 예약이 부담스럽다',
+      problems_item2: '바로 자리를 예약하고 싶은데,\n전화 예약이 부담스럽다',
       problems_item3: '혼잡한지 여유 있는지\n가기 전에 알고 싶다',
       // Solution section
       solution_title: '그래서, NIKENME+',
@@ -3322,7 +3322,7 @@ export const translations = {
       problems_title: '有这些烦恼吗？',
       problems_subtitle: 'Common Concerns',
       problems_item1: '不熟悉地区，不知道该去哪家店',
-      problems_item2: '不擅长电话预约',
+      problems_item2: '想马上预约座位，\n但不擅长电话预约',
       problems_item3: '想在去之前知道是否拥挤',
       // Solution section
       solution_title: '所以选择 NIKENME+',
