@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Mail, Lock, Loader2, Sparkles, ArrowRight } from 'lucide-react';
+import { Mail, Lock, Loader2, Sparkles, Home } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -348,7 +348,6 @@ export default function LoginPage() {
                       ) : (
                         <>
                           {t('auth.login')}
-                          <ArrowRight className="w-5 h-5 ml-2" />
                         </>
                       )}
                     </Button>
@@ -359,11 +358,11 @@ export default function LoginPage() {
                   <div className="text-center space-y-3">
                     <Link 
                       href="/landing" 
-                      className="inline-flex items-center gap-1 text-sm font-bold transition-colors hover:opacity-80"
+                      className="inline-flex items-center gap-1.5 text-sm font-bold transition-colors hover:opacity-80"
                       style={{ color: COLORS.royalNavy }}
                     >
+                      <Home className="w-4 h-4" />
                       {t('auth.back_to_home')}
-                      <ArrowRight className="w-4 h-4" />
                     </Link>
                   </div>
                 </form>

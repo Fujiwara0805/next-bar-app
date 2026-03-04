@@ -839,6 +839,10 @@ export const translations = {
       faq_a2: 'はい、各店舗がリアルタイムで空席状況を更新しています。',
       faq_q3: '加盟店になるにはどうすればいいですか？',
       faq_a3: 'ヘッダーの「加盟店登録」ボタンからお申し込みいただけます。',
+      faq_q4: 'NIKENME+（にけんめぷらす）とは何ですか？',
+      faq_a4: 'NIKENME+（ニケンメプラス）は、大分県大分市で2軒目・バー・スナック・居酒屋を探す際に便利な空席情報マップサービスです。リアルタイムで店舗の空席状況を地図上で確認でき、ログイン不要で今すぐ使えます。',
+      faq_q5: 'スマートフォンでも使えますか？',
+      faq_a5: 'はい、スマートフォン、タブレット、PCなど、あらゆるデバイスで利用できます。レスポンシブデザインにより、どのデバイスでも快適にご利用いただけます。',
       faq_view_all: 'すべてのFAQを確認',
       // Contact
       contact_title: 'お問い合わせ',
@@ -1697,6 +1701,10 @@ export const translations = {
       faq_a2: 'Yes, each store updates their seat availability in real-time.',
       faq_q3: 'How can I become a partner store?',
       faq_a3: 'You can apply through the "Partner Registration" button in the header.',
+      faq_q4: 'What is NIKENME+?',
+      faq_a4: 'NIKENME+ is a vacancy information map service convenient for finding your second stop, bars, snacks, and izakayas in Oita City, Oita Prefecture. You can check real-time vacancy status on the map without logging in.',
+      faq_q5: 'Can I use it on my smartphone?',
+      faq_a5: 'Yes, you can use it on smartphones, tablets, PCs, and any device. The responsive design ensures comfortable use on any device.',
       faq_view_all: 'View all FAQs',
       // Contact
       contact_title: 'Contact Us',
@@ -2547,6 +2555,10 @@ export const translations = {
       faq_a2: '네, 각 매장에서 실시간으로 빈자리 상황을 업데이트하고 있습니다.',
       faq_q3: '가맹점이 되려면 어떻게 해야 하나요?',
       faq_a3: '헤더의 "가맹점 등록" 버튼에서 신청하실 수 있습니다.',
+      faq_q4: 'NIKENME+란 무엇인가요?',
+      faq_a4: 'NIKENME+는 오이타현 오이타시에서 2차, 바, 스낵, 이자카야를 찾을 때 편리한 빈자리 정보 지도 서비스입니다. 실시간으로 매장의 빈자리 상황을 지도에서 확인할 수 있으며, 로그인 없이 바로 사용할 수 있습니다.',
+      faq_q5: '스마트폰에서도 사용할 수 있나요?',
+      faq_a5: '네, 스마트폰, 태블릿, PC 등 모든 기기에서 이용할 수 있습니다. 반응형 디자인으로 어떤 기기에서도 편안하게 이용하실 수 있습니다.',
       faq_view_all: '모든 FAQ 확인',
       // Contact
       contact_title: '문의하기',
@@ -3397,6 +3409,10 @@ export const translations = {
       faq_a2: '是的，各店铺会实时更新空位情况。',
       faq_q3: '如何成为加盟店？',
       faq_a3: '可以通过页面顶部的"加盟店注册"按钮进行申请。',
+      faq_q4: '什么是NIKENME+？',
+      faq_a4: 'NIKENME+是一个方便在大分县大分市寻找下一家店、酒吧、小酒馆、居酒屋时使用的空位信息地图服务。您可以在地图上实时查看店铺的空位情况，无需登录即可立即使用。',
+      faq_q5: '可以在智能手机上使用吗？',
+      faq_a5: '是的，您可以在智能手机、平板电脑、电脑等任何设备上使用。响应式设计确保在任何设备上都能舒适使用。',
       faq_view_all: '查看全部FAQ',
       // Contact
       contact_title: '联系我们',

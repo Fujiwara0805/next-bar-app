@@ -35,9 +35,10 @@ import {
 import { supabase } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/i18n/context';
 
-// アプリ共通カラーパレット（店舗詳細画面と統一）
 const COLORS = {
-  champagneGold: '#C9A86C',
+  deepNavy: '#0A1628',
+  midnightBlue: '#162447',
+  royalNavy: '#1F4068',
 };
 
 /** コンポーネント Props */
@@ -144,23 +145,23 @@ export function StoreOgoriForm({
   // ----------------------------------------------------------------
   return (
     <Card className="overflow-hidden">
-      {/* ヘッダー（ON・OFFスイッチ付き）— StoreCouponFormと同じパターン */}
+      {/* ヘッダー（ON・OFFスイッチ付き） */}
       <div
         className="w-full p-4 flex items-center justify-between transition-colors"
         style={{
-          background: 'linear-gradient(135deg, rgba(201, 168, 108, 0.1) 0%, rgba(201, 168, 108, 0.06) 100%)',
+          background: `linear-gradient(135deg, ${COLORS.midnightBlue} 0%, ${COLORS.royalNavy} 100%)`,
         }}
       >
         <div className="flex items-center gap-3">
           <div
             className="p-2 rounded-lg"
-            style={{ background: 'rgba(201, 168, 108, 0.2)' }}
+            style={{ background: 'rgba(255, 255, 255, 0.15)' }}
           >
-            <Wine className="w-5 h-5" style={{ color: COLORS.champagneGold }} />
+            <Wine className="w-5 h-5 text-white" />
           </div>
           <div className="text-left">
-            <h3 className="font-bold text-gray-800">{t('store_detail.ogori_settings_title')}</h3>
-            <p className="text-sm text-gray-500">
+            <h3 className="font-bold text-white">{t('store_detail.ogori_settings_title')}</h3>
+            <p className="text-xs text-white/60">
               {t('store_detail.ogori_settings_subtitle')}
             </p>
           </div>
@@ -188,8 +189,8 @@ export function StoreOgoriForm({
               <div
                 className="flex items-center gap-2 p-3 rounded-xl text-sm"
                 style={{
-                  background: 'rgba(201, 168, 108, 0.08)',
-                  color: '#8B7355',
+                  background: `rgba(31, 64, 104, 0.08)`,
+                  color: COLORS.royalNavy,
                 }}
               >
                 <Info className="w-4 h-4 shrink-0" />
@@ -235,7 +236,6 @@ export function StoreOgoriForm({
                   </motion.div>
                 ))}
 
-                {/* ドリンク追加ボタン — ライトカラー（champagneGold系） */}
                 <Button
                   type="button"
                   variant="outline"
@@ -244,9 +244,9 @@ export function StoreOgoriForm({
                   disabled={disabled}
                   className="w-full border-dashed border-2 font-bold"
                   style={{
-                    borderColor: 'rgba(201, 168, 108, 0.5)',
-                    color: COLORS.champagneGold,
-                    background: 'rgba(201, 168, 108, 0.05)',
+                    borderColor: 'rgba(31, 64, 104, 0.4)',
+                    color: COLORS.royalNavy,
+                    background: 'rgba(31, 64, 104, 0.05)',
                   }}
                 >
                   <Plus className="w-4 h-4 mr-1" />

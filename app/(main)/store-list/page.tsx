@@ -19,7 +19,7 @@
 import { Suspense, useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapIcon, ExternalLink, Star, Filter, Check, Sparkles, X, Ticket, PartyPopper, Loader2 } from 'lucide-react';
+import { MapIcon, Star, Filter, Check, Sparkles, X, Ticket, PartyPopper, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { supabase } from '@/lib/supabase/client';
@@ -809,21 +809,6 @@ function StoreListContent() {
                                   </p>
                                 );
                               })()}
-                              
-                              <motion.button
-                                whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.98 }}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.name || '')}`;
-                                  window.open(mapsUrl, '_blank');
-                                }}
-                                className="flex items-center gap-1 text-xs font-bold hover:underline"
-                                style={{ color: COLORS.royalNavy }}
-                              >
-                                <span>{t('store_list.open_in_google_maps')}</span>
-                                <ExternalLink className="w-3 h-3" />
-                              </motion.button>
                               
                               <motion.div className="flex items-center gap-2 pt-1" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}>
                                 <img src={getVacancyIcon(store.vacancy_status)} alt={getVacancyLabel(store.vacancy_status)} className="w-6 h-6 object-contain" />

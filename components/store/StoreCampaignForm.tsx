@@ -4,8 +4,6 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   PartyPopper,
-  ChevronDown,
-  ChevronUp,
   Loader2,
   Info,
 } from 'lucide-react';
@@ -212,11 +210,6 @@ export function StoreCampaignForm({
             disabled={disabled}
             className="data-[state=checked]:bg-pink-500"
           />
-          {isExpanded ? (
-            <ChevronUp className="w-5 h-5 text-gray-400" />
-          ) : (
-            <ChevronDown className="w-5 h-5 text-gray-400" />
-          )}
         </div>
       </div>
 

@@ -1324,7 +1324,7 @@ export default function LandingPage() {
             <p className="text-base" style={{ color: colors.textMuted }}>{t('landing.faq_subtitle')}</p>
           </motion.div>
           <div className="space-y-3">
-            {[1, 2, 3].map((num) => (
+            {[1, 2, 3, 4, 5].map((num) => (
               <motion.details key={num} initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="group rounded-xl overflow-hidden" style={{ background: `${colors.background}80`, border: `1px solid ${colors.borderSubtle}` }}>
                 <summary className="flex items-center justify-between p-5 cursor-pointer list-none" style={{ color: colors.text }}>
                   <span className="font-bold text-sm sm:text-base pr-4">{t(`landing.faq_q${num}`)}</span>

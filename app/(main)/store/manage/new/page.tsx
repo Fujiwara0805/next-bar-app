@@ -1159,22 +1159,7 @@ export default function NewStorePage() {
               </div>
             </Card>
 
-            {/* ========== キャンペーンセクション ========== */}
-            <Card 
-              className="p-6 rounded-2xl shadow-lg"
-              style={{ 
-                background: '#FFFFFF',
-                border: `1px solid rgba(201, 168, 108, 0.15)`,
-              }}
-            >
-              <StoreCampaignForm
-                values={campaignValues}
-                onChange={handleCampaignChange}
-                disabled={loading}
-              />
-            </Card>
-
-            {/* ========== おごり酒設定セクション ========== */}
+            {/* ========== NIKENME+が提供するサービス セクション ========== */}
             <Card
               className="p-6 rounded-2xl shadow-lg"
               style={{
@@ -1182,27 +1167,50 @@ export default function NewStorePage() {
                 border: `1px solid rgba(201, 168, 108, 0.15)`,
               }}
             >
-              <StoreOgoriForm
-                values={ogoriValues}
-                onChange={setOgoriValues}
-                disabled={loading}
+              <SectionHeader
+                icon={Sparkles}
+                title="NIKENME+が提供するサービス"
+                description="キャンペーン・おごり酒・クーポンの設定ができます"
               />
-            </Card>
 
-            {/* ========== クーポン設定セクション ========== */}
-            <Card
-              className="p-6 rounded-2xl shadow-lg"
-              style={{
-                background: '#FFFFFF',
-                border: `1px solid rgba(201, 168, 108, 0.15)`,
-              }}
-            >
-              <StoreCouponForm
-                values={couponValues}
-                onChange={setCouponValues}
-                disabled={loading}
-                errors={couponErrors}
-              />
+              <div className="space-y-4">
+                {/* キャンペーン設定 */}
+                <Card
+                  className="rounded-xl overflow-hidden"
+                  style={{ border: `1px solid rgba(201, 168, 108, 0.15)` }}
+                >
+                  <StoreCampaignForm
+                    values={campaignValues}
+                    onChange={handleCampaignChange}
+                    disabled={loading}
+                  />
+                </Card>
+
+                {/* おごり酒設定 */}
+                <Card
+                  className="rounded-xl overflow-hidden"
+                  style={{ border: `1px solid rgba(31, 64, 104, 0.2)` }}
+                >
+                  <StoreOgoriForm
+                    values={ogoriValues}
+                    onChange={setOgoriValues}
+                    disabled={loading}
+                  />
+                </Card>
+
+                {/* クーポン設定 */}
+                <Card
+                  className="rounded-xl overflow-hidden"
+                  style={{ border: `1px solid rgba(201, 168, 108, 0.15)` }}
+                >
+                  <StoreCouponForm
+                    values={couponValues}
+                    onChange={setCouponValues}
+                    disabled={loading}
+                    errors={couponErrors}
+                  />
+                </Card>
+              </div>
             </Card>
 
             {/* ========== ログイン情報セクション ========== */}
