@@ -231,6 +231,10 @@ export default function ChangePasswordPage() {
                   type="submit"
                   className="flex-1 font-bold"
                   disabled={loading || !currentPassword || !newPassword || !confirmPassword || newPassword !== confirmPassword}
+                  style={{
+                    background: 'linear-gradient(135deg, #C9A86C 0%, #E8D5B7 50%, #B8956E 100%)',
+                    color: '#FFFFFF',
+                  }}
                 >
                   {loading ? (
                     <>

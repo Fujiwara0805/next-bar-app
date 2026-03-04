@@ -115,12 +115,15 @@ export function OgoriSection({ storeId, storeName, ogoriEnabled }: OgoriSectionP
 
           {/* ボタンエリア — 自動音声予約ボタンと同じサイズ */}
           <div className="flex flex-wrap items-center gap-2">
-            {/* おごり酒ボタン（購入）— 予約ボタンと同じ size="default" + bg-primary */}
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
               <Button
                 onClick={() => setIsPurchaseOpen(true)}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold"
+                className="font-bold border-0"
                 size="default"
+                style={{
+                  background: 'linear-gradient(135deg, #162447 0%, #1F4068 100%)',
+                  color: '#FFFFFF',
+                }}
               >
                 <Wine className="w-3 h-3 mr-2" />
                 {t('store_detail.ogori_button')}

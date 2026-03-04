@@ -695,13 +695,12 @@ export default function StoreUpdatePage() {
                     <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
                       <Button
                         type="button"
-                        variant="outline"
                         size="sm"
                         onClick={() => router.push(`/store/manage/${store.id}/change-password`)}
                         className="rounded-xl font-bold"
                         style={{ 
-                          borderColor: 'rgba(201, 168, 108, 0.3)',
-                          color: COLORS.warmGray,
+                          background: COLORS.goldGradient,
+                          color: '#FFFFFF',
                         }}
                       >
                         <Key className="w-4 h-4 mr-2" />
@@ -1238,7 +1237,8 @@ export default function StoreUpdatePage() {
                 variant="outline"
                 className="w-full py-4 rounded-xl font-bold"
                 style={{ 
-                  borderColor: '#dc2626',
+                  borderColor: 'rgba(99, 110, 114, 0.3)',
+                  backgroundColor: '#FFFFFF',
                   color: '#dc2626',
                 }}
                 onClick={handleSignOut}

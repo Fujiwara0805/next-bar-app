@@ -20,7 +20,6 @@ import {
   ChevronRight,
   Loader2,
   AlertCircle,
-  Check,
 } from 'lucide-react';
 import { CustomModal } from '@/components/ui/custom-modal';
 import { Button } from '@/components/ui/button';
@@ -107,12 +106,6 @@ export function OgoriPurchaseModal({ isOpen, onClose, storeId, storeName }: Ogor
     }
   };
 
-  const steps: { key: PurchaseStep; label: string }[] = [
-    { key: 'drink', label: t('store_detail.ogori_step_drink') },
-    { key: 'confirm', label: t('store_detail.ogori_step_confirm') },
-  ];
-  const currentStepIndex = steps.findIndex((s) => s.key === step);
-
   return (
     <CustomModal
       isOpen={isOpen}
@@ -132,39 +125,6 @@ export function OgoriPurchaseModal({ isOpen, onClose, storeId, storeName }: Ogor
           <h3 className="text-lg font-bold" style={{ color: COLORS.deepNavy }}>
             {t('store_detail.ogori_purchase_title')}
           </h3>
-        </div>
-
-        {/* ステップインジケーター */}
-        <div className="flex items-center gap-2">
-          {steps.map((s, i) => (
-            <div key={s.key} className="flex items-center gap-2 flex-1">
-              <div className="flex items-center gap-1.5 flex-1">
-                <div
-                  className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
-                  style={{
-                    background: i <= currentStepIndex ? COLORS.goldGradient : 'rgba(99, 110, 114, 0.1)',
-                    color: i <= currentStepIndex ? COLORS.deepNavy : COLORS.warmGray,
-                  }}
-                >
-                  {i < currentStepIndex ? <Check className="w-3.5 h-3.5" /> : i + 1}
-                </div>
-                <span
-                  className="text-xs font-medium"
-                  style={{ color: i <= currentStepIndex ? COLORS.charcoal : COLORS.warmGray }}
-                >
-                  {s.label}
-                </span>
-              </div>
-              {i < steps.length - 1 && (
-                <div
-                  className="h-[2px] flex-1 rounded-full"
-                  style={{
-                    background: i < currentStepIndex ? COLORS.champagneGold : 'rgba(99, 110, 114, 0.15)',
-                  }}
-                />
-              )}
-            </div>
-          ))}
         </div>
 
         {/* エラー表示 */}
