@@ -158,7 +158,7 @@ export default function LoginPage() {
           <div className="relative">
             <div className="flex items-center gap-3 mb-8">
               <img
-                src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%83%BC%E3%83%92%E3%82%99%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png"
+                src="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761355092/%E3%82%B5%E3%83%BC%E3%83%92%E3%82%99%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png"
                 alt="NIKENME+"
                 className="w-16 h-16 object-contain"
               />
@@ -233,7 +233,7 @@ export default function LoginPage() {
               {/* モバイル用ロゴ */}
               <div className="mb-6 md:mb-8 flex flex-col items-center justify-center md:hidden">
                 <img
-                  src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%83%BC%E3%83%92%E3%82%99%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png"
+                  src="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761355092/%E3%82%B5%E3%83%BC%E3%83%92%E3%82%99%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png"
                   alt="NIKENME+"
                   className="w-20 h-20 object-contain mb-3"
                 />
@@ -353,12 +353,10 @@ export default function LoginPage() {
                     </Button>
                   </motion.div>
 
-                  <GoldDivider />
-
                   <div className="text-center space-y-3">
-                    <Link 
-                      href="/landing" 
-                      className="inline-flex items-center gap-1.5 text-sm font-bold transition-colors hover:opacity-80"
+                    <Link
+                      href="/landing"
+                      className="inline-flex items-center gap-1 text-sm font-bold transition-colors hover:opacity-80"
                       style={{ color: COLORS.royalNavy }}
                     >
                       <Home className="w-4 h-4" />

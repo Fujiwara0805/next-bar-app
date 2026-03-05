@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     url: 'https://nikenme.com/ad-lp',
     images: [
       {
-        url: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png',
+        url: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761355092/%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png',
         width: 1200,
         height: 630,
         alt: 'NIKENME+ - 大分の夜と、数十年後の「おかえり」を守るために',
@@ -43,7 +43,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'NIKENME+ | 大分の夜と、数十年後の「おかえり」を守るために',
     description: '大分県の飲食店・ナイトスポットと地域を繋ぐ新しいプラットフォーム。今なら完全無料で加盟店登録いただけます。',
-    images: ['https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png'],
+    images: ['https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761355092/%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png'],
   },
   robots: {
     index: true,
@@ -81,7 +81,7 @@ export default function AdLpLayout({
       {/* Favicon */}
       <link 
         rel="icon" 
-        href="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png" 
+        href="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761355092/%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png" 
         type="image/png" 
       />
       

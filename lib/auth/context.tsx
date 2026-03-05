@@ -17,9 +17,10 @@ interface AuthContextType {
   accountType: AccountType | null;
   session: Session | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<{ 
-    error: Error | null; 
-    accountType?: AccountType; 
+  /** メール/パスワードでログイン */
+  signIn: (email: string, password: string) => Promise<{
+    error: Error | null;
+    accountType?: AccountType;
     profile?: Profile | null;
     store?: Store | null;
   }>;

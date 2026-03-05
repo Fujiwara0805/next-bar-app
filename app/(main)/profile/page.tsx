@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import { Edit, LogOut, Building, Calendar, Key } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -98,12 +98,14 @@ export default function ProfilePage() {
                   <p className="text-sm text-muted-foreground mb-2">
                     {user.email}
                   </p>
-                  {profile.is_business && (
-                    <Badge variant="secondary">
-                      <Building className="w-3 h-3 mr-1" />
-                      {t('profile.business_account')}
-                    </Badge>
-                  )}
+                  <div className="flex flex-wrap gap-1">
+                    {profile.is_business && (
+                      <Badge variant="secondary">
+                        <Building className="w-3 h-3 mr-1" />
+                        {t('profile.business_account')}
+                      </Badge>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -141,6 +143,7 @@ export default function ProfilePage() {
               <Key className="w-4 h-4 mr-2" />
               {t('auth.change_password')}
             </Button>
+
             <Button
               variant="outline"
               className="w-full justify-start text-destructive"

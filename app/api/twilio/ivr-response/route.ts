@@ -72,11 +72,11 @@ export async function POST(request: NextRequest) {
             confirmed_at: new Date().toISOString(),
           })
           .eq('id', reservationId);
-        
+
         if (confirmError) {
           console.error('Failed to confirm reservation:', confirmError);
         }
-        
+
         // 音声応答
         twiml.say(
           { language: 'ja-JP', voice: 'Polly.Mizuki' },
@@ -94,11 +94,11 @@ export async function POST(request: NextRequest) {
             rejection_reason: '満席のため',
           })
           .eq('id', reservationId);
-        
+
         if (rejectError) {
           console.error('Failed to reject reservation:', rejectError);
         }
-        
+
         // 音声応答
         twiml.say(
           { language: 'ja-JP', voice: 'Polly.Mizuki' },
@@ -133,20 +133,16 @@ export async function POST(request: NextRequest) {
     
   } catch (error) {
     console.error('IVR response error:', error);
-    
+
     const twiml = new VoiceResponse();
     twiml.say(
       { language: 'ja-JP', voice: 'Polly.Mizuki' },
       'エラーが発生しました。'
     );
     twiml.hangup();
-    
+
     return new NextResponse(twiml.toString(), {
       headers: { 'Content-Type': 'text/xml' },
     });
   }
 }
-
-
-
-

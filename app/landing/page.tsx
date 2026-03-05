@@ -26,6 +26,7 @@ import {
   ChevronDown,
   Mail,
   ExternalLink,
+  Scale,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -149,17 +150,17 @@ export default function LandingPage() {
 
   const [heroImageIndex, setHeroImageIndex] = useState(0);
   const heroImages = [
-    'https://res.cloudinary.com/dz9trbwma/image/upload/v1772501861/edgar-chaparro-Lwx-q6OdGAc-unsplash_x8q8jq.jpg',
-    'https://res.cloudinary.com/dz9trbwma/image/upload/v1772501860/drew-beamer-bTN-zKFy9uA-unsplash_kmcnyo.jpg',
-    'https://res.cloudinary.com/dz9trbwma/image/upload/v1772501854/kris-sevinc-NVX55qVyEkE-unsplash_pjwsez.jpg',
-    'https://res.cloudinary.com/dz9trbwma/image/upload/v1772501854/nichika-sakurai-gUa30D-mL_M-unsplash_h9pskd.jpg',
-    'https://res.cloudinary.com/dz9trbwma/image/upload/v1772501853/q-u-i-n-g-u-y-e-n-Zrp9b3PMIy8-unsplash_xjz1dm.jpg',
-    'https://res.cloudinary.com/dz9trbwma/image/upload/v1772501853/masahiro-miyagi-RLDNGblOqHU-unsplash_zadhp8.jpg',
-    'https://res.cloudinary.com/dz9trbwma/image/upload/v1772501852/sergio-alves-santos-OxKFC5u0980-unsplash_z1u5mj.jpg',
+    'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772501861/edgar-chaparro-Lwx-q6OdGAc-unsplash_x8q8jq.jpg',
+    'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772501860/drew-beamer-bTN-zKFy9uA-unsplash_kmcnyo.jpg',
+    'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772501854/kris-sevinc-NVX55qVyEkE-unsplash_pjwsez.jpg',
+    'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772501854/nichika-sakurai-gUa30D-mL_M-unsplash_h9pskd.jpg',
+    'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772501853/q-u-i-n-g-u-y-e-n-Zrp9b3PMIy8-unsplash_xjz1dm.jpg',
+    'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772501853/masahiro-miyagi-RLDNGblOqHU-unsplash_zadhp8.jpg',
+    'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772501852/sergio-alves-santos-OxKFC5u0980-unsplash_z1u5mj.jpg',
 
-    'https://res.cloudinary.com/dz9trbwma/image/upload/v1772522900/ash-edmonds-fsI-_MRsic0-unsplash_fgf0lv.jpg',
-    'https://res.cloudinary.com/dz9trbwma/image/upload/v1772501853/patrick-tomasso-GXXYkSwndP4-unsplash_w4c9df.jpg',
-    'https://res.cloudinary.com/dz9trbwma/image/upload/v1772501852/jakub-dziubak-gj7BLlSzIFs-unsplash_virstu.jpg',
+    'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772522900/ash-edmonds-fsI-_MRsic0-unsplash_fgf0lv.jpg',
+    'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772501853/patrick-tomasso-GXXYkSwndP4-unsplash_w4c9df.jpg',
+    'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772501852/jakub-dziubak-gj7BLlSzIFs-unsplash_virstu.jpg',
   ];
 
   useEffect(() => {
@@ -312,6 +313,7 @@ export default function LandingPage() {
     { icon: Building2, label: t('landing.company_info'), href: 'https://www.nobody-inc.jp/' },
     { icon: Radio, label: t('menu.news'), href: '/news' },
     { icon: FileText, label: t('static_pages.terms_title'), href: '/terms' },
+    { icon: Scale, label: t('static_pages.legal_title'), href: '/legal' },
     { icon: HelpCircle, label: t('static_pages.faq_title'), href: '/faq' },
   ];
 
@@ -391,7 +393,7 @@ export default function LandingPage() {
       <header className="fixed top-0 left-0 right-0 z-50 safe-top" style={{ background: colors.luxuryGradient, backdropFilter: 'blur(20px)', borderBottom: `1px solid ${colors.borderGold}` }}>
         <div className="container mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-3">
-            <img src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png" alt="NIKENME+" className="h-8 w-auto object-contain" />
+            <img src="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761355092/%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png" alt="NIKENME+" className="h-8 w-auto object-contain" />
             <span className="hidden sm:inline-block text-[9px] px-2 py-1 rounded-full font-medium tracking-[0.1em] uppercase" style={{ background: `${colors.accent}15`, border: `1px solid ${colors.borderGold}`, color: colors.accent }}>Night Spot</span>
           </motion.div>
           <div className="flex items-center gap-2 sm:gap-4">
@@ -948,15 +950,15 @@ export default function LandingPage() {
           {(() => {
             const concernsData = [
               {
-                image: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1772516026/Gemini_Generated_Image_tlb0sbtlb0sbtlb0_eyduk4_c_pad_b_gen_fill_w_1024_h_1024_urgdep.png',
+                image: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772516026/Gemini_Generated_Image_tlb0sbtlb0sbtlb0_eyduk4_c_pad_b_gen_fill_w_1024_h_1024_urgdep.png',
                 text: t('landing.problems_item1'),
               },
               {
-                image: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1772516050/Gemini_Generated_Image_875iko875iko875i_k2i2bc_c_pad_b_gen_fill_w_1024_h_1024_zndtxt.png',
+                image: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772516050/Gemini_Generated_Image_875iko875iko875i_k2i2bc_c_pad_b_gen_fill_w_1024_h_1024_zndtxt.png',
                 text: t('landing.problems_item2'),
               },
               {
-                image: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1772516019/Gemini_Generated_Image_tr2wh5tr2wh5tr2w_c3tjmr_c_pad_b_gen_fill_w_1024_h_1024_bolppa.png',
+                image: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772516019/Gemini_Generated_Image_tr2wh5tr2wh5tr2w_c3tjmr_c_pad_b_gen_fill_w_1024_h_1024_bolppa.png',
                 text: t('landing.problems_item3'),
               },
             ];
@@ -1103,10 +1105,10 @@ export default function LandingPage() {
             ];
             const stepIcons = [MapPin, Store, Phone, Gift];
             const images = [
-              'https://res.cloudinary.com/dz9trbwma/image/upload/v1772413015/Gemini_Generated_Image_kklaofkklaofkkla_faupob_c_pad_b_gen_fill_w_1024_h_1024_puu1hp.png',
-              'https://res.cloudinary.com/dz9trbwma/image/upload/v1772413014/Gemini_Generated_Image_4et50r4et50r4et5_zo8vh4_c_pad_b_gen_fill_w_1024_h_1024_entmxs.png',
-              'https://res.cloudinary.com/dz9trbwma/image/upload/v1772413152/Gemini_Generated_Image_3qcvnq3qcvnq3qcv_acv91j_c_pad_w_1024_h_1024_sr05n9.png',
-              'https://res.cloudinary.com/dz9trbwma/image/upload/v1772412891/Gemini_Generated_Image_4o9bjm4o9bjm4o9b_j6hwmu_c_pad_b_gen_fill_w_1024_h_1024_gmu92v.png',
+              'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772413015/Gemini_Generated_Image_kklaofkklaofkkla_faupob_c_pad_b_gen_fill_w_1024_h_1024_puu1hp.png',
+              'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772413014/Gemini_Generated_Image_4et50r4et50r4et5_zo8vh4_c_pad_b_gen_fill_w_1024_h_1024_entmxs.png',
+              'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772413152/Gemini_Generated_Image_3qcvnq3qcvnq3qcv_acv91j_c_pad_w_1024_h_1024_sr05n9.png',
+              'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772412891/Gemini_Generated_Image_4o9bjm4o9bjm4o9b_j6hwmu_c_pad_b_gen_fill_w_1024_h_1024_gmu92v.png',
             ];
             const renderStepCard = (index: number) => {
               const { step, num, highlight, badge } = howtoSteps[index];
@@ -1197,13 +1199,13 @@ export default function LandingPage() {
           {(() => {
             const areaGuides = [
               {
-                image: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1772414070/Gemini_Generated_Image_8eyd8x8eyd8x8eyd_fy2omk_c_pad_b_gen_fill_w_1024_h_1024_x3jvuh.png',
+                image: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772414070/Gemini_Generated_Image_8eyd8x8eyd8x8eyd_fy2omk_c_pad_b_gen_fill_w_1024_h_1024_x3jvuh.png',
                 title: t('landing.area_guide_miyako_title'),
                 desc1: t('landing.area_guide_miyako_desc1'),
                 desc2: t('landing.area_guide_miyako_desc2'),
               },
               {
-                image: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1772414069/Gemini_Generated_Image_f6wtfvf6wtfvf6wt_aovpzh_c_pad_b_gen_fill_w_1024_h_1024_dmxlqs.png',
+                image: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772414069/Gemini_Generated_Image_f6wtfvf6wtfvf6wt_aovpzh_c_pad_b_gen_fill_w_1024_h_1024_dmxlqs.png',
                 title: t('landing.area_guide_chuo_title'),
                 desc1: t('landing.area_guide_chuo_desc1'),
                 desc2: t('landing.area_guide_chuo_desc2'),
@@ -1400,7 +1402,7 @@ export default function LandingPage() {
       <footer className="py-12 px-4" style={{ background: colors.background, borderTop: `1px solid ${colors.borderGold}` }}>
         <div className="container mx-auto max-w-6xl">
           <div className="flex justify-center mb-8">
-            <img src="https://res.cloudinary.com/dz9trbwma/image/upload/v1761355092/%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png" alt="NIKENME+" className="h-12 w-auto object-contain opacity-70" />
+            <img src="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761355092/%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png" alt="NIKENME+" className="h-12 w-auto object-contain opacity-70" />
           </div>
           <nav className="grid grid-cols-2 gap-4 sm:gap-6 max-w-md mx-auto mb-8">
             {footerLinks.map((link, index) => {
