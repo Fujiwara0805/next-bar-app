@@ -21,10 +21,9 @@
 import { useEffect, useState, Suspense, useRef, useCallback, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, List, ExternalLink, Building2, RefreshCw, Home, Star, AlertCircle, Loader2, ChevronLeft, ChevronRight, Sparkles, MapPin } from 'lucide-react';
+import { List, RefreshCw, Home, AlertCircle, Sparkles } from 'lucide-react';
 import { MapView } from '@/components/map/map-view';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { supabase } from '@/lib/supabase/client';
 import type { Database } from '@/lib/supabase/types';
 import { useLanguage } from '@/lib/i18n/context';
@@ -40,9 +39,7 @@ import {
   type LocationCacheData
 } from '@/lib/cache';
 import { sendGAEvent } from '@/lib/analytics';
-import { OgoriTicketBadge } from '@/components/ogori/OgoriTicketBadge';
-import { getTodayOpenTime, isTodayClosedDay } from '@/lib/structured-business-hours';
-import type { BusinessHours } from '@/lib/supabase/types';
+import { StoreDetailPanel } from '@/components/map/StoreDetailPanel';
 
 type Store = Database['public']['Tables']['stores']['Row'];
 
@@ -148,7 +145,19 @@ const STORE_SELECT_COLUMNS = `
   campaign_name,
   campaign_start_date,
   campaign_end_date,
-  structured_business_hours
+  structured_business_hours,
+  regular_holiday,
+  budget_min,
+  budget_max,
+  payment_methods,
+  facilities,
+  coupon_title,
+  coupon_discount_type,
+  coupon_discount_value,
+  coupon_start_date,
+  coupon_expiry_date,
+  coupon_is_active,
+  ogori_enabled
 `;
 
 // ============================================================================
@@ -1002,55 +1011,6 @@ function MapPageContent() {
     setSelectedStoreId(sortedStoresByDistance[prevIndex]?.id ?? null);
   }, [sortedStoresByDistance, selectedStoreIndex]);
 
-  const getVacancyLabel = (status: string) => {
-    switch (status) {
-      case 'vacant':
-        return t('map.vacant');
-      case 'full':
-        return t('map.full');
-      case 'open':
-        return t('map.open');
-      case 'closed':
-        return t('map.closed');
-      default:
-        return t('map.unknown');
-    }
-  };
-
-  const getVacancyIcon = (status: string) => {
-    switch (status) {
-      case 'vacant':
-        return 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761311529/%E7%A9%BA%E5%B8%AD%E3%81%82%E3%82%8A_rzejgw.png';
-      case 'full':
-        return 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761311529/%E6%BA%80%E5%B8%AD_gszsqi.png';
-      case 'open':
-        return 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1767848645/icons8-%E9%96%8B%E5%BA%97%E3%82%B5%E3%82%A4%E3%83%B3-94_a4tmzn.png';
-      case 'closed':
-        return 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761318837/icons8-%E9%96%89%E5%BA%97%E3%82%B5%E3%82%A4%E3%83%B3-100_fczegk.png';
-      default:
-        return 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761311529/%E7%A9%BA%E5%B8%AD%E3%81%82%E3%82%8A_rzejgw.png';
-    }
-  };
-
-  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-    const R = 6371;
-    const dLat = ((lat2 - lat1) * Math.PI) / 180;
-    const dLon = ((lon2 - lon1) * Math.PI) / 180;
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos((lat1 * Math.PI) / 180) *
-        Math.cos((lat2 * Math.PI) / 180) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
-  };
-
-  const calculateWalkingTime = (distanceKm: number): number => {
-    const walkingSpeedKmPerHour = 4;
-    const walkingTimeMinutes = (distanceKm / walkingSpeedKmPerHour) * 60;
-    return Math.round(walkingTimeMinutes);
-  };
 
   return (
     <div
@@ -1225,269 +1185,21 @@ function MapPageContent() {
         selectedStoreId={selectedStore?.id || null}
       />
 
-      {/* 店舗詳細カード（スワイプ対応） */}
+      {/* 店舗詳細パネル（スライドアップ対応） */}
       <AnimatePresence>
         {selectedStore && (
-          <motion.div
-            key={selectedStore.id}
-            initial={{ y: 100, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 100, opacity: 0 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            className="fixed bottom-0 left-0 right-0 z-30 safe-bottom touch-manipulation"
-            drag="x"
-            dragConstraints={{ left: 0, right: 0 }}
-            dragElastic={0.2}
-            onDragEnd={(_, info) => {
-              if (info.offset.x < -50) {
-                handleSwipeNext();
-              } else if (info.offset.x > 50) {
-                handleSwipePrev();
-              }
+          <StoreDetailPanel
+            store={selectedStore}
+            userLocation={userLocation}
+            onClose={() => {
+              setSelectedStoreId(null);
+              setIsNavigating(false);
             }}
-          >
-            <Card
-              className="rounded-t-3xl rounded-b-none border-0 cursor-pointer transition-colors"
-              style={{
-                background: colors.surface,
-                borderTop: `1px solid ${colors.borderGold}`,
-              }}
-              onClick={() => handleNavigateToDetail(selectedStore.id)}
-            >
-              {/* スワイプインジケーター */}
-              <div className="flex items-center justify-center pt-2 pb-1">
-                <div className="flex items-center gap-2">
-                  <ChevronLeft 
-                    className="w-4 h-4 opacity-40" 
-                    style={{ color: colors.accent }}
-                  />
-                  <div 
-                    className="w-10 h-1 rounded-full"
-                    style={{ background: `${colors.accent}50` }}
-                  />
-                  <ChevronRight 
-                    className="w-4 h-4 opacity-40" 
-                    style={{ color: colors.accent }}
-                  />
-                </div>
-              </div>
-              <div className="px-4 pb-4 space-y-3">
-                <div className="flex gap-4">
-                  {selectedStore.image_urls && selectedStore.image_urls.length > 0 ? (
-                    <img
-                      src={selectedStore.image_urls[0]}
-                      alt={selectedStore.name}
-                      className="w-24 h-24 rounded-xl object-cover flex-shrink-0"
-                      style={{ border: `1px solid ${colors.borderGold}` }}
-                    />
-                  ) : (
-                    <div
-                      className="w-24 h-24 rounded-xl flex items-center justify-center flex-shrink-0"
-                      style={{ background: colors.background }}
-                    >
-                      <Building2 className="w-12 h-12" style={{ color: colors.textMuted }} />
-                    </div>
-                  )}
-
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2">
-                      <h3
-                        className="font-bold text-lg line-clamp-1"
-                        style={{ color: colors.text }}
-                      >
-                        {selectedStore.name}
-                      </h3>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="flex-shrink-0 -mt-1"
-                        style={{ color: colors.textMuted }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedStoreId(null);
-                          setIsNavigating(false);
-                        }}
-                      >
-                        <X className="w-5 h-5" />
-                      </Button>
-                    </div>
-
-                    {selectedStore.google_rating && (
-                      <div className="flex items-center gap-2 -mt-2">
-                        <div className="flex items-center gap-0.5">
-                          {[1, 2, 3, 4, 5].map((star) => (
-                            <Star
-                              key={star}
-                              className={`w-4 h-4 ${
-                                star <= Math.round(selectedStore.google_rating!)
-                                  ? 'fill-amber-400 text-amber-400'
-                                  : 'text-gray-600'
-                              }`}
-                              style={{
-                                fill:
-                                  star <= Math.round(selectedStore.google_rating!)
-                                    ? colors.accent
-                                    : 'transparent',
-                                color:
-                                  star <= Math.round(selectedStore.google_rating!)
-                                    ? colors.accent
-                                    : colors.textSubtle,
-                              }}
-                            />
-                          ))}
-                        </div>
-                        <span className="text-sm font-bold" style={{ color: colors.text }}>
-                          {selectedStore.google_rating.toFixed(1)}
-                        </span>
-                        {selectedStore.google_reviews_count && (
-                          <span className="text-xs" style={{ color: colors.textMuted }}>
-                            ({selectedStore.google_reviews_count})
-                          </span>
-                        )}
-                      </div>
-                    )}
-
-                    {userLocation && (() => {
-                      const storeLat = Number(selectedStore.latitude);
-                      const storeLng = Number(selectedStore.longitude);
-                      if (isNaN(storeLat) || isNaN(storeLng)) return null;
-                      const distanceKm = calculateDistance(
-                        userLocation.lat,
-                        userLocation.lng,
-                        storeLat,
-                        storeLng
-                      );
-                      if (isNaN(distanceKm)) return null;
-                      const distanceM = Math.round(distanceKm * 1000);
-                      const distanceText = distanceM >= 1000 
-                        ? `${(distanceKm).toFixed(1)}km` 
-                        : `${distanceM}m`;
-                      const walkingTime = calculateWalkingTime(distanceKm);
-                      return (
-                        <p className="text-sm font-bold" style={{ color: colors.textMuted }}>
-                          {t('store_detail.walking_time')
-                            .replace('{minutes}', String(walkingTime))
-                            .replace('{distance}', distanceText)
-                          }
-                        </p>
-                      );
-                    })()}
-
-                    <div className="flex items-center gap-2 pt-1">
-                      <img
-                        src={getVacancyIcon(selectedStore.vacancy_status)}
-                        alt={getVacancyLabel(selectedStore.vacancy_status)}
-                        className="w-6 h-6"
-                      />
-                      <span className="text-xl font-bold" style={{ color: colors.text }}>
-                        {getVacancyLabel(selectedStore.vacancy_status)}
-                      </span>
-                      {selectedStore.vacancy_status === 'vacant' && selectedStore.vacant_seats != null && selectedStore.vacant_seats > 0 && (
-                        <span className="text-sm font-bold px-2 py-0.5 rounded-lg" style={{
-                          backgroundColor: 'rgba(34, 197, 94, 0.1)',
-                          color: '#16a34a',
-                        }}>
-                          {t('store_detail.vacant_seats').replace('{count}', String(selectedStore.vacant_seats))}
-                        </span>
-                      )}
-                      {selectedStore.vacancy_status === 'closed' && (() => {
-                        const sbh = selectedStore.structured_business_hours as BusinessHours | null;
-                        if (isTodayClosedDay(sbh)) {
-                          return (
-                            <span className="text-sm font-bold px-2 py-0.5 rounded-lg" style={{
-                              backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                              color: '#ef4444',
-                            }}>
-                              {t('map.regular_holiday')}
-                            </span>
-                          );
-                        }
-                        const openTime = getTodayOpenTime(sbh);
-                        if (!openTime) return null;
-                        return (
-                          <span className="text-sm font-bold px-2 py-0.5 rounded-lg" style={{
-                            backgroundColor: 'rgba(34, 197, 94, 0.1)',
-                            color: '#16a34a',
-                          }}>
-                            {t('map.opens_at').replace('{time}', openTime)}
-                          </span>
-                        );
-                      })()}
-                    </div>
-                  </div>
-                </div>
-
-                {/* おごりチケット */}
-                <OgoriTicketBadge storeId={selectedStore.id} compact />
-
-                {selectedStore.status_message && (
-                  <div
-                    className="pt-2"
-                    style={{ borderTop: `1px solid ${colors.borderSubtle}` }}
-                  >
-                    <p
-                      className="text-sm font-bold line-clamp-2"
-                      style={{ color: colors.textMuted }}
-                    >
-                      {selectedStore.status_message}
-                    </p>
-                  </div>
-                )}
-
-                <div className="flex gap-2">
-                  <motion.button
-                    whileHover={{ scale: isNavigating ? 1 : 1.02 }}
-                    whileTap={{ scale: isNavigating ? 1 : 0.98 }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (!isNavigating) {
-                        handleNavigateToDetail(selectedStore.id);
-                      }
-                    }}
-                    disabled={isNavigating}
-                    className="flex-1 py-3.5 px-4 rounded-xl font-bold transition-all touch-manipulation flex items-center justify-center gap-2"
-                    style={{
-                      background: isNavigating 
-                        ? colors.accentDark
-                        : colors.goldGradient,
-                      color: colors.background,
-                      boxShadow: isNavigating 
-                        ? 'none'
-                        : colors.shadowGold,
-                      opacity: isNavigating ? 0.8 : 1,
-                      cursor: isNavigating ? 'not-allowed' : 'pointer',
-                    }}
-                  >
-                    {isNavigating ? (
-                      <>
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                        <span>{t('common.loading')}</span>
-                      </>
-                    ) : (
-                      t('map.view_details')
-                    )}
-                  </motion.button>
-                  <motion.a
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(selectedStore.name)}&travelmode=walking`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={(e) => e.stopPropagation()}
-                    className="flex-1 py-3.5 px-4 rounded-xl font-bold transition-all touch-manipulation flex items-center justify-center gap-2"
-                    style={{
-                      background: `${colors.accent}15`,
-                      color: colors.accent,
-                      border: `1px solid ${colors.borderGold}`,
-                    }}
-                  >
-                    <MapPin className="w-4 h-4" />
-                    {t('map.go_to_store')}
-                  </motion.a>
-                </div>
-              </div>
-            </Card>
-          </motion.div>
+            onSwipeNext={handleSwipeNext}
+            onSwipePrev={handleSwipePrev}
+            onNavigateToDetail={handleNavigateToDetail}
+            isNavigating={isNavigating}
+          />
         )}
       </AnimatePresence>
 

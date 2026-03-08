@@ -2,7 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { ChevronRight, Home } from 'lucide-react';
+import { ChevronRight, Home, List } from 'lucide-react';
 import {
   Breadcrumb,
   BreadcrumbList,
@@ -154,6 +154,7 @@ export function Breadcrumbs({ className, storeName }: BreadcrumbsProps) {
                       }}
                     >
                       {index === 0 && <Home className="w-3.5 h-3.5" />}
+                      {crumb.href === '/store-list' && <List className="w-3.5 h-3.5" />}
                       {crumb.label}
                     </Link>
                   </BreadcrumbLink>

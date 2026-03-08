@@ -41,7 +41,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/lib/supabase/client';
-import type { Database } from '@/lib/supabase/types';
+import type { Database, BusinessHours } from '@/lib/supabase/types';
 import { useLanguage } from '@/lib/i18n/context';
 import { translations } from '@/lib/i18n/translations';
 import { InstantReservationButton } from '@/components/instant-reservation-button';

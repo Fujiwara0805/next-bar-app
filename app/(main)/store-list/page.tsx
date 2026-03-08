@@ -59,14 +59,6 @@ const IS_OPEN_UPDATE_RADIUS_KM = 2.0;
 const IS_OPEN_UPDATE_COOLDOWN_MS = 60 * 60 * 1000; // 1時間
 const IS_OPEN_UPDATE_LOCALSTORAGE_KEY = 'isOpenUpdate:lastRun';
 
-interface BusinessHours {
-  [key: string]: {
-    open: string;
-    close: string;
-    isOpen?: boolean;
-  } | string | null;
-}
-
 const isStoreCurrentlyOpen = (store: Store): boolean => {
   if (typeof store.is_open === 'boolean') {
     return store.is_open;
@@ -79,7 +71,7 @@ const isStoreCurrentlyOpen = (store: Store): boolean => {
   const currentDay = now.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
   const currentTime = now.getHours() * 100 + now.getMinutes();
 
-  const todayHours = businessHours[currentDay];
+  const todayHours = (businessHours as Record<string, any>)[currentDay];
   if (!todayHours) return false;
   
   if (typeof todayHours === 'string') {

@@ -22,14 +22,29 @@ import { sendGAEvent } from '@/lib/analytics';
 interface InstantReservationButtonProps {
   storeId: string;
   storeName: string;
+  externalOpen?: boolean;
+  onExternalOpenChange?: (open: boolean) => void;
+  hideButton?: boolean;
 }
 
 export function InstantReservationButton({
   storeId,
   storeName,
+  externalOpen,
+  onExternalOpenChange,
+  hideButton,
 }: InstantReservationButtonProps) {
   const { t } = useLanguage();
-  const [showDialog, setShowDialog] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isControlled = externalOpen !== undefined;
+  const showDialog = isControlled ? externalOpen : internalOpen;
+  const setShowDialog = (open: boolean) => {
+    if (isControlled) {
+      onExternalOpenChange?.(open);
+    } else {
+      setInternalOpen(open);
+    }
+  };
   const [partySize, setPartySize] = useState('2');
   const [arrivalMinutes, setArrivalMinutes] = useState('10');
   const [guestName, setGuestName] = useState('');
@@ -140,16 +155,18 @@ export function InstantReservationButton({
 
   return (
     <>
-      <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-        <Button
-          onClick={() => setShowDialog(true)}
-          className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold"
-          size="default"
-        >
-          <Clock className="w-3 h-3 mr-2" />
-          {t('store_detail.reservation_button')}
-        </Button>
-      </motion.div>
+      {!hideButton && (
+        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+          <Button
+            onClick={() => setShowDialog(true)}
+            className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold"
+            size="default"
+          >
+            <Clock className="w-3 h-3 mr-2" />
+            {t('store_detail.reservation_button')}
+          </Button>
+        </motion.div>
+      )}
 
       <CustomModal
         isOpen={showDialog}
@@ -170,7 +187,7 @@ export function InstantReservationButton({
               {t('reservation.arrival_time')}
             </Label>
             <Select value={arrivalMinutes} onValueChange={setArrivalMinutes}>
-              <SelectTrigger className="bg-white border-[#2c5c6e]">
+              <SelectTrigger className="bg-white border-[#C9A86C]/40 text-[#2D3436] font-bold">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-white">
@@ -190,12 +207,12 @@ export function InstantReservationButton({
               {t('reservation.party_size')}
             </Label>
             <Select value={partySize} onValueChange={setPartySize}>
-              <SelectTrigger className="bg-white border-[#2c5c6e]">
+              <SelectTrigger className="bg-white border-[#C9A86C]/40 text-[#2D3436] font-bold">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-white">
                 {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
-                  <SelectItem key={num} value={num.toString()}className="text-base">
+                  <SelectItem key={num} value={num.toString()} className="text-base">
                     <span className="text-base">{t('reservation.people_count').replace('{count}', String(num))}</span>
                   </SelectItem>
                 ))}
@@ -219,7 +236,7 @@ export function InstantReservationButton({
               value={guestName}
               onChange={(e) => setGuestName(e.target.value)}
               disabled={requesting}
-              className="font-bold bg-white border-[#2c5c6e] placeholder:text-[#b0c4ce] placeholder:font-normal"
+              className="font-bold bg-white border-[#C9A86C]/40 placeholder:text-[#b0c4ce] placeholder:font-normal"
               style={{ fontSize: '16px', color: '#2D3436' }}
             />
           </motion.div>
@@ -240,7 +257,7 @@ export function InstantReservationButton({
               value={guestPhone}
               onChange={(e) => setGuestPhone(e.target.value)}
               disabled={requesting}
-              className="font-bold bg-white border-[#2c5c6e] placeholder:text-[#b0c4ce] placeholder:font-normal"
+              className="font-bold bg-white border-[#C9A86C]/40 placeholder:text-[#b0c4ce] placeholder:font-normal"
               style={{ fontSize: '16px', color: '#2D3436' }}
             />
           </motion.div>
@@ -277,7 +294,12 @@ export function InstantReservationButton({
               variant="outline"
               onClick={handleCancel}
               disabled={requesting}
-              className="flex-1 bg-[#fceaea] hover:bg-[#fad6d5] border-[#fceaea]"
+              className="flex-1 rounded-xl"
+              style={{
+                backgroundColor: 'rgba(201, 168, 108, 0.15)',
+                borderColor: '#C9A86C',
+                color: '#0A1628',
+              }}
             >
               <X className="w-4 h-4 mr-2" />
               {t('reservation.cancel')}
