@@ -51,6 +51,7 @@ import { isCouponValid, type CouponData } from '@/lib/types/coupon';
 import { ImageLightbox } from '@/components/ui/ImageLightbox';
 import { sendGAEvent } from '@/lib/analytics';
 import { OgoriSection } from '@/components/ogori/OgoriSection';
+import { getTodayOpenTime, isTodayClosedDay } from '@/lib/structured-business-hours';
 
 type Store = Database['public']['Tables']['stores']['Row'];
 
@@ -424,13 +425,19 @@ export default function StoreDetailPage() {
 
   useEffect(() => {
     if (store && userLocation) {
+      const lat = Number(store.latitude);
+      const lng = Number(store.longitude);
+      if (isNaN(lat) || isNaN(lng)) {
+        setDistance(null);
+        return;
+      }
       const dist = calculateDistance(
         userLocation.lat,
         userLocation.lng,
-        Number(store.latitude),
-        Number(store.longitude)
+        lat,
+        lng
       );
-      setDistance(dist);
+      setDistance(isNaN(dist) ? null : dist);
     }
   }, [store, userLocation, calculateDistance]);
 
@@ -875,6 +882,29 @@ export default function StoreDetailPage() {
                       {t('store_detail.vacant_seats').replace('{count}', String(store.vacant_seats))}
                     </span>
                   )}
+                  {store.vacancy_status === 'closed' && (() => {
+                    const sbh = store.structured_business_hours as BusinessHours | null;
+                    if (isTodayClosedDay(sbh)) {
+                      return (
+                        <span className="text-sm font-bold px-2 py-0.5 rounded-lg" style={{
+                          backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                          color: '#ef4444',
+                        }}>
+                          {t('store_detail.regular_holiday')}
+                        </span>
+                      );
+                    }
+                    const openTime = getTodayOpenTime(sbh);
+                    if (!openTime) return null;
+                    return (
+                      <span className="text-sm font-bold px-2 py-0.5 rounded-lg" style={{
+                        backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                        color: '#16a34a',
+                      }}>
+                        {t('store_detail.opens_at').replace('{time}', openTime)}
+                      </span>
+                    );
+                  })()}
                 </motion.div>
 
                 {/* 高級感のあるクーポンボタン */}

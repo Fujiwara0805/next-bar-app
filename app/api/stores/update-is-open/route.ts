@@ -15,6 +15,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { checkIsOpenFromGooglePlaceId } from '@/lib/business-hours';
+import { checkIsOpenFromStructuredHours } from '@/lib/structured-business-hours';
+import type { BusinessHours } from '@/lib/supabase/types';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -119,6 +121,7 @@ interface StoreData {
   closed_reason: string | null;
   manual_closed_at: string | null;
   updated_at: string | null;
+  structured_business_hours: any; // Json | null from DB
 }
 
 interface StoreWithDistance extends StoreData {
@@ -293,6 +296,50 @@ async function updateSingleStore(
   }
 
   try {
+    // ★ 構造化営業時間による判定（Google API 不要、コスト0）
+    if (store.structured_business_hours) {
+      const structuredResult = checkIsOpenFromStructuredHours(
+        store.structured_business_hours as BusinessHours
+      );
+
+      if (structuredResult !== null) {
+        const { isOpen, vacancyStatus, closedReason } = determineOpenStatusAndVacancy(
+          structuredResult,
+          manualClosed,
+          store.vacancy_status
+        );
+
+        const now = new Date().toISOString();
+        const { error } = await supabase
+          .from('stores')
+          .update({
+            is_open: isOpen,
+            vacancy_status: vacancyStatus,
+            closed_reason: closedReason,
+            last_is_open_check_at: now,
+            updated_at: now,
+          })
+          .eq('id', store.id);
+
+        if (error) {
+          console.error(`Error updating store ${store.id} from structured hours:`, error);
+          return null;
+        }
+
+        console.log(`[Structured Hours] Store ${store.id}: isOpen=${isOpen}, vacancyStatus=${vacancyStatus}`);
+
+        return {
+          storeId: store.id,
+          isOpen,
+          vacancyStatus,
+          manualClosed: false,
+          closedReason,
+          fromCache: false,
+        };
+      }
+      // structuredResult === null → 当日データなし、Google API にフォールバック
+    }
+
     // 更新権を獲得したリクエスト、または forceUpdate=true のリクエストが Google API を叩く
     const googleIsOpen = await checkIsOpenFromGooglePlaceId(store.google_place_id);
 
@@ -430,7 +477,9 @@ export async function POST(request: NextRequest) {
         .single();
 
       if (error || !store) return NextResponse.json({ error: 'Store not found' }, { status: 404 });
-      if (!store.google_place_id) return NextResponse.json({ error: 'Google Place ID not found' }, { status: 400 });
+      if (!store.google_place_id && !store.structured_business_hours) {
+        return NextResponse.json({ error: 'No business hours source available' }, { status: 400 });
+      }
 
       const result = await updateSingleStore(store as StoreData, forceUpdate);
       if (!result) return NextResponse.json({ error: 'Failed to update store' }, { status: 500 });

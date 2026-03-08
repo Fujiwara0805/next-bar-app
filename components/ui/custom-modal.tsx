@@ -57,12 +57,14 @@ export function CustomModal({
               )}
 
               {/* ヘッダー */}
-              <div className="mb-4">
-                <h2 className="text-2xl font-bold mb-2 text-card-foreground">{title}</h2>
-                {description && (
-                  <p className="text-card-foreground/80 text-sm font-bold">{description}</p>
-                )}
-              </div>
+              {(title || description) && (
+                <div className="mb-4">
+                  {title && <h2 className="text-2xl font-bold mb-2 text-card-foreground">{title}</h2>}
+                  {description && (
+                    <p className="text-card-foreground/80 text-sm font-bold">{description}</p>
+                  )}
+                </div>
+              )}
 
               {/* コンテンツ */}
               <div>{children}</div>

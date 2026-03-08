@@ -60,6 +60,10 @@ import {
   campaignFormToDbData,
 } from '@/components/store/StoreCampaignForm';
 
+// 構造化営業時間モーダル
+import { BusinessHoursModal } from '@/components/store/BusinessHoursModal';
+import type { BusinessHours } from '@/lib/supabase/types';
+
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
 // ============================================
@@ -186,6 +190,8 @@ export default function NewStorePage() {
   // 営業時間をテキスト形式に変更
   const [businessHours, setBusinessHours] = useState('');
   const [regularHoliday, setRegularHoliday] = useState('');
+  const [structuredBusinessHours, setStructuredBusinessHours] = useState<BusinessHours | null>(null);
+  const [showBusinessHoursModal, setShowBusinessHoursModal] = useState(false);
   const [budgetMin, setBudgetMin] = useState<number>(0);
   const [budgetMax, setBudgetMax] = useState<number>(0);
   const [paymentMethods, setPaymentMethods] = useState<string[]>([]);
@@ -625,6 +631,7 @@ export default function NewStorePage() {
           website_url: websiteUrl.trim() || null,
           business_hours: businessHours,
           regular_holiday: regularHoliday.trim() || null,
+          structured_business_hours: structuredBusinessHours,
           budget_min: budgetMin || null,
           budget_max: budgetMax || null,
           payment_methods: paymentMethods,
@@ -975,12 +982,43 @@ export default function NewStorePage() {
                 <p className="text-xs" style={{ color: COLORS.warmGray }}>
                   営業時間を自由な形式で入力してください
                 </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowBusinessHoursModal(true)}
+                  disabled={loading}
+                  className="mt-2"
+                  style={{
+                    borderColor: COLORS.champagneGold,
+                    backgroundColor: 'rgba(201, 168, 108, 0.15)',
+                    color: COLORS.deepNavy,
+                  }}
+                >
+                  <Clock className="w-4 h-4 mr-1" style={{ color: COLORS.champagneGold }} />
+                  詳細を記述する
+                </Button>
+                {structuredBusinessHours && (
+                  <p className="text-xs mt-1" style={{ color: COLORS.champagneGold }}>
+                    構造化営業時間が設定されています
+                  </p>
+                )}
+                <BusinessHoursModal
+                  isOpen={showBusinessHoursModal}
+                  onClose={() => setShowBusinessHoursModal(false)}
+                  value={structuredBusinessHours}
+                  onChange={(hours) => {
+                    setStructuredBusinessHours(hours);
+                    setShowBusinessHoursModal(false);
+                  }}
+                  disabled={loading}
+                />
               </div>
 
               {/* 定休日 */}
               <div className="space-y-2 mb-5">
-                <Label 
-                  htmlFor="regularHoliday" 
+                <Label
+                  htmlFor="regularHoliday"
                   className="text-sm font-bold flex items-center gap-2"
                   style={{ color: COLORS.deepNavy }}
                 >

@@ -63,6 +63,10 @@ import {
   OGORI_FIXED_AMOUNT,
 } from '@/lib/types/ogori';
 
+// 構造化営業時間モーダル
+import { BusinessHoursModal } from '@/components/store/BusinessHoursModal';
+import type { BusinessHours } from '@/lib/supabase/types';
+
 type Store = Database['public']['Tables']['stores']['Row'];
 
 // Store型を拡張してクーポンフィールドを追加
@@ -195,6 +199,8 @@ export default function StoreEditPage() {
   const [email, setEmail] = useState('');
   const [businessHours, setBusinessHours] = useState('');
   const [regularHoliday, setRegularHoliday] = useState('');
+  const [structuredBusinessHours, setStructuredBusinessHours] = useState<BusinessHours | null>(null);
+  const [showBusinessHoursModal, setShowBusinessHoursModal] = useState(false);
   const [budgetMin, setBudgetMin] = useState<number>(0);
   const [budgetMax, setBudgetMax] = useState<number>(0);
   const [paymentMethods, setPaymentMethods] = useState<string[]>([]);
@@ -283,6 +289,7 @@ export default function StoreEditPage() {
         setEmail(storeData.email);
         setBusinessHours(storeData.business_hours as string || '');
         setRegularHoliday(storeData.regular_holiday || '');
+        setStructuredBusinessHours(storeData.structured_business_hours as BusinessHours | null);
         setBudgetMin(storeData.budget_min || 0);
         setBudgetMax(storeData.budget_max || 0);
         setPaymentMethods(storeData.payment_methods || []);
@@ -354,6 +361,7 @@ export default function StoreEditPage() {
           setEmail(storeData.email);
           setBusinessHours(storeData.business_hours as string || '');
           setRegularHoliday(storeData.regular_holiday || '');
+          setStructuredBusinessHours(storeData.structured_business_hours as BusinessHours | null);
           setBudgetMin(storeData.budget_min || 0);
           setBudgetMax(storeData.budget_max || 0);
           setPaymentMethods(storeData.payment_methods || []);
@@ -361,7 +369,7 @@ export default function StoreEditPage() {
           setImageUrls(storeData.image_urls || []);
           setLatitude(String(storeData.latitude || ''));
           setLongitude(String(storeData.longitude || ''));
-          
+
           // クーポンデータの読み込み
           setCouponValues(dbDataToCouponForm(storeData));
           setCouponCurrentUses(storeData.coupon_current_uses || 0);
@@ -681,6 +689,7 @@ export default function StoreEditPage() {
           website_url: websiteUrl.trim() || null,
           business_hours: businessHours,
           regular_holiday: regularHoliday.trim() || null,
+          structured_business_hours: structuredBusinessHours,
           budget_min: budgetMin || null,
           budget_max: budgetMax || null,
           payment_methods: paymentMethods,
@@ -1073,6 +1082,37 @@ export default function StoreEditPage() {
                 <p className="text-xs" style={{ color: COLORS.warmGray }}>
                   営業時間を自由な形式で入力してください
                 </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowBusinessHoursModal(true)}
+                  disabled={loading}
+                  className="mt-2"
+                  style={{
+                    borderColor: COLORS.champagneGold,
+                    backgroundColor: 'rgba(201, 168, 108, 0.15)',
+                    color: COLORS.deepNavy,
+                  }}
+                >
+                  <Clock className="w-4 h-4 mr-1" style={{ color: COLORS.champagneGold }} />
+                  詳細を記述する
+                </Button>
+                {structuredBusinessHours && (
+                  <p className="text-xs mt-1" style={{ color: COLORS.champagneGold }}>
+                    構造化営業時間が設定されています
+                  </p>
+                )}
+                <BusinessHoursModal
+                  isOpen={showBusinessHoursModal}
+                  onClose={() => setShowBusinessHoursModal(false)}
+                  value={structuredBusinessHours}
+                  onChange={(hours) => {
+                    setStructuredBusinessHours(hours);
+                    setShowBusinessHoursModal(false);
+                  }}
+                  disabled={loading}
+                />
               </div>
 
               {/* 定休日 */}

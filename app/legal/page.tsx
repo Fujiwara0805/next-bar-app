@@ -24,7 +24,6 @@ export default function LegalPage() {
     { label: t('legal_page.seller'), value: t('legal_page.seller_value') },
     { label: t('legal_page.representative'), value: t('legal_page.representative_value') },
     { label: t('legal_page.address'), value: t('legal_page.address_value') },
-    { label: t('legal_page.phone'), value: t('legal_page.phone_value') },
     { label: t('legal_page.email'), value: t('legal_page.email_value') },
     { label: t('legal_page.url'), value: t('legal_page.url_value') },
     { label: t('legal_page.service'), value: t('legal_page.service_value') },

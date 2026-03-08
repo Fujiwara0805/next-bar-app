@@ -229,6 +229,7 @@ export interface Database {
           opening_hours: Json | null
           business_hours: Json | null
           regular_holiday: string | null
+          structured_business_hours: Json | null
           budget_min: number | null
           budget_max: number | null
           payment_methods: string[] | null
@@ -330,6 +331,7 @@ export interface Database {
           opening_hours?: Json | null
           business_hours?: Json | null
           regular_holiday?: string | null
+          structured_business_hours?: Json | null
           budget_min?: number | null
           budget_max?: number | null
           payment_methods?: string[] | null
@@ -394,6 +396,7 @@ export interface Database {
           opening_hours?: Json | null
           business_hours?: Json | null
           regular_holiday?: string | null
+          structured_business_hours?: Json | null
           budget_min?: number | null
           budget_max?: number | null
           payment_methods?: string[] | null

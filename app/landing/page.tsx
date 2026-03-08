@@ -23,7 +23,6 @@ import {
   MessageCircle,
   Instagram,
   ArrowUp,
-  ChevronDown,
   Mail,
   ExternalLink,
   Scale,
@@ -314,7 +313,6 @@ export default function LandingPage() {
     { icon: Radio, label: t('menu.news'), href: '/news' },
     { icon: FileText, label: t('static_pages.terms_title'), href: '/terms' },
     { icon: Scale, label: t('static_pages.legal_title'), href: '/legal' },
-    { icon: HelpCircle, label: t('static_pages.faq_title'), href: '/faq' },
   ];
 
   const handleMapClick = () => { setShowLocationModal(true); };
@@ -1315,37 +1313,6 @@ export default function LandingPage() {
           </div>
         </section>
       )}
-
-      {/* FAQ Section */}
-      <section className="relative py-24 px-4 overflow-hidden" style={{ background: colors.surface }}>
-        <div className="container mx-auto max-w-3xl">
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
-            <GoldDivider />
-            <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4" style={{ color: colors.accent }}>FAQ</span>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4" style={{ color: colors.text }}>{t('landing.faq_title')}</h2>
-            <p className="text-base" style={{ color: colors.textMuted }}>{t('landing.faq_subtitle')}</p>
-          </motion.div>
-          <div className="space-y-3">
-            {[1, 2, 3, 4, 5].map((num) => (
-              <motion.details key={num} initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="group rounded-xl overflow-hidden" style={{ background: `${colors.background}80`, border: `1px solid ${colors.borderSubtle}` }}>
-                <summary className="flex items-center justify-between p-5 cursor-pointer list-none" style={{ color: colors.text }}>
-                  <span className="font-bold text-sm sm:text-base pr-4">{t(`landing.faq_q${num}`)}</span>
-                  <ChevronDown className="w-5 h-5 flex-shrink-0 transition-transform group-open:rotate-180" style={{ color: colors.accent }} />
-                </summary>
-                <div className="px-5 pb-5">
-                  <p className="text-sm leading-relaxed" style={{ color: colors.textMuted }}>{t(`landing.faq_a${num}`)}</p>
-                </div>
-              </motion.details>
-            ))}
-          </div>
-          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="text-center mt-8">
-            <Link href="/faq" className="inline-flex items-center gap-2 text-sm font-medium transition-all hover:scale-105" style={{ color: colors.accent }}>
-              {t('landing.faq_view_all')} <ExternalLink className="w-4 h-4" />
-            </Link>
-          </motion.div>
-        </div>
-        <motion.div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${colors.accent}40, transparent)` }} />
-      </section>
 
       {/* Contact Section */}
       <section className="relative py-24 px-4 overflow-hidden" style={{ background: colors.background }}>

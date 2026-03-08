@@ -41,6 +41,8 @@ import {
 } from '@/lib/cache';
 import { sendGAEvent } from '@/lib/analytics';
 import { OgoriTicketBadge } from '@/components/ogori/OgoriTicketBadge';
+import { getTodayOpenTime, isTodayClosedDay } from '@/lib/structured-business-hours';
+import type { BusinessHours } from '@/lib/supabase/types';
 
 type Store = Database['public']['Tables']['stores']['Row'];
 
@@ -145,7 +147,8 @@ const STORE_SELECT_COLUMNS = `
   has_campaign,
   campaign_name,
   campaign_start_date,
-  campaign_end_date
+  campaign_end_date,
+  structured_business_hours
 `;
 
 // ============================================================================
@@ -586,7 +589,7 @@ function MapPageContent() {
   const searchParams = useSearchParams();
   const { t, language } = useLanguage();
 
-  const [selectedStore, setSelectedStore] = useState<Store | null>(null);
+  const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [currentBounds, setCurrentBounds] = useState<ViewportBounds | null>(null);
   const [isNavigating, setIsNavigating] = useState(false);
@@ -934,6 +937,12 @@ function MapPageContent() {
     return filterStoresByViewport(stores, currentBounds);
   }, [stores, currentBounds]);
 
+  // stores から最新データを導出（IDのみ保持し、表示はstoresから取得）
+  const selectedStore = useMemo(() => {
+    if (!selectedStoreId) return null;
+    return stores.find(s => s.id === selectedStoreId) ?? null;
+  }, [stores, selectedStoreId]);
+
   // 距離順にソートされた店舗リスト（スワイプカード用）
   const sortedStoresByDistance = useMemo(() => {
     if (!userLocation) return stores;
@@ -953,25 +962,19 @@ function MapPageContent() {
     };
     
     return [...stores].sort((a, b) => {
-      const distanceA = calcDist(
-        userLocation.lat,
-        userLocation.lng,
-        Number(a.latitude),
-        Number(a.longitude)
-      );
-      const distanceB = calcDist(
-        userLocation.lat,
-        userLocation.lng,
-        Number(b.latitude),
-        Number(b.longitude)
-      );
+      const latA = Number(a.latitude);
+      const lngA = Number(a.longitude);
+      const latB = Number(b.latitude);
+      const lngB = Number(b.longitude);
+      const distanceA = (isNaN(latA) || isNaN(lngA)) ? Infinity : calcDist(userLocation.lat, userLocation.lng, latA, lngA);
+      const distanceB = (isNaN(latB) || isNaN(lngB)) ? Infinity : calcDist(userLocation.lat, userLocation.lng, latB, lngB);
       return distanceA - distanceB;
     });
   }, [stores, userLocation]);
 
   // 店舗が選択されたときにインデックスを設定
   const handleStoreSelect = useCallback((store: Store) => {
-    setSelectedStore(store);
+    setSelectedStoreId(store.id);
     const index = sortedStoresByDistance.findIndex(s => s.id === store.id);
     if (index !== -1) {
       setSelectedStoreIndex(index);
@@ -986,7 +989,7 @@ function MapPageContent() {
       ? selectedStoreIndex + 1 
       : 0;
     setSelectedStoreIndex(nextIndex);
-    setSelectedStore(sortedStoresByDistance[nextIndex]);
+    setSelectedStoreId(sortedStoresByDistance[nextIndex]?.id ?? null);
   }, [sortedStoresByDistance, selectedStoreIndex]);
 
   // 前の店舗カードへスワイプ
@@ -996,7 +999,7 @@ function MapPageContent() {
       ? selectedStoreIndex - 1 
       : sortedStoresByDistance.length - 1;
     setSelectedStoreIndex(prevIndex);
-    setSelectedStore(sortedStoresByDistance[prevIndex]);
+    setSelectedStoreId(sortedStoresByDistance[prevIndex]?.id ?? null);
   }, [sortedStoresByDistance, selectedStoreIndex]);
 
   const getVacancyLabel = (status: string) => {
@@ -1301,7 +1304,7 @@ function MapPageContent() {
                         style={{ color: colors.textMuted }}
                         onClick={(e) => {
                           e.stopPropagation();
-                          setSelectedStore(null);
+                          setSelectedStoreId(null);
                           setIsNavigating(false);
                         }}
                       >
@@ -1345,12 +1348,16 @@ function MapPageContent() {
                     )}
 
                     {userLocation && (() => {
+                      const storeLat = Number(selectedStore.latitude);
+                      const storeLng = Number(selectedStore.longitude);
+                      if (isNaN(storeLat) || isNaN(storeLng)) return null;
                       const distanceKm = calculateDistance(
                         userLocation.lat,
                         userLocation.lng,
-                        Number(selectedStore.latitude),
-                        Number(selectedStore.longitude)
+                        storeLat,
+                        storeLng
                       );
+                      if (isNaN(distanceKm)) return null;
                       const distanceM = Math.round(distanceKm * 1000);
                       const distanceText = distanceM >= 1000 
                         ? `${(distanceKm).toFixed(1)}km` 
@@ -1383,6 +1390,29 @@ function MapPageContent() {
                           {t('store_detail.vacant_seats').replace('{count}', String(selectedStore.vacant_seats))}
                         </span>
                       )}
+                      {selectedStore.vacancy_status === 'closed' && (() => {
+                        const sbh = selectedStore.structured_business_hours as BusinessHours | null;
+                        if (isTodayClosedDay(sbh)) {
+                          return (
+                            <span className="text-sm font-bold px-2 py-0.5 rounded-lg" style={{
+                              backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                              color: '#ef4444',
+                            }}>
+                              {t('map.regular_holiday')}
+                            </span>
+                          );
+                        }
+                        const openTime = getTodayOpenTime(sbh);
+                        if (!openTime) return null;
+                        return (
+                          <span className="text-sm font-bold px-2 py-0.5 rounded-lg" style={{
+                            backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                            color: '#16a34a',
+                          }}>
+                            {t('map.opens_at').replace('{time}', openTime)}
+                          </span>
+                        );
+                      })()}
                     </div>
                   </div>
                 </div>

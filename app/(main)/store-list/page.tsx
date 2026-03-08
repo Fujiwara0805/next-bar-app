@@ -23,11 +23,12 @@ import { MapIcon, Star, Filter, Check, Sparkles, X, Ticket, PartyPopper, Loader2
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { supabase } from '@/lib/supabase/client';
-import type { Database } from '@/lib/supabase/types';
+import type { Database, BusinessHours } from '@/lib/supabase/types';
 import { useLanguage } from '@/lib/i18n/context';
 import { ConciergeModal } from '@/components/concierge-modal';
 import { OgoriTicketBadge } from '@/components/ogori/OgoriTicketBadge';
 import { isCouponValid } from '@/lib/types/coupon';
+import { getTodayOpenTime, isTodayClosedDay } from '@/lib/structured-business-hours';
 
 type Store = Database['public']['Tables']['stores']['Row'];
 
@@ -489,11 +490,15 @@ function StoreListContent() {
       if (error) throw error;
       
       const storeData: Store[] = data || [];
-      
+
       if (storeData.length > 0) {
         const sortedStores = [...storeData].sort((a, b) => {
-          const distanceA = calculateDistance(userLocation.lat, userLocation.lng, Number(a.latitude), Number(a.longitude));
-          const distanceB = calculateDistance(userLocation.lat, userLocation.lng, Number(b.latitude), Number(b.longitude));
+          const latA = Number(a.latitude);
+          const lngA = Number(a.longitude);
+          const latB = Number(b.latitude);
+          const lngB = Number(b.longitude);
+          const distanceA = (isNaN(latA) || isNaN(lngA)) ? Infinity : calculateDistance(userLocation.lat, userLocation.lng, latA, lngA);
+          const distanceB = (isNaN(latB) || isNaN(lngB)) ? Infinity : calculateDistance(userLocation.lat, userLocation.lng, latB, lngB);
           return distanceA - distanceB;
         });
         setStores(sortedStores);
@@ -800,7 +805,11 @@ function StoreListContent() {
                               )}
                               
                               {userLocation && (() => {
-                                const distanceKm = calculateDistance(userLocation.lat, userLocation.lng, Number(store.latitude), Number(store.longitude));
+                                const storeLat = Number(store.latitude);
+                                const storeLng = Number(store.longitude);
+                                if (isNaN(storeLat) || isNaN(storeLng)) return null;
+                                const distanceKm = calculateDistance(userLocation.lat, userLocation.lng, storeLat, storeLng);
+                                if (isNaN(distanceKm)) return null;
                                 const distanceM = Math.round(distanceKm * 1000);
                                 const distanceText = distanceM >= 1000 ? `${(distanceKm).toFixed(1)}km` : `${distanceM}m`;
                                 return (
@@ -810,7 +819,7 @@ function StoreListContent() {
                                 );
                               })()}
                               
-                              <motion.div className="flex items-center gap-2 pt-1" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}>
+                              <motion.div className="flex items-center gap-2 pt-1 flex-wrap" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}>
                                 <img src={getVacancyIcon(store.vacancy_status)} alt={getVacancyLabel(store.vacancy_status)} className="w-6 h-6 object-contain" />
                                 <span className="text-lg font-bold" style={{ color: COLORS.deepNavy }}>{getVacancyLabel(store.vacancy_status)}</span>
                                 {store.vacancy_status === 'vacant' && store.vacant_seats != null && store.vacant_seats > 0 && (
@@ -821,6 +830,29 @@ function StoreListContent() {
                                     {t('store_detail.vacant_seats').replace('{count}', String(store.vacant_seats))}
                                   </span>
                                 )}
+                                {store.vacancy_status === 'closed' && (() => {
+                                  const sbh = store.structured_business_hours as BusinessHours | null;
+                                  if (isTodayClosedDay(sbh)) {
+                                    return (
+                                      <span className="text-sm font-bold px-2 py-0.5 rounded-lg" style={{
+                                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                                        color: '#ef4444',
+                                      }}>
+                                        {t('store_list.regular_holiday')}
+                                      </span>
+                                    );
+                                  }
+                                  const openTime = getTodayOpenTime(sbh);
+                                  if (!openTime) return null;
+                                  return (
+                                    <span className="text-sm font-bold px-2 py-0.5 rounded-lg" style={{
+                                      backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                                      color: '#16a34a',
+                                    }}>
+                                      {t('store_list.opens_at').replace('{time}', openTime)}
+                                    </span>
+                                  );
+                                })()}
                               </motion.div>
                               
                               {/* おごりチケット */}
