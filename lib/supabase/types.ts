@@ -55,6 +55,86 @@ export interface Database {
         }
       }
       // ============================================
+      // 加盟店申し込みテーブル
+      // ============================================
+      store_applications: {
+        Row: {
+          id: string
+          status: 'pending' | 'reviewing' | 'approved' | 'rejected'
+          store_name: string
+          description: string | null
+          address: string
+          latitude: number | null
+          longitude: number | null
+          phone: string | null
+          business_hours: string | null
+          regular_holiday: string | null
+          budget_min: number | null
+          budget_max: number | null
+          payment_methods: string[]
+          facilities: string[]
+          contact_email: string
+          image_urls: string[]
+          terms_agreed: boolean
+          remarks: string | null
+          admin_notes: string | null
+          reviewed_by: string | null
+          reviewed_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          status?: 'pending' | 'reviewing' | 'approved' | 'rejected'
+          store_name: string
+          description?: string | null
+          address: string
+          latitude?: number | null
+          longitude?: number | null
+          phone?: string | null
+          business_hours?: string | null
+          regular_holiday?: string | null
+          budget_min?: number | null
+          budget_max?: number | null
+          payment_methods?: string[]
+          facilities?: string[]
+          contact_email: string
+          image_urls?: string[]
+          terms_agreed: boolean
+          remarks?: string | null
+          admin_notes?: string | null
+          reviewed_by?: string | null
+          reviewed_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          status?: 'pending' | 'reviewing' | 'approved' | 'rejected'
+          store_name?: string
+          description?: string | null
+          address?: string
+          latitude?: number | null
+          longitude?: number | null
+          phone?: string | null
+          business_hours?: string | null
+          regular_holiday?: string | null
+          budget_min?: number | null
+          budget_max?: number | null
+          payment_methods?: string[]
+          facilities?: string[]
+          contact_email?: string
+          image_urls?: string[]
+          terms_agreed?: boolean
+          remarks?: string | null
+          admin_notes?: string | null
+          reviewed_by?: string | null
+          reviewed_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      // ============================================
       // ボーナスクリック記録テーブル
       // ============================================
       bonus_clicks: {

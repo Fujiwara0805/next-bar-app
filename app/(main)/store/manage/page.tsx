@@ -290,10 +290,10 @@ export default function StoreManagePage() {
                   </Button>
                 </Link>
                 <Link href="/store/manage/campaigns">
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     className="w-full sm:w-auto rounded-xl font-bold"
-                    style={{ 
+                    style={{
                       borderColor: 'rgba(236, 72, 153, 0.3)',
                       backgroundColor: 'rgba(236, 72, 153, 0.08)',
                       color: COLORS.charcoal,
@@ -301,6 +301,20 @@ export default function StoreManagePage() {
                   >
                     <PartyPopper className="w-4 h-4 mr-2" style={{ color: '#EC4899' }} />
                     キャンペーン管理
+                  </Button>
+                </Link>
+                <Link href="/store/manage/applications">
+                  <Button
+                    variant="outline"
+                    className="w-full sm:w-auto rounded-xl font-bold"
+                    style={{
+                      borderColor: 'rgba(201, 168, 108, 0.3)',
+                      backgroundColor: 'rgba(201, 168, 108, 0.08)',
+                      color: COLORS.charcoal,
+                    }}
+                  >
+                    <StoreIcon className="w-4 h-4 mr-2" style={{ color: COLORS.champagneGold }} />
+                    申し込み管理
                   </Button>
                 </Link>
               </div>

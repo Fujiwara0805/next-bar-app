@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { 
   MapPin, 
@@ -172,7 +172,10 @@ const getInputClassName = (disabled?: boolean) =>
 export default function NewStorePage() {
   const router = useRouter();
   const { user } = useAuth();
+  const searchParams = useSearchParams();
+  const applicationId = searchParams.get('application_id');
   const [loading, setLoading] = useState(false);
+  const [applicationLoaded, setApplicationLoaded] = useState(false);
   const [geocoding, setGeocoding] = useState(false);
   const [mapsLoaded, setMapsLoaded] = useState(false);
 
@@ -284,6 +287,50 @@ export default function NewStorePage() {
     };
     document.head.appendChild(script);
   }, []);
+
+  // 申し込みデータからの転記
+  useEffect(() => {
+    if (!applicationId || applicationLoaded) return;
+
+    const fetchApplication = async () => {
+      try {
+        const res = await fetch(`/api/store-applications/${applicationId}`);
+        if (!res.ok) throw new Error('申し込みデータの取得に失敗しました');
+        const { data } = await res.json();
+
+        if (data) {
+          setName(data.store_name || '');
+          setDescription(data.description || '');
+          setAddress(data.address || '');
+          setPhone(data.phone || '');
+          setEmail(data.contact_email || '');
+          setBusinessHours(data.business_hours || '');
+          setRegularHoliday(data.regular_holiday || '');
+          setBudgetMin(data.budget_min || 0);
+          setBudgetMax(data.budget_max || 0);
+          setPaymentMethods(data.payment_methods || []);
+          setFacilities(data.facilities || []);
+          setApplicationLoaded(true);
+
+          toast.success('申し込みデータを読み込みました', {
+            description: `店舗名: ${data.store_name}`,
+            position: 'top-center',
+            duration: 2000,
+            className: 'bg-gray-100'
+          });
+        }
+      } catch (err) {
+        console.error('Application fetch error:', err);
+        toast.error('申し込みデータの読み込みに失敗しました', {
+          position: 'top-center',
+          duration: 3000,
+          className: 'bg-gray-100'
+        });
+      }
+    };
+
+    fetchApplication();
+  }, [applicationId, applicationLoaded]);
 
   // 店舗名入力時の候補検索
   useEffect(() => {
@@ -669,6 +716,23 @@ export default function NewStorePage() {
           if (drinksToInsert.length > 0) {
             await supabase.from('ogori_drinks').insert(drinksToInsert as any);
           }
+        }
+      }
+
+      // 申し込みステータスを承認済みに更新
+      if (applicationId) {
+        try {
+          await fetch(`/api/store-applications/${applicationId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              status: 'approved',
+              reviewed_by: user.id,
+              reviewed_at: new Date().toISOString(),
+            }),
+          });
+        } catch (err) {
+          console.error('Application status update error:', err);
         }
       }
 
