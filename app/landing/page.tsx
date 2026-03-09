@@ -396,7 +396,7 @@ export default function LandingPage() {
           </motion.div>
           <div className="flex items-center gap-2 sm:gap-4">
 
-            <a href="https://docs.google.com/forms/d/e/1FAIpQLSceOuH6VBiSjYhJuly0SI6bZDaQrqxJ15vpMxGxT-CAXS2I4Q/viewform" target="_blank" rel="noopener noreferrer"><Button variant="outline" size="sm" className="text-xs font-medium transition-all duration-300 hover:scale-105" style={{ borderColor: colors.borderGold, color: colors.accent, background: `${colors.accent}08` }}>{t('landing.cta_button_recruitment')}</Button></a>
+            <Link href="/partner/apply"><Button variant="outline" size="sm" className="text-xs font-medium transition-all duration-300 hover:scale-105" style={{ borderColor: colors.borderGold, color: colors.accent, background: `${colors.accent}08` }}>{t('landing.cta_button_recruitment')}</Button></Link>
             <Link href="/login"><Button variant="outline" size="sm" className="text-xs font-medium transition-all duration-300 hover:scale-105" style={{ borderColor: colors.borderGold, color: colors.accent, background: `${colors.accent}08` }}>{t('header.store_login')}</Button></Link>
             <Button variant="ghost" size="icon" onClick={() => setShowMenu(!showMenu)} style={{ color: colors.textMuted }}>{showMenu ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}</Button>
           </div>

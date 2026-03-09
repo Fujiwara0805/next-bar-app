@@ -74,7 +74,7 @@ const colors = {
 // 外部リンク定義
 // ============================================
 const LINKS = {
-  googleForm: 'https://docs.google.com/forms/d/e/1FAIpQLSceOuH6VBiSjYhJuly0SI6bZDaQrqxJ15vpMxGxT-CAXS2I4Q/viewform',
+  partnerApply: '/partner/apply',
   instagram: 'https://instagram.com/nikenme_nobody',
 };
 
@@ -159,40 +159,27 @@ const SectionTitle = ({
 );
 
 /** CTAボタン（シマーエフェクト付き） */
-const CTAButton = ({ 
-  children, 
-  size = 'default',
+const CTAButton = ({
+  children,
   className = '',
-}: { 
+}: {
   children: React.ReactNode;
-  size?: 'default' | 'large';
   className?: string;
 }) => (
-  <motion.a
-    href={LINKS.googleForm}
-    target="_blank"
-    rel="noopener noreferrer"
-    whileHover={{ scale: 1.03, y: -2 }}
-    whileTap={{ scale: 0.98 }}
-    className={`
-      inline-flex items-center gap-2 font-semibold rounded-full relative overflow-hidden group
-      ${size === 'large' ? 'px-8 sm:px-12 py-5 sm:py-7 text-base sm:text-xl' : 'px-6 sm:px-10 py-4 sm:py-6 text-sm sm:text-lg'}
-      ${className}
-    `}
-    style={{
-      background: colors.goldGradient,
-      color: colors.background,
-      boxShadow: colors.shadowGold,
-    }}
-  >
-    <span className="relative z-10 flex items-center gap-2">{children}</span>
-    <motion.div 
-      className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" 
-      style={{ background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%)' }} 
-      animate={{ x: ['-100%', '200%'] }} 
-      transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 1 }} 
-    />
-  </motion.a>
+  <Link href={LINKS.partnerApply}>
+    <motion.div
+      whileHover={{ scale: 1.03, y: -2 }}
+      whileTap={{ scale: 0.97 }}
+      className={`inline-flex items-center gap-3 px-8 py-4 rounded-full font-bold text-base cursor-pointer ${className}`}
+      style={{
+        background: colors.goldGradient,
+        color: colors.background,
+        boxShadow: colors.shadowGold,
+      }}
+    >
+      {children}
+    </motion.div>
+  </Link>
 );
 
 /** フェードインセクション */
@@ -471,7 +458,7 @@ export default function AdLandingPage() {
 
             {/* CTA */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center px-4">
-              <CTAButton size="large">
+              <CTAButton>
                 <Store className="w-5 h-5 sm:w-6 sm:h-6" />
                 <span>無料で加盟店登録する</span>
                 <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -918,9 +905,9 @@ export default function AdLandingPage() {
                         color: colors.background,
                       }}
                     >
-                      <a href={LINKS.googleForm} target="_blank" rel="noopener noreferrer">
+                      <Link href={LINKS.partnerApply}>
                         今すぐ無料で始める
-                      </a>
+                      </Link>
                     </Button>
                   </motion.div>
                 </div>
@@ -1073,7 +1060,7 @@ export default function AdLandingPage() {
               </span>
             </p>
             
-            <CTAButton size="large">
+            <CTAButton>
               <MapPin className="w-5 h-5 sm:w-6 sm:h-6" />
               <span>無料で加盟店登録する</span>
               <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -1199,9 +1186,7 @@ export default function AdLandingPage() {
           }}
         >
           <motion.a
-            href={LINKS.googleForm}
-            target="_blank"
-            rel="noopener noreferrer"
+            href={LINKS.partnerApply}
             whileTap={{ scale: 0.98 }}
             className="flex items-center justify-center gap-2 w-full py-4 rounded-full font-bold text-base"
             style={{
