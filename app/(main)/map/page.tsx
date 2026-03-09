@@ -952,10 +952,10 @@ function MapPageContent() {
       const result = checkIsOpenFromStructuredHours(sbh);
       if (result === null) return store;
       if (result && store.vacancy_status === 'closed') {
-        return { ...store, vacancy_status: 'open' };
+        return { ...store, vacancy_status: 'open' as const };
       }
       if (!result && store.vacancy_status !== 'closed') {
-        return { ...store, vacancy_status: 'closed' };
+        return { ...store, vacancy_status: 'closed' as const };
       }
       return store;
     });
