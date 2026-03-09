@@ -490,7 +490,7 @@ export async function POST(request: NextRequest) {
     const { data: stores, error } = await supabase
       .from('stores')
       .select('*')
-      .not('google_place_id', 'is', null);
+      .or('google_place_id.not.is.null,structured_business_hours.not.is.null');
 
     if (error) return NextResponse.json({ error: 'Failed to fetch stores' }, { status: 500 });
     if (!stores || stores.length === 0) return NextResponse.json({ success: true, updated: 0, message: 'No stores found' });
