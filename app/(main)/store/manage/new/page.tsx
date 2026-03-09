@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { 
@@ -169,7 +169,21 @@ const inputStyles = {
 const getInputClassName = (disabled?: boolean) => 
   `${inputStyles.base} ${inputStyles.focus} ${inputStyles.default} ${disabled ? 'opacity-60 cursor-not-allowed' : ''}`;
 
-export default function NewStorePage() {
+export default function NewStorePageWrapper() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center h-screen" style={{ background: 'linear-gradient(165deg, #0A1628 0%, #162447 50%, #1F4068 100%)' }}>
+          <Loader2 className="w-10 h-10 animate-spin" style={{ color: '#C9A86C' }} />
+        </div>
+      }
+    >
+      <NewStorePage />
+    </Suspense>
+  );
+}
+
+function NewStorePage() {
   const router = useRouter();
   const { user } = useAuth();
   const searchParams = useSearchParams();
