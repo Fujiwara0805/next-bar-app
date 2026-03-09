@@ -93,7 +93,6 @@ export function validateStep(step: number, values: ApplicationFormValues): strin
       }
       return null;
     case 5:
-      if (!values.termsAgreed) return '利用規約への同意が必要です';
       return null;
     default:
       return null;
@@ -110,25 +109,31 @@ export const PAYMENT_METHOD_OPTIONS = [
   '交通系IC（Suica、PASMOなど）',
 ] as const;
 
-// 設備カテゴリ
+// 設備カテゴリ（新規登録画面・編集画面と統一）
 export const FACILITY_CATEGORIES = {
   newcomer: {
-    title: '新規・一人客向け',
+    title: '✨ 新規・一人客向け',
     items: ['一人客歓迎', 'おひとり様大歓迎', 'カウンター充実', '常連さんが優しい'],
   },
-  smoking: {
-    title: '喫煙',
-    items: ['喫煙可', '分煙', '禁煙'],
+  women: {
+    title: '💕 女性向け',
+    items: ['女性客多め', '女性一人でも安心', '女性スタッフ在籍', 'レディースデー有'],
   },
-  seating: {
-    title: '座席',
-    items: ['カウンター席', '個室', 'テラス席', 'ソファ席', '掘りごたつ'],
-  },
-  amenities: {
-    title: 'その他設備',
-    items: ['Wi-Fi', '駐車場', 'カラオケ', 'ダーツ', 'チャージなし'],
+  pricing: {
+    title: '💰 料金関連',
+    items: ['チャージなし', '席料なし', 'お通しなし', '明朗会計', '価格表示あり', '予算相談OK'],
   },
 } as const;
+
+export const OTHER_FACILITIES = [
+  'Wi-Fi', '喫煙可', '分煙', '禁煙', '駐車場', 'カウンター席', '個室', 'テラス席', 'ソファ席',
+  'カラオケ完備', 'ダーツ', 'ビリヤード', 'ボードゲーム', '生演奏', 'DJ', 'スポーツ観戦可',
+  '日本酒充実', 'ウイスキー充実', 'ワイン充実', 'カクテル豊富', 'クラフトビール', '焼酎充実',
+  'フード充実', 'おつまみ豊富', '英語対応可', '外国語メニューあり', '観光客歓迎', 'ホテル近く',
+  '駅近', '深夜営業', '朝まで営業', 'ボトルキープ可', 'セット料金あり', '静かな雰囲気',
+  'ワイワイ系', 'オーセンティック', 'カジュアル', '隠れ家的', '大人の雰囲気', '昭和レトロ',
+  'スタイリッシュ', 'アットホーム', 'ママ・マスター人気', '美味しいお酒', 'こだわりの一杯',
+] as const;
 
 // ステータスの表示情報
 export const APPLICATION_STATUS_MAP: Record<ApplicationStatus, {

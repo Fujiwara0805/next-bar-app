@@ -35,6 +35,7 @@ import {
   validateStep,
   PAYMENT_METHOD_OPTIONS,
   FACILITY_CATEGORIES,
+  OTHER_FACILITIES,
   APPLICATION_STEPS,
 } from '@/lib/types/store-application';
 
@@ -63,7 +64,7 @@ const COLORS = {
 // Input Styles
 // ============================================
 const inputStyles = {
-  base: 'w-full px-4 py-3 rounded-xl bg-white border-2 transition-all duration-200 font-medium placeholder:text-gray-400 focus:outline-none',
+  base: 'w-full px-4 py-3 rounded-xl bg-white text-[#2D3436] border-2 transition-all duration-200 font-medium placeholder:text-gray-400 focus:outline-none',
   focus: 'focus:border-[#C9A86C] focus:ring-2 focus:ring-[#C9A86C]/20',
   default: 'border-gray-200 hover:border-gray-300',
 };
@@ -433,10 +434,6 @@ function Step3Facilities({
               className="text-sm font-bold mb-3 flex items-center gap-2"
               style={{ color: COLORS.charcoal }}
             >
-              <span
-                className="w-1 h-4 rounded-full"
-                style={{ background: COLORS.goldGradient }}
-              />
               {category.title}
             </h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
@@ -465,6 +462,36 @@ function Step3Facilities({
             </div>
           </div>
         ))}
+
+        <GoldDivider />
+
+        <div>
+          <h3
+            className="text-sm font-bold mb-3 flex items-center gap-2"
+            style={{ color: COLORS.charcoal }}
+          >
+            🏢 その他の設備・特徴
+          </h3>
+          <div
+            className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-64 overflow-y-auto p-3 rounded-xl"
+            style={{ backgroundColor: 'rgba(0, 0, 0, 0.02)', border: '1px solid #e5e7eb' }}
+          >
+            {OTHER_FACILITIES.map((facility) => (
+              <label
+                key={facility}
+                className="flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-all duration-150 hover:bg-white"
+              >
+                <Checkbox
+                  checked={values.facilities.includes(facility)}
+                  onCheckedChange={() => toggleFacility(facility)}
+                />
+                <span className="text-sm font-medium" style={{ color: COLORS.charcoal }}>
+                  {facility}
+                </span>
+              </label>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -700,22 +727,59 @@ function Step5Confirm({
             style={{ background: `${COLORS.ivory}`, border: `1px solid ${COLORS.platinum}` }}
           >
             <h4 className="text-xs font-bold mb-2 uppercase tracking-wider" style={{ color: COLORS.champagneGold }}>
-              設備・サービス
+              設備・サービス（{values.facilities.length}件）
             </h4>
-            <div className="flex flex-wrap gap-1.5">
-              {values.facilities.map((f) => (
-                <span
-                  key={f}
-                  className="text-xs px-2.5 py-1 rounded-full font-medium"
-                  style={{
-                    background: `${COLORS.champagneGold}15`,
-                    color: COLORS.antiqueGold,
-                  }}
-                >
-                  {f}
-                </span>
-              ))}
-            </div>
+            {Object.entries(FACILITY_CATEGORIES).map(([key, category]) => {
+              const matched = category.items.filter((item) => values.facilities.includes(item));
+              if (matched.length === 0) return null;
+              return (
+                <div key={key} className="mb-2">
+                  <p className="text-[11px] font-bold mb-1" style={{ color: COLORS.warmGray }}>
+                    {category.title}
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {matched.map((f) => (
+                      <span
+                        key={f}
+                        className="text-xs px-2.5 py-1 rounded-full font-medium"
+                        style={{
+                          background: `${COLORS.champagneGold}15`,
+                          color: COLORS.antiqueGold,
+                        }}
+                      >
+                        {f}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+            {(() => {
+              const categoryItems: string[] = Object.values(FACILITY_CATEGORIES).flatMap((c) => [...c.items]);
+              const others = values.facilities.filter((f) => !categoryItems.includes(f));
+              if (others.length === 0) return null;
+              return (
+                <div className="mt-2">
+                  <p className="text-[11px] font-bold mb-1" style={{ color: COLORS.warmGray }}>
+                    🏢 その他の設備・特徴
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {others.map((f) => (
+                      <span
+                        key={f}
+                        className="text-xs px-2.5 py-1 rounded-full font-medium"
+                        style={{
+                          background: `${COLORS.champagneGold}15`,
+                          color: COLORS.antiqueGold,
+                        }}
+                      >
+                        {f}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         )}
 
@@ -757,34 +821,6 @@ function Step5Confirm({
         </div>
 
         <GoldDivider />
-
-        {/* Terms Agreement */}
-        <label className="flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 hover:border-[#C9A86C]/40"
-          style={{
-            background: values.termsAgreed ? `${COLORS.champagneGold}08` : '#fff',
-            borderColor: values.termsAgreed ? COLORS.champagneGold : '#e5e7eb',
-          }}
-        >
-          <Checkbox
-            checked={values.termsAgreed}
-            onCheckedChange={(checked) =>
-              onChange({ termsAgreed: checked === true })
-            }
-            className="mt-0.5"
-          />
-          <span className="text-sm font-medium" style={{ color: COLORS.charcoal }}>
-            <Link
-              href="/terms"
-              target="_blank"
-              className="underline"
-              style={{ color: COLORS.champagneGold }}
-            >
-              利用規約
-            </Link>
-            に同意します
-            <RequiredBadge />
-          </span>
-        </label>
 
         {/* Remarks */}
         <div>
@@ -909,13 +945,20 @@ export default function PartnerApplyPage() {
       if (formValues.imageFiles.length > 0) {
         const folderUuid = crypto.randomUUID();
 
-        for (const file of formValues.imageFiles) {
-          const filePath = `${folderUuid}/${file.name}`;
+        for (let i = 0; i < formValues.imageFiles.length; i++) {
+          const file = formValues.imageFiles[i];
+          const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+          const safeName = `${Date.now()}_${i}.${ext}`;
+          const filePath = `${folderUuid}/${safeName}`;
           const { error: uploadError } = await supabase.storage
             .from('store-application-images')
-            .upload(filePath, file);
+            .upload(filePath, file, {
+              contentType: file.type || 'image/jpeg',
+              upsert: false,
+            });
 
           if (uploadError) {
+            console.error('Upload error:', uploadError);
             throw new Error(`画像のアップロードに失敗しました: ${file.name}`);
           }
 
@@ -991,20 +1034,6 @@ export default function PartnerApplyPage() {
             <ChevronLeft className="w-4 h-4" />
             <span className="text-sm font-medium">戻る</span>
           </Link>
-          <div className="flex items-center gap-2">
-            <span
-              className="text-base font-bold tracking-wider"
-              style={{ color: COLORS.ivory }}
-            >
-              NIKENME
-            </span>
-            <span
-              className="text-base font-black"
-              style={{ color: COLORS.champagneGold }}
-            >
-              +
-            </span>
-          </div>
           <div className="w-16" />
         </div>
       </header>
@@ -1097,6 +1126,7 @@ export default function PartnerApplyPage() {
                     onClick={handlePrev}
                     className="flex items-center gap-2 px-5 py-2.5 rounded-full font-semibold text-sm border-2 transition-all hover:scale-[1.02]"
                     style={{
+                      backgroundColor: '#FFFFFF',
                       borderColor: `${COLORS.champagneGold}40`,
                       color: COLORS.charcoal,
                     }}

@@ -49,22 +49,12 @@ const COLORS = {
   cardGradient: 'linear-gradient(145deg, #FDFBF7 0%, #F5F1EB 100%)',
 };
 
-// フィルタータブ定義
-const FILTER_TABS: { key: ApplicationStatus | 'all'; label: string }[] = [
-  { key: 'all', label: 'すべて' },
-  { key: 'pending', label: '未確認' },
-  { key: 'reviewing', label: '確認中' },
-  { key: 'approved', label: '承認済' },
-  { key: 'rejected', label: '不承認' },
-];
-
 export default function ApplicationsManagePage() {
   const router = useRouter();
   const { user, profile, accountType } = useAuth();
 
   const [applications, setApplications] = useState<StoreApplication[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<ApplicationStatus | 'all'>('all');
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
   const [applicationToReject, setApplicationToReject] =
     useState<StoreApplication | null>(null);
@@ -93,6 +83,7 @@ export default function ApplicationsManagePage() {
       const { data, error } = await supabase
         .from('store_applications')
         .select('*')
+        .eq('status', 'pending')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -109,11 +100,7 @@ export default function ApplicationsManagePage() {
     }
   };
 
-  // フィルタリング
-  const filteredApplications =
-    activeTab === 'all'
-      ? applications
-      : applications.filter((app) => app.status === activeTab);
+  const filteredApplications = applications;
 
   // 不承認処理
   const handleRejectClick = (application: StoreApplication) => {
@@ -248,7 +235,7 @@ export default function ApplicationsManagePage() {
                 className="text-sm mt-1 font-bold"
                 style={{ color: COLORS.platinum }}
               >
-                {applications.length}件の申し込み
+                未確認 {applications.length}件
               </p>
             </div>
             <Button
@@ -265,60 +252,7 @@ export default function ApplicationsManagePage() {
         </div>
       </header>
 
-      {/* フィルタータブ */}
-      <div
-        className="sticky top-[73px] z-10 border-b"
-        style={{
-          backgroundColor: COLORS.ivory,
-          borderColor: 'rgba(201, 168, 108, 0.15)',
-        }}
-      >
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex overflow-x-auto no-scrollbar">
-            {FILTER_TABS.map((tab) => {
-              const isActive = activeTab === tab.key;
-              const count =
-                tab.key === 'all'
-                  ? applications.length
-                  : applications.filter((a) => a.status === tab.key).length;
-              return (
-                <button
-                  key={tab.key}
-                  onClick={() => setActiveTab(tab.key)}
-                  className="relative px-4 py-3 text-sm font-bold whitespace-nowrap transition-colors"
-                  style={{
-                    color: isActive ? COLORS.champagneGold : COLORS.warmGray,
-                  }}
-                >
-                  {tab.label}
-                  {count > 0 && (
-                    <span
-                      className="ml-1.5 text-xs px-1.5 py-0.5 rounded-full"
-                      style={{
-                        backgroundColor: isActive
-                          ? 'rgba(201, 168, 108, 0.15)'
-                          : 'rgba(99, 110, 114, 0.1)',
-                        color: isActive
-                          ? COLORS.champagneGold
-                          : COLORS.warmGray,
-                      }}
-                    >
-                      {count}
-                    </span>
-                  )}
-                  {isActive && (
-                    <motion.div
-                      layoutId="activeTab"
-                      className="absolute bottom-0 left-0 right-0 h-0.5"
-                      style={{ background: COLORS.goldGradient }}
-                    />
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </div>
+      {/* フィルタータブは不要（未確認のみ表示） */}
 
       {/* メインコンテンツ */}
       <main className="flex-1 max-w-4xl mx-auto w-full px-4 py-6">

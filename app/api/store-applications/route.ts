@@ -2,12 +2,40 @@
  * ============================================
  * APIエンドポイント: /api/store-applications
  * POST: 公開フォームからの申し込み受付（認証不要）
+ *       Supabase + Google Spreadsheet に記録
  * GET: 申し込み一覧取得（platform ownerのみ）
+ *
+ * 環境変数:
+ *   GOOGLE_SHEETS_APPLICATION_WEBHOOK_URL - 加盟店申請用 Google Apps Script Web App URL
  * ============================================
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+
+const GOOGLE_SHEETS_APPLICATION_WEBHOOK_URL =
+  process.env.GOOGLE_SHEETS_APPLICATION_WEBHOOK_URL;
+
+async function sendToGoogleSheets(applicationData: Record<string, unknown>) {
+  if (!GOOGLE_SHEETS_APPLICATION_WEBHOOK_URL) {
+    console.log('※ GOOGLE_SHEETS_APPLICATION_WEBHOOK_URL を設定するとスプレッドシートに記録されます');
+    return;
+  }
+
+  try {
+    const res = await fetch(GOOGLE_SHEETS_APPLICATION_WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(applicationData),
+    });
+
+    if (!res.ok) {
+      console.error('Google Sheets webhook error:', res.status);
+    }
+  } catch (err) {
+    console.error('Google Sheets webhook failed:', err);
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -25,7 +53,6 @@ export async function POST(request: NextRequest) {
       facilities,
       contact_email,
       image_urls,
-      terms_agreed,
       remarks,
     } = body;
 
@@ -43,10 +70,6 @@ export async function POST(request: NextRequest) {
     if (!emailRegex.test(contact_email)) {
       return NextResponse.json({ error: '有効なメールアドレスを入力してください' }, { status: 400 });
     }
-    if (!terms_agreed) {
-      return NextResponse.json({ error: '利用規約への同意が必要です' }, { status: 400 });
-    }
-
     const supabase = createServerSupabaseClient();
 
     const { data, error } = await supabase
@@ -64,7 +87,7 @@ export async function POST(request: NextRequest) {
         facilities: facilities || [],
         contact_email: contact_email.trim(),
         image_urls: image_urls || [],
-        terms_agreed,
+        terms_agreed: true,
         remarks: remarks?.trim() || null,
       })
       .select('id')
@@ -74,6 +97,25 @@ export async function POST(request: NextRequest) {
       console.error('Store application insert error:', error);
       return NextResponse.json({ error: '申し込みの送信に失敗しました' }, { status: 500 });
     }
+
+    // Google Spreadsheet にも送信（非同期・失敗してもユーザーにはエラーを返さない）
+    sendToGoogleSheets({
+      timestamp: new Date().toISOString(),
+      id: data.id,
+      store_name: store_name.trim(),
+      description: description?.trim() || '',
+      address: address.trim(),
+      phone: phone?.trim() || '',
+      business_hours: business_hours?.trim() || '',
+      regular_holiday: regular_holiday?.trim() || '',
+      budget_min: budget_min || 0,
+      budget_max: budget_max || 0,
+      payment_methods: (payment_methods || []).join(', '),
+      facilities: (facilities || []).join(', '),
+      contact_email: contact_email.trim(),
+      image_urls: (image_urls || []).join(', '),
+      remarks: remarks?.trim() || '',
+    });
 
     return NextResponse.json({ success: true, id: data.id });
   } catch (error) {
