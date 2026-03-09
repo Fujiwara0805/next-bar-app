@@ -24,7 +24,7 @@ import { translations } from '@/lib/i18n/translations';
 import { OgoriTicketBadge } from '@/components/ogori/OgoriTicketBadge';
 import { OgoriSection } from '@/components/ogori/OgoriSection';
 import { InstantReservationButton } from '@/components/instant-reservation-button';
-import { getTodayOpenTime, isTodayClosedDay } from '@/lib/structured-business-hours';
+import { getTodayOpenTime, isTodayClosedDay, checkIsOpenFromStructuredHours } from '@/lib/structured-business-hours';
 import { sendGAEvent } from '@/lib/analytics';
 import type { Database, BusinessHours } from '@/lib/supabase/types';
 
@@ -134,6 +134,19 @@ export function StoreDetailPanel({
       minutes: calculateWalkingTime(km),
     };
   }, [userLocation, store.latitude, store.longitude]);
+
+  const getEffectiveVacancyStatus = (): string => {
+    const sbh = store.structured_business_hours as BusinessHours | null;
+    if (!sbh) return store.vacancy_status ?? 'closed';
+    const result = checkIsOpenFromStructuredHours(sbh);
+    if (result === null) return store.vacancy_status ?? 'closed';
+    if (result) {
+      return store.vacancy_status === 'closed' ? 'open' : (store.vacancy_status ?? 'open');
+    }
+    return 'closed';
+  };
+
+  const effectiveStatus = getEffectiveVacancyStatus();
 
   const getVacancyLabel = (status: string) => {
     switch (status) {
@@ -350,14 +363,14 @@ export function StoreDetailPanel({
 
                 <div className="flex items-center gap-2 pt-1">
                   <img
-                    src={getVacancyIcon(store.vacancy_status)}
-                    alt={getVacancyLabel(store.vacancy_status)}
+                    src={getVacancyIcon(effectiveStatus)}
+                    alt={getVacancyLabel(effectiveStatus)}
                     className="w-6 h-6"
                   />
                   <span className="text-xl font-bold" style={{ color: theme.text }}>
-                    {getVacancyLabel(store.vacancy_status)}
+                    {getVacancyLabel(effectiveStatus)}
                   </span>
-                  {store.vacancy_status === 'vacant' && store.vacant_seats != null && store.vacant_seats > 0 && (
+                  {effectiveStatus === 'vacant' && store.vacant_seats != null && store.vacant_seats > 0 && (
                     <span className="text-sm font-bold px-2 py-0.5 rounded-lg" style={{
                       backgroundColor: 'rgba(34, 197, 94, 0.1)',
                       color: '#16a34a',
@@ -365,7 +378,7 @@ export function StoreDetailPanel({
                       {t('store_detail.vacant_seats').replace('{count}', String(store.vacant_seats))}
                     </span>
                   )}
-                  {store.vacancy_status === 'closed' && (() => {
+                  {effectiveStatus === 'closed' && (() => {
                     const sbh = store.structured_business_hours as BusinessHours | null;
                     if (isTodayClosedDay(sbh)) {
                       return (

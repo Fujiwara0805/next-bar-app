@@ -40,6 +40,8 @@ import {
 } from '@/lib/cache';
 import { sendGAEvent } from '@/lib/analytics';
 import { StoreDetailPanel } from '@/components/map/StoreDetailPanel';
+import { checkIsOpenFromStructuredHours } from '@/lib/structured-business-hours';
+import type { BusinessHours } from '@/lib/supabase/types';
 
 type Store = Database['public']['Tables']['stores']['Row'];
 
@@ -943,7 +945,20 @@ function MapPageContent() {
 
   // Viewport内の店舗のみをフィルタリング（メモ化）
   const filteredStores = useMemo(() => {
-    return filterStoresByViewport(stores, currentBounds);
+    const viewportStores = filterStoresByViewport(stores, currentBounds);
+    return viewportStores.map(store => {
+      const sbh = store.structured_business_hours as BusinessHours | null;
+      if (!sbh) return store;
+      const result = checkIsOpenFromStructuredHours(sbh);
+      if (result === null) return store;
+      if (result && store.vacancy_status === 'closed') {
+        return { ...store, vacancy_status: 'open' };
+      }
+      if (!result && store.vacancy_status !== 'closed') {
+        return { ...store, vacancy_status: 'closed' };
+      }
+      return store;
+    });
   }, [stores, currentBounds]);
 
   // stores から最新データを導出（IDのみ保持し、表示はstoresから取得）

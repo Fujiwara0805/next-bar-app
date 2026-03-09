@@ -28,7 +28,7 @@ import { useLanguage } from '@/lib/i18n/context';
 import { ConciergeModal } from '@/components/concierge-modal';
 import { OgoriTicketBadge } from '@/components/ogori/OgoriTicketBadge';
 import { isCouponValid } from '@/lib/types/coupon';
-import { getTodayOpenTime, isTodayClosedDay } from '@/lib/structured-business-hours';
+import { getTodayOpenTime, isTodayClosedDay, checkIsOpenFromStructuredHours as checkIsOpenFromStructuredHoursClient } from '@/lib/structured-business-hours';
 
 type Store = Database['public']['Tables']['stores']['Row'];
 
@@ -60,6 +60,13 @@ const IS_OPEN_UPDATE_COOLDOWN_MS = 60 * 60 * 1000; // 1時間
 const IS_OPEN_UPDATE_LOCALSTORAGE_KEY = 'isOpenUpdate:lastRun';
 
 const isStoreCurrentlyOpen = (store: Store): boolean => {
+  // structured_business_hours があればリアルタイム判定（API未呼び出し時でも正確）
+  const sbh = store.structured_business_hours as BusinessHours | null;
+  if (sbh) {
+    const result = checkIsOpenFromStructuredHoursClient(sbh);
+    if (result !== null) return result;
+  }
+
   if (typeof store.is_open === 'boolean') {
     return store.is_open;
   }
@@ -528,6 +535,27 @@ function StoreListContent() {
     return conciergeFilters.filter(f => store.facilities!.includes(f)).length;
   };
 
+  /**
+   * structured_business_hours でリアルタイム補正した vacancy_status を返す。
+   * DB上の vacancy_status が 'closed' でも、structured_business_hours 上は営業中なら 'open' に補正する。
+   * 逆に DB が 'open'/'vacant' でも structured_business_hours 上は営業外なら 'closed' に補正する。
+   */
+  const getEffectiveVacancyStatus = (store: Store): string => {
+    const sbh = store.structured_business_hours as BusinessHours | null;
+    if (!sbh) return store.vacancy_status ?? 'closed';
+    
+    const result = checkIsOpenFromStructuredHoursClient(sbh);
+    if (result === null) return store.vacancy_status ?? 'closed';
+    
+    if (result) {
+      // 営業中: DB が closed なら open に補正、それ以外はDB値を尊重
+      return store.vacancy_status === 'closed' ? 'open' : (store.vacancy_status ?? 'open');
+    } else {
+      // 営業外: 強制的に closed
+      return 'closed';
+    }
+  };
+
   const getVacancyLabel = (status: string) => {
     switch (status) {
       case 'vacant': return t('store_list.vacant');
@@ -811,10 +839,13 @@ function StoreListContent() {
                                 );
                               })()}
                               
+                              {(() => {
+                                const effectiveStatus = getEffectiveVacancyStatus(store);
+                                return (
                               <motion.div className="flex items-center gap-2 pt-1 flex-wrap" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}>
-                                <img src={getVacancyIcon(store.vacancy_status)} alt={getVacancyLabel(store.vacancy_status)} className="w-6 h-6 object-contain" />
-                                <span className="text-lg font-bold" style={{ color: COLORS.deepNavy }}>{getVacancyLabel(store.vacancy_status)}</span>
-                                {store.vacancy_status === 'vacant' && store.vacant_seats != null && store.vacant_seats > 0 && (
+                                <img src={getVacancyIcon(effectiveStatus)} alt={getVacancyLabel(effectiveStatus)} className="w-6 h-6 object-contain" />
+                                <span className="text-lg font-bold" style={{ color: COLORS.deepNavy }}>{getVacancyLabel(effectiveStatus)}</span>
+                                {effectiveStatus === 'vacant' && store.vacant_seats != null && store.vacant_seats > 0 && (
                                   <span className="text-sm font-bold px-2 py-0.5 rounded-lg" style={{
                                     backgroundColor: 'rgba(34, 197, 94, 0.1)',
                                     color: '#16a34a',
@@ -822,7 +853,7 @@ function StoreListContent() {
                                     {t('store_detail.vacant_seats').replace('{count}', String(store.vacant_seats))}
                                   </span>
                                 )}
-                                {store.vacancy_status === 'closed' && (() => {
+                                {effectiveStatus === 'closed' && (() => {
                                   const sbh = store.structured_business_hours as BusinessHours | null;
                                   if (isTodayClosedDay(sbh)) {
                                     return (
@@ -846,6 +877,8 @@ function StoreListContent() {
                                   );
                                 })()}
                               </motion.div>
+                                );
+                              })()}
                               
                               {/* おごりチケット */}
                               <OgoriTicketBadge storeId={store.id} compact />

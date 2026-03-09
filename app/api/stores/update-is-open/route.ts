@@ -215,7 +215,12 @@ async function updateSingleStore(
 
   if (manualClosed && isManualCloseExpired(store.manual_closed_at)) {
     const cleared = await clearManualClose(store.id);
-    if (cleared) manualClosed = false;
+    if (cleared) {
+      manualClosed = false;
+      // clearManualClose が last_is_open_check_at を null にリセットするため、
+      // メモリ上の store オブジェクトも同期する（CASロック不整合を防止）
+      store.last_is_open_check_at = null;
+    }
   }
 
   if (manualClosed) {
@@ -338,6 +343,12 @@ async function updateSingleStore(
         };
       }
       // structuredResult === null → 当日データなし、Google API にフォールバック
+    }
+
+    // google_place_id がなければ Google API にフォールバックできない → 判定不可としてスキップ
+    if (!store.google_place_id) {
+      console.log(`[Skip] Store ${store.id}: No google_place_id and structured hours returned null`);
+      return null;
     }
 
     // 更新権を獲得したリクエスト、または forceUpdate=true のリクエストが Google API を叩く

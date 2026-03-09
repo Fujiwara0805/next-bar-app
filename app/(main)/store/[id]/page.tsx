@@ -51,7 +51,7 @@ import { isCouponValid, type CouponData } from '@/lib/types/coupon';
 import { ImageLightbox } from '@/components/ui/ImageLightbox';
 import { sendGAEvent } from '@/lib/analytics';
 import { OgoriSection } from '@/components/ogori/OgoriSection';
-import { getTodayOpenTime, isTodayClosedDay } from '@/lib/structured-business-hours';
+import { getTodayOpenTime, isTodayClosedDay, checkIsOpenFromStructuredHours } from '@/lib/structured-business-hours';
 
 type Store = Database['public']['Tables']['stores']['Row'];
 
@@ -529,6 +529,18 @@ export default function StoreDetailPage() {
   // ============================================
   // ヘルパー関数
   // ============================================
+  const getEffectiveVacancyStatus = (): string => {
+    if (!store) return 'closed';
+    const sbh = store.structured_business_hours as BusinessHours | null;
+    if (!sbh) return store.vacancy_status ?? 'closed';
+    const result = checkIsOpenFromStructuredHours(sbh);
+    if (result === null) return store.vacancy_status ?? 'closed';
+    if (result) {
+      return store.vacancy_status === 'closed' ? 'open' : (store.vacancy_status ?? 'open');
+    }
+    return 'closed';
+  };
+
   const getVacancyLabel = (status: string) => {
     switch (status) {
       case 'vacant': return t('map.vacant');
@@ -857,6 +869,9 @@ export default function StoreDetailPage() {
               
               {/* 空席情報とクーポン */}
               <div className="flex gap-2 mb-3 items-center flex-wrap justify-between">
+                {(() => {
+                  const effectiveStatus = getEffectiveVacancyStatus();
+                  return (
                 <motion.div 
                   className="flex items-center gap-2 rounded-xl px-4 py-2"
                   style={{ 
@@ -867,14 +882,14 @@ export default function StoreDetailPage() {
                   animate={{ opacity: 1, scale: 1 }}
                 >
                   <img
-                    src={getVacancyIcon(store.vacancy_status)}
-                    alt={getVacancyLabel(store.vacancy_status)}
+                    src={getVacancyIcon(effectiveStatus)}
+                    alt={getVacancyLabel(effectiveStatus)}
                     className="w-8 h-8 object-contain"
                   />
                   <span className="text-lg font-bold" style={{ color: COLORS.deepNavy }}>
-                    {getVacancyLabel(store.vacancy_status)}
+                    {getVacancyLabel(effectiveStatus)}
                   </span>
-                  {store.vacancy_status === 'vacant' && store.vacant_seats != null && store.vacant_seats > 0 && (
+                  {effectiveStatus === 'vacant' && store.vacant_seats != null && store.vacant_seats > 0 && (
                     <span className="text-sm font-bold px-2 py-0.5 rounded-lg" style={{
                       backgroundColor: 'rgba(34, 197, 94, 0.1)',
                       color: '#16a34a',
@@ -882,7 +897,7 @@ export default function StoreDetailPage() {
                       {t('store_detail.vacant_seats').replace('{count}', String(store.vacant_seats))}
                     </span>
                   )}
-                  {store.vacancy_status === 'closed' && (() => {
+                  {effectiveStatus === 'closed' && (() => {
                     const sbh = store.structured_business_hours as BusinessHours | null;
                     if (isTodayClosedDay(sbh)) {
                       return (
@@ -906,6 +921,8 @@ export default function StoreDetailPage() {
                     );
                   })()}
                 </motion.div>
+                  );
+                })()}
 
                 {/* 高級感のあるクーポンボタン */}
                 {isCouponValid(store) && store.coupon_title && (
