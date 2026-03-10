@@ -29,6 +29,7 @@ import { ConciergeModal } from '@/components/concierge-modal';
 import { OgoriTicketBadge } from '@/components/ogori/OgoriTicketBadge';
 import { isCouponValid } from '@/lib/types/coupon';
 import { getTodayOpenTime, isTodayClosedDay, checkIsOpenFromStructuredHours as checkIsOpenFromStructuredHoursClient } from '@/lib/structured-business-hours';
+import { useOptimizedLocation } from '@/lib/hooks/useOptimizedLocation';
 
 type Store = Database['public']['Tables']['stores']['Row'];
 
@@ -119,7 +120,7 @@ function StoreListContent() {
   const [stores, setStores] = useState<Store[]>([]);
   const [filteredStores, setFilteredStores] = useState<Store[]>([]);
   const [loading, setLoading] = useState(true);
-  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const { location: userLocation } = useOptimizedLocation();
   
   const [vacantOnly, setVacantOnly] = useState(false);
   const [openNowOnly, setOpenNowOnly] = useState(false);
@@ -150,10 +151,6 @@ function StoreListContent() {
     });
     
     window.history.replaceState({}, '', url.toString());
-  }, []);
-
-  useEffect(() => {
-    loadUserLocation();
   }, []);
 
   useEffect(() => {
@@ -446,36 +443,6 @@ function StoreListContent() {
       concierge: isConciergeActive && conciergeFilters.length > 0 ? conciergeFilters.join(',') : null,
     });
   }, [vacantOnly, openNowOnly, couponOnly, campaignOnly, campaignNameFilter, isConciergeActive, conciergeFilters, updateUrlParams]);
-
-  const loadUserLocation = () => {
-    const savedLocation = localStorage.getItem('userLocation');
-    if (savedLocation) {
-      try {
-        const location = JSON.parse(savedLocation);
-        setUserLocation(location);
-        return;
-      } catch (e) {
-        console.error('Failed to parse saved location');
-      }
-    }
-
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const location = { lat: position.coords.latitude, lng: position.coords.longitude };
-          setUserLocation(location);
-          localStorage.setItem('userLocation', JSON.stringify(location));
-        },
-        (error) => {
-          console.error('Error getting location:', error);
-          setUserLocation({ lat: 33.2382, lng: 131.6126 });
-        },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-      );
-    } else {
-      setUserLocation({ lat: 33.2382, lng: 131.6126 });
-    }
-  };
 
   const fetchStoresOnly = async () => {
     if (!userLocation) return;

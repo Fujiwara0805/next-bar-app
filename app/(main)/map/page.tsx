@@ -38,6 +38,7 @@ import {
   cacheManager,
   type LocationCacheData
 } from '@/lib/cache';
+import { useOptimizedLocation, DEFAULT_LOCATION } from '@/lib/hooks/useOptimizedLocation';
 import { sendGAEvent } from '@/lib/analytics';
 import { StoreDetailPanel } from '@/components/map/StoreDetailPanel';
 import { checkIsOpenFromStructuredHours } from '@/lib/structured-business-hours';
@@ -103,11 +104,6 @@ const colors = {
 // ============================================================================
 // 定数
 // ============================================================================
-
-const DEFAULT_LOCATION = {
-  lat: 33.2382,
-  lng: 131.6126,
-};
 
 const MAX_RETRY_COUNT = 3;
 const BASE_RETRY_DELAY_MS = 1000;
@@ -211,102 +207,6 @@ function filterStoresByViewport(
  */
 function generateBoundsKey(bounds: ViewportBounds): string {
   return `${bounds.ne.lat.toFixed(4)},${bounds.ne.lng.toFixed(4)},${bounds.sw.lat.toFixed(4)},${bounds.sw.lng.toFixed(4)},${bounds.zoom}`;
-}
-
-// ============================================================================
-// 最適化された位置情報取得フック
-// ============================================================================
-
-function useOptimizedLocation() {
-  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const isInitializedRef = useRef(false);
-  const isUpdatingRef = useRef(false);
-  const isMountedRef = useRef(true);
-
-  const updateLocationInBackground = useCallback(() => {
-    if (isUpdatingRef.current || !isMountedRef.current) return;
-    if (!navigator.geolocation) {
-      locationCache.set({ ...DEFAULT_LOCATION, isDefault: true });
-      return;
-    }
-
-    isUpdatingRef.current = true;
-    let resolved = false;
-
-    const timeoutId = setTimeout(() => {
-      if (!resolved) {
-        resolved = true;
-        isUpdatingRef.current = false;
-      }
-    }, 3000);
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        if (!resolved && isMountedRef.current) {
-          resolved = true;
-          clearTimeout(timeoutId);
-          isUpdatingRef.current = false;
-
-          const newLocation = {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          };
-
-          setLocation(newLocation);
-          locationCache.set({
-            lat: newLocation.lat,
-            lng: newLocation.lng,
-            accuracy: position.coords.accuracy,
-            isDefault: false,
-          });
-        }
-      },
-      (error) => {
-        if (!resolved) {
-          resolved = true;
-          clearTimeout(timeoutId);
-          isUpdatingRef.current = false;
-          debugWarn('Background location error:', error.message);
-          locationCache.set({ ...DEFAULT_LOCATION, isDefault: true });
-        }
-      },
-      {
-        enableHighAccuracy: false,
-        timeout: 2500,
-        maximumAge: 300000,
-      }
-    );
-  }, []);
-
-  useEffect(() => {
-    isMountedRef.current = true;
-
-    if (isInitializedRef.current) return;
-    isInitializedRef.current = true;
-
-    const cached = locationCache.get();
-    if (cached && !cached.isDefault) {
-      setLocation({ lat: cached.lat, lng: cached.lng });
-      setIsLoading(false);
-      updateLocationInBackground();
-      return;
-    }
-
-    setLocation(DEFAULT_LOCATION);
-    setIsLoading(false);
-    updateLocationInBackground();
-
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, [updateLocationInBackground]);
-
-  const refreshLocation = useCallback(() => {
-    updateLocationInBackground();
-  }, [updateLocationInBackground]);
-
-  return { location, isLoading, refreshLocation };
 }
 
 // ============================================================================

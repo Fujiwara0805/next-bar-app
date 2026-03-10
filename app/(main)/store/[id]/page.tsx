@@ -52,6 +52,7 @@ import { ImageLightbox } from '@/components/ui/ImageLightbox';
 import { sendGAEvent } from '@/lib/analytics';
 import { OgoriSection } from '@/components/ogori/OgoriSection';
 import { getTodayOpenTime, isTodayClosedDay, checkIsOpenFromStructuredHours } from '@/lib/structured-business-hours';
+import { useOptimizedLocation } from '@/lib/hooks/useOptimizedLocation';
 
 type Store = Database['public']['Tables']['stores']['Row'];
 
@@ -220,7 +221,7 @@ export default function StoreDetailPage() {
   const [loading, setLoading] = useState(true);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const { location: userLocation } = useOptimizedLocation();
   const [distance, setDistance] = useState<number | null>(null);
   const [placePhotos, setPlacePhotos] = useState<string[]>([]);
   const [loadingPhotos, setLoadingPhotos] = useState(false);
@@ -263,42 +264,6 @@ export default function StoreDetailPage() {
       setLightboxImages([]);
       setLightboxInitialIndex(0);
     }, 300); // アニメーション完了後にリセット
-  }, []);
-
-  // ============================================
-  // 位置情報の読み込み
-  // ============================================
-  const loadUserLocation = useCallback(() => {
-    const savedLocation = localStorage.getItem('userLocation');
-    if (savedLocation) {
-      try {
-        const location = JSON.parse(savedLocation);
-        setUserLocation(location);
-        return;
-      } catch (e) {
-        console.error('Failed to parse saved location');
-      }
-    }
-
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const location = {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          };
-          setUserLocation(location);
-          localStorage.setItem('userLocation', JSON.stringify(location));
-        },
-        (error) => {
-          console.error('Error getting location:', error);
-          setUserLocation({ lat: 33.2382, lng: 131.6126 });
-        },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-      );
-    } else {
-      setUserLocation({ lat: 33.2382, lng: 131.6126 });
-    }
   }, []);
 
   // ============================================
@@ -420,8 +385,7 @@ export default function StoreDetailPage() {
     if (params.id) {
       fetchStore(params.id as string);
     }
-    loadUserLocation();
-  }, [params.id, fetchStore, loadUserLocation]);
+  }, [params.id, fetchStore]);
 
   useEffect(() => {
     if (store && userLocation) {
