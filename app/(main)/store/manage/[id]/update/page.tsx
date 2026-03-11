@@ -278,6 +278,7 @@ export default function StoreUpdatePage() {
         .from('quick_reservations')
         .select('*')
         .eq('store_id', params.id as string)
+        .is('deleted_at', null)
         .order('created_at', { ascending: false })
         .limit(50);
 
@@ -438,13 +439,30 @@ export default function StoreUpdatePage() {
     );
   }, []);
 
-  const handleDeleteReservation = (reservationId: string) => {
-    setReservations(prev => prev.filter(r => r.id !== reservationId));
-    toast.success('予約カードを削除しました', { 
-      position: 'top-center',
-      duration: 2000,
-      className: 'bg-gray-100'
-    });
+  const handleDeleteReservation = async (reservationId: string) => {
+    try {
+      const updateData: Database['public']['Tables']['quick_reservations']['Update'] = {
+        deleted_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+      const { error } = await supabase
+        .from('quick_reservations')
+        // @ts-ignore - Supabaseの型推論の問題を回避
+        .update(updateData)
+        .eq('id', reservationId);
+
+      if (error) throw error;
+
+      setReservations(prev => prev.filter(r => r.id !== reservationId));
+      toast.success('予約カードを削除しました', {
+        position: 'top-center',
+        duration: 2000,
+        className: 'bg-gray-100'
+      });
+    } catch (error) {
+      console.error('Error deleting reservation:', error);
+      toast.error('削除に失敗しました', { position: 'top-center' });
+    }
   };
 
   const handleExportCSV = async () => {
