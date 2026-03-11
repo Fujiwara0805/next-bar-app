@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Mail, Lock, Loader2, Sparkles, Home } from 'lucide-react';
@@ -61,11 +61,23 @@ const GoldDivider = () => (
 
 export default function LoginPage() {
   const router = useRouter();
-  const { signIn } = useAuth();
+  const { signIn, user, accountType, store, loading: authLoading } = useAuth();
   const { t } = useLanguage();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // ログイン済みの場合は自動的にリダイレクト
+  useEffect(() => {
+    if (authLoading) return;
+    if (!user) return;
+
+    if (accountType === 'platform') {
+      router.replace('/store/manage');
+    } else if (accountType === 'store' && store?.id) {
+      router.replace(`/store/manage/${store.id}/update`);
+    }
+  }, [user, accountType, store, authLoading, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

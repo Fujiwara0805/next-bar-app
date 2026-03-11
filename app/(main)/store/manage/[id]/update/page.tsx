@@ -409,6 +409,10 @@ export default function StoreUpdatePage() {
       
       if (accountType === 'store') {
         fetchStore();
+        // 状況更新後にマップ画面へ遷移
+        setTimeout(() => {
+          router.push('/map');
+        }, 1500);
       } else {
         router.push('/store/manage');
       }
