@@ -670,6 +670,8 @@ export interface Database {
           no_show_at: string | null
           /** キャンセル日時 */
           cancelled_at: string | null
+          /** 論理削除日時（店舗管理画面での削除用） */
+          deleted_at: string | null
         }
         Insert: {
           id?: string
@@ -692,6 +694,7 @@ export interface Database {
           arrived_at?: string | null
           no_show_at?: string | null
           cancelled_at?: string | null
+          deleted_at?: string | null
         }
         Update: {
           id?: string
@@ -714,6 +717,7 @@ export interface Database {
           arrived_at?: string | null
           no_show_at?: string | null
           cancelled_at?: string | null
+          deleted_at?: string | null
         }
       }
     }

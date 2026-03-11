@@ -33,6 +33,7 @@ export function ReservationStatusTracker({
   const [status, setStatus] = useState<ReservationStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
 
   useEffect(() => {
     if (!reservationId || !isOpen) return;
@@ -95,6 +96,26 @@ export function ReservationStatusTracker({
       clearInterval(intervalId);
     };
   }, [reservationId, isOpen]);
+
+  // カウントダウンタイマー
+  useEffect(() => {
+    if (!status?.expiresAt || status.status !== 'pending') {
+      setRemainingSeconds(null);
+      return;
+    }
+
+    const updateRemaining = () => {
+      const now = Date.now();
+      const expiresAt = new Date(status.expiresAt).getTime();
+      const diff = Math.max(0, Math.ceil((expiresAt - now) / 1000));
+      setRemainingSeconds(diff);
+    };
+
+    updateRemaining();
+    const timerId = setInterval(updateRemaining, 1000);
+
+    return () => clearInterval(timerId);
+  }, [status?.expiresAt, status?.status]);
 
   const getStatusIcon = () => {
     if (loading) return <Loader2 className="w-12 h-12 animate-spin text-blue-500" />;
@@ -223,6 +244,23 @@ export function ReservationStatusTracker({
               exit={{ opacity: 0, y: 10 }}
               transition={{ delay: 0.2 }}
             >
+              {/* カウントダウンタイマー */}
+              {remainingSeconds !== null && (
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <div className="relative w-full bg-blue-200 rounded-full h-2 overflow-hidden">
+                    <motion.div
+                      className="absolute left-0 top-0 h-full rounded-full"
+                      style={{ backgroundColor: remainingSeconds <= 15 ? '#ef4444' : '#3b82f6' }}
+                      initial={{ width: '100%' }}
+                      animate={{ width: `${(remainingSeconds / 60) * 100}%` }}
+                      transition={{ duration: 1, ease: 'linear' }}
+                    />
+                  </div>
+                  <span className={`text-sm font-bold tabular-nums min-w-[40px] text-right ${remainingSeconds <= 15 ? 'text-red-600' : 'text-blue-700'}`}>
+                    {remainingSeconds}秒
+                  </span>
+                </div>
+              )}
               <div className="text-sm font-semibold text-blue-900">予約内容</div>
               <div className="text-xs text-blue-800 space-y-1">
                 <div>👤 {status.callerName}様</div>
