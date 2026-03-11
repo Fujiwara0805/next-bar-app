@@ -11,14 +11,35 @@ self.addEventListener('push', function(event) {
     vibrate: [200, 100, 200],
     tag: data.tag || 'nikenme-notification',
   };
-  event.waitUntil(self.registration.showNotification(title, options));
+  event.waitUntil(
+    self.registration.showNotification(title, options).then(function() {
+      // バッジカウントを更新（未読通知数をアプリアイコンに表示）
+      if (navigator.setAppBadge) {
+        return self.registration.getNotifications().then(function(notifications) {
+          return navigator.setAppBadge(notifications.length);
+        });
+      }
+    })
+  );
 });
 
 self.addEventListener('notificationclick', function(event) {
   event.notification.close();
   const url = event.notification.data?.url || '/';
+
   event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {
+    // バッジカウントを減らしてから画面を開く
+    self.registration.getNotifications().then(function(notifications) {
+      if (navigator.setAppBadge) {
+        if (notifications.length > 0) {
+          navigator.setAppBadge(notifications.length);
+        } else {
+          navigator.clearAppBadge();
+        }
+      }
+    }).then(function() {
+      return clients.matchAll({ type: 'window', includeUncontrolled: true });
+    }).then(function(clientList) {
       for (const client of clientList) {
         if (client.url.includes(url) && 'focus' in client) {
           return client.focus();
