@@ -24,10 +24,10 @@ export const metadata: Metadata = {
       { url: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_16/v1761355092/%E3%82%B5%E3%83%BC%E3%83%92%E3%82%99%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png', sizes: '16x16', type: 'image/png' },
       { url: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_32/v1761355092/%E3%82%B5%E3%83%BC%E3%83%92%E3%82%99%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png', sizes: '32x32', type: 'image/png' },
       { url: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_48/v1761355092/%E3%82%B5%E3%83%BC%E3%83%92%E3%82%99%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png', sizes: '48x48', type: 'image/png' },
-      { url: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_192/v1761355092/%E3%82%B5%E3%83%BC%E3%83%92%E3%82%99%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png', sizes: '192x192', type: 'image/png' },
+      { url: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_154,c_pad,w_192,h_192,b_white/v1761355092/%E3%82%B5%E3%83%BC%E3%83%92%E3%82%99%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png', sizes: '192x192', type: 'image/png' },
     ],
     apple: [
-      { url: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_180/v1761355092/%E3%82%B5%E3%83%BC%E3%83%92%E3%82%99%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png', sizes: '180x180', type: 'image/png' },
+      { url: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_144,c_pad,w_180,h_180,b_white/v1761355092/%E3%82%B5%E3%83%BC%E3%83%92%E3%82%99%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png', sizes: '180x180', type: 'image/png' },
     ],
     other: [
       {
@@ -293,7 +293,7 @@ export default function RootLayout({
         <link rel="icon" type="image/png" sizes="16x16" href="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_16/v1761355092/%E3%82%B5%E3%83%BC%E3%83%92%E3%82%99%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png" />
         <link rel="icon" type="image/png" sizes="32x32" href="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_32/v1761355092/%E3%82%B5%E3%83%BC%E3%83%92%E3%82%99%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png" />
         <link rel="icon" type="image/png" sizes="48x48" href="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_48/v1761355092/%E3%82%B5%E3%83%BC%E3%83%92%E3%82%99%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png" />
-        <link rel="apple-touch-icon" sizes="180x180" href="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_180/v1761355092/%E3%82%B5%E3%83%BC%E3%83%92%E3%82%99%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_144,c_pad,w_180,h_180,b_white/v1761355092/%E3%82%B5%E3%83%BC%E3%83%92%E3%82%99%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#3b82f6" />
         
