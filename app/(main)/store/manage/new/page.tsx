@@ -3,10 +3,10 @@
 import { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { 
-  MapPin, 
-  Store as StoreIcon, 
-  Phone, 
+import {
+  MapPin,
+  Store as StoreIcon,
+  Phone,
   Loader2,
   Search,
   Mail,
@@ -22,6 +22,9 @@ import {
   Settings,
   Sparkles,
   ChevronRight,
+  Upload,
+  X,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -214,6 +217,12 @@ function NewStorePage() {
   const [paymentMethods, setPaymentMethods] = useState<string[]>([]);
   const [facilities, setFacilities] = useState<string[]>([]);
 
+  // 画像関連のステート
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [mainImageIndex, setMainImageIndex] = useState(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   // おごり酒関連のステート
   const [ogoriValues, setOgoriValues] = useState<OgoriFormValues>(getDefaultOgoriFormValues());
 
@@ -324,6 +333,7 @@ function NewStorePage() {
           setBudgetMax(data.budget_max || 0);
           setPaymentMethods(data.payment_methods || []);
           setFacilities(data.facilities || []);
+          setImageUrls(data.image_urls || []);
           setApplicationLoaded(true);
 
           toast.success('申し込みデータを読み込みました', {
@@ -534,6 +544,123 @@ function NewStorePage() {
     );
   };
 
+  // 画像アップロードハンドラ
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    if (imageUrls.length + files.length > 5) {
+      toast.error('画像は最大5枚までアップロードできます', {
+        position: 'top-center',
+        duration: 3000,
+        className: 'bg-gray-100'
+      });
+      return;
+    }
+
+    setUploadingImage(true);
+
+    try {
+      const uploadedUrls: string[] = [];
+      const folderUuid = crypto.randomUUID();
+
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+
+        if (file.size > 10 * 1024 * 1024) {
+          toast.error(`${file.name}は10MBを超えています`, {
+            position: 'top-center',
+            duration: 3000,
+            className: 'bg-gray-100'
+          });
+          continue;
+        }
+
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${folderUuid}/${Date.now()}_${i}.${fileExt}`;
+
+        const { error } = await supabase.storage
+          .from('store-images')
+          .upload(fileName, file, {
+            cacheControl: '3600',
+            upsert: false
+          });
+
+        if (error) throw error;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('store-images')
+          .getPublicUrl(fileName);
+
+        uploadedUrls.push(publicUrl);
+      }
+
+      const newImageUrls = [...imageUrls, ...uploadedUrls];
+      setImageUrls(newImageUrls);
+
+      toast.success('画像をアップロードしました', {
+        position: 'top-center',
+        duration: 1000,
+        className: 'bg-gray-100'
+      });
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast.error('画像のアップロードに失敗しました', {
+        position: 'top-center',
+        duration: 3000,
+        className: 'bg-gray-100'
+      });
+    } finally {
+      setUploadingImage(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleImageDelete = async (urlToDelete: string, index: number) => {
+    setUploadingImage(true);
+
+    try {
+      const url = new URL(urlToDelete);
+      const pathParts = url.pathname.split('/store-images/');
+      if (pathParts.length < 2) {
+        throw new Error('Invalid image URL');
+      }
+      const filePath = pathParts[1];
+
+      const { error: deleteError } = await supabase.storage
+        .from('store-images')
+        .remove([filePath]);
+
+      if (deleteError) throw deleteError;
+
+      const newImageUrls = imageUrls.filter((_, i) => i !== index);
+      setImageUrls(newImageUrls);
+
+      if (index === mainImageIndex && newImageUrls.length > 0) {
+        setMainImageIndex(0);
+      } else if (index < mainImageIndex) {
+        setMainImageIndex(mainImageIndex - 1);
+      }
+
+      toast.success('画像を削除しました', {
+        position: 'top-center',
+        duration: 1000,
+        className: 'bg-gray-100'
+      });
+    } catch (error) {
+      console.error('Error deleting image:', error);
+      toast.error('画像の削除に失敗しました', {
+        position: 'top-center',
+        duration: 3000,
+        className: 'bg-gray-100'
+      });
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   // クーポンバリデーション（クーポン設定OFFの場合はスキップ）
   const validateCoupon = (): boolean => {
     if (!couponValues.isActive) {
@@ -699,6 +826,7 @@ function NewStorePage() {
           facilities: facilities,
           is_open: false,
           vacancy_status: 'vacant',
+          image_urls: imageUrls,
           google_place_id: googlePlaceId,
           google_rating: googleRating,
           google_reviews_count: googleReviewsCount,
@@ -1273,6 +1401,142 @@ function NewStorePage() {
                   ))}
                 </div>
               </div>
+            </Card>
+
+            {/* ========== 店舗画像セクション ========== */}
+            <Card
+              className="p-6 rounded-2xl shadow-lg"
+              style={{
+                background: '#FFFFFF',
+                border: `1px solid rgba(201, 168, 108, 0.15)`,
+              }}
+            >
+              <SectionHeader
+                icon={ImageIcon}
+                title="店舗画像"
+                description="最大5枚まで画像をアップロードできます（1枚あたり最大10MB）"
+              />
+
+              <div className="grid grid-cols-3 gap-4 mb-4">
+                {imageUrls.map((url, index) => (
+                  <motion.div
+                    key={url}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="relative aspect-square rounded-xl overflow-hidden group"
+                    style={{ border: `2px solid ${index === mainImageIndex ? COLORS.champagneGold : 'rgba(201, 168, 108, 0.2)'}` }}
+                  >
+                    <img
+                      src={url}
+                      alt={`店舗画像 ${index + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+
+                    {index === mainImageIndex && (
+                      <div
+                        className="absolute top-2 left-2 px-2 py-1 rounded-lg text-xs font-bold"
+                        style={{
+                          background: COLORS.goldGradient,
+                          color: COLORS.deepNavy,
+                        }}
+                      >
+                        メイン
+                      </div>
+                    )}
+
+                    <div
+                      className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2"
+                      style={{ backgroundColor: 'rgba(10, 22, 40, 0.7)' }}
+                    >
+                      {index !== mainImageIndex && (
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={() => setMainImageIndex(index)}
+                          disabled={uploadingImage}
+                          className="font-bold text-xs rounded-lg"
+                          style={{
+                            background: COLORS.goldGradient,
+                            color: COLORS.deepNavy,
+                          }}
+                        >
+                          メインに設定
+                        </Button>
+                      )}
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => {
+                          if (confirm('この画像を削除しますか？')) {
+                            handleImageDelete(url, index);
+                          }
+                        }}
+                        disabled={uploadingImage}
+                        className="font-bold text-xs rounded-lg"
+                      >
+                        <X className="w-3 h-3 mr-1" />
+                        削除
+                      </Button>
+                    </div>
+                  </motion.div>
+                ))}
+
+                {imageUrls.length < 5 && (
+                  <motion.div
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <label
+                      htmlFor="image-upload-new"
+                      className="aspect-square rounded-xl flex flex-col items-center justify-center cursor-pointer transition-all duration-200"
+                      style={{
+                        backgroundColor: 'rgba(201, 168, 108, 0.05)',
+                        border: `2px dashed rgba(201, 168, 108, 0.3)`,
+                      }}
+                    >
+                      {uploadingImage ? (
+                        <Loader2 className="w-8 h-8 animate-spin" style={{ color: COLORS.champagneGold }} />
+                      ) : (
+                        <>
+                          <Upload className="w-8 h-8 mb-2" style={{ color: COLORS.champagneGold }} />
+                          <span className="text-xs font-bold" style={{ color: COLORS.warmGray }}>
+                            画像を追加
+                          </span>
+                        </>
+                      )}
+                    </label>
+                    <input
+                      ref={fileInputRef}
+                      id="image-upload-new"
+                      type="file"
+                      accept="image/jpeg,image/jpg,image/png,image/webp"
+                      multiple
+                      onChange={handleImageUpload}
+                      disabled={uploadingImage}
+                      className="hidden"
+                    />
+                  </motion.div>
+                )}
+              </div>
+
+              {imageUrls.length === 0 && (
+                <div
+                  className="text-center py-8 rounded-xl"
+                  style={{
+                    backgroundColor: 'rgba(0, 0, 0, 0.02)',
+                    border: '1px solid rgba(0, 0, 0, 0.05)',
+                  }}
+                >
+                  <ImageIcon className="w-12 h-12 mx-auto mb-3" style={{ color: COLORS.warmGray }} />
+                  <p className="text-sm font-medium" style={{ color: COLORS.warmGray }}>
+                    画像がアップロードされていません
+                  </p>
+                  <p className="text-xs mt-1" style={{ color: COLORS.warmGray }}>
+                    上のボタンから画像を追加してください
+                  </p>
+                </div>
+              )}
             </Card>
 
             {/* ========== NIKENME+が提供するサービス セクション ========== */}

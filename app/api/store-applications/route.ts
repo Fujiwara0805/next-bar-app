@@ -23,14 +23,20 @@ async function sendToGoogleSheets(applicationData: Record<string, unknown>) {
   }
 
   try {
+    console.log('Google Sheets webhook sending to:', GOOGLE_SHEETS_APPLICATION_WEBHOOK_URL);
+    console.log('Google Sheets webhook payload:', JSON.stringify(applicationData));
+
     const res = await fetch(GOOGLE_SHEETS_APPLICATION_WEBHOOK_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(applicationData),
     });
 
+    const responseText = await res.text();
+    console.log('Google Sheets webhook response:', res.status, responseText);
+
     if (!res.ok) {
-      console.error('Google Sheets webhook error:', res.status);
+      console.error('Google Sheets webhook error:', res.status, responseText);
     }
   } catch (err) {
     console.error('Google Sheets webhook failed:', err);
@@ -98,24 +104,28 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '申し込みの送信に失敗しました' }, { status: 500 });
     }
 
-    // Google Spreadsheet にも送信（非同期・失敗してもユーザーにはエラーを返さない）
-    sendToGoogleSheets({
-      timestamp: new Date().toISOString(),
-      id: data.id,
-      store_name: store_name.trim(),
-      description: description?.trim() || '',
-      address: address.trim(),
-      phone: phone?.trim() || '',
-      business_hours: business_hours?.trim() || '',
-      regular_holiday: regular_holiday?.trim() || '',
-      budget_min: budget_min || 0,
-      budget_max: budget_max || 0,
-      payment_methods: (payment_methods || []).join(', '),
-      facilities: (facilities || []).join(', '),
-      contact_email: contact_email.trim(),
-      image_urls: (image_urls || []).join(', '),
-      remarks: remarks?.trim() || '',
-    });
+    // Google Spreadsheet にも送信（awaitで完了を待つが、失敗してもユーザーにはエラーを返さない）
+    try {
+      await sendToGoogleSheets({
+        timestamp: new Date().toISOString(),
+        id: data.id,
+        store_name: store_name.trim(),
+        description: description?.trim() || '',
+        address: address.trim(),
+        phone: phone?.trim() || '',
+        business_hours: business_hours?.trim() || '',
+        regular_holiday: regular_holiday?.trim() || '',
+        budget_min: budget_min || 0,
+        budget_max: budget_max || 0,
+        payment_methods: (payment_methods || []).join(', '),
+        facilities: (facilities || []).join(', '),
+        contact_email: contact_email.trim(),
+        image_urls: (image_urls || []).join(', '),
+        remarks: remarks?.trim() || '',
+      });
+    } catch (sheetErr) {
+      console.error('Google Sheets送信エラー（無視して続行）:', sheetErr);
+    }
 
     return NextResponse.json({ success: true, id: data.id });
   } catch (error) {

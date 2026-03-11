@@ -190,7 +190,7 @@ function RequiredBadge() {
   return (
     <span
       className="text-[10px] ml-1.5 px-1.5 py-0.5 rounded font-semibold"
-      style={{ background: `${COLORS.champagneGold}20`, color: COLORS.antiqueGold }}
+      style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#EF4444' }}
     >
       必須
     </span>
@@ -254,11 +254,14 @@ function Step1BasicInfo({
           </Label>
           <Input
             type="text"
-            placeholder="例：大分県大分市中央町1-2-3"
+            placeholder="例：大分県大分市中央町1-2-3 ○○ビル 3F"
             value={values.address}
             onChange={(e) => onChange({ address: e.target.value })}
             className={inputClassName}
           />
+          <p className="text-xs mt-1" style={{ color: COLORS.warmGray }}>
+            ※ビル名・階数まで正確にご記入ください
+          </p>
         </div>
 
         <div>
@@ -519,8 +522,8 @@ function Step4ImagesAccount({
     }
 
     for (const file of newFiles) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error(`${file.name} のサイズが5MBを超えています`);
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error(`${file.name} のサイズが10MBを超えています`);
         return;
       }
     }
@@ -549,7 +552,7 @@ function Step4ImagesAccount({
         <div>
           <Label className="text-sm font-semibold mb-3 flex items-center" style={{ color: COLORS.charcoal }}>
             <Camera className="w-4 h-4 mr-1.5" style={{ color: COLORS.champagneGold }} />
-            店舗画像（最大5枚、各5MBまで）
+            店舗画像（最大5枚、各10MBまで）
           </Label>
 
           {/* Image Previews */}
