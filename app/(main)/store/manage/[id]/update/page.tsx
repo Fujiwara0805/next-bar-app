@@ -46,6 +46,7 @@ import { useAuth } from '@/lib/auth/context';
 import { supabase } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 import { ArrivalToggleButton, ArrivalStatusBadge } from '@/components/reservation/ArrivalToggleButton';
+import { PushNotificationManager } from '@/components/push-notification-manager';
 import type { Database } from '@/lib/supabase/types';
 
 type Store = Database['public']['Tables']['stores']['Row'];
@@ -601,6 +602,7 @@ export default function StoreUpdatePage() {
       className="min-h-screen pb-20"
       style={{ background: COLORS.cardGradient }}
     >
+      <PushNotificationManager />
       {/* ヘッダー */}
       <header 
         className="sticky top-0 z-20 safe-top"

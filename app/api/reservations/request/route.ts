@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import twilio from 'twilio';
+import { sendPushToStore } from '@/lib/push/server';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -109,7 +110,15 @@ export async function POST(request: NextRequest) {
         .from('quick_reservations')
         .update({ call_sid: call.sid })
         .eq('id', reservation.id);
-      
+
+      // 店舗にプッシュ通知を送信（新規予約リクエスト）
+      sendPushToStore(storeId, {
+        title: '🔔 新しい予約リクエスト',
+        body: `${userName}様から${partySize}名の予約リクエストが入りました。`,
+        url: `/store/manage/${storeId}/update`,
+        tag: `reservation-${reservation.id}`,
+      });
+
       return NextResponse.json({
         success: true,
         reservationId: reservation.id,

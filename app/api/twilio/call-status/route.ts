@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { sendPushToStore } from '@/lib/push/server';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -47,6 +48,14 @@ export async function POST(request: NextRequest) {
         .eq('id', reservation.id);
       
       console.log(`Reservation ${reservation.id} cancelled due to call status: ${callStatus}`);
+
+      // 店舗にプッシュ通知を送信（不在着信）
+      sendPushToStore(reservation.store_id, {
+        title: '📞 不在着信',
+        body: `${reservation.caller_name}様からの予約リクエストがありましたが、電話に出られませんでした。`,
+        url: `/store/manage/${reservation.store_id}/update`,
+        tag: `missed-call-${reservation.id}`,
+      });
     }
     
     // 通話が完了したが、予約がまだpendingの場合は電話を切られた扱い
