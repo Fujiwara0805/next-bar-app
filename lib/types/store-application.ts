@@ -89,7 +89,7 @@ export function validateStep(step: number, values: ApplicationFormValues): strin
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.contactEmail)) return '有効なメールアドレスを入力してください';
       if (values.imageFiles.length > 5) return '画像は最大5枚までです';
       for (const file of values.imageFiles) {
-        if (file.size > 5 * 1024 * 1024) return `${file.name} のサイズが5MBを超えています`;
+        if (file.size > 10 * 1024 * 1024) return `${file.name} のサイズが10MBを超えています`;
       }
       return null;
     case 5:
