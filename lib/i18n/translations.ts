@@ -23,6 +23,9 @@ export const translations = {
       edit: '編集',
       delete: '削除',
       close: '閉じる',
+      mode_day: '昼',
+      mode_night: '夜',
+      day_spot: 'Day Spot',
     },
     // 認証関連
     auth: {
@@ -791,9 +794,9 @@ export const translations = {
       night_spot: 'Night Spot',
       // Hero section
       hero_catchphrase: '「2軒目、どうする？」\nその答えが、ここにある。',
-      cafe_hero_catchphrase: '「今日のカフェ、どこにする？」\nあなたの居場所が、ここにある。',
+      cafe_hero_catchphrase: '「昼時間を有意義に過ごす」\n席が空いているお店を確認',
       hero_subcopy: 'ログイン不要 ー 地図上で空席状況を確認できます ー',
-      cafe_hero_subcopy: 'ログイン不要 ー 地図上でカフェの空席状況を確認 ー',
+      cafe_hero_subcopy: 'ログイン不要 ー 地図上で空席状況を確認 ー',
       hero_body: 'NIKENME+は、大分の夜を\n案内するはしご酒 Map 🍺です。',
       // Problems section
       problems_title: 'こんなお悩み、ありませんか？',
@@ -964,6 +967,9 @@ export const translations = {
       edit: 'Edit',
       delete: 'Delete',
       close: 'Close',
+      mode_day: 'Day',
+      mode_night: 'Night',
+      day_spot: 'Day Spot',
     },
     // Authentication
     auth: {
@@ -1732,9 +1738,9 @@ export const translations = {
       night_spot: 'Night Spot',
       // Hero section
       hero_catchphrase: '"Where to next?"\nThe answer is right here.',
-      cafe_hero_catchphrase: '"Which café today?"\nYour place is right here.',
+      cafe_hero_catchphrase: '"Make the most of your daytime"\nCheck available seats now',
       hero_subcopy: 'No login required — Check seat availability on the map —',
-      cafe_hero_subcopy: 'No login required — Check café seat availability on the map —',
+      cafe_hero_subcopy: 'No login required — Check seat availability on the map —',
       hero_body: 'NIKENME+ is a night spot map 🍺for Oita. Find available venues instantly and reserve your seat with auto-voice call.',
       // Problems section
       problems_title: 'Sound Familiar?',
@@ -1905,6 +1911,9 @@ export const translations = {
       edit: '편집',
       delete: '삭제',
       close: '닫기',
+      mode_day: '낮',
+      mode_night: '밤',
+      day_spot: 'Day Spot',
     },
     // 인증
     auth: {
@@ -2665,9 +2674,9 @@ export const translations = {
       night_spot: 'Night Spot',
       // Hero section
       hero_catchphrase: '「2차, 어디 갈까?」\n그 답이 여기에 있다.',
-      cafe_hero_catchphrase: '「오늘 카페, 어디로?」\n당신의 자리가 여기에.',
+      cafe_hero_catchphrase: '「낮 시간을 알차게 보내기」\n빈자리가 있는 가게를 확인',
       hero_subcopy: '로그인 불필요 ー 지도에서 빈자리를 확인하세요 ー',
-      cafe_hero_subcopy: '로그인 불필요 ー 지도에서 카페 빈자리 확인 ー',
+      cafe_hero_subcopy: '로그인 불필요 ー 지도에서 빈자리 확인 ー',
       hero_body: 'NIKENME+는 오이타의 밤을\n안내하는 Night Spot Map 🍺입니다.',
       // Problems section
       problems_title: '이런 고민, 있으신가요?',
@@ -2838,6 +2847,9 @@ export const translations = {
       edit: '编辑',
       delete: '删除',
       close: '关闭',
+      mode_day: '白天',
+      mode_night: '夜晚',
+      day_spot: 'Day Spot',
     },
     // 认证
     auth: {
@@ -3598,9 +3610,9 @@ export const translations = {
       night_spot: 'Night Spot',
       // Hero section
       hero_catchphrase: '「续摊去哪？」\n答案就在这里。',
-      cafe_hero_catchphrase: '「今天去哪家咖啡馆？」\n你的位置就在这里。',
+      cafe_hero_catchphrase: '「充实度过白天时光」\n查看有空位的店铺',
       hero_subcopy: '无需登录 ー 在地图上查看空位情况 ー',
-      cafe_hero_subcopy: '无需登录 ー 在地图上查看咖啡馆空位 ー',
+      cafe_hero_subcopy: '无需登录 ー 在地图上查看空位 ー',
       hero_body: 'NIKENME+是一款介绍大分夜生活的Night Spot Map 🍺。',
       // Problems section
       problems_title: '有这些烦恼吗？',

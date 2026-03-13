@@ -25,6 +25,9 @@ import {
   Mail,
   ExternalLink,
   Scale,
+  Sun,
+  Moon,
+  Coffee,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -117,7 +120,7 @@ export default function LandingPage() {
   };
 
   const [heroImageIndex, setHeroImageIndex] = useState(0);
-  const heroImages = [
+  const nightHeroImages = [
     'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772501861/edgar-chaparro-Lwx-q6OdGAc-unsplash_x8q8jq.jpg',
     'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772501860/drew-beamer-bTN-zKFy9uA-unsplash_kmcnyo.jpg',
     'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772501854/kris-sevinc-NVX55qVyEkE-unsplash_pjwsez.jpg',
@@ -125,11 +128,19 @@ export default function LandingPage() {
     'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772501853/q-u-i-n-g-u-y-e-n-Zrp9b3PMIy8-unsplash_xjz1dm.jpg',
     'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772501853/masahiro-miyagi-RLDNGblOqHU-unsplash_zadhp8.jpg',
     'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772501852/sergio-alves-santos-OxKFC5u0980-unsplash_z1u5mj.jpg',
-
     'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772522900/ash-edmonds-fsI-_MRsic0-unsplash_fgf0lv.jpg',
     'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772501853/patrick-tomasso-GXXYkSwndP4-unsplash_w4c9df.jpg',
     'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772501852/jakub-dziubak-gj7BLlSzIFs-unsplash_virstu.jpg',
   ];
+  const dayHeroImages = [
+    'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1773409116/nathan-dumlao-2z3MOB3kfJU-unsplash_vnotg8.jpg',
+    'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1773409115/toa-heftiba-QnUywvDdI1o-unsplash_c5dsy7.jpg',
+    'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1773409115/shen-liu-2PUwRmJOdNo-unsplash_u3trvd.jpg',
+    'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1773409144/rodeo-project-management-software-PYqzYhTNjho-unsplash_oj05gw.jpg',
+    'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1773409116/petr-sevcovic-qE1jxYXiwOA-unsplash_amza7y.jpg',
+    'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1773409142/copernico--8DAN9_oi8g-unsplash_pzzdj2.jpg',
+  ];
+  const heroImages = isCafe ? dayHeroImages : nightHeroImages;
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -367,8 +378,10 @@ export default function LandingPage() {
       <header className="fixed top-0 left-0 right-0 z-50 safe-top" style={{ background: colors.luxuryGradient, backdropFilter: 'blur(20px)', borderBottom: `1px solid ${colors.borderGold}` }}>
         <div className="container mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-3">
-            <img src="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761355092/%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png" alt="NIKENME+" className="h-8 w-auto object-contain" />
-            <span className="hidden sm:inline-block text-[9px] px-2 py-1 rounded-full font-medium tracking-[0.1em] uppercase" style={{ background: `${colors.accent}15`, border: `1px solid ${colors.borderGold}`, color: colors.accent }}>Night Spot</span>
+            {isCafe
+              ? <Coffee className="h-8 w-8" style={{ color: colors.accent }} />
+              : <img src="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761355092/%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png" alt="NIKENME+" className="h-8 w-auto object-contain" />}
+            <span className="hidden sm:inline-block text-[9px] px-2 py-1 rounded-full font-medium tracking-[0.1em] uppercase" style={{ background: `${colors.accent}15`, border: `1px solid ${colors.borderGold}`, color: colors.accent }}>{isCafe ? t('common.day_spot') : t('landing.night_spot')}</span>
           </motion.div>
           <div className="flex items-center gap-2 sm:gap-4">
 
@@ -448,7 +461,7 @@ export default function LandingPage() {
           transition={{ duration: 0.8, delay: 0.2 }}
         >
           <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight">
-            <span style={{ color: colors.text }}>
+            <span style={{ color: isCafe ? '#FFFFFF' : colors.text, textShadow: isCafe ? '0 2px 8px rgba(0,0,0,0.5)' : 'none' }}>
               {isCafe
                 ? renderWithLineBreaks(t('landing.cafe_hero_catchphrase'))
                 : renderWithLineBreaks(t('landing.hero_catchphrase'))}
@@ -475,7 +488,7 @@ export default function LandingPage() {
               transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 1 }}
             />
           </motion.div>
-          <p className="text-xs sm:text-sm tracking-wider mb-3" style={{ color: colors.textMuted }}>
+          <p className="text-xs sm:text-sm tracking-wider mb-3" style={{ color: isCafe ? 'rgba(255,255,255,0.85)' : colors.textMuted, textShadow: isCafe ? '0 1px 4px rgba(0,0,0,0.4)' : 'none' }}>
             {isCafe
               ? t('landing.cafe_hero_subcopy')
               : t('landing.hero_subcopy')}
@@ -1351,7 +1364,9 @@ export default function LandingPage() {
       <footer className="py-12 px-4" style={{ background: colors.background, borderTop: `1px solid ${colors.borderGold}` }}>
         <div className="container mx-auto max-w-6xl">
           <div className="flex justify-center mb-8">
-            <img src="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761355092/%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png" alt="NIKENME+" className="h-12 w-auto object-contain opacity-70" />
+            {isCafe
+              ? <Coffee className="h-12 w-12 opacity-70" style={{ color: colors.accent }} />
+              : <img src="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761355092/%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png" alt="NIKENME+" className="h-12 w-auto object-contain opacity-70" />}
           </div>
           <nav className="grid grid-cols-2 gap-4 sm:gap-6 max-w-md mx-auto mb-8">
             {footerLinks.map((link, index) => {
@@ -1374,8 +1389,8 @@ export default function LandingPage() {
       {/* Location Permission Modal */}
       <AnimatePresence>
         {showLocationModal && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(10, 22, 40, 0.95)' }} onClick={() => locationPermission !== 'loading' && setShowLocationModal(false)}>
-            <div className="absolute inset-0 backdrop-blur-md" style={{ backgroundColor: 'rgba(10, 22, 40, 0.5)' }} />
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: isCafe ? 'rgba(45, 36, 32, 0.95)' : 'rgba(10, 22, 40, 0.95)' }} onClick={() => locationPermission !== 'loading' && setShowLocationModal(false)}>
+            <div className="absolute inset-0 backdrop-blur-md" style={{ backgroundColor: isCafe ? 'rgba(45, 36, 32, 0.5)' : 'rgba(10, 22, 40, 0.5)' }} />
             <motion.div className="absolute w-[500px] h-[500px] rounded-full pointer-events-none" style={{ background: `radial-gradient(circle, ${colors.accent}15 0%, transparent 70%)`, top: '50%', left: '50%', transform: 'translate(-50%, -50%)', filter: 'blur(60px)' }} animate={{ opacity: [0.3, 0.6, 0.3], scale: [1, 1.1, 1] }} transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }} />
 
             {locationPermission === 'loading' ? (
@@ -1445,9 +1460,9 @@ export default function LandingPage() {
                 minHeight: '56px',
               }}
             >
-              <span className="text-lg leading-none">{isBar ? '🍺' : '☕'}</span>
+              {isBar ? <Moon className="w-5 h-5" style={{ color: '#FDFBF7' }} /> : <Sun className="w-5 h-5" style={{ color: '#2D2420' }} />}
               <span className="text-[9px] font-bold leading-tight text-center" style={{ color: isBar ? '#FDFBF7' : '#2D2420' }}>
-                {isBar ? 'BAR' : 'CAFE'}
+                {isBar ? t('common.mode_night') : t('common.mode_day')}
               </span>
             </Button>
           </motion.div>

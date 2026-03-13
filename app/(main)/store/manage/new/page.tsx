@@ -1045,7 +1045,7 @@ function NewStorePage() {
                   店舗カテゴリ <span style={{ color: COLORS.champagneGold }}>*</span>
                 </Label>
                 <div className="flex gap-3">
-                  {([['bar', 'バー・スナック'], ['cafe', 'カフェ'], ['both', '両方']] as const).map(([value, label]) => (
+                  {([['bar', '夜'], ['cafe', '昼'], ['both', '両方']] as const).map(([value, label]) => (
                     <button
                       key={value}
                       type="button"
