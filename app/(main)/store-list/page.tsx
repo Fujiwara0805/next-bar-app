@@ -25,6 +25,7 @@ import { Card } from '@/components/ui/card';
 import { supabase } from '@/lib/supabase/client';
 import type { Database, BusinessHours } from '@/lib/supabase/types';
 import { useLanguage } from '@/lib/i18n/context';
+import { useAppMode } from '@/lib/app-mode-context';
 import { ConciergeModal } from '@/components/concierge-modal';
 import { OgoriTicketBadge } from '@/components/ogori/OgoriTicketBadge';
 import { isCouponValid } from '@/lib/types/coupon';
@@ -35,22 +36,8 @@ type Store = Database['public']['Tables']['stores']['Row'];
 
 // ============================================
 // カラーパレット定義
+// → useAppMode().colorsB で取得（app-mode-context.tsx）
 // ============================================
-const COLORS = {
-  deepNavy: '#0A1628',
-  midnightBlue: '#162447',
-  royalNavy: '#1F4068',
-  champagneGold: '#C9A86C',
-  paleGold: '#E8D5B7',
-  antiqueGold: '#B8956E',
-  charcoal: '#2D3436',
-  warmGray: '#636E72',
-  platinum: '#DFE6E9',
-  ivory: '#FDFBF7',
-  luxuryGradient: 'linear-gradient(165deg, #0A1628 0%, #162447 50%, #1F4068 100%)',
-  goldGradient: 'linear-gradient(135deg, #C9A86C 0%, #E8D5B7 50%, #B8956E 100%)',
-  cardGradient: 'linear-gradient(145deg, #FDFBF7 0%, #F5F1EB 100%)',
-};
 
 const CONCIERGE_RECOMMENDATION_LIMIT = 3;
 const IS_OPEN_UPDATE_RADIUS_KM = 2.0;
@@ -117,6 +104,7 @@ function StoreListContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t } = useLanguage();
+  const { colorsB: COLORS, colorsA, mode, isBar } = useAppMode();
   const [stores, setStores] = useState<Store[]>([]);
   const [filteredStores, setFilteredStores] = useState<Store[]>([]);
   const [loading, setLoading] = useState(true);
@@ -451,6 +439,8 @@ function StoreListContent() {
       const { data, error } = await supabase
         .from('stores')
         .select('*')
+        // @ts-ignore – store_category は Phase 2 で型定義済み
+        .or(`store_category.eq.${mode},store_category.eq.both`)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -602,28 +592,32 @@ function StoreListContent() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ backgroundColor: '#1C1E26' }}>
-      <header className="sticky top-0 z-30 bg-white border-b border-gray-200">
+    <div className="min-h-screen flex flex-col" style={{ backgroundColor: isBar ? '#1C1E26' : colorsA.background }}>
+      <header className="sticky top-0 z-30" style={{ backgroundColor: isBar ? '#FFFFFF' : colorsA.background, borderBottom: isBar ? '1px solid #e5e7eb' : `1px solid ${colorsA.borderSubtle}` }}>
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="mb-4">
             <h1 className="text-xl font-bold text-center" style={{ color: COLORS.deepNavy }}>{t('store_list.title')}</h1>
           </div>
           
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => setShowConcierge(true)}
-            className="w-full py-3 px-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all"
-            style={{
-              background: isConciergeActive ? 'linear-gradient(135deg, #C9A86C 0%, #B8956E 100%)' : 'linear-gradient(135deg, #0A1628 0%, #162447 100%)',
-              color: isConciergeActive ? '#0A1628' : '#C9A86C',
-              border: '1px solid rgba(201, 168, 108, 0.4)',
-              boxShadow: '0 4px 15px rgba(201, 168, 108, 0.25)',
-            }}
-          >
-            <Sparkles className="w-5 h-5" />
-            <span>{isConciergeActive ? t('store_list.concierge_active') : t('store_list.concierge_button')}</span>
-          </motion.button>
+          {isBar && (
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setShowConcierge(true)}
+              className="w-full py-3 px-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all"
+              style={{
+                background: isConciergeActive
+                  ? `linear-gradient(135deg, ${COLORS.champagneGold} 0%, ${COLORS.antiqueGold} 100%)`
+                  : `linear-gradient(135deg, ${COLORS.deepNavy} 0%, ${COLORS.midnightBlue} 100%)`,
+                color: isConciergeActive ? COLORS.deepNavy : COLORS.champagneGold,
+                border: `1px solid ${COLORS.champagneGold}66`,
+                boxShadow: `0 4px 15px ${COLORS.champagneGold}40`,
+              }}
+            >
+              <Sparkles className="w-5 h-5" />
+              <span>{isConciergeActive ? t('store_list.concierge_active') : t('store_list.concierge_button')}</span>
+            </motion.button>
+          )}
           
           {campaignNameFilter && (
             <motion.div
@@ -631,15 +625,15 @@ function StoreListContent() {
               animate={{ opacity: 1, y: 0 }}
               className="mt-3 p-3 rounded-xl flex items-center justify-between"
               style={{
-                background: 'linear-gradient(135deg, rgba(201, 168, 108, 0.15) 0%, rgba(184, 149, 110, 0.1) 100%)',
-                border: '1px solid rgba(201, 168, 108, 0.3)',
+                background: `linear-gradient(135deg, ${COLORS.champagneGold}26 0%, ${COLORS.antiqueGold}1A 100%)`,
+                border: `1px solid ${COLORS.champagneGold}4D`,
               }}
             >
               <div className="flex items-center gap-2">
                 <PartyPopper className="w-5 h-5" style={{ color: COLORS.champagneGold }} />
                 <span className="font-bold text-sm" style={{ color: COLORS.champagneGold }}>{campaignNameFilter}</span>
               </div>
-              <button onClick={() => setCampaignNameFilter(null)} className="p-1 rounded-full hover:bg-white/10 transition-colors" style={{ color: COLORS.warmGray }}>
+              <button onClick={() => setCampaignNameFilter(null)} className={`p-1 rounded-full transition-colors ${isBar ? 'hover:bg-white/10' : 'hover:bg-black/5'}`} style={{ color: COLORS.warmGray }}>
                 <X className="w-4 h-4" />
               </button>
             </motion.div>
@@ -684,13 +678,13 @@ function StoreListContent() {
                 animate={{ opacity: 1, y: 0 }}
                 className="mb-6 p-4 rounded-xl text-center"
                 style={{
-                  background: 'linear-gradient(135deg, rgba(201, 168, 108, 0.15) 0%, rgba(184, 149, 110, 0.1) 100%)',
-                  border: '1px solid rgba(201, 168, 108, 0.3)',
+                  background: `linear-gradient(135deg, ${COLORS.champagneGold}26 0%, ${COLORS.antiqueGold}1A 100%)`,
+                  border: `1px solid ${COLORS.champagneGold}4D`,
                 }}
               >
                 <div className="flex items-center justify-center gap-2 mb-2">
-                  <Sparkles className="w-5 h-5" style={{ color: '#C9A86C' }} />
-                  <span className="text-lg font-light tracking-wide" style={{ color: '#C9A86C' }}>{t('store_list.concierge_selection')}</span>
+                  <Sparkles className="w-5 h-5" style={{ color: COLORS.champagneGold }} />
+                  <span className="text-lg font-light tracking-wide" style={{ color: COLORS.champagneGold }}>{t('store_list.concierge_selection')}</span>
                 </div>
                 <p className="text-sm font-medium" style={{ color: COLORS.warmGray }}>{t('store_list.concierge_intro').replace('{count}', String(filteredStores.length))}</p>
               </motion.div>
@@ -720,9 +714,9 @@ function StoreListContent() {
                             transition={{ delay: index * 0.1 + 0.2 }}
                             className="absolute top-2 right-2 z-10 px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5"
                             style={{
-                              background: 'linear-gradient(135deg, #C9A86C 0%, #E8D5B7 50%, #B8956E 100%)',
-                              color: '#0A1628',
-                              boxShadow: '0 4px 12px rgba(201, 168, 108, 0.4)',
+                              background: `linear-gradient(135deg, ${COLORS.champagneGold} 0%, ${COLORS.platinum} 50%, ${COLORS.antiqueGold} 100%)`,
+                              color: COLORS.deepNavy,
+                              boxShadow: `0 4px 12px ${COLORS.champagneGold}66`,
                             }}
                           >
                             <Sparkles className="w-3.5 h-3.5" />
@@ -738,9 +732,9 @@ function StoreListContent() {
                                 animate={{ scale: 1, opacity: 1 }}
                                 className="px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1"
                                 style={{
-                                  background: 'linear-gradient(135deg, #C9A86C 0%, #E8D5B7 50%, #B8956E 100%)',
-                                  color: '#0A1628',
-                                  boxShadow: '0 2px 8px rgba(201, 168, 108, 0.4)',
+                                  background: `linear-gradient(135deg, ${COLORS.champagneGold} 0%, ${COLORS.platinum} 50%, ${COLORS.antiqueGold} 100%)`,
+                                  color: COLORS.deepNavy,
+                                  boxShadow: `0 2px 8px ${COLORS.champagneGold}66`,
                                 }}
                               >
                                 <PartyPopper className="w-3 h-3" />
@@ -855,7 +849,7 @@ function StoreListContent() {
                               )}
 
                               {isConciergeActive && matchScore > 0 && (
-                                <p className="text-xs mt-2 px-2 py-1 rounded-md inline-block" style={{ backgroundColor: 'rgba(201, 168, 108, 0.1)', color: '#B8956E' }}>
+                                <p className="text-xs mt-2 px-2 py-1 rounded-md inline-block" style={{ backgroundColor: `${COLORS.champagneGold}1A`, color: COLORS.antiqueGold }}>
                                   {t('store_list.items_match').replace('{count}', String(matchScore))}
                                 </p>
                               )}
@@ -882,17 +876,17 @@ function StoreListContent() {
                   }}
                   className="flex flex-col items-center justify-center gap-1 px-3 py-2 touch-manipulation active:scale-95 rounded-lg relative"
                   style={{
-                    background: activeFilterCount > 0 ? '#C9A86C' : 'rgba(5,5,5,0.7)',
+                    background: activeFilterCount > 0 ? COLORS.champagneGold : (isBar ? 'rgba(5,5,5,0.7)' : 'rgba(247,243,238,0.9)'),
                     backdropFilter: 'blur(20px)',
-                    border: activeFilterCount > 0 ? '1px solid #C9A86C' : '1px solid rgba(201,168,108,0.3)',
-                    boxShadow: '0 0 20px rgba(201,168,108,0.2)',
+                    border: activeFilterCount > 0 ? `1px solid ${COLORS.champagneGold}` : `1px solid ${COLORS.champagneGold}4D`,
+                    boxShadow: `0 0 20px ${COLORS.champagneGold}33`,
                     minWidth: '56px',
                     minHeight: '56px',
                   }}
                   title={t('store_list.filter')}
                 >
-                  <Filter className="w-5 h-5" style={{ color: activeFilterCount > 0 ? '#0A1628' : '#FFFFFF' }} />
-                  <span className="text-[10px] font-bold" style={{ color: activeFilterCount > 0 ? '#0A1628' : '#FFFFFF' }}>{t('store_list.filter')}</span>
+                  <Filter className="w-5 h-5" style={{ color: activeFilterCount > 0 ? COLORS.deepNavy : (isBar ? '#FFFFFF' : COLORS.deepNavy) }} />
+                  <span className="text-[10px] font-bold" style={{ color: activeFilterCount > 0 ? COLORS.deepNavy : (isBar ? '#FFFFFF' : COLORS.deepNavy) }}>{t('store_list.filter')}</span>
                   {activeFilterCount > 0 && (
                     <span className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center text-xs font-bold text-white">
                       {activeFilterCount}
@@ -914,23 +908,23 @@ function StoreListContent() {
                   <div
                     className="rounded-xl overflow-hidden"
                     style={{
-                      background: 'rgba(30, 30, 30, 0.95)',
+                      background: isBar ? 'rgba(30, 30, 30, 0.95)' : 'rgba(247, 243, 238, 0.98)',
                       backdropFilter: 'blur(12px)',
-                      border: '1px solid rgba(255,255,255,0.1)',
-                      boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
+                      border: isBar ? '1px solid rgba(255,255,255,0.1)' : `1px solid ${COLORS.champagneGold}33`,
+                      boxShadow: isBar ? '0 10px 40px rgba(0,0,0,0.5)' : '0 10px 40px rgba(0,0,0,0.15)',
                     }}
                   >
                     <div className="p-2">
                       <div className="flex items-center justify-between px-3 py-2">
-                        <p className="text-xs text-gray-400 font-bold">{t('store_list.filter_title')}</p>
-                        <button onClick={() => setShowFilterMenu(false)} className="text-gray-400 hover:text-white transition-colors p-1 -mr-1">
+                        <p className="text-xs font-bold" style={{ color: isBar ? '#9ca3af' : COLORS.warmGray }}>{t('store_list.filter_title')}</p>
+                        <button onClick={() => setShowFilterMenu(false)} className={`transition-colors p-1 -mr-1 ${isBar ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-800'}`}>
                           <X className="w-4 h-4" />
                         </button>
                       </div>
-                      
+
                       <button
                         onClick={() => setOpenNowOnly(!openNowOnly)}
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${openNowOnly ? 'bg-blue-500/20 text-blue-400' : 'hover:bg-white/10 text-white'}`}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${openNowOnly ? 'bg-blue-500/20 text-blue-400' : (isBar ? 'hover:bg-white/10 text-white' : 'hover:bg-black/5 text-gray-800')}`}
                       >
                         <img src="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1767848645/icons8-%E9%96%8B%E5%BA%97%E3%82%B5%E3%82%A4%E3%83%B3-94_a4tmzn.png" alt={t('store_list.open')} className="w-5 h-5" />
                         <span className="font-bold text-sm flex-1 text-left">{t('store_list.open')}</span>
@@ -939,7 +933,7 @@ function StoreListContent() {
 
                       <button
                         onClick={() => setVacantOnly(!vacantOnly)}
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${vacantOnly ? 'bg-green-500/20 text-green-400' : 'hover:bg-white/10 text-white'}`}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${vacantOnly ? 'bg-green-500/20 text-green-400' : (isBar ? 'hover:bg-white/10 text-white' : 'hover:bg-black/5 text-gray-800')}`}
                       >
                         <img src="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761311529/%E7%A9%BA%E5%B8%AD%E3%81%82%E3%82%8A_rzejgw.png" alt={t('store_list.vacant')} className="w-5 h-5" />
                         <span className="font-bold text-sm flex-1 text-left">{t('store_list.vacant')}</span>
@@ -948,23 +942,23 @@ function StoreListContent() {
 
                       <button
                         onClick={() => setCouponOnly(!couponOnly)}
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${couponOnly ? 'bg-orange-500/20 text-orange-400' : 'hover:bg-white/10 text-white'}`}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${couponOnly ? 'bg-orange-500/20 text-orange-400' : (isBar ? 'hover:bg-white/10 text-white' : 'hover:bg-black/5 text-gray-800')}`}
                       >
-                        <Ticket className="w-5 h-5" style={{ color: couponOnly ? '#fb923c' : '#C9A86C' }} />
+                        <Ticket className="w-5 h-5" style={{ color: couponOnly ? '#fb923c' : COLORS.champagneGold }} />
                         <span className="font-bold text-sm flex-1 text-left">{t('store_list.filter_has_coupon')}</span>
                         {couponOnly && <Check className="w-4 h-4 text-orange-400" />}
                       </button>
 
                       <button
                         onClick={() => setCampaignOnly(!campaignOnly)}
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${campaignOnly ? 'bg-pink-500/20 text-pink-400' : 'hover:bg-white/10 text-white'}`}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${campaignOnly ? 'bg-pink-500/20 text-pink-400' : (isBar ? 'hover:bg-white/10 text-white' : 'hover:bg-black/5 text-gray-800')}`}
                       >
-                        <PartyPopper className="w-5 h-5" style={{ color: campaignOnly ? '#f472b6' : '#C9A86C' }} />
+                        <PartyPopper className="w-5 h-5" style={{ color: campaignOnly ? '#f472b6' : COLORS.champagneGold }} />
                         <span className="font-bold text-sm flex-1 text-left">{t('store_list.filter_campaign') || 'キャンペーン中'}</span>
                         {campaignOnly && <Check className="w-4 h-4 text-pink-400" />}
                       </button>
 
-                      <div className="my-2 border-t border-white/10" />
+                      <div className={`my-2 border-t ${isBar ? 'border-white/10' : 'border-black/10'}`} />
 
                       <button
                         onClick={() => {
@@ -974,9 +968,9 @@ function StoreListContent() {
                           setCampaignOnly(false);
                           setShowFilterMenu(false);
                         }}
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${!vacantOnly && !openNowOnly && !couponOnly && !campaignOnly ? 'bg-amber-500/20 text-amber-400' : 'hover:bg-white/10 text-white'}`}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${!vacantOnly && !openNowOnly && !couponOnly && !campaignOnly ? 'bg-amber-500/20 text-amber-400' : (isBar ? 'hover:bg-white/10 text-white' : 'hover:bg-black/5 text-gray-800')}`}
                       >
-                        <span className="w-5 h-5 flex items-center justify-center text-lg">🍺</span>
+                        <span className="w-5 h-5 flex items-center justify-center text-lg">{isBar ? '🍺' : '☕'}</span>
                         <span className="font-bold text-sm flex-1 text-left">{t('store_list.filter_show_all')}</span>
                         {!vacantOnly && !openNowOnly && !couponOnly && !campaignOnly && <Check className="w-4 h-4 text-amber-400" />}
                       </button>
@@ -993,17 +987,17 @@ function StoreListContent() {
                 onClick={() => router.push('/map?refresh=true')}
                 className="flex flex-col items-center justify-center gap-1 px-3 py-2 touch-manipulation active:scale-95 rounded-lg"
                 style={{
-                  background: 'rgba(5,5,5,0.7)',
+                  background: isBar ? 'rgba(5,5,5,0.7)' : 'rgba(247,243,238,0.9)',
                   backdropFilter: 'blur(20px)',
-                  border: '1px solid rgba(201,168,108,0.3)',
-                  boxShadow: '0 0 20px rgba(201,168,108,0.2)',
+                  border: `1px solid ${COLORS.champagneGold}4D`,
+                  boxShadow: `0 0 20px ${COLORS.champagneGold}33`,
                   minWidth: '56px',
                   minHeight: '56px',
                 }}
                 title="Map"
               >
-                <MapIcon className="w-5 h-5" style={{ color: '#FFFFFF' }} />
-                <span className="text-[10px] font-bold" style={{ color: '#FFFFFF' }}>Map</span>
+                <MapIcon className="w-5 h-5" style={{ color: isBar ? '#FFFFFF' : COLORS.deepNavy }} />
+                <span className="text-[10px] font-bold" style={{ color: isBar ? '#FFFFFF' : COLORS.deepNavy }}>Map</span>
               </Button>
             </motion.div>
           </motion.div>

@@ -25,6 +25,7 @@ import type { Database } from '@/lib/supabase/types';
 
 import { locationCache, compassCache, cacheManager } from '@/lib/cache';
 import { useLanguage } from '@/lib/i18n/context';
+import { useAppMode } from '@/lib/app-mode-context';
 import { sendGAEvent } from '@/lib/analytics';
 
 type Store = Database['public']['Tables']['stores']['Row'];
@@ -49,35 +50,10 @@ function debugWarn(message: string, data?: unknown): void {
 
 // ============================================================================
 // デザイントークン（店舗詳細画面と統一）
+// → useAppMode().colorsA で取得 + Google固定色
 // ============================================================================
 
-const colors = {
-  // ベースカラー（60%）- 背景・余白
-  background: '#0A1628',        // Deep Navy
-  surface: '#162447',           // Midnight Blue
-  surfaceLight: '#1F4068',      // Royal Navy
-  cardBackground: '#FDFBF7',    // Ivory
-  
-  // アクセントカラー（10%）- CTA・重要要素
-  accent: '#C9A86C',            // Champagne Gold
-  accentLight: '#E8D5B7',       // Pale Gold
-  accentDark: '#B8956E',        // Antique Gold
-  
-  // テキストカラー
-  text: '#FDFBF7',              // Ivory
-  textMuted: 'rgba(253, 251, 247, 0.7)',
-  textSubtle: 'rgba(253, 251, 247, 0.5)',
-  
-  // グラデーション
-  luxuryGradient: 'linear-gradient(165deg, #0A1628 0%, #162447 50%, #1F4068 100%)',
-  goldGradient: 'linear-gradient(135deg, #C9A86C 0%, #E8D5B7 50%, #B8956E 100%)',
-  
-  // ボーダー・シャドウ
-  borderGold: 'rgba(201, 168, 108, 0.3)',
-  borderSubtle: 'rgba(201, 168, 108, 0.15)',
-  shadowGold: '0 8px 30px rgba(201, 168, 108, 0.4)',
-  
-  // Google純正マーカー用カラー
+const GOOGLE_MARKER_COLORS = {
   googleBlue: '#4285F4',
   googleBlueDark: '#1A73E8',
   white: '#FFFFFF',
@@ -579,34 +555,35 @@ function useDeviceOrientation(enabled: boolean = true) {
 // ============================================================================
 
 function MapLoadingScreen() {
+  const { colorsA } = useAppMode();
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, transition: { duration: 0.3 } }}
       className="absolute inset-0 z-50 flex items-center justify-center"
-      style={{ background: colors.background }}
+      style={{ background: colorsA.background }}
     >
       <div className="text-center">
         <div className="relative w-14 h-14 mx-auto mb-5">
           <div
             className="absolute inset-0 rounded-full"
-            style={{ border: `2px solid ${colors.borderGold}` }}
+            style={{ border: `2px solid ${colorsA.borderGold}` }}
           />
           <div
             className="absolute inset-0 rounded-full animate-spin"
             style={{
               border: '2px solid transparent',
-              borderTopColor: colors.accent,
+              borderTopColor: colorsA.accent,
             }}
           />
           <div
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full"
-            style={{ background: colors.accent }}
+            style={{ background: colorsA.accent }}
           />
         </div>
 
-        <p style={{ color: colors.textMuted }} className="text-sm font-medium">
+        <p style={{ color: colorsA.textMuted }} className="text-sm font-medium">
           マップを読み込んでいます...
         </p>
       </div>
@@ -628,7 +605,8 @@ function DirectionPermissionDialog({
   onDismiss,
 }: DirectionPermissionDialogProps) {
   const { t } = useLanguage();
-  
+  const { colorsA } = useAppMode();
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -641,32 +619,32 @@ function DirectionPermissionDialog({
       <div
         className="rounded-xl p-4"
         style={{
-          background: colors.surface,
+          background: colorsA.surface,
           backdropFilter: 'blur(12px)',
-          border: `1px solid ${colors.borderGold}`,
-          boxShadow: colors.shadowGold,
+          border: `1px solid ${colorsA.borderGold}`,
+          boxShadow: colorsA.shadowGold,
         }}
       >
         <div className="flex items-center gap-3 mb-3">
           <div
             className="w-10 h-10 rounded-lg flex items-center justify-center"
-            style={{ background: `${colors.accent}15` }}
+            style={{ background: `${colorsA.accent}15` }}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <circle cx="12" cy="12" r="9" stroke={colors.accent} strokeWidth="1.5" />
+              <circle cx="12" cy="12" r="9" stroke={colorsA.accent} strokeWidth="1.5" />
               <path
                 d="M12 2v2M12 20v2M2 12h2M20 12h2"
-                stroke={colors.accent}
+                stroke={colorsA.accent}
                 strokeWidth="1.5"
                 strokeLinecap="round"
               />
             </svg>
           </div>
           <div>
-            <h4 style={{ color: colors.text }} className="font-bold text-sm">
+            <h4 style={{ color: colorsA.text }} className="font-bold text-sm">
               {t('map_direction.enable_direction')}
             </h4>
-            <p style={{ color: colors.textSubtle }} className="text-xs">
+            <p style={{ color: colorsA.textSubtle }} className="text-xs">
               {t('map_direction.show_your_direction')}
             </p>
           </div>
@@ -677,8 +655,8 @@ function DirectionPermissionDialog({
             onClick={onDismiss}
             className="flex-1 py-2.5 rounded-lg text-sm transition-colors"
             style={{
-              background: `${colors.text}08`,
-              color: colors.textMuted,
+              background: `${colorsA.text}08`,
+              color: colorsA.textMuted,
             }}
           >
             {t('common.cancel')}
@@ -687,8 +665,8 @@ function DirectionPermissionDialog({
             onClick={onRequestPermission}
             className="flex-1 py-2.5 rounded-lg text-sm font-bold transition-colors"
             style={{
-              background: colors.goldGradient,
-              color: colors.background,
+              background: colorsA.goldGradient,
+              color: colorsA.background,
             }}
           >
             {t('common.confirm')}
@@ -832,6 +810,138 @@ const luxuryMapStyles: google.maps.MapTypeStyle[] = [
 ];
 
 // ============================================================================
+// カフェモード マップスタイル（ライトベージュ・ブラウン系）
+// ============================================================================
+
+const cafeMapStyles: google.maps.MapTypeStyle[] = [
+  // ベース背景: Latte White系
+  { elementType: 'geometry', stylers: [{ color: '#F7F3EE' }] },
+  { elementType: 'labels.icon', stylers: [{ visibility: 'off' }] },
+
+  // ラベル文字: Coffee Black系
+  { elementType: 'labels.text.fill', stylers: [{ color: '#2D2420' }] },
+  { elementType: 'labels.text.stroke', stylers: [{ color: '#F7F3EE' }, { weight: 2.5 }] },
+
+  // 行政区域
+  { featureType: 'administrative', elementType: 'geometry', stylers: [{ color: '#A07850' }] },
+  {
+    featureType: 'administrative.country',
+    elementType: 'labels.text.fill',
+    stylers: [{ color: '#2D2420' }],
+  },
+  {
+    featureType: 'administrative.locality',
+    elementType: 'labels.text.fill',
+    stylers: [{ color: '#2D2420' }],
+  },
+  {
+    featureType: 'administrative.neighborhood',
+    elementType: 'labels.text.fill',
+    stylers: [{ color: '#9A8A7A' }],
+  },
+
+  // POI
+  {
+    featureType: 'poi',
+    elementType: 'labels.text.fill',
+    stylers: [{ color: '#7A5C3C' }],
+  },
+  {
+    featureType: 'poi',
+    elementType: 'labels.text.stroke',
+    stylers: [{ color: '#F7F3EE' }, { weight: 2 }],
+  },
+  {
+    featureType: 'poi.business',
+    elementType: 'labels',
+    stylers: [{ visibility: 'off' }],
+  },
+  {
+    featureType: 'poi.attraction',
+    elementType: 'labels',
+    stylers: [{ visibility: 'on' }],
+  },
+  {
+    featureType: 'poi.park',
+    elementType: 'geometry',
+    stylers: [{ color: '#D4E8D0' }, { visibility: 'simplified' }],
+  },
+  { featureType: 'poi.park', elementType: 'labels', stylers: [{ visibility: 'off' }] },
+
+  // 道路: ホワイト系
+  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#FFFFFF' }] },
+  { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#E8DDD4' }] },
+  {
+    featureType: 'road',
+    elementType: 'labels.text.fill',
+    stylers: [{ color: '#9A8A7A' }],
+  },
+  {
+    featureType: 'road',
+    elementType: 'labels.text.stroke',
+    stylers: [{ color: '#F7F3EE' }, { weight: 3 }],
+  },
+
+  // 高速道路: Espresso Brownアクセント
+  {
+    featureType: 'road.highway',
+    elementType: 'geometry',
+    stylers: [{ color: '#EDE0D4' }],
+  },
+  {
+    featureType: 'road.highway',
+    elementType: 'geometry.stroke',
+    stylers: [{ color: '#A07850' }, { weight: 0.8 }],
+  },
+  {
+    featureType: 'road.highway',
+    elementType: 'labels.text.fill',
+    stylers: [{ color: '#2D2420' }],
+  },
+
+  // 幹線道路
+  {
+    featureType: 'road.arterial',
+    elementType: 'geometry',
+    stylers: [{ color: '#FFFFFF' }],
+  },
+  {
+    featureType: 'road.arterial',
+    elementType: 'labels.text.fill',
+    stylers: [{ color: '#9A8A7A' }],
+  },
+
+  // 地方道路
+  {
+    featureType: 'road.local',
+    elementType: 'geometry',
+    stylers: [{ color: '#FFFFFF' }],
+  },
+  {
+    featureType: 'road.local',
+    elementType: 'labels.text.fill',
+    stylers: [{ color: '#9A8A7A' }],
+  },
+
+  // 交通機関
+  { featureType: 'transit', elementType: 'geometry', stylers: [{ color: '#EDE0D4' }] },
+  { featureType: 'transit', elementType: 'labels', stylers: [{ visibility: 'off' }] },
+  {
+    featureType: 'transit.station',
+    elementType: 'labels.text.fill',
+    stylers: [{ color: '#2D2420' }],
+  },
+
+  // 水域: 淡いブルーグレー
+  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#C9D6DF' }] },
+  { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#7A8A9A' }] },
+
+  // 景観
+  { featureType: 'landscape.man_made', elementType: 'geometry', stylers: [{ color: '#F7F3EE' }] },
+  { featureType: 'landscape.natural', elementType: 'geometry', stylers: [{ color: '#EDE0D4' }] },
+];
+
+// ============================================================================
 // メインコンポーネント: MapView
 // ============================================================================
 
@@ -844,6 +954,8 @@ export function MapView({
   onBoundsChange,
   selectedStoreId,
 }: MapViewProps) {
+  const { colorsA: colors, isBar } = useAppMode();
+
   // Refs
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
@@ -979,8 +1091,8 @@ export function MapView({
         rotateControl: false,
         gestureHandling: 'greedy',
         clickableIcons: false,
-        styles: luxuryMapStyles,
-        backgroundColor: '#0A1628',
+        styles: isBar ? luxuryMapStyles : cafeMapStyles,
+        backgroundColor: isBar ? '#0A1628' : '#F7F3EE',
       });
 
       mapInstanceRef.current = map;
@@ -1020,6 +1132,16 @@ export function MapView({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // モード切替時・マップ準備完了時にマップスタイルを更新
+  useEffect(() => {
+    if (mapInstanceRef.current && mapReady) {
+      mapInstanceRef.current.setOptions({
+        styles: isBar ? luxuryMapStyles : cafeMapStyles,
+        backgroundColor: isBar ? '#0A1628' : '#F7F3EE',
+      });
+    }
+  }, [isBar, mapReady]);
 
   // ============================================================================
   // GPS取得後に初回のみカメラを移動

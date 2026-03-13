@@ -21,6 +21,11 @@ export interface NewsItem {
 export const newsTranslations: Record<string, NewsItem[]> = {
   ja: [
     {
+      date: '2026.03.13',
+      title: 'カフェモード（β版）を導入しました',
+      body: 'NIKENME+にカフェモードを試験的に導入しました。画面右上の切替ボタンからバーモードとカフェモードを切り替えることができます。カフェモードでは大分市内のカフェ情報をご覧いただけます。β版のため、一部機能に制限がございます。',
+    },
+    {
       date: '2026.03.03',
       title: 'PR TIMESにてNIKENME+が紹介されました',
       body: '「もう一軒、行こうか」— その一言が、街の未来を変える。大分の夜の街を救うリアルタイム空席マップ「NIKENME+」の記事がPR TIMESに掲載されました。',
@@ -44,6 +49,11 @@ export const newsTranslations: Record<string, NewsItem[]> = {
     },
   ],
   en: [
+    {
+      date: '2026.03.13',
+      title: 'Cafe Mode (Beta) Now Available',
+      body: 'We have introduced Cafe Mode as a beta feature on NIKENME+. You can switch between Bar Mode and Cafe Mode using the toggle button at the top right of the screen. In Cafe Mode, you can browse cafe information in Oita city. Some features may be limited during the beta period.',
+    },
     {
       date: '2026.03.03',
       title: 'NIKENME+ Featured on PR TIMES',
@@ -69,6 +79,11 @@ export const newsTranslations: Record<string, NewsItem[]> = {
   ],
   ko: [
     {
+      date: '2026.03.13',
+      title: '카페 모드(베타) 도입',
+      body: 'NIKENME+에 카페 모드를 시험적으로 도입했습니다. 화면 오른쪽 상단의 전환 버튼으로 바 모드와 카페 모드를 전환할 수 있습니다. 카페 모드에서는 오이타 시내의 카페 정보를 확인하실 수 있습니다. 베타 기간 중 일부 기능이 제한될 수 있습니다.',
+    },
+    {
       date: '2026.03.03',
       title: 'PR TIMES에 NIKENME+가 소개되었습니다',
       body: '「한 잔 더 할까?」— 그 한마디가 거리의 미래를 바꿉니다. 오이타의 밤거리를 구하는 실시간 빈자리 지도 「NIKENME+」 기사가 PR TIMES에 게재되었습니다.',
@@ -92,6 +107,11 @@ export const newsTranslations: Record<string, NewsItem[]> = {
     },
   ],
   zh: [
+    {
+      date: '2026.03.13',
+      title: '咖啡模式（测试版）上线',
+      body: 'NIKENME+已试验性地推出咖啡模式。您可以通过屏幕右上角的切换按钮在酒吧模式和咖啡模式之间切换。在咖啡模式下，您可以浏览大分市内的咖啡馆信息。测试期间部分功能可能受限。',
+    },
     {
       date: '2026.03.03',
       title: 'NIKENME+被PR TIMES报道',

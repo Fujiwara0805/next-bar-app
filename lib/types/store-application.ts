@@ -7,6 +7,7 @@
  */
 
 import type { Database } from '@/lib/supabase/types';
+// カフェ用設備はlib/app-mode.tsのCAFE_OTHER_FACILITIESからexport済み
 
 // DB型
 export type StoreApplication = Database['public']['Tables']['store_applications']['Row'];
@@ -34,6 +35,7 @@ export interface ApplicationFormValues {
   description: string;
   address: string;
   phone: string;
+  storeCategory: 'bar' | 'cafe' | 'both';
 
   // Step 2: 営業情報
   businessHours: string;
@@ -60,6 +62,7 @@ export function getDefaultApplicationFormValues(): ApplicationFormValues {
     description: '',
     address: '',
     phone: '',
+    storeCategory: 'bar',
     businessHours: '',
     regularHoliday: '',
     budgetMin: 0,

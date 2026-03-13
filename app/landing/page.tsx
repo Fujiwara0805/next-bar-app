@@ -22,7 +22,6 @@ import {
   Gift,
   MessageCircle,
   Instagram,
-  ArrowUp,
   Mail,
   ExternalLink,
   Scale,
@@ -35,44 +34,13 @@ import { useLanguage, SUPPORTED_LANGUAGES, LANGUAGE_META } from '@/lib/i18n/cont
 import type { Language } from '@/lib/i18n/translations';
 import { supabase } from '@/lib/supabase/client';
 import { locationCache } from '@/lib/cache';
+import { useAppMode } from '@/lib/app-mode-context';
 import { newsTranslations } from '@/lib/news-data';
 
 // ============================================
-// 統一カラーパレット（店舗詳細画面準拠）
+// 統一カラーパレット
+// → useAppMode().colorsA で取得（app-mode-context.tsx）
 // ============================================
-const colors = {
-  // ベースカラー（60%）- 背景・余白
-  background: '#0A1628',        // Deep Navy
-  surface: '#162447',           // Midnight Blue
-  surfaceLight: '#1F4068',      // Royal Navy
-  cardBackground: '#FDFBF7',    // Ivory
-  
-  // メインカラー（30%）- 装飾・セクション
-  primary: '#1F4068',           // Royal Navy
-  charcoal: '#2D3436',
-  warmGray: '#636E72',
-  
-  // アクセントカラー（10%）- CTA・重要要素
-  accent: '#C9A86C',            // Champagne Gold
-  accentLight: '#E8D5B7',       // Pale Gold
-  accentDark: '#B8956E',        // Antique Gold
-  
-  // テキストカラー
-  text: '#FDFBF7',              // Ivory
-  textMuted: 'rgba(253, 251, 247, 0.7)',
-  textSubtle: 'rgba(253, 251, 247, 0.5)',
-  
-  // グラデーション
-  luxuryGradient: 'linear-gradient(165deg, #0A1628 0%, #162447 50%, #1F4068 100%)',
-  goldGradient: 'linear-gradient(135deg, #C9A86C 0%, #E8D5B7 50%, #B8956E 100%)',
-  cardGradient: 'linear-gradient(145deg, #FDFBF7 0%, #F5F1EB 100%)',
-  
-  // ボーダー・シャドウ
-  borderGold: 'rgba(201, 168, 108, 0.3)',
-  borderSubtle: 'rgba(201, 168, 108, 0.15)',
-  shadowGold: '0 8px 30px rgba(201, 168, 108, 0.4)',
-  shadowDeep: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-};
 
 interface PartnerStore {
   id: string;
@@ -111,17 +79,19 @@ const DEFAULT_LOCATION = {
   isDefault: true,
 };
 
+const ACCENT_GOLD = '#C9A86C';
 const GoldDivider = () => (
   <div className="flex items-center justify-center gap-3 my-6">
-    <div className="h-px flex-1 max-w-16" style={{ background: `linear-gradient(90deg, transparent, ${colors.accent}40)` }} />
-    <div className="w-1.5 h-1.5 rotate-45" style={{ backgroundColor: colors.accent }} />
-    <div className="h-px flex-1 max-w-16" style={{ background: `linear-gradient(90deg, ${colors.accent}40, transparent)` }} />
+    <div className="h-px flex-1 max-w-16" style={{ background: `linear-gradient(90deg, transparent, ${ACCENT_GOLD}40)` }} />
+    <div className="w-1.5 h-1.5 rotate-45" style={{ backgroundColor: ACCENT_GOLD }} />
+    <div className="h-px flex-1 max-w-16" style={{ background: `linear-gradient(90deg, ${ACCENT_GOLD}40, transparent)` }} />
   </div>
 );
 
 export default function LandingPage() {
   const router = useRouter();
   const { t, language, setLanguage } = useLanguage();
+  const { colorsA: colors, mode, isBar, isCafe, toggleMode } = useAppMode();
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [locationPermission, setLocationPermission] = useState<'granted' | 'denied' | 'prompt' | 'loading'>('prompt');
@@ -135,7 +105,6 @@ export default function LandingPage() {
   const [howtoSlide, setHowtoSlide] = useState(0);
   const [areaGuideSlide, setAreaGuideSlide] = useState(0);
   const [concernsSlide, setConcernsSlide] = useState(0);
-  const [showTopButton, setShowTopButton] = useState(false);
   const locationAttemptRef = useRef(false);
 
   const renderWithLineBreaks = (text: string) => {
@@ -201,13 +170,17 @@ export default function LandingPage() {
   useEffect(() => {
     const fetchPartnerStores = async () => {
       try {
-        const { data, error } = await supabase.from('stores').select('id, name, image_urls, website_url, description, vacancy_status').not('image_urls', 'is', null).limit(10);
+        const { data, error } = await supabase.from('stores').select('id, name, image_urls, website_url, description, vacancy_status')
+          .not('image_urls', 'is', null)
+          // @ts-ignore – store_category は Phase 2 で型定義済み、DBマイグレーション後に有効
+          .or(`store_category.eq.${mode},store_category.eq.both`)
+          .limit(10);
         if (error) return;
         if (data) { setPartnerStores((data as PartnerStore[]).filter((store) => store.image_urls && store.image_urls.length > 0)); }
       } catch (error) { console.error('Error fetching partner stores:', error); }
     };
     fetchPartnerStores();
-  }, []);
+  }, [mode]);
 
   // キャンペーンマスタとキャンペーン実施中の店舗を取得
   useEffect(() => {
@@ -240,6 +213,8 @@ export default function LandingPage() {
           .select('id, name, has_campaign, campaign_name, campaign_start_date, campaign_end_date, image_urls')
           .eq('has_campaign', true)
           .or(`campaign_end_date.is.null,campaign_end_date.gte.${now}`)
+          // @ts-ignore – store_category は Phase 2 で型定義済み、DBマイグレーション後に有効
+          .or(`store_category.eq.${mode},store_category.eq.both`)
           .limit(10);
         
         if (storeError) {
@@ -264,7 +239,9 @@ export default function LandingPage() {
   useEffect(() => {
     const checkVacantStores = async () => {
       try {
-        const { data, error } = await supabase.from('stores').select('id, vacancy_status').eq('vacancy_status', 'vacant').limit(1);
+        const { data, error } = await supabase.from('stores').select('id, vacancy_status').eq('vacancy_status', 'vacant')
+          // @ts-ignore – store_category フィルタ
+          .or(`store_category.eq.${mode},store_category.eq.both`).limit(1);
         if (error) return;
         if (data && data.length > 0) { setShowToast(true); setTimeout(() => setShowToast(false), 3000); }
       } catch (error) { console.error('Error checking vacant stores:', error); }
@@ -293,7 +270,6 @@ export default function LandingPage() {
 
   useEffect(() => {
     const handleScroll = () => {
-      setShowTopButton(window.scrollY > window.innerHeight);
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
@@ -472,7 +448,11 @@ export default function LandingPage() {
           transition={{ duration: 0.8, delay: 0.2 }}
         >
           <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight">
-            <span style={{ color: colors.text }}>{renderWithLineBreaks(t('landing.hero_catchphrase'))}</span>
+            <span style={{ color: colors.text }}>
+              {isCafe
+                ? renderWithLineBreaks(t('landing.cafe_hero_catchphrase'))
+                : renderWithLineBreaks(t('landing.hero_catchphrase'))}
+            </span>
           </h1>
           <motion.div
             whileHover={{ scale: 1.03, y: -2 }}
@@ -484,7 +464,7 @@ export default function LandingPage() {
               size="lg"
               onClick={handleMapClick}
               className="text-lg px-10 py-6 rounded-full font-semibold transition-all relative z-10"
-              style={{ background: colors.goldGradient, color: colors.background }}
+              style={{ background: isCafe ? 'linear-gradient(135deg, #5C3D2E 0%, #7A5C3C 50%, #4A2E1F 100%)' : colors.goldGradient, color: isCafe ? '#F7F3EE' : colors.background }}
             >
               <Store className="w-5 h-5 mr-2" />{t('landing.cta_button_primary')}
             </Button>
@@ -496,7 +476,9 @@ export default function LandingPage() {
             />
           </motion.div>
           <p className="text-xs sm:text-sm tracking-wider mb-3" style={{ color: colors.textMuted }}>
-            {t('landing.hero_subcopy')}
+            {isCafe
+              ? t('landing.cafe_hero_subcopy')
+              : t('landing.hero_subcopy')}
           </p>
           <span className="text-[10px] font-medium tracking-[0.3em] uppercase block mb-2" style={{ color: colors.textSubtle }}>
             SCROLL
@@ -1184,8 +1166,8 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* SEO エリアガイドセクション */}
-      <section className="relative py-20 px-4 overflow-hidden" style={{ background: colors.background }}>
+      {/* SEO エリアガイドセクション（カフェ版では非表示 - 後日カフェ版を作成予定） */}
+      {isBar && <section className="relative py-20 px-4 overflow-hidden" style={{ background: colors.background }}>
         <div className="container mx-auto max-w-4xl">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
             <GoldDivider />
@@ -1268,7 +1250,7 @@ export default function LandingPage() {
           })()}
         </div>
         <motion.div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${colors.accent}40, transparent)` }} />
-      </section>
+      </section>}
 
       {/* Partner Stores Section - 流れるマーキー */}
       {partnerStores.length > 0 && (
@@ -1324,7 +1306,7 @@ export default function LandingPage() {
             <p className="text-base mb-8" style={{ color: colors.textMuted }}>{renderWithLineBreaks(t('landing.contact_subtitle'))}</p>
             <Link href="/contact">
               <motion.div whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.98 }} className="inline-block">
-                <Button size="lg" className="text-base px-8 py-6 rounded-full font-semibold" style={{ background: colors.goldGradient, color: colors.background, boxShadow: colors.shadowGold }}>
+                <Button size="lg" className="text-base px-8 py-6 rounded-full font-semibold" style={{ background: isCafe ? 'linear-gradient(135deg, #5C3D2E 0%, #7A5C3C 50%, #4A2E1F 100%)' : colors.goldGradient, color: isCafe ? '#F7F3EE' : colors.background, boxShadow: colors.shadowGold }}>
                   <Mail className="w-5 h-5 mr-2" />{t('landing.contact_button')}
                 </Button>
               </motion.div>
@@ -1432,7 +1414,7 @@ export default function LandingPage() {
                     </motion.div>
                   )}
                   <div className="space-y-3">
-                    <motion.button whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.98 }} onClick={() => handleLocationPermission(true)} className="w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all relative overflow-hidden group" style={{ background: colors.goldGradient, color: colors.background, boxShadow: colors.shadowGold }}>
+                    <motion.button whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.98 }} onClick={() => handleLocationPermission(true)} className="w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all relative overflow-hidden group" style={{ background: isCafe ? 'linear-gradient(135deg, #5C3D2E 0%, #7A5C3C 50%, #4A2E1F 100%)' : colors.goldGradient, color: isCafe ? '#F7F3EE' : colors.background, boxShadow: colors.shadowGold }}>
                       <motion.div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%)' }} animate={{ x: ['-100%', '200%'] }} transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 1 }} />
                       <span className="relative z-10 flex items-center justify-center gap-2"><CheckCircle className="w-5 h-5" />{t('modal.location_allow')}</span>
                     </motion.button>
@@ -1448,23 +1430,28 @@ export default function LandingPage() {
 
       {/* フローティングボタン群（画面右下） */}
       <div className="fixed bottom-6 right-6 z-20 flex flex-col gap-3 items-end safe-bottom">
-        {/* TOPボタン */}
-        <AnimatePresence>
-          {showTopButton && (
-            <motion.div initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }} transition={{ duration: 0.2 }}>
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Button
-                  onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                  className="flex flex-col items-center justify-center gap-1 px-3 py-2 touch-manipulation active:scale-95 rounded-lg"
-                  style={{ background: 'rgba(5,5,5,0.7)', backdropFilter: 'blur(20px)', border: '1px solid rgba(201,168,108,0.3)', boxShadow: '0 0 20px rgba(201,168,108,0.2)', minWidth: '56px', minHeight: '56px' }}
-                >
-                  <ArrowUp className="w-5 h-5" style={{ color: colors.text }} />
-                  <span className="text-[9px] font-bold leading-tight text-center" style={{ color: colors.text }}>TOP</span>
-                </Button>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* モード切替トグルボタン */}
+        <motion.div initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.3 }}>
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Button
+              onClick={toggleMode}
+              className="flex flex-col items-center justify-center gap-1 px-3 py-2 touch-manipulation active:scale-95 rounded-lg"
+              style={{
+                background: isBar ? 'rgba(5,5,5,0.7)' : 'rgba(247,243,238,0.9)',
+                backdropFilter: 'blur(20px)',
+                border: isBar ? '1px solid rgba(201,168,108,0.3)' : '1px solid rgba(160,120,80,0.3)',
+                boxShadow: isBar ? '0 0 20px rgba(201,168,108,0.2)' : '0 0 20px rgba(160,120,80,0.2)',
+                minWidth: '56px',
+                minHeight: '56px',
+              }}
+            >
+              <span className="text-lg leading-none">{isBar ? '🍺' : '☕'}</span>
+              <span className="text-[9px] font-bold leading-tight text-center" style={{ color: isBar ? '#FDFBF7' : '#2D2420' }}>
+                {isBar ? 'BAR' : 'CAFE'}
+              </span>
+            </Button>
+          </motion.div>
+        </motion.div>
 
         {/* 言語変更ボタン */}
         <div className="relative language-menu-container">
@@ -1484,10 +1471,10 @@ export default function LandingPage() {
                 }}
                 className="flex flex-col items-center justify-center gap-1 px-3 py-2 touch-manipulation active:scale-95 rounded-lg"
                 style={{
-                  background: showLanguageMenu ? colors.accent : 'rgba(5,5,5,0.7)',
+                  background: showLanguageMenu ? colors.accent : (isBar ? 'rgba(5,5,5,0.7)' : 'rgba(247,243,238,0.9)'),
                   backdropFilter: 'blur(20px)',
-                  border: showLanguageMenu ? `1px solid ${colors.accent}` : '1px solid rgba(201,168,108,0.3)',
-                  boxShadow: '0 0 20px rgba(201,168,108,0.2)',
+                  border: showLanguageMenu ? `1px solid ${colors.accent}` : `1px solid ${colors.borderGold}`,
+                  boxShadow: `0 0 20px ${colors.accent}33`,
                   minWidth: '56px',
                   minHeight: '56px',
                 }}
@@ -1514,10 +1501,10 @@ export default function LandingPage() {
                 <div
                   className="rounded-xl overflow-hidden"
                   style={{
-                    background: 'rgba(30, 30, 30, 0.95)',
+                    background: isBar ? 'rgba(30, 30, 30, 0.95)' : 'rgba(247, 243, 238, 0.98)',
                     backdropFilter: 'blur(12px)',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
+                    border: isBar ? '1px solid rgba(255,255,255,0.1)' : `1px solid ${colors.borderGold}`,
+                    boxShadow: isBar ? '0 10px 40px rgba(0,0,0,0.5)' : '0 10px 40px rgba(0,0,0,0.15)',
                   }}
                 >
                   <div className="p-2">
@@ -1530,9 +1517,9 @@ export default function LandingPage() {
                         key={lang}
                         onClick={() => handleLanguageSelect(lang)}
                         className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
-                          language === lang 
-                            ? 'bg-amber-500/20' 
-                            : 'hover:bg-white/10'
+                          language === lang
+                            ? (isBar ? 'bg-amber-500/20' : 'bg-amber-700/10')
+                            : (isBar ? 'hover:bg-white/10' : 'hover:bg-black/5')
                         }`}
                         style={{ color: language === lang ? colors.accent : colors.text }}
                       >

@@ -27,6 +27,7 @@ import { Button } from '@/components/ui/button';
 import { supabase } from '@/lib/supabase/client';
 import type { Database } from '@/lib/supabase/types';
 import { useLanguage } from '@/lib/i18n/context';
+import { useAppMode } from '@/lib/app-mode-context';
 
 // ============================================================================
 // 共通モジュールのインポート
@@ -66,40 +67,8 @@ function debugWarn(message: string, data?: unknown): void {
 
 // ============================================================================
 // デザイントークン（店舗詳細画面と統一）
+// → useAppMode().colorsA で取得（app-mode-context.tsx）
 // ============================================================================
-
-const colors = {
-  // ベースカラー（60%）- 背景・余白
-  background: '#0A1628',        // Deep Navy
-  surface: '#162447',           // Midnight Blue
-  surfaceLight: '#1F4068',      // Royal Navy
-  cardBackground: '#FDFBF7',    // Ivory
-  
-  // アクセントカラー（10%）- CTA・重要要素
-  accent: '#C9A86C',            // Champagne Gold
-  accentLight: '#E8D5B7',       // Pale Gold
-  accentDark: '#B8956E',        // Antique Gold
-  
-  // テキストカラー
-  text: '#FDFBF7',              // Ivory
-  textMuted: 'rgba(253, 251, 247, 0.7)',
-  textSubtle: 'rgba(253, 251, 247, 0.5)',
-  
-  // グラデーション
-  luxuryGradient: 'linear-gradient(165deg, #0A1628 0%, #162447 50%, #1F4068 100%)',
-  goldGradient: 'linear-gradient(135deg, #C9A86C 0%, #E8D5B7 50%, #B8956E 100%)',
-  
-  // ボーダー・シャドウ
-  borderGold: 'rgba(201, 168, 108, 0.3)',
-  borderSubtle: 'rgba(201, 168, 108, 0.15)',
-  shadowGold: '0 8px 30px rgba(201, 168, 108, 0.4)',
-  shadowDeep: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-  
-  // エラー
-  error: '#EF4444',
-  errorBg: 'rgba(239, 68, 68, 0.15)',
-  errorBorder: 'rgba(239, 68, 68, 0.3)',
-};
 
 // ============================================================================
 // 定数
@@ -155,7 +124,8 @@ const STORE_SELECT_COLUMNS = `
   coupon_start_date,
   coupon_expiry_date,
   coupon_is_active,
-  ogori_enabled
+  ogori_enabled,
+  store_category
 `;
 
 // ============================================================================
@@ -262,6 +232,7 @@ interface UseStoresReturn {
 }
 
 function useStores(): UseStoresReturn {
+  const { mode } = useAppMode();
   const [stores, setStores] = useState<Store[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -278,7 +249,7 @@ function useStores(): UseStoresReturn {
     async (forceRefresh: boolean = false, boundsKey?: string): Promise<void> => {
       // キャッシュチェック（強制リフレッシュでなければ）
       if (!forceRefresh) {
-        const cached = storesCache.get(boundsKey);
+        const cached = storesCache.get(boundsKey ? `${mode}:${boundsKey}` : mode);
         if (cached) {
           debugLog('Using cached stores', { count: cached.stores.length });
           setStores(cached.stores);
@@ -295,6 +266,8 @@ function useStores(): UseStoresReturn {
         const { data, error: fetchError } = await supabase
           .from('stores')
           .select(STORE_SELECT_COLUMNS)
+          // @ts-ignore – store_category は Phase 2 で型定義済み
+          .or(`store_category.eq.${mode},store_category.eq.both`)
           .order('created_at', { ascending: false });
 
         if (fetchError) {
@@ -308,7 +281,7 @@ function useStores(): UseStoresReturn {
         debugLog('Fetched stores', { count: storesData.length });
 
         setStores(storesData);
-        storesCache.set(storesData, boundsKey);
+        storesCache.set(storesData, boundsKey ? `${mode}:${boundsKey}` : mode);
         setRetryCount(0);
         setError(null);
       } catch (err) {
@@ -337,7 +310,7 @@ function useStores(): UseStoresReturn {
         }
       }
     },
-    [retryCount]
+    [retryCount, mode]
   );
 
   /**
@@ -449,6 +422,9 @@ interface ErrorBannerProps {
   onRetry: () => void;
 }
 
+// エラーバナーの固定色（コンポーネント外で定義）
+const ERROR_COLORS = { error: '#ef4444', errorBg: '#ef444420', errorBorder: '#ef444440' } as const;
+
 function ErrorBanner({ error, retryCount, onRetry }: ErrorBannerProps) {
   const { t } = useLanguage();
   return (
@@ -461,18 +437,18 @@ function ErrorBanner({ error, retryCount, onRetry }: ErrorBannerProps) {
       <div
         className="p-4 rounded-xl flex items-start gap-3"
         style={{
-          background: colors.errorBg,
-          border: `1px solid ${colors.errorBorder}`,
+          background: ERROR_COLORS.errorBg,
+          border: `1px solid ${ERROR_COLORS.errorBorder}`,
           backdropFilter: 'blur(12px)',
         }}
       >
-        <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: colors.error }} />
+        <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: ERROR_COLORS.error }} />
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium" style={{ color: colors.error }}>
+          <p className="text-sm font-medium" style={{ color: ERROR_COLORS.error }}>
             {t('map.error_fetch_failed')}
           </p>
           {retryCount > 0 && retryCount < MAX_RETRY_COUNT && (
-            <p className="text-xs mt-1" style={{ color: `${colors.error}99` }}>
+            <p className="text-xs mt-1" style={{ color: `${ERROR_COLORS.error}99` }}>
               {t('map.error_retrying').replace('{retryCount}', String(retryCount)).replace('{maxRetryCount}', String(MAX_RETRY_COUNT))}
             </p>
           )}
@@ -480,7 +456,7 @@ function ErrorBanner({ error, retryCount, onRetry }: ErrorBannerProps) {
             <button
               onClick={onRetry}
               className="mt-2 text-xs underline"
-              style={{ color: colors.error }}
+              style={{ color: ERROR_COLORS.error }}
             >
               {t('map.retry')}
             </button>
@@ -499,6 +475,7 @@ function MapPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t, language } = useLanguage();
+  const { colorsA: colors } = useAppMode();
 
   const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -1023,8 +1000,8 @@ function MapPageContent() {
                   }}
                   title={t('map.home')}
                 >
-                  <Home className="w-5 h-5" style={{ color: '#FFFFFF' }} />
-                  <span className="text-[10px] font-bold" style={{ color: '#FFFFFF' }}>
+                  <Home className="w-5 h-5" style={{ color: colors.text }} />
+                  <span className="text-[10px] font-bold" style={{ color: colors.text }}>
                     {t('map.home')}
                   </span>
                 </Button>
@@ -1049,8 +1026,8 @@ function MapPageContent() {
                   }}
                   title={t('map.store_list')}
                 >
-                  <List className="w-5 h-5" style={{ color: '#FFFFFF' }} />
-                  <span className="text-[10px] font-bold" style={{ color: '#FFFFFF' }}>
+                  <List className="w-5 h-5" style={{ color: colors.text }} />
+                  <span className="text-[10px] font-bold" style={{ color: colors.text }}>
                     {t('map.store_list')}
                   </span>
                 </Button>
@@ -1079,9 +1056,9 @@ function MapPageContent() {
                 >
                   <RefreshCw
                     className={`w-5 h-5 ${refreshing ? 'animate-spin' : ''}`}
-                    style={{ color: '#FFFFFF' }}
+                    style={{ color: colors.text }}
                   />
-                  <span className="text-[10px] font-bold" style={{ color: '#FFFFFF' }}>
+                  <span className="text-[10px] font-bold" style={{ color: colors.text }}>
                     {t('map.refresh')}
                   </span>
                 </Button>
@@ -1190,7 +1167,7 @@ function MapPageLoading() {
           animate={{ rotate: 360 }}
           transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
         >
-          <Sparkles className="w-10 h-10 mx-auto mb-2" style={{ color: colors.accent }} />
+          <Sparkles className="w-10 h-10 mx-auto mb-2" style={{ color: '#C9A86C' }} />
         </motion.div>
         <p className="text-sm font-bold" style={{ color: '#FDFBF7' }}>
           {t('common.loading')}

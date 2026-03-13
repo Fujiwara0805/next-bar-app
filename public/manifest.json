@@ -1,11 +1,11 @@
 {
   "name": "NIKENME+ (ニケンメプラス)",
   "short_name": "NIKENME+",
-  "description": "大分の2軒目探しに特化した空席情報マップ",
+  "description": "大分のバー・カフェの空席情報マップ",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#3b82f6",
+  "theme_color": "#0A1628",
   "orientation": "portrait-primary",
   "icons": [
     {

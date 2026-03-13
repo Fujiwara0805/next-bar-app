@@ -4,17 +4,18 @@ import { Inter } from 'next/font/google';
 import { AuthProvider } from '@/lib/auth/context';
 import { LanguageProvider } from '@/lib/i18n/context';
 import { LiffProvider } from '@/lib/line/context';
+import { AppModeProvider } from '@/lib/app-mode-context';
 import { Toaster } from '@/components/ui/sonner';
 import { GoogleAnalytics } from '@/components/analytics/GoogleAnalytics';
 
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'NIKENME+(ニケンメプラス) | 大分のおすすめバー・スナック・居酒屋の空席情報マップ',
-  description: '大分でおすすめのバー・スナック・居酒屋を探すなら NIKENME+。大分市都町・中央町エリアの人気店の空席情報がリアルタイムでわかる地図アプリ。2軒目探し、はしご酒、飲み歩き、デート、一人飲みに最適。出張・観光の夜のお店探しにも。ログイン不要で完全無料。',
+  title: 'NIKENME+(ニケンメプラス) | 大分のおすすめバー・スナック・居酒屋・カフェの空席情報マップ',
+  description: '大分でおすすめのバー・スナック・居酒屋・カフェを探すなら NIKENME+。大分市都町・中央町エリアの人気店の空席情報がリアルタイムでわかる地図アプリ。昼はカフェ、夜はバー・居酒屋の2軒目探し、はしご酒、飲み歩き、デート、一人飲みに最適。出張・観光にも。ログイン不要で完全無料。',
 
   // AI検索エンジン向けの詳細な説明を追加
-  abstract: 'NIKENME+（ニケンメプラス）は、大分県大分市を中心におすすめのバー・スナック・居酒屋・飲食店の空席情報をリアルタイムで提供するマップサービスです。大分市都町・中央町の繁華街エリアを中心に、今すぐ入れる人気のお店を地図上で簡単に見つけられます。大分の夜を楽しむなら必見。デート、一人飲み、女子会、出張、観光、忘年会・新年会の二次会探しにも最適。ログイン不要で即座に利用可能です。',
+  abstract: 'NIKENME+（ニケンメプラス）は、大分県大分市を中心におすすめのバー・スナック・居酒屋・カフェの空席情報をリアルタイムで提供するマップサービスです。大分市都町・中央町の繁華街エリアを中心に、今すぐ入れる人気のお店を地図上で簡単に見つけられます。昼はカフェモード、夜はバーモードで自動切替。デート、一人飲み、女子会、出張、観光、忘年会・新年会の二次会探しにも最適。ログイン不要で即座に利用可能です。',
   
   manifest: '/manifest.json',
   
@@ -199,6 +200,27 @@ export const metadata: Metadata = {
     '今入れる店',
     '大分 近くのバー',
     '大分 近くの居酒屋',
+
+    // カフェ関連キーワード
+    '大分 カフェ',
+    '大分 おすすめ カフェ',
+    '大分 カフェ おすすめ',
+    '大分 カフェ ランキング',
+    '大分 人気 カフェ',
+    '大分市 カフェ',
+    '大分駅 カフェ',
+    '大分 都町 カフェ',
+    '大分 中央町 カフェ',
+    '大分 カフェ Wi-Fi',
+    '大分 カフェ 電源',
+    '大分 ノマド カフェ',
+    '大分 作業 カフェ',
+    '大分 テラス カフェ',
+    '大分 おしゃれ カフェ',
+    '大分 ランチ カフェ',
+    '大分 一人 カフェ',
+    '大分 静か カフェ',
+    '大分 近くのカフェ',
   ].join(', '),
   authors: [{ name: 'NIKENME+ (ニケンメプラス)' }],
   creator: 'NIKENME+',
@@ -247,8 +269,8 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     siteName: 'NIKENME+ (ニケンメプラス)',
-    title: 'NIKENME+ | 大分のおすすめバー・スナック・居酒屋の空席マップ',
-    description: '大分でおすすめのバー・スナック・居酒屋を探すならNIKENME+。人気店の空席がリアルタイムでわかる地図アプリ。大分市都町・中央町エリアの2軒目探し、はしご酒、デート、一人飲みに最適。出張・観光にも。',
+    title: 'NIKENME+ | 大分のおすすめバー・スナック・居酒屋・カフェの空席マップ',
+    description: '大分でおすすめのバー・スナック・居酒屋・カフェを探すならNIKENME+。人気店の空席がリアルタイムでわかる地図アプリ。昼はカフェ、夜はバー。大分市都町・中央町エリアの2軒目探し、はしご酒、デート、一人飲みに最適。',
     url: 'https://nikenme.jp',
     images: [
       {
@@ -262,8 +284,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'NIKENME+ | 大分のおすすめバー・スナック・居酒屋を今すぐ探せる空席マップ',
-    description: '大分でおすすめのバー・スナック・居酒屋をお探しなら。人気店の空席情報をリアルタイムで確認。デート、一人飲み、出張にも最適。',
+    title: 'NIKENME+ | 大分のおすすめバー・スナック・居酒屋・カフェを今すぐ探せる空席マップ',
+    description: '大分でおすすめのバー・スナック・居酒屋・カフェをお探しなら。人気店の空席情報をリアルタイムで確認。デート、一人飲み、出張にも最適。',
     images: ['https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761311529/NIKENME_%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_r5gzn4.png'],
     creator: '@nikenme',
   },
@@ -654,7 +676,9 @@ export default function RootLayout({
         <LanguageProvider>
           <LiffProvider>
             <AuthProvider>
-              {children}
+              <AppModeProvider>
+                {children}
+              </AppModeProvider>
               <Toaster />
             </AuthProvider>
           </LiffProvider>

@@ -189,6 +189,7 @@ export default function StoreEditPage() {
   const [authChecked, setAuthChecked] = useState(false);
 
   // フォームステート
+  const [storeCategory, setStoreCategory] = useState<'bar' | 'cafe' | 'both'>('bar');
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [address, setAddress] = useState('');
@@ -281,6 +282,7 @@ export default function StoreEditPage() {
           }
         }
         
+        setStoreCategory((storeData as any).store_category || 'bar');
         setName(storeData.name);
         setDescription(storeData.description || '');
         setAddress(storeData.address);
@@ -682,6 +684,7 @@ export default function StoreEditPage() {
 
       let query = (supabase.from('stores') as any)
         .update({
+          store_category: storeCategory,
           name: name.trim(),
           description: description.trim() || null,
           address: address.trim(),
@@ -906,10 +909,35 @@ export default function StoreEditPage() {
                 />
               </div>
 
+              {/* 店舗カテゴリ */}
+              <div className="space-y-2 mb-5">
+                <Label className="text-sm font-bold flex items-center gap-2" style={{ color: COLORS.deepNavy }}>
+                  <StoreIcon className="w-4 h-4" style={{ color: COLORS.champagneGold }} />
+                  店舗カテゴリ <span style={{ color: COLORS.champagneGold }}>*</span>
+                </Label>
+                <div className="flex gap-3">
+                  {([['bar', 'バー・スナック'], ['cafe', 'カフェ'], ['both', '両方']] as const).map(([value, label]) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => setStoreCategory(value)}
+                      className="flex-1 py-2.5 px-3 rounded-xl text-sm font-medium transition-all duration-200 border-2"
+                      style={{
+                        borderColor: storeCategory === value ? COLORS.champagneGold : COLORS.platinum,
+                        backgroundColor: storeCategory === value ? `${COLORS.champagneGold}15` : 'white',
+                        color: storeCategory === value ? COLORS.deepNavy : COLORS.warmGray,
+                      }}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {/* 説明 */}
               <div className="space-y-2 mb-5">
-                <Label 
-                  htmlFor="description" 
+                <Label
+                  htmlFor="description"
                   className="text-sm font-bold flex items-center gap-2"
                   style={{ color: COLORS.deepNavy }}
                 >

@@ -82,6 +82,8 @@ export interface Database {
           reviewed_at: string | null
           created_at: string
           updated_at: string
+          /** 店舗カテゴリ（バー/カフェ/両方） */
+          store_category: 'bar' | 'cafe' | 'both'
         }
         Insert: {
           id?: string
@@ -107,6 +109,8 @@ export interface Database {
           reviewed_at?: string | null
           created_at?: string
           updated_at?: string
+          /** 店舗カテゴリ（バー/カフェ/両方） */
+          store_category?: 'bar' | 'cafe' | 'both'
         }
         Update: {
           id?: string
@@ -132,6 +136,8 @@ export interface Database {
           reviewed_at?: string | null
           created_at?: string
           updated_at?: string
+          /** 店舗カテゴリ（バー/カフェ/両方） */
+          store_category?: 'bar' | 'cafe' | 'both'
         }
       }
       // ============================================
@@ -396,6 +402,8 @@ export interface Database {
           campaign_start_date: string | null
           /** キャンペーン終了日時 */
           campaign_end_date: string | null
+          /** 店舗カテゴリ（バー/カフェ/両方） */
+          store_category: 'bar' | 'cafe' | 'both'
         }
         Insert: {
           id?: string
@@ -461,6 +469,8 @@ export interface Database {
           campaign_name?: string | null
           campaign_start_date?: string | null
           campaign_end_date?: string | null
+          /** 店舗カテゴリ（バー/カフェ/両方） */
+          store_category?: 'bar' | 'cafe' | 'both'
         }
         Update: {
           id?: string
@@ -526,6 +536,8 @@ export interface Database {
           campaign_name?: string | null
           campaign_start_date?: string | null
           campaign_end_date?: string | null
+          /** 店舗カテゴリ（バー/カフェ/両方） */
+          store_category?: 'bar' | 'cafe' | 'both'
         }
       }
       // ============================================

@@ -26,6 +26,7 @@ import { OgoriSection } from '@/components/ogori/OgoriSection';
 import { InstantReservationButton } from '@/components/instant-reservation-button';
 import { getTodayOpenTime, isTodayClosedDay, checkIsOpenFromStructuredHours } from '@/lib/structured-business-hours';
 import { sendGAEvent } from '@/lib/analytics';
+import { useAppMode } from '@/lib/app-mode-context';
 import type { Database, BusinessHours } from '@/lib/supabase/types';
 
 type Store = Database['public']['Tables']['stores']['Row'];
@@ -40,33 +41,7 @@ interface StoreDetailPanelProps {
   isNavigating: boolean;
 }
 
-// ダークテーマ色（通常カード用）
-const darkTheme = {
-  background: '#0A1628',
-  surface: '#162447',
-  accent: '#C9A86C',
-  accentLight: '#E8D5B7',
-  text: '#FDFBF7',
-  textMuted: 'rgba(253, 251, 247, 0.7)',
-  textSubtle: 'rgba(253, 251, 247, 0.5)',
-  borderGold: 'rgba(201, 168, 108, 0.3)',
-  borderSubtle: 'rgba(201, 168, 108, 0.15)',
-  shadowGold: '0 8px 30px rgba(201, 168, 108, 0.4)',
-  goldGradient: 'linear-gradient(135deg, #C9A86C 0%, #E8D5B7 50%, #B8956E 100%)',
-};
-
-// ライトテーマ色（展開時の詳細用）
-const lightTheme = {
-  background: '#FFFFFF',
-  surface: '#FDFBF7',
-  accent: '#C9A86C',
-  text: '#0A1628',
-  textMuted: '#636E72',
-  textSubtle: '#9BA4A9',
-  borderGold: 'rgba(201, 168, 108, 0.25)',
-  borderSubtle: 'rgba(201, 168, 108, 0.12)',
-  badgeBg: 'rgba(10, 22, 40, 0.04)',
-};
+// テーマ色は useAppMode() から取得（panelDark / panelLight）
 
 export function StoreDetailPanel({
   store,
@@ -78,6 +53,7 @@ export function StoreDetailPanel({
   isNavigating,
 }: StoreDetailPanelProps) {
   const { t, language } = useLanguage();
+  const { panelDark: darkTheme, panelLight: lightTheme } = useAppMode();
   const [isExpanded, setIsExpanded] = useState(false);
   const [showReservationModal, setShowReservationModal] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);

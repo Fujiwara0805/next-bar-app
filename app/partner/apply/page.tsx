@@ -234,6 +234,31 @@ function Step1BasicInfo({
 
         <div>
           <Label className="text-sm font-semibold mb-2 flex items-center" style={{ color: COLORS.charcoal }}>
+            <Store className="w-4 h-4 mr-1.5" style={{ color: COLORS.champagneGold }} />
+            店舗カテゴリ
+            <RequiredBadge />
+          </Label>
+          <div className="flex gap-3">
+            {([['bar', 'バー・スナック'], ['cafe', 'カフェ'], ['both', '両方']] as const).map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => onChange({ storeCategory: value })}
+                className="flex-1 py-2.5 px-3 rounded-xl text-sm font-medium transition-all duration-200 border-2"
+                style={{
+                  borderColor: values.storeCategory === value ? COLORS.champagneGold : COLORS.platinum,
+                  backgroundColor: values.storeCategory === value ? `${COLORS.champagneGold}15` : 'white',
+                  color: values.storeCategory === value ? COLORS.charcoal : COLORS.warmGray,
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <Label className="text-sm font-semibold mb-2 flex items-center" style={{ color: COLORS.charcoal }}>
             <FileText className="w-4 h-4 mr-1.5" style={{ color: COLORS.champagneGold }} />
             店舗説明・コンセプト
           </Label>
@@ -669,6 +694,10 @@ function Step5Confirm({
               {values.storeName || '未入力'}
             </p>
             <p>
+              <span className="font-semibold">カテゴリ：</span>
+              {values.storeCategory === 'bar' ? 'バー・スナック' : values.storeCategory === 'cafe' ? 'カフェ' : '両方'}
+            </p>
+            <p>
               <span className="font-semibold">住所：</span>
               {values.address || '未入力'}
             </p>
@@ -976,6 +1005,7 @@ export default function PartnerApplyPage() {
       // 2. POST form data to API
       const payload = {
         store_name: formValues.storeName,
+        store_category: formValues.storeCategory,
         description: formValues.description,
         address: formValues.address,
         phone: formValues.phone,

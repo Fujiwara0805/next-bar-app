@@ -43,6 +43,7 @@ import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/lib/supabase/client';
 import type { Database, BusinessHours } from '@/lib/supabase/types';
 import { useLanguage } from '@/lib/i18n/context';
+import { useAppMode } from '@/lib/app-mode-context';
 import { translations } from '@/lib/i18n/translations';
 import { InstantReservationButton } from '@/components/instant-reservation-button';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
@@ -57,30 +58,9 @@ import { useOptimizedLocation } from '@/lib/hooks/useOptimizedLocation';
 type Store = Database['public']['Tables']['stores']['Row'];
 
 // ============================================
-// カラーパレット定義（コンシェルジュモーダル準拠）
+// カラーパレット定義
+// → useAppMode().colorsB で取得（app-mode-context.tsx）
 // ============================================
-const COLORS = {
-  // プライマリ
-  deepNavy: '#0A1628',
-  midnightBlue: '#162447',
-  royalNavy: '#1F4068',
-  
-  // アクセント
-  champagneGold: '#C9A86C',
-  paleGold: '#E8D5B7',
-  antiqueGold: '#B8956E',
-  
-  // ニュートラル
-  charcoal: '#2D3436',
-  warmGray: '#636E72',
-  platinum: '#DFE6E9',
-  ivory: '#FDFBF7',
-  
-  // グラデーション
-  luxuryGradient: 'linear-gradient(165deg, #0A1628 0%, #162447 50%, #1F4068 100%)',
-  goldGradient: 'linear-gradient(135deg, #C9A86C 0%, #E8D5B7 50%, #B8956E 100%)',
-  cardGradient: 'linear-gradient(145deg, #FDFBF7 0%, #F5F1EB 100%)',
-};
 
 /** 自動スライドの間隔（ミリ秒） */
 const AUTO_SLIDE_INTERVAL = 3000;
@@ -151,7 +131,7 @@ const ImageWithLoading = ({
               className="w-8 h-8 rounded-full border-2"
               style={{ 
                 borderColor: 'rgba(201, 168, 108, 0.2)',
-                borderTopColor: COLORS.champagneGold,
+                borderTopColor: '#C9A86C',
               }}
               animate={{ rotate: 360 }}
               transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
@@ -184,19 +164,20 @@ const ImageWithLoading = ({
 /**
  * ゴールド装飾ディバイダー
  */
+const GOLD = '#C9A86C';
 const GoldDivider = () => (
   <div className="flex items-center justify-center gap-3 my-4">
-    <div 
+    <div
       className="h-px flex-1 max-w-12"
-      style={{ background: `linear-gradient(90deg, transparent, ${COLORS.champagneGold}30)` }}
+      style={{ background: `linear-gradient(90deg, transparent, ${GOLD}30)` }}
     />
-    <div 
+    <div
       className="w-1 h-1 rotate-45"
-      style={{ backgroundColor: COLORS.champagneGold }}
+      style={{ backgroundColor: GOLD }}
     />
-    <div 
+    <div
       className="h-px flex-1 max-w-12"
-      style={{ background: `linear-gradient(90deg, ${COLORS.champagneGold}30, transparent)` }}
+      style={{ background: `linear-gradient(90deg, ${GOLD}30, transparent)` }}
     />
   </div>
 );
@@ -205,6 +186,7 @@ export default function StoreDetailPage() {
   const router = useRouter();
   const params = useParams();
   const { t, language } = useLanguage();
+  const { colorsB: COLORS } = useAppMode();
   
   // 設備名を翻訳するヘルパー関数
   const translateFacility = (facility: string): string => {
