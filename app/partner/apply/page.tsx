@@ -239,7 +239,7 @@ function Step1BasicInfo({
             <RequiredBadge />
           </Label>
           <div className="flex gap-3">
-            {([['bar', 'バー・スナック'], ['cafe', 'カフェ'], ['both', '両方']] as const).map(([value, label]) => (
+            {([['bar', '夜'], ['cafe', '昼'], ['both', '両方']] as const).map(([value, label]) => (
               <button
                 key={value}
                 type="button"
@@ -695,7 +695,7 @@ function Step5Confirm({
             </p>
             <p>
               <span className="font-semibold">カテゴリ：</span>
-              {values.storeCategory === 'bar' ? 'バー・スナック' : values.storeCategory === 'cafe' ? 'カフェ' : '両方'}
+              {values.storeCategory === 'bar' ? '夜' : values.storeCategory === 'cafe' ? '昼' : '両方'}
             </p>
             <p>
               <span className="font-semibold">住所：</span>
