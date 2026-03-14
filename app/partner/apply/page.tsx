@@ -37,6 +37,8 @@ import {
   FACILITY_CATEGORIES,
   OTHER_FACILITIES,
   APPLICATION_STEPS,
+  getFacilityCategoriesByStoreCategory,
+  getOtherFacilitiesByStoreCategory,
 } from '@/lib/types/store-application';
 
 // ============================================
@@ -243,7 +245,7 @@ function Step1BasicInfo({
               <button
                 key={value}
                 type="button"
-                onClick={() => onChange({ storeCategory: value })}
+                onClick={() => onChange({ storeCategory: value, facilities: [] })}
                 className="flex-1 py-2.5 px-3 rounded-xl text-sm font-medium transition-all duration-200 border-2"
                 style={{
                   borderColor: values.storeCategory === value ? COLORS.champagneGold : COLORS.platinum,
@@ -456,7 +458,7 @@ function Step3Facilities({
       />
 
       <div className="space-y-6">
-        {Object.entries(FACILITY_CATEGORIES).map(([key, category]) => (
+        {(Object.entries(getFacilityCategoriesByStoreCategory(values.storeCategory)) as [string, { title: string; items: readonly string[] }][]).map(([key, category]) => (
           <div key={key}>
             <h3
               className="text-sm font-bold mb-3 flex items-center gap-2"
@@ -465,7 +467,7 @@ function Step3Facilities({
               {category.title}
             </h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-              {category.items.map((item) => (
+              {category.items.map((item: string) => (
                 <label
                   key={item}
                   className="flex items-center gap-2.5 p-3 rounded-xl border-2 cursor-pointer transition-all duration-200 hover:border-[#C9A86C]/40"
@@ -504,7 +506,7 @@ function Step3Facilities({
             className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-64 overflow-y-auto p-3 rounded-xl"
             style={{ backgroundColor: 'rgba(0, 0, 0, 0.02)', border: '1px solid #e5e7eb' }}
           >
-            {OTHER_FACILITIES.map((facility) => (
+            {getOtherFacilitiesByStoreCategory(values.storeCategory).map((facility) => (
               <label
                 key={facility}
                 className="flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-all duration-150 hover:bg-white"

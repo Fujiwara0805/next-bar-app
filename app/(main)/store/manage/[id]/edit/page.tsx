@@ -66,6 +66,7 @@ import {
 // 構造化営業時間モーダル
 import { BusinessHoursModal } from '@/components/store/BusinessHoursModal';
 import type { BusinessHours } from '@/lib/supabase/types';
+import { getFacilityCategoriesByStoreCategory, getOtherFacilitiesByStoreCategory } from '@/lib/types/store-application';
 
 type Store = Database['public']['Tables']['stores']['Row'];
 
@@ -783,37 +784,23 @@ export default function StoreEditPage() {
     }
   };
 
-  // 設備カテゴリ
-  const facilityCategories = {
-    newcomer: {
-      title: '✨ 新規・一人客向け',
-      items: ['一人客歓迎', 'おひとり様大歓迎', 'カウンター充実', '常連さんが優しい'],
-      bgColor: 'rgba(31, 64, 104, 0.05)',
-      borderColor: 'rgba(31, 64, 104, 0.15)',
-    },
-    women: {
-      title: '💕 女性向け',
-      items: ['女性客多め', '女性一人でも安心', '女性スタッフ在籍', 'レディースデー有'],
-      bgColor: 'rgba(201, 168, 108, 0.05)',
-      borderColor: 'rgba(201, 168, 108, 0.15)',
-    },
-    pricing: {
-      title: '💰 料金関連',
-      items: ['チャージなし', '席料なし', 'お通しなし', '明朗会計', '価格表示あり', '予算相談OK'],
-      bgColor: 'rgba(34, 197, 94, 0.05)',
-      borderColor: 'rgba(34, 197, 94, 0.15)',
-    },
-  };
+  // 設備カテゴリ（店舗カテゴリに応じて動的に切り替え）
+  const facilityCategories: Record<string, { title: string; items: readonly string[]; bgColor: string; borderColor: string }> = (() => {
+    const cats = getFacilityCategoriesByStoreCategory(storeCategory);
+    return Object.fromEntries(
+      Object.entries(cats).map(([key, cat]) => [key, {
+        ...cat,
+        bgColor: key === 'newcomer' || key === 'atmosphere' ? 'rgba(31, 64, 104, 0.05)' :
+                 key === 'women' || key === 'women_family' || key === 'workspace' ? 'rgba(201, 168, 108, 0.05)' :
+                 'rgba(34, 197, 94, 0.05)',
+        borderColor: key === 'newcomer' || key === 'atmosphere' ? 'rgba(31, 64, 104, 0.15)' :
+                     key === 'women' || key === 'women_family' || key === 'workspace' ? 'rgba(201, 168, 108, 0.15)' :
+                     'rgba(34, 197, 94, 0.15)',
+      }])
+    );
+  })();
 
-  const otherFacilities = [
-    'Wi-Fi', '喫煙可', '分煙', '禁煙', '駐車場', 'カウンター席', '個室', 'テラス席', 'ソファ席',
-    'カラオケ完備', 'ダーツ', 'ビリヤード', 'ボードゲーム', '生演奏', 'DJ', 'スポーツ観戦可',
-    '日本酒充実', 'ウイスキー充実', 'ワイン充実', 'カクテル豊富', 'クラフトビール', '焼酎充実',
-    'フード充実', 'おつまみ豊富', '英語対応可', '外国語メニューあり', '観光客歓迎', 'ホテル近く',
-    '駅近', '深夜営業', '朝まで営業', 'ボトルキープ可', 'セット料金あり', '静かな雰囲気',
-    'ワイワイ系', 'オーセンティック', 'カジュアル', '隠れ家的', '大人の雰囲気', '昭和レトロ',
-    'スタイリッシュ', 'アットホーム', 'ママ・マスター人気', '美味しいお酒', 'こだわりの一杯',
-  ];
+  const otherFacilities: string[] = [...getOtherFacilitiesByStoreCategory(storeCategory)];
 
   // 認証チェック中またはデータ取得中のローディング表示
   if (!authChecked || fetchingStore) {
@@ -920,7 +907,7 @@ export default function StoreEditPage() {
                     <button
                       key={value}
                       type="button"
-                      onClick={() => setStoreCategory(value)}
+                      onClick={() => { setStoreCategory(value); setFacilities([]); }}
                       className="flex-1 py-2.5 px-3 rounded-xl text-sm font-medium transition-all duration-200 border-2"
                       style={{
                         borderColor: storeCategory === value ? COLORS.champagneGold : COLORS.platinum,

@@ -47,6 +47,7 @@ import { useAppMode } from '@/lib/app-mode-context';
 import { translations } from '@/lib/i18n/translations';
 import { InstantReservationButton } from '@/components/instant-reservation-button';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { getFacilityCategoriesByStoreCategory } from '@/lib/types/store-application';
 import { CouponDisplayModal } from '@/components/store/CouponDisplayModal';
 import { isCouponValid, type CouponData } from '@/lib/types/coupon';
 import { ImageLightbox } from '@/components/ui/ImageLightbox';
@@ -1271,124 +1272,59 @@ export default function StoreDetailPage() {
                       {t('store_detail.facilities')}
                     </p>
                     
-                    {/* 新規客・一人客向け */}
-                    {store.facilities.some(f => ['一人客歓迎', 'おひとり様大歓迎', '初めての方歓迎'].includes(f)) && (
-                      <div 
-                        className="mb-3 p-3 rounded-xl"
-                        style={{ 
-                          backgroundColor: 'rgba(10, 22, 40, 0.05)',
-                          border: `1px solid rgba(10, 22, 40, 0.1)`,
-                        }}
-                      >
-                        <p className="text-xs font-bold mb-2 flex items-center gap-1" style={{ color: COLORS.royalNavy }}>
-                          ✨ {t('store_detail.facilities_newcomer')}
-                        </p>
-                        <div className="flex flex-wrap gap-1">
-                          {store.facilities
-                            .filter(f => ['一人客歓迎', 'おひとり様大歓迎', '初めての方歓迎', 'カウンター充実', '常連さんが優しい'].includes(f))
-                            .map((facility) => (
-                              <Badge 
-                                key={facility} 
-                                className="font-medium text-xs"
-                                style={{ 
-                                  backgroundColor: 'rgba(31, 64, 104, 0.1)',
-                                  color: COLORS.royalNavy,
-                                  border: `1px solid rgba(31, 64, 104, 0.2)`,
-                                }}
-                              >
-                                {translateFacility(facility)}
-                              </Badge>
-                            ))}
-                        </div>
-                      </div>
-                    )}
+                    {/* カテゴリ別の設備表示（店舗カテゴリに応じて動的） */}
+                    {(() => {
+                      const sc = (store as any).store_category || 'bar';
+                      const cats = getFacilityCategoriesByStoreCategory(sc);
+                      const categoryColors: Record<string, { bg: string; border: string; text: string; badgeBg: string; badgeBorder: string }> = {
+                        newcomer: { bg: 'rgba(10, 22, 40, 0.05)', border: 'rgba(10, 22, 40, 0.1)', text: COLORS.royalNavy, badgeBg: 'rgba(31, 64, 104, 0.1)', badgeBorder: 'rgba(31, 64, 104, 0.2)' },
+                        atmosphere: { bg: 'rgba(10, 22, 40, 0.05)', border: 'rgba(10, 22, 40, 0.1)', text: COLORS.royalNavy, badgeBg: 'rgba(31, 64, 104, 0.1)', badgeBorder: 'rgba(31, 64, 104, 0.2)' },
+                        women: { bg: 'rgba(201, 168, 108, 0.08)', border: 'rgba(201, 168, 108, 0.15)', text: COLORS.antiqueGold, badgeBg: 'rgba(201, 168, 108, 0.15)', badgeBorder: 'rgba(201, 168, 108, 0.25)' },
+                        women_family: { bg: 'rgba(201, 168, 108, 0.08)', border: 'rgba(201, 168, 108, 0.15)', text: COLORS.antiqueGold, badgeBg: 'rgba(201, 168, 108, 0.15)', badgeBorder: 'rgba(201, 168, 108, 0.25)' },
+                        workspace: { bg: 'rgba(59, 130, 246, 0.08)', border: 'rgba(59, 130, 246, 0.15)', text: '#2563eb', badgeBg: 'rgba(59, 130, 246, 0.15)', badgeBorder: 'rgba(59, 130, 246, 0.25)' },
+                        pricing: { bg: 'rgba(34, 197, 94, 0.08)', border: 'rgba(34, 197, 94, 0.15)', text: '#16a34a', badgeBg: 'rgba(34, 197, 94, 0.15)', badgeBorder: 'rgba(34, 197, 94, 0.25)' },
+                      };
+                      const allCatItems = Object.values(cats).flatMap(c => [...c.items]);
+                      // 初めての方歓迎、女性バーテンダー在籍も含める（DB既存データ対応）
+                      const extraCatItems = ['初めての方歓迎', '女性バーテンダー在籍'];
+                      const allCategorized = [...allCatItems, ...extraCatItems];
 
-                    {/* 女性客向け */}
-                    {store.facilities.some(f => ['女性客多め', '女性一人でも安心', '女性スタッフ在籍', 'レディースデー有'].includes(f)) && (
-                      <div 
-                        className="mb-3 p-3 rounded-xl"
-                        style={{ 
-                          backgroundColor: 'rgba(201, 168, 108, 0.08)',
-                          border: `1px solid rgba(201, 168, 108, 0.15)`,
-                        }}
-                      >
-                        <p className="text-xs font-bold mb-2 flex items-center gap-1" style={{ color: COLORS.antiqueGold }}>
-                          💕 {t('store_detail.facilities_women')}
-                        </p>
-                        <div className="flex flex-wrap gap-1">
-                          {store.facilities
-                            .filter(f => ['女性客多め', '女性一人でも安心', '女性バーテンダー在籍', '女性スタッフ在籍', 'レディースデー有'].includes(f))
-                            .map((facility) => (
-                              <Badge 
-                                key={facility} 
-                                className="font-medium text-xs"
-                                style={{ 
-                                  backgroundColor: 'rgba(201, 168, 108, 0.15)',
-                                  color: COLORS.antiqueGold,
-                                  border: `1px solid rgba(201, 168, 108, 0.25)`,
-                                }}
-                              >
-                                {translateFacility(facility)}
-                              </Badge>
-                            ))}
-                        </div>
-                      </div>
-                    )}
+                      return (
+                        <>
+                          {Object.entries(cats).map(([key, cat]) => {
+                            const matchItems = [...cat.items, ...(key === 'newcomer' ? ['初めての方歓迎'] : key === 'women' ? ['女性バーテンダー在籍'] : [])];
+                            const matched = store.facilities!.filter(f => matchItems.includes(f));
+                            if (matched.length === 0) return null;
+                            const colors = categoryColors[key] || categoryColors.pricing;
+                            return (
+                              <div key={key} className="mb-3 p-3 rounded-xl" style={{ backgroundColor: colors.bg, border: `1px solid ${colors.border}` }}>
+                                <p className="text-xs font-bold mb-2 flex items-center gap-1" style={{ color: colors.text }}>
+                                  {cat.title}
+                                </p>
+                                <div className="flex flex-wrap gap-1">
+                                  {matched.map((facility) => (
+                                    <Badge key={facility} className="font-medium text-xs" style={{ backgroundColor: colors.badgeBg, color: colors.text, border: `1px solid ${colors.badgeBorder}` }}>
+                                      {translateFacility(facility)}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              </div>
+                            );
+                          })}
 
-                    {/* 料金関連 */}
-                    {store.facilities.some(f => ['チャージなし', '席料なし', 'お通しなし', '明朗会計', '価格表示あり'].includes(f)) && (
-                      <div 
-                        className="mb-3 p-3 rounded-xl"
-                        style={{ 
-                          backgroundColor: 'rgba(34, 197, 94, 0.08)',
-                          border: `1px solid rgba(34, 197, 94, 0.15)`,
-                        }}
-                      >
-                        <p className="text-xs font-bold mb-2 flex items-center gap-1" style={{ color: '#16a34a' }}>
-                          💰 {t('store_detail.facilities_pricing')}
-                        </p>
-                        <div className="flex flex-wrap gap-1">
-                          {store.facilities
-                            .filter(f => ['チャージなし', '席料なし', 'お通しなし', '明朗会計', '価格表示あり', '予算相談OK'].includes(f))
-                            .map((facility) => (
-                              <Badge 
-                                key={facility} 
-                                className="font-medium text-xs"
-                                style={{ 
-                                  backgroundColor: 'rgba(34, 197, 94, 0.15)',
-                                  color: '#16a34a',
-                                  border: `1px solid rgba(34, 197, 94, 0.25)`,
-                                }}
-                              >
-                                {translateFacility(facility)}
-                              </Badge>
-                            ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* その他 */}
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {store.facilities
-                        .filter(f => ![
-                          '一人客歓迎', 'おひとり様大歓迎', '初めての方歓迎', 'カウンター充実', '常連さんが優しい',
-                          '女性客多め', '女性一人でも安心', '女性バーテンダー在籍', '女性スタッフ在籍', 'レディースデー有',
-                          'チャージなし', '席料なし', 'お通しなし', '明朗会計', '価格表示あり', '予算相談OK'
-                        ].includes(f))
-                        .map((facility) => (
-                          <Badge 
-                            key={facility} 
-                            className="font-medium"
-                            style={{ 
-                              backgroundColor: 'rgba(201, 168, 108, 0.1)',
-                              color: COLORS.charcoal,
-                              border: `1px solid rgba(201, 168, 108, 0.2)`,
-                            }}
-                          >
-                            {translateFacility(facility)}
-                          </Badge>
-                        ))}
-                    </div>
+                          {/* その他 */}
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {store.facilities!
+                              .filter(f => !allCategorized.includes(f))
+                              .map((facility) => (
+                                <Badge key={facility} className="font-medium" style={{ backgroundColor: 'rgba(201, 168, 108, 0.1)', color: COLORS.charcoal, border: `1px solid rgba(201, 168, 108, 0.2)` }}>
+                                  {translateFacility(facility)}
+                                </Badge>
+                              ))}
+                          </div>
+                        </>
+                      );
+                    })()}
                   </div>
                 </div>
               )}
