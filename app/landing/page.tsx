@@ -449,7 +449,14 @@ export default function LandingPage() {
               />
             </motion.div>
           </AnimatePresence>
-          <div className="absolute inset-0" style={{ background: `linear-gradient(to bottom, ${colors.background}90 0%, ${colors.background}60 40%, ${colors.background}CC 100%)` }} />
+          <div
+            className="absolute inset-0"
+            style={{
+              background: isCafe
+                ? 'linear-gradient(to bottom, transparent 0%, transparent 50%, rgba(0,0,0,0.2) 100%)'
+                : `linear-gradient(to bottom, ${colors.background}90 0%, ${colors.background}60 40%, ${colors.background}CC 100%)`,
+            }}
+          />
         </motion.div>
 
         <div className="flex-1" />
