@@ -142,6 +142,14 @@ export default function LandingPage() {
   ];
   const heroImages = isCafe ? dayHeroImages : nightHeroImages;
 
+  // 画像をプリロードして切り替え時の空白を防ぐ（夜モード・昼モード共通）
+  useEffect(() => {
+    [...nightHeroImages, ...dayHeroImages].forEach((src) => {
+      const img = new Image();
+      img.src = src;
+    });
+  }, []);
+
   useEffect(() => {
     const interval = setInterval(() => {
       setHeroImageIndex((prev) => (prev + 1) % heroImages.length);
@@ -434,7 +442,7 @@ export default function LandingPage() {
       {/* Hero Section */}
       <section className="relative h-[100svh] lg:h-[75vh] flex flex-col px-4 overflow-hidden">
         <motion.div className="absolute inset-0 z-0" style={{ opacity: heroOpacity, scale: heroScale }}>
-          <AnimatePresence mode="popLayout">
+          <AnimatePresence mode="sync">
             <motion.div
               key={heroImageIndex}
               className="absolute inset-0"
@@ -444,7 +452,7 @@ export default function LandingPage() {
               transition={{ duration: 1.5, ease: [0.4, 0, 0.2, 1] }}
             >
               <div
-                className="absolute inset-0 bg-cover bg-center"
+                className="absolute inset-0 bg-cover bg-center bg-no-repeat"
                 style={{ backgroundImage: `url('${heroImages[heroImageIndex]}')` }}
               />
             </motion.div>
