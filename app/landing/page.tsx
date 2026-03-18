@@ -28,6 +28,7 @@ import {
   Sun,
   Moon,
   Coffee,
+  LogIn,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -391,10 +392,82 @@ export default function LandingPage() {
               : <img src="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761355092/%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png" alt="NIKENME+" className="h-8 w-auto object-contain" />}
             <span className="hidden sm:inline-block text-[9px] px-2 py-1 rounded-full font-medium tracking-[0.1em] uppercase" style={{ background: `${colors.accent}15`, border: `1px solid ${colors.borderGold}`, color: colors.accent }}>{isCafe ? t('common.day_spot') : t('landing.night_spot')}</span>
           </motion.div>
-          <div className="flex items-center gap-2 sm:gap-4">
-
+          <div className="flex items-center gap-2 sm:gap-3">
             <Link href="/partner/apply"><Button variant="outline" size="sm" className="text-xs font-medium transition-all duration-300 hover:scale-105" style={{ borderColor: colors.borderGold, color: colors.accent, background: `${colors.accent}08` }}>{t('landing.cta_button_recruitment')}</Button></Link>
             <Link href="/login"><Button variant="outline" size="sm" className="text-xs font-medium transition-all duration-300 hover:scale-105" style={{ borderColor: colors.borderGold, color: colors.accent, background: `${colors.accent}08` }}>{t('header.store_login')}</Button></Link>
+            {/* 昼夜切替トグル */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleMode}
+              className="touch-manipulation active:scale-95 rounded-lg"
+              style={{ color: colors.text }}
+              title={isBar ? t('common.mode_night') : t('common.mode_day')}
+            >
+              {isBar ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+            </Button>
+            {/* 言語切替 */}
+            <div className="relative language-menu-container">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={(e) => { e.stopPropagation(); setShowLanguageMenu(!showLanguageMenu); }}
+                className="touch-manipulation active:scale-95 rounded-lg"
+                style={{ color: showLanguageMenu ? colors.accent : colors.text }}
+                title={t('menu.language')}
+              >
+                <Globe className="w-5 h-5" />
+              </Button>
+              {/* 言語選択ドロップダウン */}
+              <AnimatePresence>
+                {showLanguageMenu && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute top-full right-0 mt-2 w-52 z-50"
+                  >
+                    <div
+                      className="rounded-xl overflow-hidden"
+                      style={{
+                        background: isBar ? 'rgba(30, 30, 30, 0.95)' : 'rgba(247, 243, 238, 0.98)',
+                        backdropFilter: 'blur(12px)',
+                        border: isBar ? '1px solid rgba(255,255,255,0.1)' : `1px solid ${colors.borderGold}`,
+                        boxShadow: isBar ? '0 10px 40px rgba(0,0,0,0.5)' : '0 10px 40px rgba(0,0,0,0.15)',
+                      }}
+                    >
+                      <div className="p-2">
+                        <p className="text-xs px-3 py-2 font-bold" style={{ color: colors.textMuted }}>
+                          {t('language_selector.title') || t('menu.language')}
+                        </p>
+                        {SUPPORTED_LANGUAGES.map((lang) => (
+                          <button
+                            key={lang}
+                            onClick={() => handleLanguageSelect(lang)}
+                            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
+                              language === lang
+                                ? (isBar ? 'bg-amber-500/20' : 'bg-amber-700/10')
+                                : (isBar ? 'hover:bg-white/10' : 'hover:bg-black/5')
+                            }`}
+                            style={{ color: language === lang ? colors.accent : colors.text }}
+                          >
+                            <span className="text-xl">{LANGUAGE_META[lang].flag}</span>
+                            <span className="font-bold text-sm flex-1 text-left">
+                              {LANGUAGE_META[lang].nativeName}
+                            </span>
+                            {language === lang && (
+                              <CheckCircle className="w-4 h-4" style={{ color: colors.accent }} />
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+            {/* ハンバーガーメニュー */}
             <Button variant="ghost" size="icon" onClick={() => setShowMenu(!showMenu)} style={{ color: colors.textMuted }}>{showMenu ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}</Button>
           </div>
         </div>
@@ -423,6 +496,16 @@ export default function LandingPage() {
                     );
                   })}
                 </nav>
+                {/* 店舗向けリンク */}
+                <div className="mt-8 pt-6" style={{ borderTop: `1px solid ${colors.borderGold}` }}>
+                  <p className="text-sm font-medium mb-3" style={{ color: colors.textMuted }}>{t('menu.for_stores') || '店舗向け'}</p>
+                  <Link href="/login" onClick={() => setShowMenu(false)} className="flex items-center gap-3 p-4 rounded-lg transition-colors group" style={{ color: colors.textMuted }}>
+                    <LogIn className="w-5 h-5" style={{ color: colors.accent }} /><span className="group-hover:opacity-100 font-medium">{t('header.store_login')}</span><ChevronRight className="w-4 h-4 ml-auto opacity-30" />
+                  </Link>
+                  <Link href="/partner/apply" onClick={() => setShowMenu(false)} className="flex items-center gap-3 p-4 rounded-lg transition-colors group" style={{ color: colors.textMuted }}>
+                    <Building2 className="w-5 h-5" style={{ color: colors.accent }} /><span className="group-hover:opacity-100 font-medium">{t('landing.cta_button_recruitment')}</span><ChevronRight className="w-4 h-4 ml-auto opacity-30" />
+                  </Link>
+                </div>
                 {/* Official Account */}
                 <div className="mt-8 pt-6" style={{ borderTop: `1px solid ${colors.borderGold}` }}>
                   <p className="text-sm font-medium mb-3" style={{ color: colors.textMuted }}>{t('menu.official_account')}</p>
@@ -1464,117 +1547,6 @@ export default function LandingPage() {
         )}
       </AnimatePresence>
 
-      {/* フローティングボタン群（画面右下） */}
-      <div className="fixed bottom-6 right-6 z-20 flex flex-col gap-3 items-end safe-bottom">
-        {/* モード切替トグルボタン */}
-        <motion.div initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.3 }}>
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Button
-              onClick={toggleMode}
-              className="flex flex-col items-center justify-center gap-1 px-3 py-2 touch-manipulation active:scale-95 rounded-lg"
-              style={{
-                background: isBar ? 'rgba(5,5,5,0.7)' : 'rgba(247,243,238,0.9)',
-                backdropFilter: 'blur(20px)',
-                border: isBar ? '1px solid rgba(201,168,108,0.3)' : '1px solid rgba(160,120,80,0.3)',
-                boxShadow: isBar ? '0 0 20px rgba(201,168,108,0.2)' : '0 0 20px rgba(160,120,80,0.2)',
-                minWidth: '56px',
-                minHeight: '56px',
-              }}
-            >
-              {isBar ? <Moon className="w-5 h-5" style={{ color: '#FDFBF7' }} /> : <Sun className="w-5 h-5" style={{ color: '#2D2420' }} />}
-              <span className="text-[9px] font-bold leading-tight text-center" style={{ color: isBar ? '#FDFBF7' : '#2D2420' }}>
-                {isBar ? t('common.mode_night') : t('common.mode_day')}
-              </span>
-            </Button>
-          </motion.div>
-        </motion.div>
-
-        {/* 言語変更ボタン */}
-        <div className="relative language-menu-container">
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.1 }}
-          >
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <Button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowLanguageMenu(!showLanguageMenu);
-                }}
-                className="flex flex-col items-center justify-center gap-1 px-3 py-2 touch-manipulation active:scale-95 rounded-lg"
-                style={{
-                  background: showLanguageMenu ? colors.accent : (isBar ? 'rgba(5,5,5,0.7)' : 'rgba(247,243,238,0.9)'),
-                  backdropFilter: 'blur(20px)',
-                  border: showLanguageMenu ? `1px solid ${colors.accent}` : `1px solid ${colors.borderGold}`,
-                  boxShadow: `0 0 20px ${colors.accent}33`,
-                  minWidth: '56px',
-                  minHeight: '56px',
-                }}
-                title={t('menu.language')}
-              >
-                <Globe className="w-5 h-5" style={{ color: showLanguageMenu ? colors.background : colors.text }} />
-                <span className="text-[10px] font-bold" style={{ color: showLanguageMenu ? colors.background : colors.text }}>
-                  {t('menu.language').length > 4 ? t('menu.language').slice(0, 4) : t('menu.language')}
-                </span>
-              </Button>
-            </motion.div>
-          </motion.div>
-
-          {/* 言語選択メニュー */}
-          <AnimatePresence>
-            {showLanguageMenu && (
-              <motion.div
-                initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                transition={{ duration: 0.15 }}
-                className="absolute bottom-full right-0 mb-2 w-52"
-              >
-                <div
-                  className="rounded-xl overflow-hidden"
-                  style={{
-                    background: isBar ? 'rgba(30, 30, 30, 0.95)' : 'rgba(247, 243, 238, 0.98)',
-                    backdropFilter: 'blur(12px)',
-                    border: isBar ? '1px solid rgba(255,255,255,0.1)' : `1px solid ${colors.borderGold}`,
-                    boxShadow: isBar ? '0 10px 40px rgba(0,0,0,0.5)' : '0 10px 40px rgba(0,0,0,0.15)',
-                  }}
-                >
-                  <div className="p-2">
-                    <p className="text-xs px-3 py-2 font-bold" style={{ color: colors.textMuted }}>
-                      {t('language_selector.title') || t('menu.language')}
-                    </p>
-                    
-                    {SUPPORTED_LANGUAGES.map((lang) => (
-                      <button
-                        key={lang}
-                        onClick={() => handleLanguageSelect(lang)}
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
-                          language === lang
-                            ? (isBar ? 'bg-amber-500/20' : 'bg-amber-700/10')
-                            : (isBar ? 'hover:bg-white/10' : 'hover:bg-black/5')
-                        }`}
-                        style={{ color: language === lang ? colors.accent : colors.text }}
-                      >
-                        <span className="text-xl">{LANGUAGE_META[lang].flag}</span>
-                        <span className="font-bold text-sm flex-1 text-left">
-                          {LANGUAGE_META[lang].nativeName}
-                        </span>
-                        {language === lang && (
-                          <CheckCircle className="w-4 h-4" style={{ color: colors.accent }} />
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </div>
     </div>
   );
 }

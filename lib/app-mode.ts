@@ -116,11 +116,11 @@ export function setStoredMode(mode: AppMode): void {
 // ============================================================================
 
 export const BAR_COLORS_A: ColorsShapeA = {
-  background: '#0A1628',
-  surface: '#162447',
-  surfaceLight: '#1F4068',
+  background: '#1A2E4A',
+  surface: '#2A3E5F',
+  surfaceLight: '#3A5278',
   cardBackground: '#FDFBF7',
-  primary: '#1F4068',
+  primary: '#3A5278',
   charcoal: '#2D3436',
   warmGray: '#636E72',
   accent: '#C9A86C',
@@ -129,7 +129,7 @@ export const BAR_COLORS_A: ColorsShapeA = {
   text: '#FDFBF7',
   textMuted: 'rgba(253, 251, 247, 0.7)',
   textSubtle: 'rgba(253, 251, 247, 0.5)',
-  luxuryGradient: 'linear-gradient(165deg, #0A1628 0%, #162447 50%, #1F4068 100%)',
+  luxuryGradient: 'linear-gradient(165deg, #1A2E4A 0%, #2A3E5F 50%, #3A5278 100%)',
   goldGradient: 'linear-gradient(135deg, #C9A86C 0%, #E8D5B7 50%, #B8956E 100%)',
   cardGradient: 'linear-gradient(145deg, #FDFBF7 0%, #F5F1EB 100%)',
   borderGold: 'rgba(201, 168, 108, 0.3)',
@@ -142,9 +142,9 @@ export const BAR_COLORS_A: ColorsShapeA = {
 };
 
 export const BAR_COLORS_B: ColorsShapeB = {
-  deepNavy: '#0A1628',
-  midnightBlue: '#162447',
-  royalNavy: '#1F4068',
+  deepNavy: '#1A2E4A',
+  midnightBlue: '#2A3E5F',
+  royalNavy: '#3A5278',
   champagneGold: '#C9A86C',
   paleGold: '#E8D5B7',
   antiqueGold: '#B8956E',
@@ -152,14 +152,14 @@ export const BAR_COLORS_B: ColorsShapeB = {
   warmGray: '#636E72',
   platinum: '#DFE6E9',
   ivory: '#FDFBF7',
-  luxuryGradient: 'linear-gradient(165deg, #0A1628 0%, #162447 50%, #1F4068 100%)',
+  luxuryGradient: 'linear-gradient(165deg, #1A2E4A 0%, #2A3E5F 50%, #3A5278 100%)',
   goldGradient: 'linear-gradient(135deg, #C9A86C 0%, #E8D5B7 50%, #B8956E 100%)',
   cardGradient: 'linear-gradient(145deg, #FDFBF7 0%, #F5F1EB 100%)',
 };
 
 export const BAR_PANEL_DARK: PanelDarkTheme = {
-  background: '#0A1628',
-  surface: '#162447',
+  background: '#1A2E4A',
+  surface: '#2A3E5F',
   accent: '#C9A86C',
   accentLight: '#E8D5B7',
   text: '#FDFBF7',
@@ -175,7 +175,7 @@ export const BAR_PANEL_LIGHT: PanelLightTheme = {
   background: '#FFFFFF',
   surface: '#FDFBF7',
   accent: '#C9A86C',
-  text: '#0A1628',
+  text: '#1A2E4A',
   textMuted: '#636E72',
   textSubtle: '#9BA4A9',
   borderGold: 'rgba(201, 168, 108, 0.25)',

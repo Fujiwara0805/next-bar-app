@@ -1027,7 +1027,7 @@ function MapPageContent() {
                   title={t('map.store_list')}
                 >
                   <List className="w-5 h-5" style={{ color: colors.text }} />
-                  <span className="text-[10px] font-bold" style={{ color: colors.text }}>
+                  <span className="text-[8px] font-bold leading-tight" style={{ color: colors.text }}>
                     {t('map.store_list')}
                   </span>
                 </Button>

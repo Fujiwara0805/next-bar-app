@@ -2,7 +2,7 @@ export const translations = {
   ja: {
     // Header
     header: {
-      store_login: '店舗ログイン',
+      store_login: 'ログイン',
     },
     // 共通テキスト
     common: {
@@ -139,6 +139,7 @@ export const translations = {
       release_notes: 'リリースノート',
       contact: 'お問い合わせ',
       official_account: '公式アカウント',
+      for_stores: '店舗向け',
       language: '言語設定',
       version: 'Version 1.2.0',
     },
@@ -1128,6 +1129,7 @@ export const translations = {
       release_notes: 'Release Notes',
       contact: 'Contact Us',
       official_account: 'Official Account',
+      for_stores: 'For Stores',
       language: 'Language Settings',
       version: 'Version 1.2.0',
     },
@@ -2117,6 +2119,7 @@ export const translations = {
       release_notes: '릴리스 노트',
       contact: '문의하기',
       official_account: '공식 계정',
+      for_stores: '매장 전용',
       language: '언어 설정',
       version: 'Version 1.2.0',
     },
@@ -3098,6 +3101,7 @@ export const translations = {
       release_notes: '发布说明',
       contact: '联系我们',
       official_account: '官方账号',
+      for_stores: '店铺专区',
       language: '语言设置',
       version: 'Version 1.2.0',
     },
