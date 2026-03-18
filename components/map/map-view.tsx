@@ -145,15 +145,15 @@ function calculateDistanceMeters(
 function getMarkerIconUrl(status: string): string {
   switch (status) {
     case 'vacant':
-      return 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761311529/%E7%A9%BA%E5%B8%AD%E3%81%82%E3%82%8A_rzejgw.png';
+      return 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1773801455/ChatGPT_Image_2026%E5%B9%B43%E6%9C%8818%E6%97%A5_11_34_37_qkak9i.png';
     case 'full':
-      return 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761311529/%E6%BA%80%E5%B8%AD_gszsqi.png';
+      return 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1773801454/ChatGPT_Image_2026%E5%B9%B43%E6%9C%8818%E6%97%A5_11_34_33_vc5ral.png';
     case 'open':
-      return 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1767848645/icons8-%E9%96%8B%E5%BA%97%E3%82%B5%E3%82%A4%E3%83%B3-94_a4tmzn.png';
+      return 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1773801454/ChatGPT_Image_2026%E5%B9%B43%E6%9C%8818%E6%97%A5_11_34_41_ym5r3s.png';
     case 'closed':
-      return 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761318837/icons8-%E9%96%89%E5%BA%97%E3%82%B5%E3%82%A4%E3%83%B3-100_fczegk.png';
+      return 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1773801629/ChatGPT_Image_2026%E5%B9%B43%E6%9C%8818%E6%97%A5_11_34_46_fdy7kj.png';
     default:
-      return 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761311529/%E7%A9%BA%E5%B8%AD%E3%81%82%E3%82%8A_rzejgw.png';
+      return 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1773801455/ChatGPT_Image_2026%E5%B9%B43%E6%9C%8818%E6%97%A5_11_34_37_qkak9i.png';
   }
 }
 
@@ -682,16 +682,16 @@ function DirectionPermissionDialog({
 // ============================================================================
 
 const luxuryMapStyles: google.maps.MapTypeStyle[] = [
-  // ベース背景: Deep Navy系
-  { elementType: 'geometry', stylers: [{ color: '#1A2A40' }] },
+  // ベース背景: Navy系（さらに2回り明るく）
+  { elementType: 'geometry', stylers: [{ color: '#3A5D80' }] },
   { elementType: 'labels.icon', stylers: [{ visibility: 'off' }] },
-  
+
   // ラベル文字を白系に（視認性向上）
   { elementType: 'labels.text.fill', stylers: [{ color: '#FDFBF7' }] },
-  { elementType: 'labels.text.stroke', stylers: [{ color: '#0A1628' }, { weight: 2.5 }] },
-  
+  { elementType: 'labels.text.stroke', stylers: [{ color: '#1E3A58' }, { weight: 2.5 }] },
+
   // 行政区域
-  { featureType: 'administrative', elementType: 'geometry', stylers: [{ color: '#C9A86C' }] },
+  { featureType: 'administrative', elementType: 'geometry', stylers: [{ color: '#D4B87E' }] },
   {
     featureType: 'administrative.country',
     elementType: 'labels.text.fill',
@@ -707,7 +707,7 @@ const luxuryMapStyles: google.maps.MapTypeStyle[] = [
     elementType: 'labels.text.fill',
     stylers: [{ color: '#E8D5B7' }],
   },
-  
+
   // POI（店舗名などを表示）
   {
     featureType: 'poi',
@@ -717,7 +717,7 @@ const luxuryMapStyles: google.maps.MapTypeStyle[] = [
   {
     featureType: 'poi',
     elementType: 'labels.text.stroke',
-    stylers: [{ color: '#0A1628' }, { weight: 2 }],
+    stylers: [{ color: '#1E3A58' }, { weight: 2 }],
   },
   {
     featureType: 'poi.business',
@@ -732,81 +732,81 @@ const luxuryMapStyles: google.maps.MapTypeStyle[] = [
   {
     featureType: 'poi.park',
     elementType: 'geometry',
-    stylers: [{ color: '#1F3A3A' }, { visibility: 'simplified' }],
+    stylers: [{ color: '#3E6666' }, { visibility: 'simplified' }],
   },
   { featureType: 'poi.park', elementType: 'labels', stylers: [{ visibility: 'off' }] },
-  
-  // 道路: ネイビー系グラデーション
-  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#2A4060' }] },
-  { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#162447' }] },
-  { 
-    featureType: 'road', 
-    elementType: 'labels.text.fill', 
-    stylers: [{ color: '#FDFBF7' }] 
+
+  // 道路: ネイビー系グラデーション（さらに明るく）
+  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#4E7A9E' }] },
+  { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#345678' }] },
+  {
+    featureType: 'road',
+    elementType: 'labels.text.fill',
+    stylers: [{ color: '#FDFBF7' }]
   },
-  { 
-    featureType: 'road', 
-    elementType: 'labels.text.stroke', 
-    stylers: [{ color: '#0A1628' }, { weight: 3 }] 
+  {
+    featureType: 'road',
+    elementType: 'labels.text.stroke',
+    stylers: [{ color: '#1E3A58' }, { weight: 3 }]
   },
-  
+
   // 高速道路: ゴールドアクセント
-  { 
-    featureType: 'road.highway', 
-    elementType: 'geometry', 
-    stylers: [{ color: '#3A5070' }] 
+  {
+    featureType: 'road.highway',
+    elementType: 'geometry',
+    stylers: [{ color: '#6282A2' }]
   },
-  { 
-    featureType: 'road.highway', 
-    elementType: 'geometry.stroke', 
-    stylers: [{ color: '#C9A86C' }, { weight: 0.8 }] 
+  {
+    featureType: 'road.highway',
+    elementType: 'geometry.stroke',
+    stylers: [{ color: '#D4B87E' }, { weight: 0.8 }]
   },
-  { 
-    featureType: 'road.highway', 
-    elementType: 'labels.text.fill', 
-    stylers: [{ color: '#FDFBF7' }] 
+  {
+    featureType: 'road.highway',
+    elementType: 'labels.text.fill',
+    stylers: [{ color: '#FDFBF7' }]
   },
-  
+
   // 幹線道路
-  { 
-    featureType: 'road.arterial', 
-    elementType: 'geometry', 
-    stylers: [{ color: '#2A4060' }] 
+  {
+    featureType: 'road.arterial',
+    elementType: 'geometry',
+    stylers: [{ color: '#4E7A9E' }]
   },
-  { 
-    featureType: 'road.arterial', 
-    elementType: 'labels.text.fill', 
-    stylers: [{ color: '#FDFBF7' }] 
+  {
+    featureType: 'road.arterial',
+    elementType: 'labels.text.fill',
+    stylers: [{ color: '#FDFBF7' }]
   },
-  
+
   // 地方道路
-  { 
-    featureType: 'road.local', 
-    elementType: 'geometry', 
-    stylers: [{ color: '#1F3555' }] 
+  {
+    featureType: 'road.local',
+    elementType: 'geometry',
+    stylers: [{ color: '#436D95' }]
   },
-  { 
-    featureType: 'road.local', 
-    elementType: 'labels.text.fill', 
-    stylers: [{ color: '#E8D5B7' }] 
+  {
+    featureType: 'road.local',
+    elementType: 'labels.text.fill',
+    stylers: [{ color: '#E8D5B7' }]
   },
-  
+
   // 交通機関
-  { featureType: 'transit', elementType: 'geometry', stylers: [{ color: '#1F3555' }] },
+  { featureType: 'transit', elementType: 'geometry', stylers: [{ color: '#436D95' }] },
   { featureType: 'transit', elementType: 'labels', stylers: [{ visibility: 'off' }] },
-  { 
-    featureType: 'transit.station', 
-    elementType: 'labels.text.fill', 
-    stylers: [{ color: '#FDFBF7' }] 
+  {
+    featureType: 'transit.station',
+    elementType: 'labels.text.fill',
+    stylers: [{ color: '#FDFBF7' }]
   },
-  
-  // 水域: 深いネイビーブルー
-  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#0A1628' }] },
-  { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#6B8CAE' }] },
-  
+
+  // 水域: ネイビーブルー（さらに明るく）
+  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#1E3A58' }] },
+  { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#8AACCE' }] },
+
   // 景観
-  { featureType: 'landscape.man_made', elementType: 'geometry', stylers: [{ color: '#1A2A40' }] },
-  { featureType: 'landscape.natural', elementType: 'geometry', stylers: [{ color: '#1A2A40' }] },
+  { featureType: 'landscape.man_made', elementType: 'geometry', stylers: [{ color: '#3A5D80' }] },
+  { featureType: 'landscape.natural', elementType: 'geometry', stylers: [{ color: '#3A5D80' }] },
 ];
 
 // ============================================================================
@@ -1092,7 +1092,7 @@ export function MapView({
         gestureHandling: 'greedy',
         clickableIcons: false,
         styles: isBar ? luxuryMapStyles : cafeMapStyles,
-        backgroundColor: isBar ? '#0A1628' : '#F7F3EE',
+        backgroundColor: isBar ? '#142A48' : '#F7F3EE',
       });
 
       mapInstanceRef.current = map;
@@ -1138,7 +1138,7 @@ export function MapView({
     if (mapInstanceRef.current && mapReady) {
       mapInstanceRef.current.setOptions({
         styles: isBar ? luxuryMapStyles : cafeMapStyles,
-        backgroundColor: isBar ? '#0A1628' : '#F7F3EE',
+        backgroundColor: isBar ? '#142A48' : '#F7F3EE',
       });
     }
   }, [isBar, mapReady]);
@@ -1265,8 +1265,8 @@ export function MapView({
         if (needsIconUpdate) {
           existingMarkerData.marker.setIcon({
             url: getMarkerIconUrl(store.vacancy_status),
-            scaledSize: new google.maps.Size(52, 52),
-            anchor: new google.maps.Point(26, 26),
+            scaledSize: new google.maps.Size(80, 80),
+            anchor: new google.maps.Point(40, 40),
           });
           existingMarkerData.lastStatus = store.vacancy_status;
         }
@@ -1278,8 +1278,8 @@ export function MapView({
           title: store.name,
           icon: {
             url: getMarkerIconUrl(store.vacancy_status),
-            scaledSize: new google.maps.Size(52, 52),
-            anchor: new google.maps.Point(26, 26),
+            scaledSize: new google.maps.Size(80, 80),
+            anchor: new google.maps.Point(40, 40),
           },
           optimized: true,
           zIndex: 100,

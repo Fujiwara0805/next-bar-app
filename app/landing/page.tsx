@@ -1218,6 +1218,12 @@ export default function LandingPage() {
                 desc1: t('landing.area_guide_chuo_desc1'),
                 desc2: t('landing.area_guide_chuo_desc2'),
               },
+              {
+                image: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1773797976/Gemini_Generated_Image_s32wqxs32wqxs32w_uyoojl_urft3i.png',
+                title: t('landing.area_guide_beppu_title'),
+                desc1: t('landing.area_guide_beppu_desc1'),
+                desc2: t('landing.area_guide_beppu_desc2'),
+              },
             ];
             const renderAreaCard = (index: number) => {
               const guide = areaGuides[index];

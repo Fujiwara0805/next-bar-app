@@ -525,10 +525,10 @@ function StoreListContent() {
 
   const getVacancyIcon = (status: string) => {
     switch (status) {
-      case 'vacant': return 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761311529/%E7%A9%BA%E5%B8%AD%E3%81%82%E3%82%8A_rzejgw.png';
-      case 'full': return 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761311529/%E6%BA%80%E5%B8%AD_gszsqi.png';
-      case 'open': return 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1767848645/icons8-%E9%96%8B%E5%BA%97%E3%82%B5%E3%82%A4%E3%83%B3-94_a4tmzn.png';
-      case 'closed': return 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761318837/icons8-%E9%96%89%E5%BA%97%E3%82%B5%E3%82%A4%E3%83%B3-100_fczegk.png';
+      case 'vacant': return 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1773801455/ChatGPT_Image_2026%E5%B9%B43%E6%9C%8818%E6%97%A5_11_34_37_qkak9i.png';
+      case 'full': return 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1773801454/ChatGPT_Image_2026%E5%B9%B43%E6%9C%8818%E6%97%A5_11_34_33_vc5ral.png';
+      case 'open': return 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1773801454/ChatGPT_Image_2026%E5%B9%B43%E6%9C%8818%E6%97%A5_11_34_41_ym5r3s.png';
+      case 'closed': return 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1773801629/ChatGPT_Image_2026%E5%B9%B43%E6%9C%8818%E6%97%A5_11_34_46_fdy7kj.png';
       default: return '';
     }
   };
@@ -926,7 +926,7 @@ function StoreListContent() {
                         onClick={() => setOpenNowOnly(!openNowOnly)}
                         className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${openNowOnly ? 'bg-blue-500/20 text-blue-400' : (isBar ? 'hover:bg-white/10 text-white' : 'hover:bg-black/5 text-gray-800')}`}
                       >
-                        <img src="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1767848645/icons8-%E9%96%8B%E5%BA%97%E3%82%B5%E3%82%A4%E3%83%B3-94_a4tmzn.png" alt={t('store_list.open')} className="w-5 h-5" />
+                        <img src="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1773801454/ChatGPT_Image_2026%E5%B9%B43%E6%9C%8818%E6%97%A5_11_34_41_ym5r3s.png" alt={t('store_list.open')} className="w-5 h-5" />
                         <span className="font-bold text-sm flex-1 text-left">{t('store_list.open')}</span>
                         {openNowOnly && <Check className="w-4 h-4 text-blue-400" />}
                       </button>
@@ -935,7 +935,7 @@ function StoreListContent() {
                         onClick={() => setVacantOnly(!vacantOnly)}
                         className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${vacantOnly ? 'bg-green-500/20 text-green-400' : (isBar ? 'hover:bg-white/10 text-white' : 'hover:bg-black/5 text-gray-800')}`}
                       >
-                        <img src="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761311529/%E7%A9%BA%E5%B8%AD%E3%81%82%E3%82%8A_rzejgw.png" alt={t('store_list.vacant')} className="w-5 h-5" />
+                        <img src="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1773801455/ChatGPT_Image_2026%E5%B9%B43%E6%9C%8818%E6%97%A5_11_34_37_qkak9i.png" alt={t('store_list.vacant')} className="w-5 h-5" />
                         <span className="font-bold text-sm flex-1 text-left">{t('store_list.vacant')}</span>
                         {vacantOnly && <Check className="w-4 h-4 text-green-400" />}
                       </button>
