@@ -461,7 +461,7 @@ export default function LandingPage() {
             className="absolute inset-0"
             style={{
               background: isCafe
-                ? 'linear-gradient(to bottom, transparent 0%, transparent 50%, rgba(0,0,0,0.2) 100%)'
+                ? 'linear-gradient(to bottom, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.15) 50%, rgba(0,0,0,0.35) 100%)'
                 : `linear-gradient(to bottom, ${colors.background}90 0%, ${colors.background}60 40%, ${colors.background}CC 100%)`,
             }}
           />

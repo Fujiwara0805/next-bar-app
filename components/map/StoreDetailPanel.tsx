@@ -137,15 +137,15 @@ export function StoreDetailPanel({
   const getVacancyIcon = (status: string) => {
     switch (status) {
       case 'vacant':
-        return 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1773801455/ChatGPT_Image_2026%E5%B9%B43%E6%9C%8818%E6%97%A5_11_34_37_qkak9i.png';
+        return 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761311529/%E7%A9%BA%E5%B8%AD%E3%81%82%E3%82%8A_rzejgw.png';
       case 'full':
-        return 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1773801454/ChatGPT_Image_2026%E5%B9%B43%E6%9C%8818%E6%97%A5_11_34_33_vc5ral.png';
+        return 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761311529/%E6%BA%80%E5%B8%AD_gszsqi.png';
       case 'open':
-        return 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1773801454/ChatGPT_Image_2026%E5%B9%B43%E6%9C%8818%E6%97%A5_11_34_41_ym5r3s.png';
+        return 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1767848645/icons8-%E9%96%8B%E5%BA%97%E3%82%B5%E3%82%A4%E3%83%B3-94_a4tmzn.png';
       case 'closed':
-        return 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1773801629/ChatGPT_Image_2026%E5%B9%B43%E6%9C%8818%E6%97%A5_11_34_46_fdy7kj.png';
+        return 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761318837/icons8-%E9%96%89%E5%BA%97%E3%82%B5%E3%82%A4%E3%83%B3-100_fczegk.png';
       default:
-        return 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1773801455/ChatGPT_Image_2026%E5%B9%B43%E6%9C%8818%E6%97%A5_11_34_37_qkak9i.png';
+        return 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761311529/%E7%A9%BA%E5%B8%AD%E3%81%82%E3%82%8A_rzejgw.png';
     }
   };
 
