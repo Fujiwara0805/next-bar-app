@@ -29,7 +29,7 @@
     --secondary-foreground: 196 43% 30%;  /* セカンダリーテキスト: クールティール */
     --muted: 0 0% 95%;  /* ミュート背景（明るいグレー） */
     --muted-foreground: 196 43% 30%;  /* ミュートテキスト: クールティール */
-    --accent: 0 36% 70%;  /* ソフトコーラル #D98B8B */
+    --accent: 220 10% 93%;  /* ニュートラルグレー（ホバー用） */
     --accent-foreground: 196 43% 30%;  /* アクセントテキスト: クールティール */
     --destructive: 0 62% 58%;
     --destructive-foreground: 0 0% 98%;
