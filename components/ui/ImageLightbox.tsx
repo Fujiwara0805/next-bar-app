@@ -2,7 +2,8 @@
 
 import { useEffect, useCallback, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from 'lucide-react';
+import { CloseCircleButton } from '@/components/ui/close-circle-button';
 
 // ============================================
 // カラーパレット定義
@@ -296,17 +297,12 @@ export function ImageLightbox({
               </button>
 
               {/* 閉じるボタン */}
-              <button
+              <CloseCircleButton
+                type="button"
+                size="lg"
                 onClick={onClose}
-                className="p-2.5 rounded-full transition-all hover:scale-110 active:scale-95"
-                style={{ 
-                  backgroundColor: 'rgba(255, 255, 255, 0.15)',
-                  color: COLORS.ivory,
-                }}
                 aria-label="閉じる"
-              >
-                <X className="w-6 h-6" />
-              </button>
+              />
             </div>
           </motion.div>
 

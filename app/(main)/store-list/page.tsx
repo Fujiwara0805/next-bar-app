@@ -21,6 +21,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MapIcon, Star, Filter, Check, Sparkles, X, Ticket, PartyPopper, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { CloseCircleButton } from '@/components/ui/close-circle-button';
 import { Card } from '@/components/ui/card';
 import { supabase } from '@/lib/supabase/client';
 import type { Database, BusinessHours } from '@/lib/supabase/types';
@@ -633,9 +634,13 @@ function StoreListContent() {
                 <PartyPopper className="w-5 h-5" style={{ color: COLORS.champagneGold }} />
                 <span className="font-bold text-sm" style={{ color: COLORS.champagneGold }}>{campaignNameFilter}</span>
               </div>
-              <button onClick={() => setCampaignNameFilter(null)} className={`p-1 rounded-full transition-colors ${isBar ? 'hover:bg-white/10' : 'hover:bg-black/5'}`} style={{ color: COLORS.warmGray }}>
-                <X className="w-4 h-4" />
-              </button>
+              <CloseCircleButton
+                type="button"
+                size="sm"
+                onClick={() => setCampaignNameFilter(null)}
+                className="shrink-0"
+                aria-label={t('common.close')}
+              />
             </motion.div>
           )}
 
@@ -917,9 +922,13 @@ function StoreListContent() {
                     <div className="p-2">
                       <div className="flex items-center justify-between px-3 py-2">
                         <p className="text-xs font-bold" style={{ color: isBar ? '#9ca3af' : COLORS.warmGray }}>{t('store_list.filter_title')}</p>
-                        <button onClick={() => setShowFilterMenu(false)} className={`transition-colors p-1 -mr-1 ${isBar ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-800'}`}>
-                          <X className="w-4 h-4" />
-                        </button>
+                        <CloseCircleButton
+                          type="button"
+                          size="sm"
+                          onClick={() => setShowFilterMenu(false)}
+                          className="-mr-1 shrink-0"
+                          aria-label={t('common.close')}
+                        />
                       </div>
 
                       <button

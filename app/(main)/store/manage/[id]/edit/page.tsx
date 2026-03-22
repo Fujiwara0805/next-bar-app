@@ -24,6 +24,7 @@ import {
   Image as ImageIcon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { CloseCircleButton } from '@/components/ui/close-circle-button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -841,15 +842,13 @@ export default function StoreEditPage() {
               店舗編集画面
             </h1>
           </div>
-          <Button
-            size="icon"
-            variant="ghost"
+          <CloseCircleButton
+            type="button"
+            size="lg"
             onClick={() => router.push(`/store/manage/${params.id}/update`)}
-            className="rounded-full absolute right-4"
-            style={{ color: COLORS.warmGray }}
-          >
-            <X className="w-5 h-5" />
-          </Button>
+            className="absolute right-4"
+            aria-label="閉じる"
+          />
         </div>
       </header>
 

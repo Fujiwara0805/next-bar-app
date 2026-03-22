@@ -60,6 +60,9 @@ const COLORS = {
   goldGradient:
     'linear-gradient(135deg, #C9A86C 0%, #E8D5B7 50%, #B8956E 100%)',
   cardGradient: 'linear-gradient(145deg, #FDFBF7 0%, #F5F1EB 100%)',
+  /** luxuryGradient より約2トーン明るいページ背景（加盟店申込など） */
+  partnerApplyPageGradient:
+    'linear-gradient(165deg, #1E3048 0%, #2D4562 50%, #3D5C80 100%)',
 };
 
 // ============================================
@@ -1051,12 +1054,12 @@ export default function PartnerApplyPage() {
   };
 
   return (
-    <div className="min-h-screen" style={{ background: COLORS.luxuryGradient }}>
+    <div className="min-h-screen" style={{ background: COLORS.partnerApplyPageGradient }}>
       {/* Header */}
       <header
         className="sticky top-0 z-50 backdrop-blur-md"
         style={{
-          background: `${COLORS.deepNavy}CC`,
+          background: 'rgba(30, 48, 72, 0.88)',
           borderBottom: `1px solid ${COLORS.champagneGold}30`,
         }}
       >

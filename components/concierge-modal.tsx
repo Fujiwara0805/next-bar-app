@@ -18,8 +18,9 @@
 
 import { useState, useCallback, useEffect, CSSProperties, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ChevronRight, ChevronLeft, RotateCcw } from 'lucide-react';
+import { ChevronRight, ChevronLeft, RotateCcw } from 'lucide-react';
 import { useLanguage } from '@/lib/i18n/context';
+import { CloseCircleButton } from '@/components/ui/close-circle-button';
 
 // ============================================
 // カラーパレット定義
@@ -410,18 +411,13 @@ export function ConciergeModal({ isOpen, onClose, onComplete }: ConciergeModalPr
             {/* ヘッダー */}
             <div className="relative px-8 pt-8 pb-4">
               {/* クローズボタン */}
-              <motion.button
-                whileHover={{ scale: 1.1, opacity: 1 }}
-                whileTap={{ scale: 0.95 }}
+              <CloseCircleButton
+                type="button"
+                size="lg"
                 onClick={handleClose}
-                className="absolute top-6 right-6 p-2 rounded-full transition-colors"
-                style={{ 
-                  color: COLORS.warmGray,
-                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                }}
-              >
-                <X className="w-5 h-5" />
-              </motion.button>
+                className="absolute top-6 right-6"
+                aria-label={t('common.close')}
+              />
 
               {/* タイトル */}
               <div className="text-center pr-8">

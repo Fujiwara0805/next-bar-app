@@ -10,7 +10,6 @@ import {
   Copy,
   Check,
   Gift,
-  X,
   Instagram,
   Star,
   PartyPopper,
@@ -27,6 +26,7 @@ import {
   Unlock,
 } from 'lucide-react';
 import { CustomModal } from '@/components/ui/custom-modal';
+import { CloseCircleButton } from '@/components/ui/close-circle-button';
 import {
   CouponData,
   isCouponValid,
@@ -756,20 +756,13 @@ export function CouponDisplayModal({
         {/* コンテンツ */}
         <div className="relative z-10 -m-6">
           {/* 閉じるボタン */}
-          <motion.button
-            whileHover={{ scale: 1.1, opacity: 1 }}
-            whileTap={{ scale: 0.95 }}
+          <CloseCircleButton
+            type="button"
+            size="lg"
             onClick={onClose}
-            className="absolute top-4 right-4 z-20 p-2 rounded-full transition-colors"
-            style={{ 
-              color: COLORS.warmGray,
-              backgroundColor: 'rgba(255, 255, 255, 0.08)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-            }}
+            className="absolute top-4 right-4 z-20"
             aria-label={t('coupon.close')}
-          >
-            <X className="w-5 h-5" />
-          </motion.button>
+          />
 
           <AnimatePresence mode="wait" custom={slideDirection}>
             {/* ============================================
@@ -1910,20 +1903,13 @@ export function CouponDisplayModal({
         </div>
 
         <div className="relative z-10 -m-6 p-6">
-          <motion.button
-            whileHover={{ scale: 1.1, opacity: 1 }}
-            whileTap={{ scale: 0.95 }}
+          <CloseCircleButton
+            type="button"
+            size="md"
             onClick={() => setShowConfirmModal(false)}
-            className="absolute top-4 right-4 z-20 p-2 rounded-full transition-colors"
-            style={{ 
-              color: COLORS.warmGray,
-              backgroundColor: 'rgba(255, 255, 255, 0.08)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-            }}
+            className="absolute top-4 right-4 z-20"
             aria-label={t('coupon.close')}
-          >
-            <X className="w-4 h-4" />
-          </motion.button>
+          />
 
           <div className="relative text-center pt-2">
             <div 
@@ -2002,24 +1988,17 @@ export function CouponDisplayModal({
         </div>
 
         <div className="relative z-10 -m-6 p-5">
-          <motion.button
-            whileHover={{ scale: 1.1, opacity: 1 }}
-            whileTap={{ scale: 0.95 }}
+          <CloseCircleButton
+            type="button"
+            size="md"
             onClick={() => {
               setShowAdditionalBonus(false);
               onClose();
               router.push('/store-list');
             }}
-            className="absolute top-3 right-3 z-20 p-2 rounded-full transition-colors"
-            style={{
-              color: COLORS.warmGray,
-              backgroundColor: 'rgba(255, 255, 255, 0.08)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-            }}
+            className="absolute top-3 right-3 z-20"
             aria-label={t('coupon.close')}
-          >
-            <X className="w-4 h-4" />
-          </motion.button>
+          />
 
           {/* ダウンロード用にref設定するエリア */}
           <div ref={additionalBonusRef} className="relative text-center pt-1 pb-3">

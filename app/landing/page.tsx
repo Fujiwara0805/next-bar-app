@@ -33,6 +33,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { CloseCircleButton } from '@/components/ui/close-circle-button';
 import { useLanguage, SUPPORTED_LANGUAGES, LANGUAGE_META } from '@/lib/i18n/context';
 import type { Language } from '@/lib/i18n/translations';
 import { supabase } from '@/lib/supabase/client';
@@ -1610,15 +1611,13 @@ export default function LandingPage() {
                   backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
                 }}
               />
-              <button
+              <CloseCircleButton
                 type="button"
+                size="lg"
                 onClick={() => setShowStoreActionsModal(false)}
-                className="absolute top-3 right-3 z-20 rounded-xl p-2 transition-colors touch-manipulation"
-                style={{ color: colors.textMuted }}
+                className="absolute top-3 right-3 z-20"
                 aria-label={t('common.close')}
-              >
-                <X className="w-5 h-5" />
-              </button>
+              />
               <div className="h-1" style={{ background: `linear-gradient(90deg, transparent, ${colors.accent}, transparent)` }} />
               <div className="p-8 pt-10">
                 <motion.div

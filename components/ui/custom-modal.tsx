@@ -1,8 +1,7 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { X } from 'lucide-react';
-import { Button } from './button';
+import { CloseCircleButton } from './close-circle-button';
 
 interface CustomModalProps {
   isOpen: boolean;
@@ -46,14 +45,12 @@ export function CustomModal({
             >
               {/* 閉じるボタン */}
               {showCloseButton && (
-                <Button
-                  size="icon"
-                  variant="ghost"
+                <CloseCircleButton
+                  type="button"
                   onClick={onClose}
                   className="absolute top-4 right-4"
-                >
-                  <X className="w-4 h-4" />
-                </Button>
+                  aria-label="閉じる"
+                />
               )}
 
               {/* ヘッダー */}

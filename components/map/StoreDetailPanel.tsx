@@ -3,7 +3,6 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence, PanInfo } from 'framer-motion';
 import {
-  X,
   Building2,
   Star,
   ChevronLeft,
@@ -17,7 +16,7 @@ import {
   Loader2,
   Navigation,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { CloseCircleButton } from '@/components/ui/close-circle-button';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/lib/i18n/context';
 import { translations } from '@/lib/i18n/translations';
@@ -282,18 +281,16 @@ export function StoreDetailPanel({
                   <h3 className="font-bold text-lg line-clamp-1" style={{ color: theme.text }}>
                     {store.name}
                   </h3>
-                  <Button
-                    variant="ghost"
-                    size="icon"
+                  <CloseCircleButton
+                    type="button"
+                    size="lg"
                     className="flex-shrink-0 -mt-1"
-                    style={{ color: theme.textMuted }}
+                    aria-label={t('common.close')}
                     onClick={(e) => {
                       e.stopPropagation();
                       onClose();
                     }}
-                  >
-                    <X className="w-5 h-5" />
-                  </Button>
+                  />
                 </div>
 
                 {store.google_rating && (

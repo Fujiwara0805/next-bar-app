@@ -25,7 +25,6 @@ import {
   Wifi,
   DollarSign,
   ExternalLink,
-  X,
   ChevronLeft,
   ChevronRight,
   Star,
@@ -37,6 +36,7 @@ import {
   Expand,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { CloseCircleButton } from '@/components/ui/close-circle-button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -609,15 +609,13 @@ export default function StoreDetailPage() {
           >
             {t('store_detail.title')}
           </h1>
-          <Button
-            size="icon"
-            variant="ghost"
+          <CloseCircleButton
+            type="button"
+            size="lg"
             onClick={() => router.back()}
-            className="rounded-full absolute right-4"
-            style={{ color: COLORS.warmGray }}
-          >
-            <X className="w-5 h-5" />
-          </Button>
+            className="absolute right-4"
+            aria-label={t('common.close')}
+          />
         </div>
         <div className="px-4 pb-2">
           <Breadcrumbs storeName={store.name} />
