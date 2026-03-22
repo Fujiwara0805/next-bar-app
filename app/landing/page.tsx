@@ -543,7 +543,7 @@ export default function LandingPage() {
       </AnimatePresence>
 
       {/* Hero Section */}
-      <section className="relative h-[100svh] lg:h-[75vh] flex flex-col px-4 overflow-hidden">
+      <section className="relative h-[100svh] lg:h-[96svh] flex flex-col px-4 overflow-hidden">
         <motion.div className="absolute inset-0 z-0" style={{ opacity: heroOpacity, scale: heroScale }}>
           <AnimatePresence mode="sync">
             <motion.div
@@ -1299,7 +1299,7 @@ export default function LandingPage() {
 
       {/* SEO エリアガイドセクション（カフェ版では非表示 - 後日カフェ版を作成予定） */}
       {isBar && <section className="relative py-20 px-4 overflow-hidden" style={{ background: colors.background }}>
-        <div className="container mx-auto max-w-4xl">
+        <div className="container mx-auto max-w-4xl lg:max-w-7xl">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
             <GoldDivider />
             <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4" style={{ color: colors.accent }}>{t('landing.area_guide_label')}</span>
@@ -1374,10 +1374,17 @@ export default function LandingPage() {
                     ))}
                   </div>
                 </div>
-                {/* PC: 縦並び */}
-                <div className="hidden lg:block space-y-8">
+                {/* PC: 最大3枚を横一列 */}
+                <div className="hidden lg:grid lg:grid-cols-3 gap-6 xl:gap-8">
                   {areaGuides.map((_, index) => (
-                    <motion.div key={index} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+                    <motion.div
+                      key={index}
+                      className="min-w-0"
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: index * 0.1 }}
+                    >
                       {renderAreaCard(index)}
                     </motion.div>
                   ))}
