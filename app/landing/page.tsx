@@ -25,8 +25,7 @@ import {
   Mail,
   ExternalLink,
   Scale,
-  Sun,
-  Moon,
+  Beer,
   Coffee,
   LogIn,
 } from 'lucide-react';
@@ -97,6 +96,7 @@ export default function LandingPage() {
   const { t, language, setLanguage } = useLanguage();
   const { colorsA: colors, mode, isBar, isCafe, toggleMode } = useAppMode();
   const [showLocationModal, setShowLocationModal] = useState(false);
+  const [showStoreActionsModal, setShowStoreActionsModal] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [locationPermission, setLocationPermission] = useState<'granted' | 'denied' | 'prompt' | 'loading'>('prompt');
   const [showToast, setShowToast] = useState(false);
@@ -386,16 +386,22 @@ export default function LandingPage() {
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 safe-top" style={{ background: colors.luxuryGradient, backdropFilter: 'blur(20px)', borderBottom: `1px solid ${colors.borderGold}` }}>
         <div className="container mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-3">
-            {isCafe
-              ? <Coffee className="h-8 w-8" style={{ color: colors.accent }} />
-              : <img src="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761355092/%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png" alt="NIKENME+" className="h-8 w-auto object-contain" />}
-            <span className="hidden sm:inline-block text-[9px] px-2 py-1 rounded-full font-medium tracking-[0.1em] uppercase" style={{ background: `${colors.accent}15`, border: `1px solid ${colors.borderGold}`, color: colors.accent }}>{isCafe ? t('common.day_spot') : t('landing.night_spot')}</span>
+          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-3 min-w-0">
+            <motion.button
+              type="button"
+              onClick={() => setShowStoreActionsModal(true)}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.95 }}
+              className="flex items-center gap-3 rounded-xl -ml-1 px-1 py-1 touch-manipulation text-left"
+              style={{ color: colors.accent }}
+              aria-label={t('menu.for_stores')}
+            >
+              <Store className="h-8 w-8 shrink-0" style={{ color: colors.accent }} />
+              <span className="hidden sm:inline-block text-[9px] px-2 py-1 rounded-full font-medium tracking-[0.1em] uppercase shrink-0" style={{ background: `${colors.accent}15`, border: `1px solid ${colors.borderGold}`, color: colors.accent }}>{isCafe ? t('common.day_spot') : t('landing.night_spot')}</span>
+            </motion.button>
           </motion.div>
           <div className="flex items-center gap-2 sm:gap-3">
-            <Link href="/partner/apply"><Button variant="outline" size="sm" className="text-xs font-medium transition-all duration-300 hover:scale-105" style={{ borderColor: colors.borderGold, color: colors.accent, background: `${colors.accent}08` }}>{t('landing.cta_button_recruitment')}</Button></Link>
-            <Link href="/login"><Button variant="outline" size="sm" className="text-xs font-medium transition-all duration-300 hover:scale-105" style={{ borderColor: colors.borderGold, color: colors.accent, background: `${colors.accent}08` }}>{t('header.store_login')}</Button></Link>
-            {/* 昼夜切替トグル */}
+            {/* 昼夜切替トグル（ディナー: ビール / ランチ: カフェ） */}
             <Button
               variant="ghost"
               size="icon"
@@ -404,7 +410,7 @@ export default function LandingPage() {
               style={{ color: colors.text }}
               title={isBar ? t('common.mode_night') : t('common.mode_day')}
             >
-              {isBar ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+              {isBar ? <Beer className="w-5 h-5" /> : <Coffee className="w-5 h-5" />}
             </Button>
             {/* 言語切替 */}
             <div className="relative language-menu-container">
@@ -480,6 +486,19 @@ export default function LandingPage() {
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-40" style={{ background: 'rgba(10, 22, 40, 0.9)' }} onClick={() => setShowMenu(false)} />
             <motion.div initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'spring', damping: 25, stiffness: 200 }} className="fixed right-0 top-0 bottom-0 w-80 z-50 overflow-y-auto" style={{ background: colors.luxuryGradient, borderLeft: `1px solid ${colors.borderGold}` }}>
               <div className="p-6 pt-20">
+                <motion.div
+                  initial={{ opacity: 0, y: -12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ type: 'spring', damping: 22, stiffness: 260 }}
+                  className="flex flex-col items-center mb-8 pb-6"
+                  style={{ borderBottom: `1px solid ${colors.borderGold}` }}
+                >
+                  <img
+                    src="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761355092/%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png"
+                    alt="NIKENME+"
+                    className="h-12 w-auto max-w-[200px] object-contain object-center"
+                  />
+                </motion.div>
                 <div className="mb-8">
                   <h2 className="text-xl font-bold mb-1" style={{ color: colors.text }}>{t('menu.title')}</h2>
                   <p className="text-sm" style={{ color: colors.textSubtle }}>{t('menu.subtitle')}</p>
@@ -1543,6 +1562,129 @@ export default function LandingPage() {
                 </div>
               </motion.div>
             )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* 店舗向けアクション（位置情報モーダルと同一のラグジュアリーUI） */}
+      <AnimatePresence>
+        {showStoreActionsModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            style={{ backgroundColor: isCafe ? 'rgba(45, 36, 32, 0.95)' : 'rgba(10, 22, 40, 0.95)' }}
+            onClick={() => setShowStoreActionsModal(false)}
+          >
+            <div className="absolute inset-0 backdrop-blur-md" style={{ backgroundColor: isCafe ? 'rgba(45, 36, 32, 0.5)' : 'rgba(10, 22, 40, 0.5)' }} />
+            <motion.div
+              className="absolute w-[500px] h-[500px] rounded-full pointer-events-none"
+              style={{
+                background: `radial-gradient(circle, ${colors.accent}15 0%, transparent 70%)`,
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                filter: 'blur(60px)',
+              }}
+              animate={{ opacity: [0.3, 0.6, 0.3], scale: [1, 1.1, 1] }}
+              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+            />
+
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.3 }}
+              className="relative z-10 w-full max-w-md rounded-3xl overflow-hidden"
+              style={{
+                background: colors.luxuryGradient,
+                border: `1px solid ${colors.borderGold}`,
+                boxShadow: `${colors.shadowDeep}, 0 0 60px ${colors.accent}15`,
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div
+                className="absolute inset-0 opacity-5 pointer-events-none"
+                style={{
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowStoreActionsModal(false)}
+                className="absolute top-3 right-3 z-20 rounded-xl p-2 transition-colors touch-manipulation"
+                style={{ color: colors.textMuted }}
+                aria-label={t('common.close')}
+              >
+                <X className="w-5 h-5" />
+              </button>
+              <div className="h-1" style={{ background: `linear-gradient(90deg, transparent, ${colors.accent}, transparent)` }} />
+              <div className="p-8 pt-10">
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.12 }}
+                  className="text-center mb-6"
+                >
+                  <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl" style={{ background: `${colors.accent}18`, border: `1px solid ${colors.borderGold}` }}>
+                    <motion.div
+                      animate={{ scale: [1, 1.06, 1] }}
+                      transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+                    >
+                      <Store className="h-7 w-7" style={{ color: colors.accent }} />
+                    </motion.div>
+                  </div>
+                  <h2 className="text-2xl font-bold mb-3" style={{ color: colors.text }}>
+                    {t('menu.for_stores')}
+                  </h2>
+                  <p className="text-base leading-relaxed px-1" style={{ color: colors.textMuted }}>
+                    {t('auth.login_join_us')}
+                  </p>
+                </motion.div>
+                <GoldDivider />
+                <div className="space-y-3 mt-6">
+                  <motion.div whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.98 }}>
+                    <Link
+                      href="/partner/apply"
+                      onClick={() => setShowStoreActionsModal(false)}
+                      className="relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-xl py-4 px-6 text-lg font-semibold transition-all group"
+                      style={{
+                        background: isCafe ? 'linear-gradient(135deg, #5C3D2E 0%, #7A5C3C 50%, #4A2E1F 100%)' : colors.goldGradient,
+                        color: isCafe ? '#F7F3EE' : colors.background,
+                        boxShadow: colors.shadowGold,
+                      }}
+                    >
+                      <motion.div
+                        className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+                        style={{ background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%)' }}
+                        animate={{ x: ['-100%', '200%'] }}
+                        transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 1 }}
+                      />
+                      <span className="relative z-10 flex items-center justify-center gap-2">
+                        <Building2 className="h-5 w-5" />
+                        {t('landing.cta_button_recruitment')}
+                      </span>
+                    </Link>
+                  </motion.div>
+                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                    <Link
+                      href="/login"
+                      onClick={() => setShowStoreActionsModal(false)}
+                      className="flex w-full items-center justify-center gap-2 rounded-xl py-4 px-6 text-base font-medium transition-all"
+                      style={{
+                        background: `${colors.accent}08`,
+                        border: `1px solid ${colors.borderGold}`,
+                        color: colors.textMuted,
+                      }}
+                    >
+                      <LogIn className="h-5 w-5 shrink-0" style={{ color: colors.accent }} />
+                      {t('header.store_login')}
+                    </Link>
+                  </motion.div>
+                </div>
+              </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
