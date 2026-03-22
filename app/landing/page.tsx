@@ -392,11 +392,11 @@ export default function LandingPage() {
               onClick={() => setShowStoreActionsModal(true)}
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.95 }}
-              className="flex items-center gap-3 rounded-xl -ml-1 px-1 py-1 touch-manipulation text-left"
+              className="inline-flex h-10 w-10 shrink-0 items-center justify-center gap-3 rounded-lg touch-manipulation text-left sm:h-auto sm:min-h-10 sm:w-auto sm:justify-start sm:px-1 sm:-ml-1"
               style={{ color: colors.accent }}
               aria-label={t('menu.for_stores')}
             >
-              <Store className="h-8 w-8 shrink-0" style={{ color: colors.accent }} />
+              <Store className="h-5 w-5 shrink-0" style={{ color: colors.accent }} />
               <span className="hidden sm:inline-block text-[9px] px-2 py-1 rounded-full font-medium tracking-[0.1em] uppercase shrink-0" style={{ background: `${colors.accent}15`, border: `1px solid ${colors.borderGold}`, color: colors.accent }}>{isCafe ? t('common.day_spot') : t('landing.night_spot')}</span>
             </motion.button>
           </motion.div>
