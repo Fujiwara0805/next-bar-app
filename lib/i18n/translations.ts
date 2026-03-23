@@ -146,7 +146,7 @@ export const translations = {
     // Hero Section
     hero: {
       title: '大分の二軒目探しは',
-      title_app: 'NIKENME+（ニケンメプラス）',
+      title_app: 'NIKENME+（にけんめぷらす）',
       subtitle: '「楽しみは、これから」',
       subtitle2: '次のお店を今すぐマップで探そう',
       cta: 'マップを見る',
@@ -331,7 +331,7 @@ export const translations = {
       vacant_seats: '残り{count}席',
       opens_at: '{time}時開店',
       phone: '電話番号',
-      phone_note: '「ニケンメプラスを見た」というとスムーズです。',
+      phone_note: '「にけんめぷらすを見た」というとスムーズです。',
       website: 'ウェブサイト',
       payment_methods: '支払い方法',
       facilities: '設備・サービス',
@@ -838,8 +838,10 @@ export const translations = {
       // Hero section
       hero_catchphrase: '「2軒目、どうする？」\nその答えが、ここにある。',
       cafe_hero_catchphrase: '「昼休み、どこ行こう？」\n席が空いているお店を確認',
+      izakaya_hero_catchphrase: '「今夜、一杯どう？」\n旨い肴と酒が待っている。',
       hero_subcopy: 'ログイン不要 ー 地図上で空席状況を確認できます ー',
       cafe_hero_subcopy: 'ログイン不要 ー 地図上で空席状況を確認 ー',
+      izakaya_hero_subcopy: 'ログイン不要 ー 地図から居酒屋の空席を確認 ー',
       hero_body: 'NIKENME+は、大分の夜を\n案内するはしご酒 Map 🍺です。',
       // Problems section
       problems_title: 'こんなお悩み、ありませんか？',
@@ -924,7 +926,7 @@ export const translations = {
       faq_q3: '加盟店になるにはどうすればいいですか？',
       faq_a3: 'ヘッダーの「加盟店登録」ボタンからお申し込みいただけます。',
       faq_q4: 'NIKENME+（にけんめぷらす）とは何ですか？',
-      faq_a4: 'NIKENME+（ニケンメプラス）は、大分県大分市で2軒目・バー・スナック・居酒屋を探す際に便利な空席情報マップサービスです。リアルタイムで店舗の空席状況を地図上で確認でき、ログイン不要で今すぐ使えます。',
+      faq_a4: 'NIKENME+（にけんめぷらす）は、大分県大分市で2軒目・バー・スナック・居酒屋を探す際に便利な空席情報マップサービスです。リアルタイムで店舗の空席状況を地図上で確認でき、ログイン不要で今すぐ使えます。',
       faq_q5: 'スマートフォンでも使えますか？',
       faq_a5: 'はい、スマートフォン、タブレット、PCなど、あらゆるデバイスで利用できます。レスポンシブデザインにより、どのデバイスでも快適にご利用いただけます。',
       faq_view_all: 'すべてのFAQを確認',
@@ -1828,8 +1830,10 @@ export const translations = {
       // Hero section
       hero_catchphrase: '"Where to next?"\nThe answer is right here.',
       cafe_hero_catchphrase: '"Where to go for lunch?"\nCheck available seats now',
+      izakaya_hero_catchphrase: '"Fancy a drink tonight?"\nGreat food and sake await.',
       hero_subcopy: 'No login required — Check seat availability on the map —',
       cafe_hero_subcopy: 'No login required — Check seat availability on the map —',
+      izakaya_hero_subcopy: 'No login required — Find izakaya seats on the map —',
       hero_body: 'NIKENME+ is a night spot map 🍺for Oita. Find available venues instantly and reserve your seat with auto-voice call.',
       // Problems section
       problems_title: 'Sound Familiar?',
@@ -2810,8 +2814,10 @@ export const translations = {
       // Hero section
       hero_catchphrase: '「2차, 어디 갈까?」\n그 답이 여기에 있다.',
       cafe_hero_catchphrase: '「점심, 어디 갈까?」\n빈자리가 있는 가게를 확인',
+      izakaya_hero_catchphrase: '「오늘 밤 한잔?」\n맛있는 안주와 술이 기다린다.',
       hero_subcopy: '로그인 불필요 ー 지도에서 빈자리를 확인하세요 ー',
       cafe_hero_subcopy: '로그인 불필요 ー 지도에서 빈자리 확인 ー',
+      izakaya_hero_subcopy: '로그인 불필요 ー 지도에서 이자카야 빈자리 확인 ー',
       hero_body: 'NIKENME+는 오이타의 밤을\n안내하는 Night Spot Map 🍺입니다.',
       // Problems section
       problems_title: '이런 고민, 있으신가요?',
@@ -3792,8 +3798,10 @@ export const translations = {
       // Hero section
       hero_catchphrase: '「续摊去哪？」\n答案就在这里。',
       cafe_hero_catchphrase: '「午休去哪吃？」\n查看有空位的店铺',
+      izakaya_hero_catchphrase: '「今晚来一杯？」\n美味佳肴和美酒等着你。',
       hero_subcopy: '无需登录 ー 在地图上查看空位情况 ー',
       cafe_hero_subcopy: '无需登录 ー 在地图上查看空位 ー',
+      izakaya_hero_subcopy: '无需登录 ー 在地图上查看居酒屋空位 ー',
       hero_body: 'NIKENME+是一款介绍大分夜生活的Night Spot Map 🍺。',
       // Problems section
       problems_title: '有这些烦恼吗？',

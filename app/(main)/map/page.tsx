@@ -21,7 +21,8 @@
 import { useEffect, useState, Suspense, useRef, useCallback, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { List, RefreshCw, Home, AlertCircle, Sparkles } from 'lucide-react';
+import { List, RefreshCw, Home, AlertCircle } from 'lucide-react';
+import { LoadingScreen } from '@/components/ui/loading-screen';
 import { MapView } from '@/components/map/map-view';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/lib/supabase/client';
@@ -1156,25 +1157,7 @@ function MapPageContent() {
 // ============================================================================
 
 function MapPageLoading() {
-  const { t } = useLanguage();
-  return (
-    <div
-      className="flex items-center justify-center h-screen"
-      style={{ background: 'linear-gradient(165deg, #0A1628 0%, #162447 50%, #1F4068 100%)' }}
-    >
-      <div className="text-center">
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-        >
-          <Sparkles className="w-10 h-10 mx-auto mb-2" style={{ color: '#C9A86C' }} />
-        </motion.div>
-        <p className="text-sm font-bold" style={{ color: '#FDFBF7' }}>
-          {t('common.loading')}
-        </p>
-      </div>
-    </div>
-  );
+  return <LoadingScreen size="lg" />;
 }
 
 // ============================================================================

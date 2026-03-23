@@ -13,6 +13,7 @@ import { useAuth } from '@/lib/auth/context';
 import { supabase } from '@/lib/supabase/client';
 
 import { toast } from 'sonner';
+import { LoadingScreen } from '@/components/ui/loading-screen';
 
 type ProfileUpdate = {
   display_name?: string | null;
@@ -114,14 +115,7 @@ export default function ProfileEditPage() {
   };
 
   if (!user || !profile) {
-    return (
-      <div className="flex items-center justify-center h-screen" style={{ backgroundColor: '#1C1E26' }}>
-        <div className="text-center">
-          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-          <p className="text-sm text-white font-bold">読み込み中...</p>
-        </div>
-      </div>
-    );
+    return <LoadingScreen size="lg" />;
   }
 
   return (

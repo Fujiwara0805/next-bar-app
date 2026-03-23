@@ -27,29 +27,10 @@ import type {
   ApplicationStatus,
 } from '@/lib/types/store-application';
 import { APPLICATION_STATUS_MAP } from '@/lib/types/store-application';
-
-// ============================================
-// カラーパレット定義（店舗詳細画面準拠）
-// ============================================
-const COLORS = {
-  deepNavy: '#0A1628',
-  midnightBlue: '#162447',
-  royalNavy: '#1F4068',
-  champagneGold: '#C9A86C',
-  paleGold: '#E8D5B7',
-  antiqueGold: '#B8956E',
-  charcoal: '#2D3436',
-  warmGray: '#636E72',
-  platinum: '#DFE6E9',
-  ivory: '#FDFBF7',
-  luxuryGradient:
-    'linear-gradient(165deg, #0A1628 0%, #162447 50%, #1F4068 100%)',
-  goldGradient:
-    'linear-gradient(135deg, #C9A86C 0%, #E8D5B7 50%, #B8956E 100%)',
-  cardGradient: 'linear-gradient(145deg, #FDFBF7 0%, #F5F1EB 100%)',
-};
+import { useAppMode } from '@/lib/app-mode-context';
 
 export default function ApplicationsManagePage() {
+  const { colorsB: COLORS } = useAppMode();
   const router = useRouter();
   const { user, profile, accountType } = useAuth();
 

@@ -14,7 +14,7 @@ import type { Metadata, Viewport } from 'next';
 export const metadata: Metadata = {
   title: 'NIKENME+ | 大分の夜と、数十年後の「おかえり」を守るために',
   description: '大分県の飲食店・ナイトスポットと地域を繋ぐ新しいプラットフォーム。今なら完全無料で加盟店登録いただけます。インバウンド需要の取り込み、デジタルプレゼンスの最大化、地域イベントの受け皿としてエリア全体の飲食店を支えます。',
-  keywords: ['NIKENME+', 'ニケンメプラス', '大分', '飲食店', 'バー', '居酒屋', '加盟店募集', '無料', '大分市', '別府'],
+  keywords: ['NIKENME+', 'にけんめぷらす', '大分', '飲食店', 'バー', '居酒屋', '加盟店募集', '無料', '大分市', '別府'],
   authors: [{ name: 'NIKENME+' }],
   creator: 'NIKENME+',
   publisher: 'NIKENME+',

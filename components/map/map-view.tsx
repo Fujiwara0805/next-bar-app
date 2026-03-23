@@ -954,7 +954,7 @@ export function MapView({
   onBoundsChange,
   selectedStoreId,
 }: MapViewProps) {
-  const { colorsA: colors, isBar } = useAppMode();
+  const { colorsA: colors, isBar, isCafe } = useAppMode();
 
   // Refs
   const mapRef = useRef<HTMLDivElement>(null);
@@ -1091,8 +1091,8 @@ export function MapView({
         rotateControl: false,
         gestureHandling: 'greedy',
         clickableIcons: false,
-        styles: isBar ? luxuryMapStyles : cafeMapStyles,
-        backgroundColor: isBar ? '#142A48' : '#F7F3EE',
+        styles: !isCafe ? luxuryMapStyles : cafeMapStyles,
+        backgroundColor: !isCafe ? '#142A48' : '#F7F3EE',
       });
 
       mapInstanceRef.current = map;
@@ -1137,11 +1137,11 @@ export function MapView({
   useEffect(() => {
     if (mapInstanceRef.current && mapReady) {
       mapInstanceRef.current.setOptions({
-        styles: isBar ? luxuryMapStyles : cafeMapStyles,
-        backgroundColor: isBar ? '#142A48' : '#F7F3EE',
+        styles: !isCafe ? luxuryMapStyles : cafeMapStyles,
+        backgroundColor: !isCafe ? '#142A48' : '#F7F3EE',
       });
     }
-  }, [isBar, mapReady]);
+  }, [isCafe, mapReady]);
 
   // ============================================================================
   // GPS取得後に初回のみカメラを移動

@@ -68,6 +68,7 @@ import {
 import { BusinessHoursModal } from '@/components/store/BusinessHoursModal';
 import type { BusinessHours } from '@/lib/supabase/types';
 import { getFacilityCategoriesByStoreCategory, getOtherFacilitiesByStoreCategory } from '@/lib/types/store-application';
+import { useAppMode } from '@/lib/app-mode-context';
 
 type Store = Database['public']['Tables']['stores']['Row'];
 
@@ -76,40 +77,16 @@ type StoreWithCoupon = Store & Partial<CouponData>;
 
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
-// ============================================
-// カラーパレット定義（店舗詳細画面準拠）
-// ============================================
-const COLORS = {
-  // プライマリ
-  deepNavy: '#0A1628',
-  midnightBlue: '#162447',
-  royalNavy: '#1F4068',
-  
-  // アクセント
-  champagneGold: '#C9A86C',
-  paleGold: '#E8D5B7',
-  antiqueGold: '#B8956E',
-  
-  // ニュートラル
-  charcoal: '#2D3436',
-  warmGray: '#636E72',
-  platinum: '#DFE6E9',
-  ivory: '#FDFBF7',
-  
-  // グラデーション
-  luxuryGradient: 'linear-gradient(165deg, #0A1628 0%, #162447 50%, #1F4068 100%)',
-  goldGradient: 'linear-gradient(135deg, #C9A86C 0%, #E8D5B7 50%, #B8956E 100%)',
-  cardGradient: 'linear-gradient(145deg, #FDFBF7 0%, #F5F1EB 100%)',
-};
-
 /**
  * セクションヘッダーコンポーネント
  */
-const SectionHeader = ({ icon: Icon, title, description }: { 
-  icon: React.ElementType; 
-  title: string; 
+const SectionHeader = ({ icon: Icon, title, description }: {
+  icon: React.ElementType;
+  title: string;
   description?: string;
-}) => (
+}) => {
+  const { colorsB: COLORS } = useAppMode();
+  return (
   <div className="flex items-start gap-3 mb-6">
     <div 
       className="p-2.5 rounded-xl shrink-0"
@@ -134,12 +111,15 @@ const SectionHeader = ({ icon: Icon, title, description }: {
       )}
     </div>
   </div>
-);
+  );
+};
 
 /**
  * ゴールド装飾ディバイダー
  */
-const GoldDivider = () => (
+const GoldDivider = () => {
+  const { colorsB: COLORS } = useAppMode();
+  return (
   <div className="flex items-center justify-center gap-3 my-6">
     <div 
       className="h-px flex-1"
@@ -154,7 +134,8 @@ const GoldDivider = () => (
       style={{ background: `linear-gradient(90deg, ${COLORS.champagneGold}40, transparent)` }}
     />
   </div>
-);
+  );
+};
 
 /**
  * カスタム入力フィールドスタイル
@@ -180,6 +161,7 @@ const getInputClassName = (disabled?: boolean) =>
   `${inputStyles.base} ${inputStyles.focus} ${inputStyles.default} ${disabled ? 'opacity-60 cursor-not-allowed' : ''}`;
 
 export default function StoreEditPage() {
+  const { colorsB: COLORS } = useAppMode();
   const router = useRouter();
   const params = useParams();
   const { user, accountType } = useAuth();

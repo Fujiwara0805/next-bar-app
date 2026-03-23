@@ -4,20 +4,7 @@ import Link from 'next/link';
 import { ArrowLeft, Star, Zap, Sparkles, MapPin, Phone, Ticket, Users, MessageCircle } from 'lucide-react';
 import { useLanguage } from '@/lib/i18n/context';
 import { motion } from 'framer-motion';
-
-const COLORS = {
-  background: '#0A1628',
-  surface: '#162447',
-  accent: '#C9A86C',
-  accentLight: '#E8D5B7',
-  text: '#FDFBF7',
-  textMuted: 'rgba(253, 251, 247, 0.7)',
-  textSubtle: 'rgba(253, 251, 247, 0.5)',
-  luxuryGradient: 'linear-gradient(165deg, #0A1628 0%, #162447 50%, #1F4068 100%)',
-  goldGradient: 'linear-gradient(135deg, #C9A86C 0%, #E8D5B7 50%, #B8956E 100%)',
-  borderGold: 'rgba(201, 168, 108, 0.3)',
-  borderSubtle: 'rgba(201, 168, 108, 0.15)',
-};
+import { useAppMode } from '@/lib/app-mode-context';
 
 const releaseTranslations = {
   ja: [
@@ -139,6 +126,7 @@ const releaseTranslations = {
 };
 
 export default function ReleaseNotesPage() {
+  const { colorsA: COLORS } = useAppMode();
   const { t, language } = useLanguage();
   const releases = releaseTranslations[language] || releaseTranslations.ja;
 

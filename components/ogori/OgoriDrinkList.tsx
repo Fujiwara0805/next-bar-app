@@ -14,15 +14,7 @@
 import { motion } from 'framer-motion';
 import { Wine } from 'lucide-react';
 import { useLanguage } from '@/lib/i18n/context';
-
-// アプリ共通カラー
-const COLORS = {
-  deepNavy: '#0A1628',
-  champagneGold: '#C9A86C',
-  charcoal: '#2D3436',
-  warmGray: '#636E72',
-  ivory: '#FDFBF7',
-};
+import { useAppMode } from '@/lib/app-mode-context';
 
 /** ドリンク行の型（API レスポンス互換 - 価格なし） */
 export interface OgoriDrinkRow {
@@ -38,6 +30,7 @@ interface OgoriDrinkListProps {
 }
 
 export function OgoriDrinkList({ drinks, selectedDrinkId, onSelect }: OgoriDrinkListProps) {
+  const { colorsB: COLORS } = useAppMode();
   const { t } = useLanguage();
 
   if (drinks.length === 0) {

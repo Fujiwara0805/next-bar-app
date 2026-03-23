@@ -45,33 +45,7 @@ import {
   updateCampaign,
   deleteCampaign,
 } from '@/lib/actions/campaign';
-
-// ============================================
-// カラーパレット定義（店舗詳細画面準拠）
-// ディープネイビー × シャンパンゴールドの高級感
-// ============================================
-const COLORS = {
-  // プライマリ
-  deepNavy: '#0A1628',
-  midnightBlue: '#162447',
-  royalNavy: '#1F4068',
-  
-  // アクセント
-  champagneGold: '#C9A86C',
-  paleGold: '#E8D5B7',
-  antiqueGold: '#B8956E',
-  
-  // ニュートラル
-  charcoal: '#2D3436',
-  warmGray: '#636E72',
-  platinum: '#DFE6E9',
-  ivory: '#FDFBF7',
-  
-  // グラデーション
-  luxuryGradient: 'linear-gradient(165deg, #0A1628 0%, #162447 50%, #1F4068 100%)',
-  goldGradient: 'linear-gradient(135deg, #C9A86C 0%, #E8D5B7 50%, #B8956E 100%)',
-  cardGradient: 'linear-gradient(145deg, #FDFBF7 0%, #F5F1EB 100%)',
-};
+import { useAppMode } from '@/lib/app-mode-context';
 
 // ============================================
 // 入力スタイル（ゴールドアクセント）
@@ -100,6 +74,7 @@ const getInputClassName = (disabled?: boolean) =>
 // メインコンポーネント
 // ============================================
 export default function CampaignsManagePage() {
+  const { colorsB: COLORS } = useAppMode();
   const router = useRouter();
   const { profile, accountType } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -841,6 +816,7 @@ interface CampaignCardProps {
 }
 
 function CampaignCard({ campaign, index, onEdit, onDelete }: CampaignCardProps) {
+  const { colorsB: COLORS } = useAppMode();
   const remainingDays = getCampaignRemainingDays({
     ...campaign,
     startDate: campaign.start_date,

@@ -34,12 +34,7 @@ import {
 } from '@/lib/types/ogori';
 import { supabase } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/i18n/context';
-
-const COLORS = {
-  deepNavy: '#0A1628',
-  midnightBlue: '#162447',
-  royalNavy: '#1F4068',
-};
+import { useAppMode } from '@/lib/app-mode-context';
 
 /** コンポーネント Props */
 interface StoreOgoriFormProps {
@@ -66,6 +61,7 @@ export function StoreOgoriForm({
   storeId,
   disabled = false,
 }: StoreOgoriFormProps) {
+  const { colorsB: COLORS } = useAppMode();
   const { t } = useLanguage();
 
   /** おごり酒が有効な時は自動展開 */

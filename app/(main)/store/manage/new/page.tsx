@@ -67,47 +67,24 @@ import {
 import { BusinessHoursModal } from '@/components/store/BusinessHoursModal';
 import type { BusinessHours } from '@/lib/supabase/types';
 import { getFacilityCategoriesByStoreCategory, getOtherFacilitiesByStoreCategory } from '@/lib/types/store-application';
+import { useAppMode } from '@/lib/app-mode-context';
 
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-
-// ============================================
-// カラーパレット定義（店舗詳細画面準拠）
-// ============================================
-const COLORS = {
-  // プライマリ
-  deepNavy: '#0A1628',
-  midnightBlue: '#162447',
-  royalNavy: '#1F4068',
-  
-  // アクセント
-  champagneGold: '#C9A86C',
-  paleGold: '#E8D5B7',
-  antiqueGold: '#B8956E',
-  
-  // ニュートラル
-  charcoal: '#2D3436',
-  warmGray: '#636E72',
-  platinum: '#DFE6E9',
-  ivory: '#FDFBF7',
-  
-  // グラデーション
-  luxuryGradient: 'linear-gradient(165deg, #0A1628 0%, #162447 50%, #1F4068 100%)',
-  goldGradient: 'linear-gradient(135deg, #C9A86C 0%, #E8D5B7 50%, #B8956E 100%)',
-  cardGradient: 'linear-gradient(145deg, #FDFBF7 0%, #F5F1EB 100%)',
-};
 
 /**
  * セクションヘッダーコンポーネント
  */
-const SectionHeader = ({ icon: Icon, title, description }: { 
-  icon: React.ElementType; 
-  title: string; 
+const SectionHeader = ({ icon: Icon, title, description }: {
+  icon: React.ElementType;
+  title: string;
   description?: string;
-}) => (
+}) => {
+  const { colorsB: COLORS } = useAppMode();
+  return (
   <div className="flex items-start gap-3 mb-6">
-    <div 
+    <div
       className="p-2.5 rounded-xl shrink-0"
-      style={{ 
+      style={{
         background: COLORS.goldGradient,
         boxShadow: '0 4px 12px rgba(201, 168, 108, 0.25)',
       }}
@@ -115,7 +92,7 @@ const SectionHeader = ({ icon: Icon, title, description }: {
       <Icon className="w-5 h-5" style={{ color: COLORS.deepNavy }} />
     </div>
     <div>
-      <h3 
+      <h3
         className="text-lg font-bold"
         style={{ color: COLORS.deepNavy }}
       >
@@ -128,27 +105,31 @@ const SectionHeader = ({ icon: Icon, title, description }: {
       )}
     </div>
   </div>
-);
+  );
+};
 
 /**
  * ゴールド装飾ディバイダー
  */
-const GoldDivider = () => (
+const GoldDivider = () => {
+  const { colorsB: COLORS } = useAppMode();
+  return (
   <div className="flex items-center justify-center gap-3 my-6">
-    <div 
+    <div
       className="h-px flex-1"
       style={{ background: `linear-gradient(90deg, transparent, ${COLORS.champagneGold}40)` }}
     />
-    <div 
+    <div
       className="w-1.5 h-1.5 rotate-45"
       style={{ backgroundColor: COLORS.champagneGold }}
     />
-    <div 
+    <div
       className="h-px flex-1"
       style={{ background: `linear-gradient(90deg, ${COLORS.champagneGold}40, transparent)` }}
     />
   </div>
-);
+  );
+};
 
 /**
  * カスタム入力フィールドスタイル
@@ -188,6 +169,7 @@ export default function NewStorePageWrapper() {
 }
 
 function NewStorePage() {
+  const { colorsB: COLORS } = useAppMode();
   const router = useRouter();
   const { user } = useAuth();
   const searchParams = useSearchParams();

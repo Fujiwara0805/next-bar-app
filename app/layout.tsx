@@ -11,11 +11,11 @@ import { GoogleAnalytics } from '@/components/analytics/GoogleAnalytics';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'NIKENME+(ニケンメプラス) | 大分のおすすめバー・スナック・居酒屋・カフェの空席情報マップ',
+  title: 'NIKENME+(にけんめぷらす) | 大分のおすすめバー・スナック・居酒屋・カフェの空席情報マップ',
   description: '大分でおすすめのバー・スナック・居酒屋・カフェを探すなら NIKENME+。大分市都町・中央町エリアの人気店の空席情報がリアルタイムでわかる地図アプリ。昼はカフェ、夜はバー・居酒屋の2軒目探し、はしご酒、飲み歩き、デート、一人飲みに最適。出張・観光にも。ログイン不要で完全無料。',
 
   // AI検索エンジン向けの詳細な説明を追加
-  abstract: 'NIKENME+（ニケンメプラス）は、大分県大分市を中心におすすめのバー・スナック・居酒屋・カフェの空席情報をリアルタイムで提供するマップサービスです。大分市都町・中央町の繁華街エリアを中心に、今すぐ入れる人気のお店を地図上で簡単に見つけられます。昼はカフェモード、夜はバーモードで自動切替。デート、一人飲み、女子会、出張、観光、忘年会・新年会の二次会探しにも最適。ログイン不要で即座に利用可能です。',
+  abstract: 'NIKENME+（にけんめぷらす）は、大分県大分市を中心におすすめのバー・スナック・居酒屋・カフェの空席情報をリアルタイムで提供するマップサービスです。大分市都町・中央町の繁華街エリアを中心に、今すぐ入れる人気のお店を地図上で簡単に見つけられます。昼はカフェモード、夜はバーモードで自動切替。デート、一人飲み、女子会、出張、観光、忘年会・新年会の二次会探しにも最適。ログイン不要で即座に利用可能です。',
   
   manifest: '/manifest.json',
   
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
   keywords: [
     // ブランド名（優先度：高）
     'NIKENME+',
-    'ニケンメプラス',
+    'にけんめぷらす',
     'ニケンメ',
     'にけんめプラス',
     'にけんめ',
@@ -222,7 +222,7 @@ export const metadata: Metadata = {
     '大分 静か カフェ',
     '大分 近くのカフェ',
   ].join(', '),
-  authors: [{ name: 'NIKENME+ (ニケンメプラス)' }],
+  authors: [{ name: 'NIKENME+ (にけんめぷらす)' }],
   creator: 'NIKENME+',
   publisher: 'NIKENME+',
   robots: {
@@ -261,14 +261,14 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'NIKENME+ (ニケンメプラス)',
+    title: 'NIKENME+ (にけんめぷらす)',
   },
   formatDetection: {
     telephone: false,
   },
   openGraph: {
     type: 'website',
-    siteName: 'NIKENME+ (ニケンメプラス)',
+    siteName: 'NIKENME+ (にけんめぷらす)',
     title: 'NIKENME+ | 大分のおすすめバー・スナック・居酒屋・カフェの空席マップ',
     description: '大分でおすすめのバー・スナック・居酒屋・カフェを探すならNIKENME+。人気店の空席がリアルタイムでわかる地図アプリ。昼はカフェ、夜はバー。大分市都町・中央町エリアの2軒目探し、はしご酒、デート、一人飲みに最適。',
     url: 'https://nikenme.jp',
@@ -326,14 +326,14 @@ export default function RootLayout({
             __html: JSON.stringify({
               '@context': 'https://schema.org',
               '@type': 'WebApplication',
-              name: 'NIKENME+ (ニケンメプラス)',
+              name: 'NIKENME+ (にけんめぷらす)',
               alternateName: ['NIKENME', 'ニケンメ', 'にけんめ', '二軒目プラス'],
               applicationCategory: 'LifestyleApplication',
               operatingSystem: 'Any',
               browserRequirements: 'Requires JavaScript. Requires HTML5.',
               
               // AIが理解しやすい詳細な説明
-              description: 'NIKENME+（ニケンメプラス）は、大分県大分市のおすすめバー・スナック・居酒屋の空席情報をリアルタイムで地図上に表示するWebアプリです。大分市都町・中央町の繁華街を中心に、今すぐ入れる人気のお店が一目でわかります。デート、一人飲み、女子会、出張、観光、忘年会・新年会の二次会探し、はしご酒、飲み歩きに最適。ログイン不要・完全無料で利用可能。English, Korean, Chinese supported.',
+              description: 'NIKENME+（にけんめぷらす）は、大分県大分市のおすすめバー・スナック・居酒屋の空席情報をリアルタイムで地図上に表示するWebアプリです。大分市都町・中央町の繁華街を中心に、今すぐ入れる人気のお店が一目でわかります。デート、一人飲み、女子会、出張、観光、忘年会・新年会の二次会探し、はしご酒、飲み歩きに最適。ログイン不要・完全無料で利用可能。English, Korean, Chinese supported.',
               
               offers: {
                 '@type': 'Offer',
@@ -392,7 +392,7 @@ export default function RootLayout({
             __html: JSON.stringify({
               '@context': 'https://schema.org',
               '@type': 'Organization',
-              name: 'NIKENME+ (ニケンメプラス)',
+              name: 'NIKENME+ (にけんめぷらす)',
               url: 'https://nikenme.jp',
               logo: {
                 '@type': 'ImageObject',
@@ -417,7 +417,7 @@ export default function RootLayout({
               '@context': 'https://schema.org',
               '@type': 'LocalBusiness',
               '@id': 'https://nikenme.jp/#business',
-              name: 'NIKENME+ (ニケンメプラス)',
+              name: 'NIKENME+ (にけんめぷらす)',
               image: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761311529/NIKENME_%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_r5gzn4.png',
               description: '大分市のおすすめバー・スナック・居酒屋のリアルタイム空席情報マップ。大分で今すぐ入れる人気のお店が地図で一目でわかる。デート、一人飲み、出張、観光、はしご酒に最適。',
               url: 'https://nikenme.jp',
@@ -484,7 +484,7 @@ export default function RootLayout({
                   name: '大分でおすすめのバーを探すにはどうすればいいですか？',
                   acceptedAnswer: {
                     '@type': 'Answer',
-                    text: 'NIKENME+（ニケンメプラス）がおすすめです。大分市の都町・中央町エリアを中心に、おすすめのバー・スナック・居酒屋の空席情報をリアルタイムで地図表示します。ログイン不要・完全無料で、今すぐ入れる人気店がひと目でわかります。',
+                    text: 'NIKENME+（にけんめぷらす）がおすすめです。大分市の都町・中央町エリアを中心に、おすすめのバー・スナック・居酒屋の空席情報をリアルタイムで地図表示します。ログイン不要・完全無料で、今すぐ入れる人気店がひと目でわかります。',
                   },
                 },
                 {
@@ -602,7 +602,7 @@ export default function RootLayout({
             __html: JSON.stringify({
               '@context': 'https://schema.org',
               '@type': 'SoftwareApplication',
-              name: 'NIKENME+ (ニケンメプラス)',
+              name: 'NIKENME+ (にけんめぷらす)',
               operatingSystem: 'Web Browser',
               applicationCategory: 'BusinessApplication',
               
@@ -638,7 +638,7 @@ export default function RootLayout({
             __html: JSON.stringify({
               '@context': 'https://schema.org',
               '@type': 'HowTo',
-              name: 'NIKENME+（ニケンメプラス）の使い方',
+              name: 'NIKENME+（にけんめぷらす）の使い方',
               description: '大分市で2軒目・バー・スナックを簡単に見つける方法',
               step: [
                 {

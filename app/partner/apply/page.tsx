@@ -40,30 +40,7 @@ import {
   getFacilityCategoriesByStoreCategory,
   getOtherFacilitiesByStoreCategory,
 } from '@/lib/types/store-application';
-
-// ============================================
-// Color Palette
-// ============================================
-const COLORS = {
-  deepNavy: '#0A1628',
-  midnightBlue: '#162447',
-  royalNavy: '#1F4068',
-  champagneGold: '#C9A86C',
-  paleGold: '#E8D5B7',
-  antiqueGold: '#B8956E',
-  charcoal: '#2D3436',
-  warmGray: '#636E72',
-  platinum: '#DFE6E9',
-  ivory: '#FDFBF7',
-  luxuryGradient:
-    'linear-gradient(165deg, #0A1628 0%, #162447 50%, #1F4068 100%)',
-  goldGradient:
-    'linear-gradient(135deg, #C9A86C 0%, #E8D5B7 50%, #B8956E 100%)',
-  cardGradient: 'linear-gradient(145deg, #FDFBF7 0%, #F5F1EB 100%)',
-  /** luxuryGradient より約2トーン明るいページ背景（加盟店申込など） */
-  partnerApplyPageGradient:
-    'linear-gradient(165deg, #1E3048 0%, #2D4562 50%, #3D5C80 100%)',
-};
+import { useAppMode } from '@/lib/app-mode-context';
 
 // ============================================
 // Input Styles
@@ -81,6 +58,7 @@ const inputClassName = `${inputStyles.base} ${inputStyles.focus} ${inputStyles.d
 // ============================================
 
 function GoldDivider() {
+  const { colorsB: COLORS } = useAppMode();
   return (
     <div className="flex items-center gap-3 my-6">
       <div
@@ -108,6 +86,7 @@ function SectionHeader({
   title: string;
   description: string;
 }) {
+  const { colorsB: COLORS } = useAppMode();
   return (
     <div className="flex items-start gap-3 mb-6">
       <div
@@ -135,6 +114,7 @@ function StepIndicator({
   currentStep: number;
   onStepClick: (step: number) => void;
 }) {
+  const { colorsB: COLORS } = useAppMode();
   return (
     <div className="flex items-center justify-center gap-1 sm:gap-2 mb-8">
       {APPLICATION_STEPS.map((step, index) => {
@@ -213,6 +193,7 @@ function Step1BasicInfo({
   values: ApplicationFormValues;
   onChange: (partial: Partial<ApplicationFormValues>) => void;
 }) {
+  const { colorsB: COLORS } = useAppMode();
   return (
     <div>
       <SectionHeader
@@ -319,6 +300,7 @@ function Step2BusinessInfo({
   values: ApplicationFormValues;
   onChange: (partial: Partial<ApplicationFormValues>) => void;
 }) {
+  const { colorsB: COLORS } = useAppMode();
   const togglePaymentMethod = (method: string) => {
     const current = values.paymentMethods;
     if (current.includes(method)) {
@@ -443,6 +425,7 @@ function Step3Facilities({
   values: ApplicationFormValues;
   onChange: (partial: Partial<ApplicationFormValues>) => void;
 }) {
+  const { colorsB: COLORS } = useAppMode();
   const toggleFacility = (item: string) => {
     const current = values.facilities;
     if (current.includes(item)) {
@@ -537,6 +520,7 @@ function Step4ImagesAccount({
   values: ApplicationFormValues;
   onChange: (partial: Partial<ApplicationFormValues>) => void;
 }) {
+  const { colorsB: COLORS } = useAppMode();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -676,6 +660,7 @@ function Step5Confirm({
   values: ApplicationFormValues;
   onChange: (partial: Partial<ApplicationFormValues>) => void;
 }) {
+  const { colorsB: COLORS } = useAppMode();
   return (
     <div>
       <SectionHeader
@@ -882,6 +867,7 @@ function Step5Confirm({
 // ============================================
 
 function SuccessScreen() {
+  const { colorsB: COLORS } = useAppMode();
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
@@ -929,6 +915,8 @@ function SuccessScreen() {
 // ============================================
 
 export default function PartnerApplyPage() {
+  const { colorsB: COLORS } = useAppMode();
+  const partnerApplyPageGradient = 'linear-gradient(165deg, ' + COLORS.deepNavy + ' 0%, ' + COLORS.midnightBlue + ' 50%, ' + COLORS.royalNavy + ' 100%)';
   const [currentStep, setCurrentStep] = useState(1);
   const [formValues, setFormValues] = useState<ApplicationFormValues>(
     getDefaultApplicationFormValues()
@@ -1054,7 +1042,7 @@ export default function PartnerApplyPage() {
   };
 
   return (
-    <div className="min-h-screen" style={{ background: COLORS.partnerApplyPageGradient }}>
+    <div className="min-h-screen" style={{ background: partnerApplyPageGradient }}>
       {/* Header */}
       <header
         className="sticky top-0 z-50 backdrop-blur-md"

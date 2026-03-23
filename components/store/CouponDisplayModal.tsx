@@ -47,40 +47,8 @@ import { BonusClickType } from '@/lib/types/bonus-click';
 import { toast } from 'sonner';
 import { useLanguage } from '@/lib/i18n/context';
 import { useAuth } from '@/lib/auth/context';
+import { useAppMode } from '@/lib/app-mode-context';
 import html2canvas from 'html2canvas';
-
-// ============================================
-// カラーパレット定義（ラグジュアリーテーマ）
-// ============================================
-const COLORS = {
-  // プライマリ
-  deepNavy: '#0A1628',
-  midnightBlue: '#162447',
-  royalNavy: '#1F4068',
-  
-  // アクセント
-  champagneGold: '#C9A86C',
-  paleGold: '#E8D5B7',
-  antiqueGold: '#B8956E',
-  
-  // ニュートラル
-  charcoal: '#2D3436',
-  warmGray: '#636E72',
-  platinum: '#DFE6E9',
-  ivory: '#FDFBF7',
-  
-  // 背景グラデーション
-  luxuryGradient: 'linear-gradient(165deg, #0A1628 0%, #162447 50%, #1F4068 100%)',
-  goldGradient: 'linear-gradient(135deg, #C9A86C 0%, #E8D5B7 50%, #B8956E 100%)',
-  marbleTexture: `
-    linear-gradient(135deg, rgba(255,255,255,0.03) 0%, transparent 50%),
-    linear-gradient(225deg, rgba(201,168,108,0.05) 0%, transparent 50%)
-  `,
-  
-  // 追加カラー
-  instagramGradient: 'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)',
-  googleGradient: 'linear-gradient(135deg, #4285F4 0%, #34A853 33%, #FBBC05 66%, #EA4335 100%)',
-};
 
 // ============================================
 // アニメーション設定
@@ -109,22 +77,25 @@ const fadeInUp = {
 // ============================================
 // 装飾コンポーネント
 // ============================================
-const GoldDivider = () => (
-  <div className="flex items-center justify-center gap-4 my-4">
-    <div 
-      className="h-px flex-1 max-w-16"
-      style={{ background: `linear-gradient(90deg, transparent, ${COLORS.champagneGold}40)` }}
-    />
-    <div 
-      className="w-1.5 h-1.5 rotate-45"
-      style={{ backgroundColor: COLORS.champagneGold }}
-    />
-    <div 
-      className="h-px flex-1 max-w-16"
-      style={{ background: `linear-gradient(90deg, ${COLORS.champagneGold}40, transparent)` }}
-    />
-  </div>
-);
+const GoldDivider = () => {
+  const { colorsB: COLORS } = useAppMode();
+  return (
+    <div className="flex items-center justify-center gap-4 my-4">
+      <div
+        className="h-px flex-1 max-w-16"
+        style={{ background: `linear-gradient(90deg, transparent, ${COLORS.champagneGold}40)` }}
+      />
+      <div
+        className="w-1.5 h-1.5 rotate-45"
+        style={{ backgroundColor: COLORS.champagneGold }}
+      />
+      <div
+        className="h-px flex-1 max-w-16"
+        style={{ background: `linear-gradient(90deg, ${COLORS.champagneGold}40, transparent)` }}
+      />
+    </div>
+  );
+};
 
 // 紙吹雪アニメーション
 const Confetti = () => {
@@ -160,26 +131,29 @@ const Confetti = () => {
 };
 
 // ステップインジケーター
-const StepIndicator = ({ currentStep, totalSteps }: { currentStep: number; totalSteps: number }) => (
-  <div className="flex items-center justify-center gap-2 mb-6">
-    {Array.from({ length: totalSteps }).map((_, i) => (
-      <motion.div
-        key={i}
-        className="h-1.5 rounded-full transition-all duration-300"
-        style={{
-          width: i === currentStep ? 24 : 8,
-          backgroundColor: i <= currentStep 
-            ? COLORS.champagneGold 
-            : 'rgba(255, 255, 255, 0.2)',
-        }}
-        animate={{
-          scale: i === currentStep ? [1, 1.1, 1] : 1,
-        }}
-        transition={{ duration: 0.3 }}
-      />
-    ))}
-  </div>
-);
+const StepIndicator = ({ currentStep, totalSteps }: { currentStep: number; totalSteps: number }) => {
+  const { colorsB: COLORS } = useAppMode();
+  return (
+    <div className="flex items-center justify-center gap-2 mb-6">
+      {Array.from({ length: totalSteps }).map((_, i) => (
+        <motion.div
+          key={i}
+          className="h-1.5 rounded-full transition-all duration-300"
+          style={{
+            width: i === currentStep ? 24 : 8,
+            backgroundColor: i <= currentStep
+              ? COLORS.champagneGold
+              : 'rgba(255, 255, 255, 0.2)',
+          }}
+          animate={{
+            scale: i === currentStep ? [1, 1.1, 1] : 1,
+          }}
+          transition={{ duration: 0.3 }}
+        />
+      ))}
+    </div>
+  );
+};
 
 // 選択肢ボタン
 interface ChoiceButtonProps {
@@ -191,7 +165,9 @@ interface ChoiceButtonProps {
   delay?: number;
 }
 
-const ChoiceButton = ({ icon, label, sublabel, isSelected, onClick, delay = 0 }: ChoiceButtonProps) => (
+const ChoiceButton = ({ icon, label, sublabel, isSelected, onClick, delay = 0 }: ChoiceButtonProps) => {
+  const { colorsB: COLORS } = useAppMode();
+  return (
   <motion.button
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
@@ -270,7 +246,8 @@ const ChoiceButton = ({ icon, label, sublabel, isSelected, onClick, delay = 0 }:
       </AnimatePresence>
     </div>
   </motion.button>
-);
+  );
+};
 
 // Next Actionカード（クリックトラッキング機能付き）
 interface ActionCardProps {
@@ -285,17 +262,18 @@ interface ActionCardProps {
   onExternalNavigate?: () => void; // 外部遷移検知用コールバック
 }
 
-const ActionCard = ({ 
-  icon, 
-  title, 
-  description, 
-  buttonText, 
-  href, 
+const ActionCard = ({
+  icon,
+  title,
+  description,
+  buttonText,
+  href,
   gradientStyle,
   delay = 0,
   onClickTrack,
   onExternalNavigate,
 }: ActionCardProps) => {
+  const { colorsB: COLORS } = useAppMode();
   const handleClick = () => {
     // トラッキングを非同期で実行（UXを損なわないよう外部遷移と並行処理）
     if (onClickTrack) {
@@ -385,6 +363,10 @@ export function CouponDisplayModal({
   campaignId,
   campaignName,
 }: CouponDisplayModalProps) {
+  const { colorsB: COLORS } = useAppMode();
+  const marbleTexture = 'linear-gradient(135deg, rgba(255,255,255,0.03) 0%, transparent 50%), linear-gradient(225deg, rgba(201,168,108,0.05) 0%, transparent 50%)';
+  const instagramGradient = 'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)';
+  const googleGradient = 'linear-gradient(135deg, #4285F4 0%, #34A853 33%, #FBBC05 66%, #EA4335 100%)';
   const router = useRouter();
 
   // ============================================
@@ -748,7 +730,7 @@ export function CouponDisplayModal({
         >
           <div 
             className="absolute inset-0 opacity-50 pointer-events-none"
-            style={{ background: COLORS.marbleTexture }}
+            style={{ background: marbleTexture }}
           />
           {isUsed && <Confetti />}
         </div>
@@ -1799,7 +1781,7 @@ export function CouponDisplayModal({
                         description={t('coupon.instagram_desc')}
                         buttonText={t('coupon.open_instagram')}
                         href={instagramUrl}
-                        gradientStyle={COLORS.instagramGradient}
+                        gradientStyle={instagramGradient}
                         delay={0}
                         onClickTrack={() => trackBonusClick('instagram')}
                         onExternalNavigate={handleExternalNavigate}
@@ -1813,7 +1795,7 @@ export function CouponDisplayModal({
                       description={t('coupon.review_desc')}
                       buttonText={t('coupon.write_review')}
                       href={googlePlaceId ? generateGoogleReviewUrl(googlePlaceId) : `https://www.google.com/maps/search/${encodeURIComponent(storeName)}`}
-                      gradientStyle={COLORS.googleGradient}
+                      gradientStyle={googleGradient}
                       delay={instagramUrl ? 0.1 : 0}
                       onClickTrack={() => trackBonusClick('google_review')}
                       onExternalNavigate={handleExternalNavigate}
@@ -1898,7 +1880,7 @@ export function CouponDisplayModal({
         >
           <div 
             className="absolute inset-0 opacity-50 pointer-events-none"
-            style={{ background: COLORS.marbleTexture }}
+            style={{ background: marbleTexture }}
           />
         </div>
 
@@ -1983,7 +1965,7 @@ export function CouponDisplayModal({
         >
           <div 
             className="absolute inset-0 opacity-50 pointer-events-none"
-            style={{ background: COLORS.marbleTexture }}
+            style={{ background: marbleTexture }}
           />
         </div>
 
@@ -2120,6 +2102,7 @@ interface CouponBadgeProps {
 }
 
 export function CouponBadge({ coupon, onClick, size = 'md' }: CouponBadgeProps) {
+  const { colorsB: COLORS } = useAppMode();
   const { t } = useLanguage();
   const isValid = isCouponValid(coupon);
 

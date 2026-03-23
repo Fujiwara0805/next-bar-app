@@ -23,13 +23,7 @@ import { Button } from '@/components/ui/button';
 import { OgoriPurchaseModal } from './OgoriPurchaseModal';
 import { OgoriUseTicketModal } from './OgoriUseTicketModal';
 import { useLanguage } from '@/lib/i18n/context';
-
-// 店舗詳細画面と同じカラーパレット
-const COLORS = {
-  deepNavy: '#0A1628',
-  champagneGold: '#C9A86C',
-  warmGray: '#636E72',
-};
+import { useAppMode } from '@/lib/app-mode-context';
 
 interface OgoriSectionProps {
   storeId: string;
@@ -38,6 +32,7 @@ interface OgoriSectionProps {
 }
 
 export function OgoriSection({ storeId, storeName, ogoriEnabled }: OgoriSectionProps) {
+  const { colorsB: COLORS } = useAppMode();
   const { t } = useLanguage();
   const searchParams = useSearchParams();
   const router = useRouter();

@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ja, enUS, ko, zhCN } from 'date-fns/locale';
 import { useLanguage } from '@/lib/i18n/context';
+import { LoadingScreen } from '@/components/ui/loading-screen';
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -62,14 +63,7 @@ export default function ProfilePage() {
   };
 
   if (!user || !profile) {
-    return (
-      <div className="flex items-center justify-center h-screen" style={{ backgroundColor: '#1C1E26' }}>
-        <div className="text-center">
-          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-          <p className="text-sm text-white font-bold">{t('common.loading')}</p>
-        </div>
-      </div>
-    );
+    return <LoadingScreen size="lg" />;
   }
 
   return (

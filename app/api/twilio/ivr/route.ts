@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
         voice: 'Polly.Mizuki',
         loop: 1
       },
-      `こちらは、ニケンメプラスの予約システムです。
+      `こちらは、にけんめぷらすの予約システムです。
        お客様から、${minutesForSpeech}の来店予約リクエストがあります。
        
        お名前は、${reservation.caller_name || '不明'} 様、

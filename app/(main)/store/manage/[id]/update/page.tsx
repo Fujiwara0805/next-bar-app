@@ -48,88 +48,23 @@ import { supabase } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 import { ArrivalToggleButton, ArrivalStatusBadge } from '@/components/reservation/ArrivalToggleButton';
 import { PushNotificationManager } from '@/components/push-notification-manager';
+import { useAppMode } from '@/lib/app-mode-context';
 import type { Database } from '@/lib/supabase/types';
 
 type Store = Database['public']['Tables']['stores']['Row'];
 type StoreUpdate = Database['public']['Tables']['stores']['Update'];
 type QuickReservation = Database['public']['Tables']['quick_reservations']['Row'];
 
-// ============================================
-// カラーパレット定義（店舗詳細画面準拠）
-// ============================================
-const COLORS = {
-  // プライマリ
-  deepNavy: '#0A1628',
-  midnightBlue: '#162447',
-  royalNavy: '#1F4068',
-  
-  // アクセント
-  champagneGold: '#C9A86C',
-  paleGold: '#E8D5B7',
-  antiqueGold: '#B8956E',
-  
-  // ニュートラル
-  charcoal: '#2D3436',
-  warmGray: '#636E72',
-  platinum: '#DFE6E9',
-  ivory: '#FDFBF7',
-  
-  // グラデーション
-  luxuryGradient: 'linear-gradient(165deg, #0A1628 0%, #162447 50%, #1F4068 100%)',
-  goldGradient: 'linear-gradient(135deg, #C9A86C 0%, #E8D5B7 50%, #B8956E 100%)',
-  cardGradient: 'linear-gradient(145deg, #FDFBF7 0%, #F5F1EB 100%)',
-};
-
-/**
- * 空席状況の選択肢
- */
-const VACANCY_OPTIONS = [
-  {
-    value: 'vacant',
-    label: '空席あり',
-    description: 'すぐに入店できます',
-    color: '#16a34a',
-    bgColor: 'rgba(34, 197, 94, 0.08)',
-    borderColor: 'rgba(34, 197, 94, 0.3)',
-    icon: CheckCircle2,
-  },
-  {
-    value: 'full',
-    label: '満席',
-    description: '現在満席です',
-    color: '#dc2626',
-    bgColor: 'rgba(239, 68, 68, 0.08)',
-    borderColor: 'rgba(239, 68, 68, 0.3)',
-    icon: XCircle,
-  },
-  {
-    value: 'open',
-    label: '営業中',
-    description: '営業中です。',
-    color: COLORS.champagneGold,
-    bgColor: 'rgba(201, 168, 108, 0.08)',
-    borderColor: 'rgba(201, 168, 108, 0.3)',
-    icon: StoreIcon,
-  },
-  {
-    value: 'closed',
-    label: '閉店',
-    description: '営業時間外または臨時休業（12時間後に自動解除）',
-    color: COLORS.warmGray,
-    bgColor: 'rgba(99, 110, 114, 0.08)',
-    borderColor: 'rgba(99, 110, 114, 0.3)',
-    icon: PauseCircle,
-  },
-] as const;
-
 /**
  * セクションヘッダーコンポーネント
  */
-const SectionHeader = ({ icon: Icon, title }: { icon: React.ElementType; title: string }) => (
+const SectionHeader = ({ icon: Icon, title }: { icon: React.ElementType; title: string }) => {
+  const { colorsB: COLORS } = useAppMode();
+  return (
   <div className="flex items-center gap-3 mb-4">
-    <div 
+    <div
       className="p-2 rounded-lg"
-      style={{ 
+      style={{
         background: COLORS.goldGradient,
         boxShadow: '0 2px 8px rgba(201, 168, 108, 0.25)',
       }}
@@ -140,29 +75,76 @@ const SectionHeader = ({ icon: Icon, title }: { icon: React.ElementType; title: 
       {title}
     </h2>
   </div>
-);
+  );
+};
 
 /**
  * ゴールド装飾ディバイダー
  */
-const GoldDivider = () => (
+const GoldDivider = () => {
+  const { colorsB: COLORS } = useAppMode();
+  return (
   <div className="flex items-center justify-center gap-3 my-4">
-    <div 
+    <div
       className="h-px flex-1"
       style={{ background: `linear-gradient(90deg, transparent, ${COLORS.champagneGold}40)` }}
     />
-    <div 
+    <div
       className="w-1.5 h-1.5 rotate-45"
       style={{ backgroundColor: COLORS.champagneGold }}
     />
-    <div 
+    <div
       className="h-px flex-1"
       style={{ background: `linear-gradient(90deg, ${COLORS.champagneGold}40, transparent)` }}
     />
   </div>
-);
+  );
+};
 
 export default function StoreUpdatePage() {
+  const { colorsB: COLORS } = useAppMode();
+
+  /**
+   * 空席状況の選択肢
+   */
+  const VACANCY_OPTIONS = [
+    {
+      value: 'vacant',
+      label: '空席あり',
+      description: 'すぐに入店できます',
+      color: '#16a34a',
+      bgColor: 'rgba(34, 197, 94, 0.08)',
+      borderColor: 'rgba(34, 197, 94, 0.3)',
+      icon: CheckCircle2,
+    },
+    {
+      value: 'full',
+      label: '満席',
+      description: '現在満席です',
+      color: '#dc2626',
+      bgColor: 'rgba(239, 68, 68, 0.08)',
+      borderColor: 'rgba(239, 68, 68, 0.3)',
+      icon: XCircle,
+    },
+    {
+      value: 'open',
+      label: '営業中',
+      description: '営業中です。',
+      color: COLORS.champagneGold,
+      bgColor: 'rgba(201, 168, 108, 0.08)',
+      borderColor: 'rgba(201, 168, 108, 0.3)',
+      icon: StoreIcon,
+    },
+    {
+      value: 'closed',
+      label: '閉店',
+      description: '営業時間外または臨時休業（12時間後に自動解除）',
+      color: COLORS.warmGray,
+      bgColor: 'rgba(99, 110, 114, 0.08)',
+      borderColor: 'rgba(99, 110, 114, 0.3)',
+      icon: PauseCircle,
+    },
+  ] as const;
   const router = useRouter();
   const params = useParams();
   const { user, accountType, signOut } = useAuth();

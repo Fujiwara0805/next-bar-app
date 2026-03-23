@@ -39,6 +39,7 @@ import type { Language } from '@/lib/i18n/translations';
 import { supabase } from '@/lib/supabase/client';
 import { locationCache } from '@/lib/cache';
 import { useAppMode } from '@/lib/app-mode-context';
+import { LoadingScreen } from '@/components/ui/loading-screen';
 import { newsTranslations } from '@/lib/news-data';
 
 // ============================================
@@ -402,17 +403,27 @@ export default function LandingPage() {
             </motion.button>
           </motion.div>
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* 昼夜切替トグル（ディナー: ビール / ランチ: カフェ） */}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleMode}
-              className="touch-manipulation active:scale-95 rounded-lg"
-              style={{ color: colors.text }}
-              title={isBar ? t('common.mode_night') : t('common.mode_day')}
-            >
-              {isBar ? <Beer className="w-5 h-5" /> : <Coffee className="w-5 h-5" />}
-            </Button>
+            {/* モード切替（バー / カフェ） */}
+            <div className="flex items-center rounded-full p-0.5" style={{ background: `${colors.accent}15`, border: `1px solid ${colors.borderGold}` }}>
+              {([
+                { key: 'bar', icon: Beer, label: 'Bar' },
+                { key: 'cafe', icon: Coffee, label: 'Cafe' },
+              ] as const).map(({ key, icon: Icon, label }) => (
+                <button
+                  key={key}
+                  onClick={toggleMode}
+                  className="relative px-2 py-1.5 rounded-full transition-all duration-200 touch-manipulation active:scale-95 flex items-center gap-1"
+                  style={{
+                    background: mode === key ? colors.accent : 'transparent',
+                    color: mode === key ? (isCafe ? colors.background : '#FDF5E6') : colors.textMuted,
+                  }}
+                  title={label}
+                >
+                  <Icon className="w-3.5 h-3.5" />
+                  <span className="text-[10px] font-medium hidden sm:inline">{label}</span>
+                </button>
+              ))}
+            </div>
             {/* 言語切替 */}
             <div className="relative language-menu-container">
               <Button
@@ -438,10 +449,10 @@ export default function LandingPage() {
                     <div
                       className="rounded-xl overflow-hidden"
                       style={{
-                        background: isBar ? 'rgba(30, 30, 30, 0.95)' : 'rgba(247, 243, 238, 0.98)',
+                        background: isCafe ? 'rgba(247, 243, 238, 0.98)' : 'rgba(30, 30, 30, 0.95)',
                         backdropFilter: 'blur(12px)',
-                        border: isBar ? '1px solid rgba(255,255,255,0.1)' : `1px solid ${colors.borderGold}`,
-                        boxShadow: isBar ? '0 10px 40px rgba(0,0,0,0.5)' : '0 10px 40px rgba(0,0,0,0.15)',
+                        border: isCafe ? `1px solid ${colors.borderGold}` : '1px solid rgba(255,255,255,0.1)',
+                        boxShadow: isCafe ? '0 10px 40px rgba(0,0,0,0.15)' : '0 10px 40px rgba(0,0,0,0.5)',
                       }}
                     >
                       <div className="p-2">
@@ -454,8 +465,8 @@ export default function LandingPage() {
                             onClick={() => handleLanguageSelect(lang)}
                             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
                               language === lang
-                                ? (isBar ? 'bg-amber-500/20' : 'bg-amber-700/10')
-                                : (isBar ? 'hover:bg-white/10' : 'hover:bg-black/5')
+                                ? (!isCafe ? 'bg-amber-500/20' : 'bg-amber-700/10')
+                                : (!isCafe ? 'hover:bg-white/10' : 'hover:bg-black/5')
                             }`}
                             style={{ color: language === lang ? colors.accent : colors.text }}
                           >
@@ -494,11 +505,15 @@ export default function LandingPage() {
                   className="flex flex-col items-center mb-8 pb-6"
                   style={{ borderBottom: `1px solid ${colors.borderGold}` }}
                 >
-                  <img
-                    src="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761355092/%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png"
-                    alt="NIKENME+"
-                    className="h-12 w-auto max-w-[200px] object-contain object-center"
-                  />
+                  {isCafe ? (
+                    <Coffee className="h-12 w-12" style={{ color: colors.accent }} />
+                  ) : (
+                    <img
+                      src="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761355092/%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png"
+                      alt="NIKENME+"
+                      className="h-12 w-auto max-w-[200px] object-contain object-center"
+                    />
+                  )}
                 </motion.div>
                 <div className="mb-8">
                   <h2 className="text-xl font-bold mb-1" style={{ color: colors.text }}>{t('menu.title')}</h2>
@@ -633,7 +648,7 @@ export default function LandingPage() {
       </section>
 
       {/* お知らせセクション */}
-      <section className="relative py-16 px-4 overflow-hidden" style={{ background: colors.background }}>
+      <section className="relative py-8 md:py-16 px-4 overflow-hidden" style={{ background: colors.background }}>
         <div className="container mx-auto max-w-3xl">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-8">
             <GoldDivider />
@@ -668,7 +683,7 @@ export default function LandingPage() {
 
       {/* キャンペーンセクション（campaignsテーブルからの動的データ） */}
       {(campaignMasters.length > 0 || campaignStores.length > 0) && (
-        <section className="relative py-16 px-4 overflow-hidden" style={{ background: colors.surface }}>
+        <section className="relative py-8 md:py-16 px-4 overflow-hidden" style={{ background: colors.surface }}>
           <div className="container mx-auto max-w-5xl">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -1051,7 +1066,7 @@ export default function LandingPage() {
       )}
 
       {/* 課題提起セクション */}
-      <section className="relative py-24 px-4 overflow-hidden" style={{ background: colors.surface }}>
+      <section className="relative py-12 md:py-24 px-4 overflow-hidden" style={{ background: colors.surface }}>
         <div className="container mx-auto max-w-5xl">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
             <GoldDivider />
@@ -1166,7 +1181,7 @@ export default function LandingPage() {
       </section>
 
       {/* 解決策・サービスの強みセクション */}
-      <section className="relative py-24 px-4 overflow-hidden" style={{ background: colors.background }}>
+      <section className="relative py-12 md:py-24 px-4 overflow-hidden" style={{ background: colors.background }}>
         <div className="container mx-auto max-w-5xl">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
             <GoldDivider />
@@ -1200,7 +1215,7 @@ export default function LandingPage() {
       </section>
 
       {/* How to Use Section */}
-      <section className="relative py-24 px-4 overflow-hidden" style={{ background: colors.surface }}>
+      <section className="relative py-12 md:py-24 px-4 overflow-hidden" style={{ background: colors.surface }}>
         <div className="container mx-auto max-w-6xl">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
             <GoldDivider />
@@ -1298,7 +1313,7 @@ export default function LandingPage() {
       </section>
 
       {/* SEO エリアガイドセクション（カフェ版では非表示 - 後日カフェ版を作成予定） */}
-      {isBar && <section className="relative py-20 px-4 overflow-hidden" style={{ background: colors.background }}>
+      {!isCafe && <section className="relative py-10 md:py-20 px-4 overflow-hidden" style={{ background: colors.background }}>
         <div className="container mx-auto max-w-4xl lg:max-w-7xl">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
             <GoldDivider />
@@ -1398,7 +1413,7 @@ export default function LandingPage() {
 
       {/* Partner Stores Section - 流れるマーキー */}
       {partnerStores.length > 0 && (
-        <section className="relative py-24 overflow-hidden" style={{ background: colors.background }}>
+        <section className="relative py-12 md:py-24 overflow-hidden" style={{ background: colors.background }}>
           <div className="container mx-auto max-w-6xl relative z-10 px-4">
             <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
               <GoldDivider />
@@ -1441,7 +1456,7 @@ export default function LandingPage() {
       )}
 
       {/* Contact Section */}
-      <section className="relative py-24 px-4 overflow-hidden" style={{ background: colors.background }}>
+      <section className="relative py-12 md:py-24 px-4 overflow-hidden" style={{ background: colors.background }}>
         <div className="container mx-auto max-w-3xl text-center">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
             <GoldDivider />
@@ -1461,7 +1476,7 @@ export default function LandingPage() {
       </section>
 
       {/* Company Section */}
-      <section className="relative py-24 px-4 overflow-hidden" style={{ background: colors.surface }}>
+      <section className="relative py-12 md:py-24 px-4 overflow-hidden" style={{ background: colors.surface }}>
         <div className="container mx-auto max-w-3xl">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
             <GoldDivider />
@@ -1525,24 +1540,13 @@ export default function LandingPage() {
             <motion.div className="absolute w-[500px] h-[500px] rounded-full pointer-events-none" style={{ background: `radial-gradient(circle, ${colors.accent}15 0%, transparent 70%)`, top: '50%', left: '50%', transform: 'translate(-50%, -50%)', filter: 'blur(60px)' }} animate={{ opacity: [0.3, 0.6, 0.3], scale: [1, 1.1, 1] }} transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }} />
 
             {locationPermission === 'loading' ? (
-              <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} className="relative z-10 flex flex-col items-center justify-center" onClick={(e) => e.stopPropagation()}>
-                <div className="relative">
-                  <motion.div className="absolute inset-0 -m-4" animate={{ opacity: [0.3, 0.6, 0.3] }} transition={{ duration: 2, repeat: Infinity }} style={{ background: `radial-gradient(circle, ${colors.accent}40 0%, transparent 70%)`, filter: 'blur(20px)' }} />
-                  <motion.div className="w-20 h-20 rounded-full" style={{ border: `2px solid ${colors.borderGold}`, borderTopColor: colors.accent }} animate={{ rotate: 360 }} transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }} />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <motion.div animate={{ scale: [1, 1.2, 1], opacity: [0.8, 1, 0.8] }} transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}>
-                      <Sparkles className="w-8 h-8" style={{ color: colors.accent }} />
-                    </motion.div>
-                  </div>
-                </div>
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="mt-8 text-center">
-                  <p className="text-lg font-medium mb-2" style={{ color: colors.text }}>{t('landing.getting_location')}</p>
-                  <p className="text-sm" style={{ color: colors.textMuted }}>{t('landing.map_shortly')}</p>
-                </motion.div>
-                <div className="flex gap-2 mt-6">
-                  {[0, 1, 2].map((i) => (<motion.div key={i} className="w-2 h-2 rounded-full" style={{ backgroundColor: colors.accent }} animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1, 0.8] }} transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.2, ease: 'easeInOut' }} />))}
-                </div>
-              </motion.div>
+              <div className="relative z-10" onClick={(e) => e.stopPropagation()}>
+                <LoadingScreen
+                  size="md"
+                  message={t('landing.getting_location')}
+                  subMessage={t('landing.map_shortly')}
+                />
+              </div>
             ) : (
               <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} transition={{ duration: 0.3 }} className="relative z-10 w-full max-w-md rounded-3xl overflow-hidden" style={{ background: colors.luxuryGradient, border: `1px solid ${colors.borderGold}`, boxShadow: `${colors.shadowDeep}, 0 0 60px ${colors.accent}15` }} onClick={(e) => e.stopPropagation()}>
                 <div className="absolute inset-0 opacity-5 pointer-events-none" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }} />

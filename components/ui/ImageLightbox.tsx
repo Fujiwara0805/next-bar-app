@@ -4,16 +4,7 @@ import { useEffect, useCallback, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from 'lucide-react';
 import { CloseCircleButton } from '@/components/ui/close-circle-button';
-
-// ============================================
-// カラーパレット定義
-// ============================================
-const COLORS = {
-  deepNavy: '#0A1628',
-  champagneGold: '#C9A86C',
-  ivory: '#FDFBF7',
-  warmGray: '#636E72',
-};
+import { useAppMode } from '@/lib/app-mode-context';
 
 interface ImageLightboxProps {
   images: string[];
@@ -30,6 +21,7 @@ export function ImageLightbox({
   onClose,
   alt = '画像',
 }: ImageLightboxProps) {
+  const { colorsB: COLORS } = useAppMode();
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [scale, setScale] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });

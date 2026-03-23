@@ -12,14 +12,7 @@ import { Wine } from 'lucide-react';
 import { CustomModal } from '@/components/ui/custom-modal';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/lib/i18n/context';
-
-// アプリ共通カラー
-const COLORS = {
-  deepNavy: '#0A1628',
-  champagneGold: '#C9A86C',
-  charcoal: '#2D3436',
-  goldGradient: 'linear-gradient(135deg, #C9A86C 0%, #E8D5B7 50%, #B8956E 100%)',
-};
+import { useAppMode } from '@/lib/app-mode-context';
 
 interface OgoriAgeCheckModalProps {
   isOpen: boolean;
@@ -28,6 +21,7 @@ interface OgoriAgeCheckModalProps {
 }
 
 export function OgoriAgeCheckModal({ isOpen, onConfirm, onCancel }: OgoriAgeCheckModalProps) {
+  const { colorsB: COLORS } = useAppMode();
   const { t } = useLanguage();
 
   return (

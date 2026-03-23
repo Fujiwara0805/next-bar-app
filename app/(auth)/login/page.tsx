@@ -12,37 +12,14 @@ import { useAuth } from '@/lib/auth/context';
 import { toast } from 'sonner';
 import { PasswordInput } from '@/components/ui/password-input';
 import { useLanguage } from '@/lib/i18n/context';
-
-// ============================================
-// カラーパレット定義（店舗詳細画面準拠）
-// ============================================
-const COLORS = {
-  // プライマリ
-  deepNavy: '#0A1628',
-  midnightBlue: '#162447',
-  royalNavy: '#1F4068',
-  
-  // アクセント
-  champagneGold: '#C9A86C',
-  paleGold: '#E8D5B7',
-  antiqueGold: '#B8956E',
-  
-  // ニュートラル
-  charcoal: '#2D3436',
-  warmGray: '#636E72',
-  platinum: '#DFE6E9',
-  ivory: '#FDFBF7',
-  
-  // グラデーション
-  luxuryGradient: 'linear-gradient(165deg, #0A1628 0%, #162447 50%, #1F4068 100%)',
-  goldGradient: 'linear-gradient(135deg, #C9A86C 0%, #E8D5B7 50%, #B8956E 100%)',
-  cardGradient: 'linear-gradient(145deg, #FDFBF7 0%, #F5F1EB 100%)',
-};
+import { useAppMode } from '@/lib/app-mode-context';
 
 /**
  * ゴールド装飾ディバイダー
  */
-const GoldDivider = () => (
+const GoldDivider = () => {
+  const { colorsB: COLORS } = useAppMode();
+  return (
   <div className="flex items-center justify-center gap-3 my-6">
     <div 
       className="h-px flex-1"
@@ -57,9 +34,11 @@ const GoldDivider = () => (
       style={{ background: `linear-gradient(90deg, ${COLORS.champagneGold}40, transparent)` }}
     />
   </div>
-);
+  );
+};
 
 export default function LoginPage() {
+  const { colorsB: COLORS } = useAppMode();
   const router = useRouter();
   const { signIn, user, accountType, store, loading: authLoading } = useAuth();
   const { t } = useLanguage();

@@ -6,16 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import type { BusinessHours } from '@/lib/supabase/types';
-
-// ============================================
-// 定数
-// ============================================
-
-const COLORS = {
-  deepNavy: '#0A1628',
-  champagneGold: '#C9A86C',
-  warmGray: '#636E72',
-};
+import { useAppMode } from '@/lib/app-mode-context';
 
 const DAYS: Array<{ key: keyof Required<BusinessHours>; label: string }> = [
   { key: 'monday', label: '月曜日' },
@@ -89,6 +80,7 @@ export function BusinessHoursModal({
   onChange,
   disabled = false,
 }: BusinessHoursModalProps) {
+  const { colorsB: COLORS } = useAppMode();
   const [hours, setHours] = useState<Record<string, DayHours>>(() =>
     initFromValue(value)
   );

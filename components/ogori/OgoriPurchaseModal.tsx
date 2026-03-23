@@ -26,15 +26,7 @@ import { Button } from '@/components/ui/button';
 import { OgoriDrinkList, type OgoriDrinkRow } from './OgoriDrinkList';
 import { OGORI_FIXED_AMOUNT } from '@/lib/types/ogori';
 import { useLanguage } from '@/lib/i18n/context';
-
-// アプリ共通カラー
-const COLORS = {
-  deepNavy: '#0A1628',
-  champagneGold: '#C9A86C',
-  charcoal: '#2D3436',
-  warmGray: '#636E72',
-  goldGradient: 'linear-gradient(135deg, #C9A86C 0%, #E8D5B7 50%, #B8956E 100%)',
-};
+import { useAppMode } from '@/lib/app-mode-context';
 
 type PurchaseStep = 'drink' | 'confirm';
 
@@ -46,6 +38,7 @@ interface OgoriPurchaseModalProps {
 }
 
 export function OgoriPurchaseModal({ isOpen, onClose, storeId, storeName }: OgoriPurchaseModalProps) {
+  const { colorsB: COLORS } = useAppMode();
   const { t } = useLanguage();
   const [step, setStep] = useState<PurchaseStep>('drink');
   const [drinks, setDrinks] = useState<OgoriDrinkRow[]>([]);

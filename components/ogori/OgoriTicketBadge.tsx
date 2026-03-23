@@ -13,11 +13,7 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '@/lib/i18n/context';
-
-const COLORS = {
-  champagneGold: '#C9A86C',
-  deepNavy: '#0A1628',
-};
+import { useAppMode } from '@/lib/app-mode-context';
 
 interface OgoriTicketBadgeProps {
   storeId: string;
@@ -25,6 +21,7 @@ interface OgoriTicketBadgeProps {
 }
 
 export function OgoriTicketBadge({ storeId, compact = false }: OgoriTicketBadgeProps) {
+  const { colorsB: COLORS } = useAppMode();
   const { t } = useLanguage();
   const [count, setCount] = useState<number | null>(null);
 

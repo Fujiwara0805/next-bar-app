@@ -21,35 +21,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, ChevronLeft, RotateCcw } from 'lucide-react';
 import { useLanguage } from '@/lib/i18n/context';
 import { CloseCircleButton } from '@/components/ui/close-circle-button';
-
-// ============================================
-// カラーパレット定義
-// ============================================
-const COLORS = {
-  // プライマリ
-  deepNavy: '#0A1628',
-  midnightBlue: '#162447',
-  royalNavy: '#1F4068',
-  
-  // アクセント
-  champagneGold: '#C9A86C',
-  paleGold: '#E8D5B7',
-  antiqueGold: '#B8956E',
-  
-  // ニュートラル
-  charcoal: '#2D3436',
-  warmGray: '#636E72',
-  platinum: '#DFE6E9',
-  ivory: '#FDFBF7',
-  
-  // 背景グラデーション
-  luxuryGradient: 'linear-gradient(165deg, #0A1628 0%, #162447 50%, #1F4068 100%)',
-  goldGradient: 'linear-gradient(135deg, #C9A86C 0%, #E8D5B7 50%, #B8956E 100%)',
-  marbleTexture: `
-    linear-gradient(135deg, rgba(255,255,255,0.03) 0%, transparent 50%),
-    linear-gradient(225deg, rgba(201,168,108,0.05) 0%, transparent 50%)
-  `,
-};
+import { useAppMode } from '@/lib/app-mode-context';
 
 // ============================================
 // 質問データ型定義
@@ -219,26 +191,29 @@ interface ConciergeModalProps {
 // ============================================
 // 装飾コンポーネント
 // ============================================
-const GoldDivider = () => (
-  <div className="flex items-center justify-center gap-4 my-6">
-    <div 
-      className="h-px flex-1 max-w-16"
-      style={{ 
-        background: `linear-gradient(90deg, transparent, ${COLORS.champagneGold}40)` 
-      }}
-    />
-    <div 
-      className="w-1.5 h-1.5 rotate-45"
-      style={{ backgroundColor: COLORS.champagneGold }}
-    />
-    <div 
-      className="h-px flex-1 max-w-16"
-      style={{ 
-        background: `linear-gradient(90deg, ${COLORS.champagneGold}40, transparent)` 
-      }}
-    />
-  </div>
-);
+const GoldDivider = () => {
+  const { colorsB: COLORS } = useAppMode();
+  return (
+    <div className="flex items-center justify-center gap-4 my-6">
+      <div
+        className="h-px flex-1 max-w-16"
+        style={{
+          background: `linear-gradient(90deg, transparent, ${COLORS.champagneGold}40)`
+        }}
+      />
+      <div
+        className="w-1.5 h-1.5 rotate-45"
+        style={{ backgroundColor: COLORS.champagneGold }}
+      />
+      <div
+        className="h-px flex-1 max-w-16"
+        style={{
+          background: `linear-gradient(90deg, ${COLORS.champagneGold}40, transparent)`
+        }}
+      />
+    </div>
+  );
+};
 
 // LuxuryIconのProps型定義（styleプロパティを含む）
 interface LuxuryIconProps {
@@ -268,6 +243,8 @@ const LuxuryIcon = ({ className, style }: LuxuryIconProps) => (
 // メインコンポーネント
 // ============================================
 export function ConciergeModal({ isOpen, onClose, onComplete }: ConciergeModalProps) {
+  const { colorsB: COLORS } = useAppMode();
+  const marbleTexture = 'linear-gradient(135deg, rgba(255,255,255,0.03) 0%, transparent 50%), linear-gradient(225deg, rgba(201,168,108,0.05) 0%, transparent 50%)';
   const { t } = useLanguage();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, QuestionOption>>({});
@@ -405,7 +382,7 @@ export function ConciergeModal({ isOpen, onClose, onComplete }: ConciergeModalPr
             {/* 大理石風テクスチャオーバーレイ */}
             <div 
               className="absolute inset-0 opacity-50 pointer-events-none"
-              style={{ background: COLORS.marbleTexture }}
+              style={{ background: marbleTexture }}
             />
 
             {/* ヘッダー */}

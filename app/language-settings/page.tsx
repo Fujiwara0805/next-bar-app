@@ -6,23 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ArrowLeft, Check } from 'lucide-react';
 import { useLanguage, SUPPORTED_LANGUAGES, LANGUAGE_META, type Language } from '@/lib/i18n/context';
-
-// マップ画面・LPと統一したカラーパレット
-const colors = {
-  background: '#0A1628',
-  surface: '#162447',
-  surfaceLight: '#1F4068',
-  accent: '#C9A86C',
-  accentLight: '#E8D5B7',
-  text: '#FDFBF7',
-  textMuted: 'rgba(253, 251, 247, 0.7)',
-  textSubtle: 'rgba(253, 251, 247, 0.5)',
-  luxuryGradient: 'linear-gradient(165deg, #0A1628 0%, #162447 50%, #1F4068 100%)',
-  borderGold: 'rgba(201, 168, 108, 0.3)',
-  goldGradient: 'linear-gradient(135deg, #C9A86C 0%, #E8D5B7 50%, #B8956E 100%)',
-};
+import { useAppMode } from '@/lib/app-mode-context';
 
 export default function LanguageSettingsPage() {
+  const { colorsA: colors } = useAppMode();
   const { language, setLanguage, t } = useLanguage();
 
   const languages = SUPPORTED_LANGUAGES.map((code) => ({

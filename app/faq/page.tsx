@@ -5,26 +5,11 @@ import Link from 'next/link';
 import { ArrowLeft, ChevronDown, HelpCircle, MessageCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '@/lib/i18n/context';
-
-const COLORS = {
-  background: '#0A1628',
-  surface: '#162447',
-  surfaceLight: '#1F4068',
-  accent: '#C9A86C',
-  accentLight: '#E8D5B7',
-  accentDark: '#B8956E',
-  text: '#FDFBF7',
-  textMuted: 'rgba(253, 251, 247, 0.7)',
-  textSubtle: 'rgba(253, 251, 247, 0.5)',
-  luxuryGradient: 'linear-gradient(165deg, #0A1628 0%, #162447 50%, #1F4068 100%)',
-  goldGradient: 'linear-gradient(135deg, #C9A86C 0%, #E8D5B7 50%, #B8956E 100%)',
-  borderGold: 'rgba(201, 168, 108, 0.3)',
-  borderSubtle: 'rgba(201, 168, 108, 0.15)',
-};
+import { useAppMode } from '@/lib/app-mode-context';
 
 const faqTranslations = {
   ja: [
-    { question: 'NIKENME+とは何ですか？', answer: 'NIKENME+（ニケンメプラス）は、大分県大分市で2軒目・バー・スナック・居酒屋を探す際に便利な空席情報マップサービスです。リアルタイムで店舗の空席状況を地図上で確認でき、ログイン不要で今すぐ使えます。' },
+    { question: 'NIKENME+とは何ですか？', answer: 'NIKENME+（にけんめぷらす）は、大分県大分市で2軒目・バー・スナック・居酒屋を探す際に便利な空席情報マップサービスです。リアルタイムで店舗の空席状況を地図上で確認でき、ログイン不要で今すぐ使えます。' },
     { question: '利用料金はかかりますか？', answer: '完全無料です。ログインや会員登録も不要で、アクセスするだけですぐに利用できます。' },
     { question: '位置情報を許可する必要がありますか？', answer: '位置情報の許可は必須ではありませんが、許可していただくと現在地周辺の店舗を表示でき、距離も確認できるためより便利にご利用いただけます。位置情報はサーバーに保存されず、ブラウザ上でのみ一時的に使用されます。' },
     { question: '空席情報はリアルタイムで更新されますか？', answer: 'はい、店舗オーナーが更新した空席情報はリアルタイムで反映されます。常に最新の情報を確認できるため、無駄な移動や待ち時間を減らせます。' },
@@ -78,6 +63,7 @@ const faqTranslations = {
 };
 
 export default function FAQPage() {
+  const { colorsA: COLORS } = useAppMode();
   const { t, language } = useLanguage();
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 

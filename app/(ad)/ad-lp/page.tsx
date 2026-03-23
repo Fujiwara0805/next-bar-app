@@ -32,43 +32,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-
-// ============================================
-// 統一カラーパレット（既存LP準拠）
-// ============================================
-const colors = {
-  // ベースカラー（60%）- 背景・余白
-  background: '#0A1628',        // Deep Navy
-  surface: '#162447',           // Midnight Blue
-  surfaceLight: '#1F4068',      // Royal Navy
-  cardBackground: '#FDFBF7',    // Ivory
-  
-  // メインカラー（30%）- 装飾・セクション
-  primary: '#1F4068',           // Royal Navy
-  charcoal: '#2D3436',
-  warmGray: '#636E72',
-  
-  // アクセントカラー（10%）- CTA・重要要素
-  accent: '#C9A86C',            // Champagne Gold
-  accentLight: '#E8D5B7',       // Pale Gold
-  accentDark: '#B8956E',        // Antique Gold
-  
-  // テキストカラー
-  text: '#FDFBF7',              // Ivory
-  textMuted: 'rgba(253, 251, 247, 0.7)',
-  textSubtle: 'rgba(253, 251, 247, 0.5)',
-  
-  // グラデーション
-  luxuryGradient: 'linear-gradient(165deg, #0A1628 0%, #162447 50%, #1F4068 100%)',
-  goldGradient: 'linear-gradient(135deg, #C9A86C 0%, #E8D5B7 50%, #B8956E 100%)',
-  cardGradient: 'linear-gradient(145deg, #FDFBF7 0%, #F5F1EB 100%)',
-  
-  // ボーダー・シャドウ
-  borderGold: 'rgba(201, 168, 108, 0.3)',
-  borderSubtle: 'rgba(201, 168, 108, 0.15)',
-  shadowGold: '0 8px 30px rgba(201, 168, 108, 0.4)',
-  shadowDeep: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-};
+import { useAppMode } from '@/lib/app-mode-context';
 
 // ============================================
 // 外部リンク定義
@@ -101,62 +65,68 @@ const ASSETS = {
 // ============================================
 
 /** ゴールド装飾ディバイダー（既存LP準拠） */
-const GoldDivider = ({ className = '' }: { className?: string }) => (
-  <div className={`flex items-center justify-center gap-3 my-6 ${className}`}>
-    <div 
-      className="h-px flex-1 max-w-16" 
-      style={{ background: `linear-gradient(90deg, transparent, ${colors.accent}40)` }} 
-    />
-    <div 
-      className="w-1.5 h-1.5 rotate-45" 
-      style={{ backgroundColor: colors.accent }} 
-    />
-    <div 
-      className="h-px flex-1 max-w-16" 
-      style={{ background: `linear-gradient(90deg, ${colors.accent}40, transparent)` }} 
-    />
-  </div>
-);
+const GoldDivider = ({ className = '' }: { className?: string }) => {
+  const { colorsA: colors } = useAppMode();
+  return (
+    <div className={`flex items-center justify-center gap-3 my-6 ${className}`}>
+      <div
+        className="h-px flex-1 max-w-16"
+        style={{ background: `linear-gradient(90deg, transparent, ${colors.accent}40)` }}
+      />
+      <div
+        className="w-1.5 h-1.5 rotate-45"
+        style={{ backgroundColor: colors.accent }}
+      />
+      <div
+        className="h-px flex-1 max-w-16"
+        style={{ background: `linear-gradient(90deg, ${colors.accent}40, transparent)` }}
+      />
+    </div>
+  );
+};
 
 /** セクションタイトル */
-const SectionTitle = ({ 
-  tag, 
-  title, 
+const SectionTitle = ({
+  tag,
+  title,
   subtitle,
-}: { 
-  tag: string; 
-  title: React.ReactNode; 
+}: {
+  tag: string;
+  title: React.ReactNode;
   subtitle?: string;
-}) => (
-  <motion.div 
-    initial={{ opacity: 0, y: 20 }} 
-    whileInView={{ opacity: 1, y: 0 }} 
-    viewport={{ once: true }}
-    className="text-center mb-12 md:mb-16"
-  >
-    <GoldDivider />
-    <span 
-      className="block text-xs font-medium tracking-[0.3em] uppercase mb-4"
-      style={{ color: colors.accent }}
+}) => {
+  const { colorsA: colors } = useAppMode();
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      className="text-center mb-12 md:mb-16"
     >
-      {tag}
-    </span>
-    <h2 
-      className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4"
-      style={{ color: colors.text }}
-    >
-      {title}
-    </h2>
-    {subtitle && (
-      <p 
-        className="text-base sm:text-lg max-w-xl mx-auto"
-        style={{ color: colors.textMuted }}
+      <GoldDivider />
+      <span
+        className="block text-xs font-medium tracking-[0.3em] uppercase mb-4"
+        style={{ color: colors.accent }}
       >
-        {subtitle}
-      </p>
-    )}
-  </motion.div>
-);
+        {tag}
+      </span>
+      <h2
+        className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4"
+        style={{ color: colors.text }}
+      >
+        {title}
+      </h2>
+      {subtitle && (
+        <p
+          className="text-base sm:text-lg max-w-xl mx-auto"
+          style={{ color: colors.textMuted }}
+        >
+          {subtitle}
+        </p>
+      )}
+    </motion.div>
+  );
+};
 
 /** CTAボタン（シマーエフェクト付き） */
 const CTAButton = ({
@@ -165,22 +135,25 @@ const CTAButton = ({
 }: {
   children: React.ReactNode;
   className?: string;
-}) => (
-  <Link href={LINKS.partnerApply}>
-    <motion.div
-      whileHover={{ scale: 1.03, y: -2 }}
-      whileTap={{ scale: 0.97 }}
-      className={`inline-flex items-center gap-3 px-8 py-4 rounded-full font-bold text-base cursor-pointer ${className}`}
-      style={{
-        background: colors.goldGradient,
-        color: colors.background,
-        boxShadow: colors.shadowGold,
-      }}
-    >
-      {children}
-    </motion.div>
-  </Link>
-);
+}) => {
+  const { colorsA: colors } = useAppMode();
+  return (
+    <Link href={LINKS.partnerApply}>
+      <motion.div
+        whileHover={{ scale: 1.03, y: -2 }}
+        whileTap={{ scale: 0.97 }}
+        className={`inline-flex items-center gap-3 px-8 py-4 rounded-full font-bold text-base cursor-pointer ${className}`}
+        style={{
+          background: colors.goldGradient,
+          color: colors.background,
+          boxShadow: colors.shadowGold,
+        }}
+      >
+        {children}
+      </motion.div>
+    </Link>
+  );
+};
 
 /** フェードインセクション */
 const FadeInSection = ({ 
@@ -217,6 +190,7 @@ const renderWithLineBreaks = (text: string) => {
 // メインコンポーネント
 // ============================================
 export default function AdLandingPage() {
+  const { colorsA: colors } = useAppMode();
   const { scrollY } = useScroll();
   const heroOpacity = useTransform(scrollY, [0, 400], [1, 0]);
   const heroScale = useTransform(scrollY, [0, 400], [1, 1.05]);

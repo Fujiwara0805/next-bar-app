@@ -30,19 +30,7 @@ import { Button } from '@/components/ui/button';
 import { OgoriDrinkList, type OgoriDrinkRow } from './OgoriDrinkList';
 import { OgoriAgeCheckModal } from './OgoriAgeCheckModal';
 import { useLanguage } from '@/lib/i18n/context';
-
-// アプリ共通カラー
-const COLORS = {
-  deepNavy: '#0A1628',
-  midnightBlue: '#162447',
-  royalNavy: '#1F4068',
-  champagneGold: '#C9A86C',
-  charcoal: '#2D3436',
-  warmGray: '#636E72',
-  ivory: '#FDFBF7',
-  goldGradient: 'linear-gradient(135deg, #C9A86C 0%, #E8D5B7 50%, #B8956E 100%)',
-  luxuryGradient: 'linear-gradient(165deg, #0A1628 0%, #162447 50%, #1F4068 100%)',
-};
+import { useAppMode } from '@/lib/app-mode-context';
 
 type UseTicketStep = 'age-check' | 'drink' | 'present' | 'success';
 
@@ -100,6 +88,7 @@ export function OgoriUseTicketModal({
   storeName,
   onTicketUsed,
 }: OgoriUseTicketModalProps) {
+  const { colorsB: COLORS } = useAppMode();
   const { t } = useLanguage();
   const [step, setStep] = useState<UseTicketStep>('age-check');
   const [drinks, setDrinks] = useState<OgoriDrinkRow[]>([]);

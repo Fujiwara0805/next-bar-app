@@ -23,6 +23,7 @@ import { MapIcon, Star, Filter, Check, Sparkles, X, Ticket, PartyPopper, Loader2
 import { Button } from '@/components/ui/button';
 import { CloseCircleButton } from '@/components/ui/close-circle-button';
 import { Card } from '@/components/ui/card';
+import { LoadingScreen } from '@/components/ui/loading-screen';
 import { supabase } from '@/lib/supabase/client';
 import type { Database, BusinessHours } from '@/lib/supabase/types';
 import { useLanguage } from '@/lib/i18n/context';
@@ -105,7 +106,7 @@ function StoreListContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t } = useLanguage();
-  const { colorsB: COLORS, colorsA, mode, isBar } = useAppMode();
+  const { colorsB: COLORS, colorsA, mode, isBar, isCafe } = useAppMode();
   const [stores, setStores] = useState<Store[]>([]);
   const [filteredStores, setFilteredStores] = useState<Store[]>([]);
   const [loading, setLoading] = useState(true);
@@ -121,6 +122,7 @@ function StoreListContent() {
   const [showConcierge, setShowConcierge] = useState(false);
   const [conciergeFilters, setConciergeFilters] = useState<string[]>([]);
   const [isConciergeActive, setIsConciergeActive] = useState(false);
+  const [navigatingTo, setNavigatingTo] = useState<string | null>(null);
 
   const isOpenUpdatedRef = useRef(false);
   const isInitializedRef = useRef(false);
@@ -593,14 +595,14 @@ function StoreListContent() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ backgroundColor: isBar ? '#1C1E26' : colorsA.background }}>
-      <header className="sticky top-0 z-30" style={{ backgroundColor: isBar ? '#FFFFFF' : colorsA.background, borderBottom: isBar ? '1px solid #e5e7eb' : `1px solid ${colorsA.borderSubtle}` }}>
+    <div className="min-h-screen flex flex-col" style={{ backgroundColor: colorsA.background }}>
+      <header className="sticky top-0 z-30" style={{ backgroundColor: !isCafe ? '#FFFFFF' : colorsA.background, borderBottom: !isCafe ? '1px solid #e5e7eb' : `1px solid ${colorsA.borderSubtle}` }}>
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="mb-4">
             <h1 className="text-xl font-bold text-center" style={{ color: COLORS.deepNavy }}>{t('store_list.title')}</h1>
           </div>
           
-          {isBar && (
+          {!isCafe && (
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
@@ -658,12 +660,7 @@ function StoreListContent() {
 
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 py-6 relative">
         {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="text-center">
-              <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-              <p className="text-sm font-bold" style={{ color: COLORS.warmGray }}>{t('store_list.loading')}</p>
-            </div>
-          </div>
+          <LoadingScreen size="md" message={t('store_list.loading')} />
         ) : filteredStores.length === 0 ? (
           <div className="text-center py-12">
             <p className="font-bold" style={{ color: COLORS.warmGray }}>
@@ -707,11 +704,21 @@ function StoreListContent() {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.9 }}
                       transition={{ delay: index * 0.1 }}
+                      whileTap={{ scale: 0.97 }}
+                      className="cursor-pointer"
+                      onClick={() => {
+                        setNavigatingTo(store.id);
+                        router.push(`/store/${store.id}`);
+                      }}
                     >
-                      <Card 
-                        className={`p-4 cursor-pointer hover:shadow-lg transition-shadow h-full bg-white relative overflow-hidden ${isConciergeActive ? 'ring-2 ring-amber-400/30' : ''}`}
-                        onClick={() => router.push(`/store/${store.id}`)}
+                      <Card
+                        className={`p-4 hover:shadow-lg transition-shadow h-full bg-white relative overflow-hidden ${isConciergeActive ? 'ring-2 ring-amber-400/30' : ''}`}
                       >
+                        {navigatingTo === store.id && (
+                          <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/60 backdrop-blur-[1px] rounded-xl">
+                            <div className="w-5 h-5 border-2 rounded-full animate-spin" style={{ borderColor: COLORS.champagneGold, borderTopColor: 'transparent' }} />
+                          </div>
+                        )}
                         {isConciergeActive && (
                           <motion.div
                             initial={{ scale: 0, opacity: 0 }}
@@ -881,7 +888,7 @@ function StoreListContent() {
                   }}
                   className="flex flex-col items-center justify-center gap-1 px-3 py-2 touch-manipulation active:scale-95 rounded-lg relative"
                   style={{
-                    background: activeFilterCount > 0 ? COLORS.champagneGold : (isBar ? 'rgba(5,5,5,0.7)' : 'rgba(247,243,238,0.9)'),
+                    background: activeFilterCount > 0 ? COLORS.champagneGold : (!isCafe ? 'rgba(5,5,5,0.7)' : 'rgba(247,243,238,0.9)'),
                     backdropFilter: 'blur(20px)',
                     border: activeFilterCount > 0 ? `1px solid ${COLORS.champagneGold}` : `1px solid ${COLORS.champagneGold}4D`,
                     boxShadow: `0 0 20px ${COLORS.champagneGold}33`,
@@ -890,8 +897,8 @@ function StoreListContent() {
                   }}
                   title={t('store_list.filter')}
                 >
-                  <Filter className="w-5 h-5" style={{ color: activeFilterCount > 0 ? COLORS.deepNavy : (isBar ? '#FFFFFF' : COLORS.deepNavy) }} />
-                  <span className="text-[10px] font-bold" style={{ color: activeFilterCount > 0 ? COLORS.deepNavy : (isBar ? '#FFFFFF' : COLORS.deepNavy) }}>{t('store_list.filter')}</span>
+                  <Filter className="w-5 h-5" style={{ color: activeFilterCount > 0 ? COLORS.deepNavy : (!isCafe ? '#FFFFFF' : COLORS.deepNavy) }} />
+                  <span className="text-[10px] font-bold" style={{ color: activeFilterCount > 0 ? COLORS.deepNavy : (!isCafe ? '#FFFFFF' : COLORS.deepNavy) }}>{t('store_list.filter')}</span>
                   {activeFilterCount > 0 && (
                     <span className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center text-xs font-bold text-white">
                       {activeFilterCount}
@@ -913,15 +920,15 @@ function StoreListContent() {
                   <div
                     className="rounded-xl overflow-hidden"
                     style={{
-                      background: isBar ? 'rgba(30, 30, 30, 0.95)' : 'rgba(247, 243, 238, 0.98)',
+                      background: !isCafe ? 'rgba(30, 30, 30, 0.95)' : 'rgba(247, 243, 238, 0.98)',
                       backdropFilter: 'blur(12px)',
-                      border: isBar ? '1px solid rgba(255,255,255,0.1)' : `1px solid ${COLORS.champagneGold}33`,
-                      boxShadow: isBar ? '0 10px 40px rgba(0,0,0,0.5)' : '0 10px 40px rgba(0,0,0,0.15)',
+                      border: !isCafe ? '1px solid rgba(255,255,255,0.1)' : `1px solid ${COLORS.champagneGold}33`,
+                      boxShadow: !isCafe ? '0 10px 40px rgba(0,0,0,0.5)' : '0 10px 40px rgba(0,0,0,0.15)',
                     }}
                   >
                     <div className="p-2">
                       <div className="flex items-center justify-between px-3 py-2">
-                        <p className="text-xs font-bold" style={{ color: isBar ? '#9ca3af' : COLORS.warmGray }}>{t('store_list.filter_title')}</p>
+                        <p className="text-xs font-bold" style={{ color: !isCafe ? '#9ca3af' : COLORS.warmGray }}>{t('store_list.filter_title')}</p>
                         <CloseCircleButton
                           type="button"
                           size="sm"
@@ -933,7 +940,7 @@ function StoreListContent() {
 
                       <button
                         onClick={() => setOpenNowOnly(!openNowOnly)}
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${openNowOnly ? 'bg-blue-500/20 text-blue-400' : (isBar ? 'hover:bg-white/10 text-white' : 'hover:bg-black/5 text-gray-800')}`}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${openNowOnly ? 'bg-blue-500/20 text-blue-400' : (!isCafe ? 'hover:bg-white/10 text-white' : 'hover:bg-black/5 text-gray-800')}`}
                       >
                         <img src="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1767848645/icons8-%E9%96%8B%E5%BA%97%E3%82%B5%E3%82%A4%E3%83%B3-94_a4tmzn.png" alt={t('store_list.open')} className="w-5 h-5" />
                         <span className="font-bold text-sm flex-1 text-left">{t('store_list.open')}</span>
@@ -942,7 +949,7 @@ function StoreListContent() {
 
                       <button
                         onClick={() => setVacantOnly(!vacantOnly)}
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${vacantOnly ? 'bg-green-500/20 text-green-400' : (isBar ? 'hover:bg-white/10 text-white' : 'hover:bg-black/5 text-gray-800')}`}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${vacantOnly ? 'bg-green-500/20 text-green-400' : (!isCafe ? 'hover:bg-white/10 text-white' : 'hover:bg-black/5 text-gray-800')}`}
                       >
                         <img src="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761311529/%E7%A9%BA%E5%B8%AD%E3%81%82%E3%82%8A_rzejgw.png" alt={t('store_list.vacant')} className="w-5 h-5" />
                         <span className="font-bold text-sm flex-1 text-left">{t('store_list.vacant')}</span>
@@ -951,7 +958,7 @@ function StoreListContent() {
 
                       <button
                         onClick={() => setCouponOnly(!couponOnly)}
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${couponOnly ? 'bg-orange-500/20 text-orange-400' : (isBar ? 'hover:bg-white/10 text-white' : 'hover:bg-black/5 text-gray-800')}`}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${couponOnly ? 'bg-orange-500/20 text-orange-400' : (!isCafe ? 'hover:bg-white/10 text-white' : 'hover:bg-black/5 text-gray-800')}`}
                       >
                         <Ticket className="w-5 h-5" style={{ color: couponOnly ? '#fb923c' : COLORS.champagneGold }} />
                         <span className="font-bold text-sm flex-1 text-left">{t('store_list.filter_has_coupon')}</span>
@@ -960,14 +967,14 @@ function StoreListContent() {
 
                       <button
                         onClick={() => setCampaignOnly(!campaignOnly)}
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${campaignOnly ? 'bg-pink-500/20 text-pink-400' : (isBar ? 'hover:bg-white/10 text-white' : 'hover:bg-black/5 text-gray-800')}`}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${campaignOnly ? 'bg-pink-500/20 text-pink-400' : (!isCafe ? 'hover:bg-white/10 text-white' : 'hover:bg-black/5 text-gray-800')}`}
                       >
                         <PartyPopper className="w-5 h-5" style={{ color: campaignOnly ? '#f472b6' : COLORS.champagneGold }} />
                         <span className="font-bold text-sm flex-1 text-left">{t('store_list.filter_campaign') || 'キャンペーン中'}</span>
                         {campaignOnly && <Check className="w-4 h-4 text-pink-400" />}
                       </button>
 
-                      <div className={`my-2 border-t ${isBar ? 'border-white/10' : 'border-black/10'}`} />
+                      <div className={`my-2 border-t ${!isCafe ? 'border-white/10' : 'border-black/10'}`} />
 
                       <button
                         onClick={() => {
@@ -977,9 +984,9 @@ function StoreListContent() {
                           setCampaignOnly(false);
                           setShowFilterMenu(false);
                         }}
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${!vacantOnly && !openNowOnly && !couponOnly && !campaignOnly ? 'bg-amber-500/20 text-amber-400' : (isBar ? 'hover:bg-white/10 text-white' : 'hover:bg-black/5 text-gray-800')}`}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${!vacantOnly && !openNowOnly && !couponOnly && !campaignOnly ? 'bg-amber-500/20 text-amber-400' : (!isCafe ? 'hover:bg-white/10 text-white' : 'hover:bg-black/5 text-gray-800')}`}
                       >
-                        <span className="w-5 h-5 flex items-center justify-center text-lg">{isBar ? '🍺' : '☕'}</span>
+                        <span className="w-5 h-5 flex items-center justify-center text-lg">{isCafe ? '☕' : '🍺'}</span>
                         <span className="font-bold text-sm flex-1 text-left">{t('store_list.filter_show_all')}</span>
                         {!vacantOnly && !openNowOnly && !couponOnly && !campaignOnly && <Check className="w-4 h-4 text-amber-400" />}
                       </button>
@@ -996,7 +1003,7 @@ function StoreListContent() {
                 onClick={() => router.push('/map?refresh=true')}
                 className="flex flex-col items-center justify-center gap-1 px-3 py-2 touch-manipulation active:scale-95 rounded-lg"
                 style={{
-                  background: isBar ? 'rgba(5,5,5,0.7)' : 'rgba(247,243,238,0.9)',
+                  background: !isCafe ? 'rgba(5,5,5,0.7)' : 'rgba(247,243,238,0.9)',
                   backdropFilter: 'blur(20px)',
                   border: `1px solid ${COLORS.champagneGold}4D`,
                   boxShadow: `0 0 20px ${COLORS.champagneGold}33`,
@@ -1005,8 +1012,8 @@ function StoreListContent() {
                 }}
                 title="Map"
               >
-                <MapIcon className="w-5 h-5" style={{ color: isBar ? '#FFFFFF' : COLORS.deepNavy }} />
-                <span className="text-[10px] font-bold" style={{ color: isBar ? '#FFFFFF' : COLORS.deepNavy }}>Map</span>
+                <MapIcon className="w-5 h-5" style={{ color: !isCafe ? '#FFFFFF' : COLORS.deepNavy }} />
+                <span className="text-[10px] font-bold" style={{ color: !isCafe ? '#FFFFFF' : COLORS.deepNavy }}>Map</span>
               </Button>
             </motion.div>
           </motion.div>
