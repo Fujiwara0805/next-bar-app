@@ -43,9 +43,22 @@ export interface ButtonProps
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, loading = false, disabled, children, ...props }, ref) => {
-    const Comp = asChild && !loading ? Slot : 'button';
+    // asChild（Slot）使用時はloading表示を無効化し、そのまま単一子要素を渡す
+    // loading時はasChildを無視してbuttonタグを使用（Loader2アイコンを追加するため）
+    if (asChild && !loading) {
+      return (
+        <Slot
+          className={cn(buttonVariants({ variant, size, className }))}
+          ref={ref}
+          {...props}
+        >
+          {children}
+        </Slot>
+      );
+    }
+
     return (
-      <Comp
+      <button
         className={cn(buttonVariants({ variant, size, className }), loading && 'opacity-70 cursor-not-allowed')}
         ref={ref}
         disabled={disabled || loading}
@@ -53,7 +66,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       >
         {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
         {children}
-      </Comp>
+      </button>
     );
   }
 );
