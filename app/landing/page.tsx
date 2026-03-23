@@ -578,7 +578,7 @@ export default function LandingPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
         >
-          <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight">
+          <h1 className="text-lg sm:text-2xl md:text-3xl font-bold mb-6 leading-tight">
             <span style={{ color: isCafe ? '#FFFFFF' : colors.text, textShadow: isCafe ? '0 2px 8px rgba(0,0,0,0.5)' : 'none' }}>
               {isCafe
                 ? renderWithLineBreaks(t('landing.cafe_hero_catchphrase'))

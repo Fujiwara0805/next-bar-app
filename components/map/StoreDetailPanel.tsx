@@ -283,8 +283,8 @@ export function StoreDetailPanel({
                   </h3>
                   <CloseCircleButton
                     type="button"
-                    size="lg"
-                    className="flex-shrink-0 -mt-1"
+                    size="sm"
+                    className="flex-shrink-0"
                     aria-label={t('common.close')}
                     onClick={(e) => {
                       e.stopPropagation();
