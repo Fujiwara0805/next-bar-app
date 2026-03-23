@@ -1564,7 +1564,7 @@ function NewStorePage() {
               <SectionHeader
                 icon={Sparkles}
                 title="NIKENME+が提供するサービス"
-                description="キャンペーン・おごり酒・クーポンの設定ができます"
+                description="キャンペーン・クーポンの設定ができます"
               />
 
               <div className="space-y-4">
@@ -1580,8 +1580,8 @@ function NewStorePage() {
                   />
                 </Card>
 
-                {/* おごり酒設定 */}
-                <Card
+                {/* おごり酒設定 - 本格運用決定まで非表示（ロジックは保持） */}
+                {/* <Card
                   className="rounded-xl overflow-hidden"
                   style={{ border: `1px solid rgba(31, 64, 104, 0.2)` }}
                 >
@@ -1590,7 +1590,7 @@ function NewStorePage() {
                     onChange={setOgoriValues}
                     disabled={loading}
                   />
-                </Card>
+                </Card> */}
 
                 {/* クーポン設定 */}
                 <Card

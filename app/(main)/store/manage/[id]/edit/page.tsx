@@ -1458,7 +1458,7 @@ export default function StoreEditPage() {
               <SectionHeader
                 icon={Sparkles}
                 title="NIKENME+が提供するサービス"
-                description="キャンペーン・おごり酒・クーポンの設定ができます"
+                description="キャンペーン・クーポンの設定ができます"
               />
 
               <div className="space-y-4">
@@ -1474,8 +1474,8 @@ export default function StoreEditPage() {
                   />
                 </Card>
 
-                {/* おごり酒設定 */}
-                <Card
+                {/* おごり酒設定 - 本格運用決定まで非表示（ロジックは保持） */}
+                {/* <Card
                   className="rounded-xl overflow-hidden"
                   style={{ border: `1px solid rgba(31, 64, 104, 0.2)` }}
                 >
@@ -1485,7 +1485,7 @@ export default function StoreEditPage() {
                     storeId={params.id as string}
                     disabled={loading}
                   />
-                </Card>
+                </Card> */}
 
                 {/* クーポン設定 */}
                 <Card
