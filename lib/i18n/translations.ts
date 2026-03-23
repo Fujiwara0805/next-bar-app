@@ -10,7 +10,7 @@ export const translations = {
       partner_stores_subtitle: 'NIKENME+を利用しているお店をCHECK',
       view_details: '詳細をみる',
       view_all_partners: 'すべての加盟店を見る',
-      slogan: 'いますぐ、2軒目へ',
+      slogan: 'いますぐ、二軒目へ',
       auto_voice: '自動音声',
       location_info_note: '位置情報は周辺のお店を表示する為だけに使用します',
       loading: '読み込み中...',
@@ -836,7 +836,7 @@ export const translations = {
       seats_available: '空席があります',
       night_spot: 'Night Spot',
       // Hero section
-      hero_catchphrase: '「2軒目、どうする？」\nその答えが、ここにある。',
+      hero_catchphrase: '「二軒目、どうする？」\nその答えが、ここにある。',
       cafe_hero_catchphrase: '「昼休み、どこ行こう？」\n席が空いているお店を確認',
       izakaya_hero_catchphrase: '「今夜、一杯どう？」\n旨い肴と酒が待っている。',
       hero_subcopy: 'ログイン不要 ー 地図上で空席状況を確認できます ー',
@@ -907,7 +907,7 @@ export const translations = {
       area_guide_scene_girls_title: '女子会・飲み会',
       area_guide_scene_girls_desc: 'おしゃれな空間でカクテルやワインが楽しめる、大分の女子会におすすめのバー・居酒屋をチェック。',
       area_guide_scene_hopping_title: 'はしご酒・二次会',
-      area_guide_scene_hopping_desc: '大分の都町で2軒目・3軒目を探すなら、リアルタイム空席情報で次のお店がすぐ見つかるNIKENME+が便利。',
+      area_guide_scene_hopping_desc: '大分の都町で二軒目・三軒目を探すなら、リアルタイム空席情報で次のお店がすぐ見つかるNIKENME+が便利。',
       // Footer
       footer_copyright: '© 2025 NIKENME+ All rights reserved.',
       // News
@@ -926,7 +926,7 @@ export const translations = {
       faq_q3: '加盟店になるにはどうすればいいですか？',
       faq_a3: 'ヘッダーの「加盟店登録」ボタンからお申し込みいただけます。',
       faq_q4: 'NIKENME+（にけんめぷらす）とは何ですか？',
-      faq_a4: 'NIKENME+（にけんめぷらす）は、大分県大分市で2軒目・バー・スナック・居酒屋を探す際に便利な空席情報マップサービスです。リアルタイムで店舗の空席状況を地図上で確認でき、ログイン不要で今すぐ使えます。',
+      faq_a4: 'NIKENME+（にけんめぷらす）は、大分県大分市で二軒目・バー・スナック・居酒屋を探す際に便利な空席情報マップサービスです。リアルタイムで店舗の空席状況を地図上で確認でき、ログイン不要で今すぐ使えます。',
       faq_q5: 'スマートフォンでも使えますか？',
       faq_a5: 'はい、スマートフォン、タブレット、PCなど、あらゆるデバイスで利用できます。レスポンシブデザインにより、どのデバイスでも快適にご利用いただけます。',
       faq_view_all: 'すべてのFAQを確認',
