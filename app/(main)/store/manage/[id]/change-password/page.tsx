@@ -10,12 +10,14 @@ import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/auth/context';
+import { useAppMode } from '@/lib/app-mode-context';
 import { toast } from 'sonner';
 
 export default function ChangePasswordPage() {
   const router = useRouter();
   const params = useParams();
   const { accountType } = useAuth();
+  const { colorsA, colorsB: COLORS } = useAppMode();
   const [loading, setLoading] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -121,10 +123,16 @@ export default function ChangePasswordPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-20">
-      <header className="sticky top-0 z-10 bg-background border-b safe-top">
+    <div className="min-h-screen pb-20" style={{ backgroundColor: colorsA.background }}>
+      <header
+        className="sticky top-0 z-10 safe-top"
+        style={{
+          background: COLORS.luxuryGradient,
+          borderBottom: `1px solid rgba(201, 168, 108, 0.2)`,
+        }}
+      >
         <div className="flex items-center justify-center p-4">
-          <h1 className="text-xl font-bold">パスワード変更</h1>
+          <h1 className="text-xl font-light tracking-widest" style={{ color: COLORS.ivory }}>パスワード変更</h1>
         </div>
       </header>
 
