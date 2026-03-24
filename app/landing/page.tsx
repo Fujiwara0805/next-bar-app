@@ -131,7 +131,7 @@ export default function LandingPage() {
     'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772501853/q-u-i-n-g-u-y-e-n-Zrp9b3PMIy8-unsplash_xjz1dm.jpg',
     'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772501853/masahiro-miyagi-RLDNGblOqHU-unsplash_zadhp8.jpg',
     'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1774355344/romeo-a-P8dzevR1yE4-unsplash_enlnhr.jpg',
-    'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1774355357/jirayu-koontholjinda-QRX-K4BzCSw-unsplash_l0wztt.jpg',
+    'https://res.cloudinary.com/dz9trbwma/image/upload//v1774355357/jirayu-koontholjinda-QRX-K4BzCSw-unsplash_l0wztt.jpg',
     'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772501853/patrick-tomasso-GXXYkSwndP4-unsplash_w4c9df.jpg',
     'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772501852/jakub-dziubak-gj7BLlSzIFs-unsplash_virstu.jpg',
   ];
@@ -580,7 +580,7 @@ export default function LandingPage() {
             style={{
               background: isCafe
                 ? 'linear-gradient(to bottom, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.15) 50%, rgba(0,0,0,0.35) 100%)'
-                : `linear-gradient(to bottom, ${colors.background}90 0%, ${colors.background}60 40%, ${colors.background}CC 100%)`,
+                : `linear-gradient(to bottom, ${colors.background}A5 0%, ${colors.background}78 40%, ${colors.background}DD 100%)`,
             }}
           />
         </motion.div>
