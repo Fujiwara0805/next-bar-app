@@ -124,9 +124,6 @@ export default function LandingPage() {
 
   const [heroImageIndex, setHeroImageIndex] = useState(0);
   const nightHeroImages = [
-    'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772501861/edgar-chaparro-Lwx-q6OdGAc-unsplash_x8q8jq.jpg',
-    'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772501860/drew-beamer-bTN-zKFy9uA-unsplash_kmcnyo.jpg',
-    'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772501854/kris-sevinc-NVX55qVyEkE-unsplash_pjwsez.jpg',
     'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1774355369/brian-jones-YBlcnXfv9OM-unsplash_orpuaz.jpg',
     'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772501853/q-u-i-n-g-u-y-e-n-Zrp9b3PMIy8-unsplash_xjz1dm.jpg',
     'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772501853/masahiro-miyagi-RLDNGblOqHU-unsplash_zadhp8.jpg',
@@ -134,6 +131,9 @@ export default function LandingPage() {
     'https://res.cloudinary.com/dz9trbwma/image/upload//v1774355357/jirayu-koontholjinda-QRX-K4BzCSw-unsplash_l0wztt.jpg',
     'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772501853/patrick-tomasso-GXXYkSwndP4-unsplash_w4c9df.jpg',
     'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772501852/jakub-dziubak-gj7BLlSzIFs-unsplash_virstu.jpg',
+    'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772501861/edgar-chaparro-Lwx-q6OdGAc-unsplash_x8q8jq.jpg',
+    'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772501860/drew-beamer-bTN-zKFy9uA-unsplash_kmcnyo.jpg',
+    'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772501854/kris-sevinc-NVX55qVyEkE-unsplash_pjwsez.jpg',
   ];
   const dayHeroImages = [
     'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1773409116/nathan-dumlao-2z3MOB3kfJU-unsplash_vnotg8.jpg',
