@@ -23,10 +23,7 @@ import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/auth/context';
 import { toast } from 'sonner';
 import { CustomModal } from '@/components/ui/custom-modal';
-import type {
-  StoreApplication,
-  ApplicationStatus,
-} from '@/lib/types/store-application';
+import type { StoreApplication } from '@/lib/types/store-application';
 import { APPLICATION_STATUS_MAP } from '@/lib/types/store-application';
 import { useAppMode } from '@/lib/app-mode-context';
 
