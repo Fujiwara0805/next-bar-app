@@ -98,12 +98,10 @@ export default function ApplicationsManagePage() {
 
     try {
       const res = await fetch(`/api/store-applications/${applicationToComplete.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'approved' }),
+        method: 'DELETE',
       });
 
-      if (!res.ok) throw new Error('Failed to update');
+      if (!res.ok) throw new Error('Failed to delete');
 
       toast.success('登録完了済みにしました', {
         description: `${applicationToComplete.store_name}の申し込みを登録完了済みにしました`,

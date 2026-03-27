@@ -1680,21 +1680,6 @@ export default function LandingPage() {
               transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
             />
 
-            {/* 閉じるボタン（右上） */}
-            <motion.button
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3 }}
-              onClick={() => setShowAdModal(false)}
-              className="absolute top-6 right-6 z-20 flex h-10 w-10 items-center justify-center rounded-full transition-colors"
-              style={{ background: 'rgba(128, 128, 128, 0.6)' }}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              aria-label="閉じる"
-            >
-              <X className="h-5 w-5 text-white" />
-            </motion.button>
-
             {/* モーダルコンテンツ */}
             <motion.div
               initial={{ opacity: 0, scale: 0.9, y: 30 }}
@@ -1704,6 +1689,20 @@ export default function LandingPage() {
               className="relative z-10 flex flex-col items-center"
               onClick={(e) => e.stopPropagation()}
             >
+              {/* 閉じるボタン（画像の右上端） */}
+              <motion.button
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.3 }}
+                onClick={() => setShowAdModal(false)}
+                className="absolute -top-3 -right-3 z-20 flex h-8 w-8 items-center justify-center rounded-full transition-colors"
+                style={{ background: 'rgba(128, 128, 128, 0.8)' }}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                aria-label="閉じる"
+              >
+                <X className="h-4 w-4 text-white" />
+              </motion.button>
               <Link
                 href="/partner/apply"
                 onClick={() => setShowAdModal(false)}
