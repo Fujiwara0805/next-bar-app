@@ -19,7 +19,6 @@ import {
   LogOut,
   Key,
   Info,
-  Image as ImageIcon,
   Edit,
   Trash2,
   User,
@@ -160,10 +159,6 @@ export default function StoreUpdatePage() {
   const [statusMessage, setStatusMessage] = useState('');
   const [vacantSeats, setVacantSeats] = useState<number | null>(null);
 
-  // 画像関連のstate
-  const [imageUrls, setImageUrls] = useState<string[]>([]);
-  const [mainImageIndex, setMainImageIndex] = useState(0);
-
   // 予約管理関連のstate
   const [reservations, setReservations] = useState<QuickReservation[]>([]);
   const [loadingReservations, setLoadingReservations] = useState(false);
@@ -230,7 +225,6 @@ export default function StoreUpdatePage() {
         setVacantSeats(storeData.vacant_seats ?? null);
 
         // 画像URLの設定
-        setImageUrls(storeData.image_urls || []);
 
         // sessionStorageに保存（店舗編集画面で使用）
         try {
@@ -641,79 +635,59 @@ export default function StoreUpdatePage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <Card 
+          <Card
             className="p-6 mb-6 rounded-2xl shadow-lg"
-            style={{ 
+            style={{
               background: '#FFFFFF',
               border: `1px solid rgba(201, 168, 108, 0.15)`,
             }}
           >
-            <div className="flex items-start gap-4">
-              {imageUrls.length > 0 ? (
-                <img
-                  src={imageUrls[mainImageIndex]}
-                  alt={store.name}
-                  className="w-24 h-24 rounded-xl object-cover shadow-md"
-                  style={{ border: `2px solid rgba(201, 168, 108, 0.2)` }}
-                />
-              ) : (
-                <div 
-                  className="w-24 h-24 rounded-xl flex items-center justify-center"
-                  style={{ 
-                    background: 'rgba(201, 168, 108, 0.1)',
-                    border: `2px solid rgba(201, 168, 108, 0.2)`,
-                  }}
-                >
-                  <ImageIcon className="w-8 h-8" style={{ color: COLORS.champagneGold }} />
-                </div>
-              )}
-              <div className="flex-1">
-                <h2 
-                  className="text-2xl font-bold mb-1"
-                  style={{ color: COLORS.deepNavy }}
-                >
-                  {store.name}
-                </h2>
-                <p 
-                  className="text-sm font-medium mb-3"
-                  style={{ color: COLORS.warmGray }}
-                >
-                  {store.address}
-                </p>
-                <div className="flex gap-2 flex-wrap">
+            <div>
+              <h2
+                className="text-2xl font-bold mb-1"
+                style={{ color: COLORS.deepNavy }}
+              >
+                {store.name}
+              </h2>
+              <p
+                className="text-sm font-medium mb-3"
+                style={{ color: COLORS.warmGray }}
+              >
+                {store.address}
+              </p>
+              <div className="flex gap-2 flex-wrap">
+                <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={() => router.push(`/store/manage/${store.id}/edit`)}
+                    className="rounded-xl font-bold shadow-md"
+                    style={{
+                      background: COLORS.goldGradient,
+                      color: COLORS.deepNavy,
+                    }}
+                  >
+                    <Edit className="w-4 h-4 mr-2" />
+                    編集
+                  </Button>
+                </motion.div>
+                {accountType === 'store' && (
                   <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
                     <Button
                       type="button"
                       size="sm"
-                      onClick={() => router.push(`/store/manage/${store.id}/edit`)}
-                      className="rounded-xl font-bold shadow-md"
-                      style={{ 
+                      onClick={() => router.push(`/store/manage/${store.id}/change-password`)}
+                      className="rounded-xl font-bold"
+                      style={{
                         background: COLORS.goldGradient,
-                        color: COLORS.deepNavy,
+                        color: '#FFFFFF',
                       }}
                     >
-                      <Edit className="w-4 h-4 mr-2" />
-                      編集
+                      <Key className="w-4 h-4 mr-2" />
+                      変更
                     </Button>
                   </motion.div>
-                  {accountType === 'store' && (
-                    <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-                      <Button
-                        type="button"
-                        size="sm"
-                        onClick={() => router.push(`/store/manage/${store.id}/change-password`)}
-                        className="rounded-xl font-bold"
-                        style={{ 
-                          background: COLORS.goldGradient,
-                          color: '#FFFFFF',
-                        }}
-                      >
-                        <Key className="w-4 h-4 mr-2" />
-                        変更
-                      </Button>
-                    </motion.div>
-                  )}
-                </div>
+                )}
               </div>
             </div>
           </Card>

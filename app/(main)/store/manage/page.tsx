@@ -306,25 +306,13 @@ export default function StoreManagePage() {
                     exit={{ opacity: 0, scale: 0.9 }}
                     transition={{ delay: index * 0.05 }}
                   >
-                    <Card 
-                      className="overflow-hidden rounded-2xl shadow-lg"
-                      style={{ 
+                    <Card
+                      className="rounded-2xl shadow-lg"
+                      style={{
                         background: '#FFFFFF',
                         border: `1px solid rgba(201, 168, 108, 0.15)`,
                       }}
                     >
-                      {store.image_urls && store.image_urls.length > 0 && (
-                        <motion.div 
-                          className="h-40 overflow-hidden"
-                          whileHover={{ scale: 1.05 }}
-                        >
-                          <img
-                            src={store.image_urls[0]}
-                            alt={store.name}
-                            className="w-full h-full object-cover"
-                          />
-                        </motion.div>
-                      )}
                       <div className="p-4">
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex-1">
@@ -390,7 +378,7 @@ export default function StoreManagePage() {
             style={{
               borderColor: 'rgba(201, 168, 108, 0.3)',
               backgroundColor: COLORS.ivory,
-              color: COLORS.charcoal,
+              color: '#dc2626',
             }}
             onClick={handleSignOut}
           >

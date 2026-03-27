@@ -28,6 +28,7 @@ import {
   Beer,
   Coffee,
   LogIn,
+  Loader2,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -39,7 +40,6 @@ import type { Language } from '@/lib/i18n/translations';
 import { supabase } from '@/lib/supabase/client';
 import { locationCache } from '@/lib/cache';
 import { useAppMode } from '@/lib/app-mode-context';
-import { LoadingScreen } from '@/components/ui/loading-screen';
 import { newsTranslations } from '@/lib/news-data';
 
 // ============================================
@@ -339,17 +339,18 @@ export default function LandingPage() {
         const location = await getLocationWithFallback();
         localStorage.setItem('userLocation', JSON.stringify({ ...location, timestamp: Date.now() }));
         locationCache.set({ lat: location.lat, lng: location.lng, isDefault: location.isDefault });
-        setLocationPermission(location.isDefault ? 'denied' : 'granted');
-        setTimeout(() => { setShowLocationModal(false); router.push('/map?from=landing'); }, 300);
+        if (location.isDefault) {
+          // 位置情報が取得できなかった（デフォルト位置）場合はモーダル内でエラー表示
+          setLocationPermission('denied');
+        } else {
+          setLocationPermission('granted');
+          setTimeout(() => { setShowLocationModal(false); router.push('/map?from=landing'); }, 300);
+        }
       } catch {
-        localStorage.setItem('userLocation', JSON.stringify({ ...DEFAULT_LOCATION, timestamp: Date.now() }));
         setLocationPermission('denied');
-        setTimeout(() => { setShowLocationModal(false); router.push('/map?from=landing'); }, 300);
       }
     } else {
-      localStorage.setItem('userLocation', JSON.stringify({ ...DEFAULT_LOCATION, timestamp: Date.now() }));
       setLocationPermission('denied');
-      setShowLocationModal(false);
     }
   };
 
@@ -375,11 +376,11 @@ export default function LandingPage() {
     };
   }, [showLanguageMenu]);
 
-  // 広告モーダル: ページロード時に毎回表示（3秒遅延）
+  // 広告モーダル: Heroセクション表示後1.5秒で表示
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowAdModal(true);
-    }, 3000);
+    }, 1500);
     return () => clearTimeout(timer);
   }, []);
 
@@ -1565,15 +1566,6 @@ export default function LandingPage() {
             <div className="absolute inset-0 backdrop-blur-md" style={{ backgroundColor: isCafe ? 'rgba(45, 36, 32, 0.5)' : 'rgba(10, 22, 40, 0.5)' }} />
             <motion.div className="absolute w-[500px] h-[500px] rounded-full pointer-events-none" style={{ background: `radial-gradient(circle, ${colors.accent}15 0%, transparent 70%)`, top: '50%', left: '50%', transform: 'translate(-50%, -50%)', filter: 'blur(60px)' }} animate={{ opacity: [0.3, 0.6, 0.3], scale: [1, 1.1, 1] }} transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }} />
 
-            {locationPermission === 'loading' ? (
-              <div className="relative z-10" onClick={(e) => e.stopPropagation()}>
-                <LoadingScreen
-                  size="md"
-                  message={t('landing.getting_location')}
-                  subMessage={t('landing.map_shortly')}
-                />
-              </div>
-            ) : (
               <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} transition={{ duration: 0.3 }} className="relative z-10 w-full max-w-md rounded-3xl overflow-hidden" style={{ background: colors.luxuryGradient, border: `1px solid ${colors.borderGold}`, boxShadow: `${colors.shadowDeep}, 0 0 60px ${colors.accent}15` }} onClick={(e) => e.stopPropagation()}>
                 <div className="absolute inset-0 opacity-5 pointer-events-none" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }} />
                 <div className="h-1" style={{ background: `linear-gradient(90deg, transparent, ${colors.accent}, transparent)` }} />
@@ -1584,22 +1576,30 @@ export default function LandingPage() {
                   </motion.div>
                   <GoldDivider />
                   {locationPermission === 'denied' && (
-                    <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-6 p-4 rounded-xl flex items-start gap-3" style={{ background: 'rgba(248, 113, 113, 0.1)', border: '1px solid rgba(248, 113, 113, 0.3)' }}>
-                      <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: '#F87171' }} />
-                      <p className="text-sm" style={{ color: '#F87171' }}>{t('modal.location_error')}</p>
+                    <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-6 p-4 rounded-xl" style={{ background: 'rgba(248, 113, 113, 0.1)', border: '1px solid rgba(248, 113, 113, 0.3)' }}>
+                      <div className="flex items-start gap-3 mb-2">
+                        <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: '#F87171' }} />
+                        <p className="text-sm font-semibold" style={{ color: '#F87171' }}>{t('modal.location_denied_title')}</p>
+                      </div>
+                      <p className="text-xs leading-relaxed ml-8 whitespace-pre-line" style={{ color: '#FCA5A5' }}>{t('modal.location_denied_desc')}</p>
                     </motion.div>
                   )}
                   <div className="space-y-3">
-                    <motion.button whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.98 }} onClick={() => handleLocationPermission(true)} className="w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all relative overflow-hidden group" style={{ background: isCafe ? 'linear-gradient(135deg, #5C3D2E 0%, #7A5C3C 50%, #4A2E1F 100%)' : colors.goldGradient, color: isCafe ? '#F7F3EE' : colors.background, boxShadow: colors.shadowGold }}>
+                    <motion.button whileHover={locationPermission !== 'loading' ? { scale: 1.02, y: -2 } : {}} whileTap={locationPermission !== 'loading' ? { scale: 0.98 } : {}} onClick={() => locationPermission !== 'loading' && handleLocationPermission(true)} className="w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all relative overflow-hidden group" style={{ background: isCafe ? 'linear-gradient(135deg, #5C3D2E 0%, #7A5C3C 50%, #4A2E1F 100%)' : colors.goldGradient, color: isCafe ? '#F7F3EE' : colors.background, boxShadow: colors.shadowGold, opacity: locationPermission === 'loading' ? 0.8 : 1 }}>
                       <motion.div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%)' }} animate={{ x: ['-100%', '200%'] }} transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 1 }} />
-                      <span className="relative z-10 flex items-center justify-center gap-2"><CheckCircle className="w-5 h-5" />{t('modal.location_allow')}</span>
+                      <span className="relative z-10 flex items-center justify-center gap-2">
+                        {locationPermission === 'loading' ? (
+                          <><Loader2 className="w-5 h-5 animate-spin" />{t('landing.getting_location')}</>
+                        ) : (
+                          <><CheckCircle className="w-5 h-5" />{t('modal.location_allow')}</>
+                        )}
+                      </span>
                     </motion.button>
-                    <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => handleLocationPermission(false)} className="w-full py-4 px-6 rounded-xl font-medium text-base transition-all" style={{ background: `${colors.accent}08`, border: `1px solid ${colors.borderGold}`, color: colors.textMuted }}>{t('modal.location_deny')}</motion.button>
+                    <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => { setLocationPermission('prompt'); setShowLocationModal(false); }} className="w-full py-4 px-6 rounded-xl font-medium text-base transition-all" style={{ background: `${colors.accent}08`, border: `1px solid ${colors.borderGold}`, color: colors.textMuted }} disabled={locationPermission === 'loading'}>{t('modal.location_deny')}</motion.button>
                   </div>
                   <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="text-center mt-6 text-xs" style={{ color: colors.textSubtle }}>{t('common.location_info_note')}</motion.p>
                 </div>
               </motion.div>
-            )}
           </motion.div>
         )}
       </AnimatePresence>
