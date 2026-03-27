@@ -108,6 +108,9 @@ export default function LandingPage() {
   const [campaignMasters, setCampaignMasters] = useState<CampaignMaster[]>([]);
   const [campaignSlide, setCampaignSlide] = useState(0);
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
+  const [showAdModal, setShowAdModal] = useState(false);
+  const [showBottomCta, setShowBottomCta] = useState(false);
+  const [bottomCtaDismissed, setBottomCtaDismissed] = useState(false);
   const [howtoSlide, setHowtoSlide] = useState(0);
   const [areaGuideSlide, setAreaGuideSlide] = useState(0);
   const [concernsSlide, setConcernsSlide] = useState(0);
@@ -163,6 +166,16 @@ export default function LandingPage() {
   const { scrollY } = useScroll();
   const heroOpacity = useTransform(scrollY, [0, 400], [1, 0]);
   const heroScale = useTransform(scrollY, [0, 400], [1, 1.05]);
+
+  // ヒーローセクション半分スクロールでCTAバナー表示
+  useEffect(() => {
+    const unsubscribe = scrollY.on('change', (y) => {
+      if (bottomCtaDismissed) return;
+      const halfHero = window.innerHeight * 0.5;
+      setShowBottomCta(y >= halfHero);
+    });
+    return () => unsubscribe();
+  }, [scrollY, bottomCtaDismissed]);
 
   const getLocationWithFallback = useCallback((): Promise<{ lat: number; lng: number; isDefault?: boolean }> => {
     return new Promise((resolve) => {
@@ -361,6 +374,21 @@ export default function LandingPage() {
       document.removeEventListener('click', handleClickOutside);
     };
   }, [showLanguageMenu]);
+
+  // 広告モーダル: 5分間隔制御 + 3秒遅延表示
+  useEffect(() => {
+    const AD_MODAL_KEY = 'nikenme_ad_modal_last_shown';
+    const INTERVAL_MS = 5 * 60 * 1000; // 5分
+    const lastShown = localStorage.getItem(AD_MODAL_KEY);
+    const now = Date.now();
+    if (lastShown && now - Number(lastShown) < INTERVAL_MS) return;
+    const timer = setTimeout(() => {
+      setShowAdModal(true);
+      localStorage.setItem(AD_MODAL_KEY, String(Date.now()));
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, []);
+
   const handleStoreCardClick = (storeId: string) => { router.push(`/store/${storeId}`); };
   const nextSlide = () => { if (partnerStores.length === 0) return; setCurrentSlide((prev) => (prev + 1) % partnerStores.length); };
   const prevSlide = () => { if (partnerStores.length === 0) return; setCurrentSlide((prev) => (prev - 1 + partnerStores.length) % partnerStores.length); };
@@ -391,14 +419,18 @@ export default function LandingPage() {
           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-3 min-w-0">
             <motion.button
               type="button"
-              onClick={() => setShowStoreActionsModal(true)}
+              onClick={() => window.location.reload()}
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.95 }}
               className="inline-flex h-10 w-10 shrink-0 items-center justify-center gap-3 rounded-lg touch-manipulation text-left sm:h-auto sm:min-h-10 sm:w-auto sm:justify-start sm:px-1 sm:-ml-1"
               style={{ color: colors.accent }}
               aria-label={t('menu.for_stores')}
             >
-              <Store className="h-5 w-5 shrink-0" style={{ color: colors.accent }} />
+              <img
+                src="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761355092/%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png"
+                alt="NIKENME+"
+                className="h-8 w-auto shrink-0"
+              />
               <span className="hidden sm:inline-block text-[9px] px-2 py-1 rounded-full font-medium tracking-[0.1em] uppercase shrink-0" style={{ background: `${colors.accent}15`, border: `1px solid ${colors.borderGold}`, color: colors.accent }}>{isCafe ? t('common.day_spot') : t('landing.night_spot')}</span>
             </motion.button>
           </motion.div>
@@ -1574,6 +1606,126 @@ export default function LandingPage() {
                 </div>
               </motion.div>
             )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* 固定CTA広告バナー（画面下部中央） */}
+      <AnimatePresence>
+        {showBottomCta && (
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 30 }}
+            transition={{ duration: 0.5, ease: 'easeOut' }}
+            className="fixed bottom-6 left-1/2 z-40 safe-bottom"
+            style={{ transform: 'translateX(-50%)' }}
+          >
+            <div className="relative">
+              {/* 閉じるボタン */}
+              <motion.button
+                onClick={() => { setShowBottomCta(false); setBottomCtaDismissed(true); }}
+                className="absolute -top-2 -right-2 z-10 flex h-6 w-6 items-center justify-center rounded-full"
+                style={{ background: isCafe ? 'rgba(45, 36, 32, 0.9)' : 'rgba(10, 22, 40, 0.9)', border: `1px solid ${colors.borderGold}` }}
+                whileHover={{ scale: 1.15 }}
+                whileTap={{ scale: 0.9 }}
+                aria-label="閉じる"
+              >
+                <X className="h-3 w-3" style={{ color: colors.accent }} />
+              </motion.button>
+              <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+                <Link
+                  href="/partner/apply"
+                  className="relative inline-flex items-center gap-1.5 overflow-hidden rounded-full py-2.5 px-5 text-xs font-semibold transition-all group"
+                  style={{
+                    background: isCafe ? 'linear-gradient(135deg, #5C3D2E 0%, #7A5C3C 50%, #4A2E1F 100%)' : colors.goldGradient,
+                    color: isCafe ? '#F7F3EE' : colors.background,
+                    boxShadow: `0 4px 20px ${colors.accent}35`,
+                  }}
+                >
+                  <motion.div
+                    className="pointer-events-none absolute inset-0"
+                    style={{ background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%)' }}
+                    animate={{ x: ['-100%', '200%'] }}
+                    transition={{ duration: 2.5, repeat: Infinity, repeatDelay: 3 }}
+                  />
+                  <span className="relative z-10 flex items-center gap-1.5">
+                    <Building2 className="h-3.5 w-3.5" />
+                    加盟店登録はこちら
+                  </span>
+                </Link>
+              </motion.div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* 広告モーダル */}
+      <AnimatePresence>
+        {showAdModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.8, ease: 'easeOut' }}
+            className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+            style={{ backgroundColor: isCafe ? 'rgba(45, 36, 32, 0.55)' : 'rgba(10, 22, 40, 0.55)' }}
+            onClick={() => setShowAdModal(false)}
+          >
+            <div className="absolute inset-0 backdrop-blur-sm" />
+            <motion.div
+              className="absolute w-[600px] h-[600px] rounded-full pointer-events-none"
+              style={{
+                background: `radial-gradient(circle, ${colors.accent}20 0%, transparent 70%)`,
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                filter: 'blur(80px)',
+              }}
+              animate={{ opacity: [0.3, 0.7, 0.3], scale: [1, 1.15, 1] }}
+              transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+            />
+
+            {/* 閉じるボタン（右上） */}
+            <motion.button
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              onClick={() => setShowAdModal(false)}
+              className="absolute top-6 right-6 z-20 flex h-10 w-10 items-center justify-center rounded-full transition-colors"
+              style={{ background: 'rgba(128, 128, 128, 0.6)' }}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              aria-label="閉じる"
+            >
+              <X className="h-5 w-5 text-white" />
+            </motion.button>
+
+            {/* モーダルコンテンツ */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 30 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 30 }}
+              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              className="relative z-10 flex flex-col items-center"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Link
+                href="/partner/apply"
+                onClick={() => setShowAdModal(false)}
+                className="block rounded-2xl overflow-hidden transition-transform hover:scale-[1.02] active:scale-[0.98]"
+                style={{
+                  boxShadow: `0 8px 40px ${colors.accent}30, 0 0 80px ${colors.accent}10`,
+                  border: `1px solid ${colors.borderGold}`,
+                }}
+              >
+                <img
+                  src="https://res.cloudinary.com/dz9trbwma/image/upload/v1774577099/NIKENME_Instagram%E5%BA%83%E5%91%8A_-_%E3%83%8F%E3%83%83%E3%83%94%E3%83%BC%E3%82%A2%E3%83%AF%E3%83%BC%E3%81%8B%E3%82%89%E4%BA%8C%E8%BB%92%E7%9B%AE%E3%81%BE%E3%81%A6%E3%82%99%E9%9B%86%E5%AE%A2_ykkdmw.png"
+                  alt="NIKENME+"
+                  className="w-80 h-auto sm:w-96 object-contain"
+                />
+              </Link>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

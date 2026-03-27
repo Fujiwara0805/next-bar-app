@@ -36,10 +36,10 @@ export default function ApplicationsManagePage() {
 
   const [applications, setApplications] = useState<StoreApplication[]>([]);
   const [loading, setLoading] = useState(true);
-  const [rejectModalOpen, setRejectModalOpen] = useState(false);
-  const [applicationToReject, setApplicationToReject] =
+  const [completeModalOpen, setCompleteModalOpen] = useState(false);
+  const [applicationToComplete, setApplicationToComplete] =
     useState<StoreApplication | null>(null);
-  const [rejecting, setRejecting] = useState(false);
+  const [completing, setCompleting] = useState(false);
 
   // 認証チェック
   useEffect(() => {
@@ -83,51 +83,47 @@ export default function ApplicationsManagePage() {
 
   const filteredApplications = applications;
 
-  // 不承認処理
-  const handleRejectClick = (application: StoreApplication) => {
-    setApplicationToReject(application);
-    setRejectModalOpen(true);
+  // 登録完了済み処理
+  const handleCompleteClick = (application: StoreApplication) => {
+    setApplicationToComplete(application);
+    setCompleteModalOpen(true);
   };
 
-  const handleRejectConfirm = async () => {
-    if (!applicationToReject) return;
+  const handleCompleteConfirm = async () => {
+    if (!applicationToComplete) return;
 
-    setRejecting(true);
+    setCompleting(true);
 
     try {
       const { error } = await (supabase.from('store_applications') as any)
-        .update({ status: 'rejected' })
-        .eq('id', applicationToReject.id);
+        .update({ status: 'approved' })
+        .eq('id', applicationToComplete.id);
 
       if (error) throw error;
 
-      toast.success('申し込みを不承認にしました', {
-        description: `${applicationToReject.store_name}の申し込みを不承認にしました`,
+      toast.success('登録完了済みにしました', {
+        description: `${applicationToComplete.store_name}の申し込みを登録完了済みにしました`,
         position: 'top-center',
         duration: 1500,
         className: 'bg-gray-100',
       });
 
-      // ローカル状態を更新
+      // ローカル状態から削除（画面から消える）
       setApplications((prev) =>
-        prev.map((app) =>
-          app.id === applicationToReject.id
-            ? { ...app, status: 'rejected' as ApplicationStatus }
-            : app,
-        ),
+        prev.filter((app) => app.id !== applicationToComplete.id),
       );
 
-      setRejectModalOpen(false);
-      setApplicationToReject(null);
+      setCompleteModalOpen(false);
+      setApplicationToComplete(null);
     } catch (error) {
-      console.error('Error rejecting application:', error);
-      toast.error('不承認処理に失敗しました', {
+      console.error('Error completing application:', error);
+      toast.error('登録完了処理に失敗しました', {
         position: 'top-center',
         duration: 3000,
         className: 'bg-gray-100',
       });
     } finally {
-      setRejecting(false);
+      setCompleting(false);
     }
   };
 
@@ -381,20 +377,18 @@ export default function ApplicationsManagePage() {
                               審査・登録
                             </Button>
                           </Link>
-                          {application.status !== 'rejected' && (
-                            <Button
-                              variant="outline"
-                              className="rounded-xl font-bold"
-                              onClick={() => handleRejectClick(application)}
-                              style={{
-                                borderColor: 'rgba(239, 68, 68, 0.3)',
-                                backgroundColor: 'rgba(239, 68, 68, 0.05)',
-                                color: '#EF4444',
-                              }}
-                            >
-                              不承認にする
-                            </Button>
-                          )}
+                          <Button
+                            variant="outline"
+                            className="rounded-xl font-bold"
+                            onClick={() => handleCompleteClick(application)}
+                            style={{
+                              borderColor: 'rgba(34, 197, 94, 0.3)',
+                              backgroundColor: 'rgba(34, 197, 94, 0.05)',
+                              color: '#16A34A',
+                            }}
+                          >
+                            登録完了済み
+                          </Button>
                         </div>
                       </div>
                     </Card>
@@ -406,29 +400,29 @@ export default function ApplicationsManagePage() {
         )}
       </main>
 
-      {/* 不承認確認モーダル */}
+      {/* 登録完了確認モーダル */}
       <CustomModal
-        isOpen={rejectModalOpen}
-        onClose={() => !rejecting && setRejectModalOpen(false)}
+        isOpen={completeModalOpen}
+        onClose={() => !completing && setCompleteModalOpen(false)}
         title=""
-        showCloseButton={!rejecting}
+        showCloseButton={!completing}
       >
         <div className="space-y-4">
           <div className="text-center">
             <div
               className="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center"
-              style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)' }}
+              style={{ backgroundColor: 'rgba(34, 197, 94, 0.1)' }}
             >
-              <FileText className="w-6 h-6 text-red-500" />
+              <FileText className="w-6 h-6 text-green-600" />
             </div>
             <h3
               className="text-lg font-bold"
               style={{ color: COLORS.deepNavy }}
             >
-              申し込みを不承認にしますか？
+              登録完了済みにしますか？
             </h3>
           </div>
-          {applicationToReject && (
+          {applicationToComplete && (
             <p
               className="text-sm text-center"
               style={{ color: COLORS.warmGray }}
@@ -437,17 +431,17 @@ export default function ApplicationsManagePage() {
                 className="font-bold"
                 style={{ color: COLORS.charcoal }}
               >
-                {applicationToReject.store_name}
+                {applicationToComplete.store_name}
               </span>
-              の申し込みを不承認にします。
+              の申し込みを登録完了済みにします。一覧から非表示になります。
             </p>
           )}
           <div className="flex gap-3 pt-2">
             <Button
               variant="outline"
               className="flex-1 font-bold rounded-xl"
-              onClick={() => setRejectModalOpen(false)}
-              disabled={rejecting}
+              onClick={() => setCompleteModalOpen(false)}
+              disabled={completing}
               style={{
                 borderColor: 'rgba(201, 168, 108, 0.3)',
                 backgroundColor: 'rgba(201, 168, 108, 0.08)',
@@ -457,17 +451,21 @@ export default function ApplicationsManagePage() {
               キャンセル
             </Button>
             <Button
-              className="flex-1 font-bold rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={handleRejectConfirm}
-              disabled={rejecting}
+              className="flex-1 font-bold rounded-xl"
+              onClick={handleCompleteConfirm}
+              disabled={completing}
+              style={{
+                background: 'linear-gradient(135deg, #16A34A, #22C55E)',
+                color: '#FFFFFF',
+              }}
             >
-              {rejecting ? (
+              {completing ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   処理中...
                 </>
               ) : (
-                '不承認にする'
+                '登録完了済みにする'
               )}
             </Button>
           </div>
