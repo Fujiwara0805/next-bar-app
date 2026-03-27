@@ -92,16 +92,17 @@ export default function ApplicationsManagePage() {
   };
 
   const handleCompleteConfirm = async () => {
-    if (!applicationToComplete) return;
+    if (!applicationToComplete || !user) return;
 
     setCompleting(true);
 
     try {
-      const res = await fetch(`/api/store-applications/${applicationToComplete.id}`, {
-        method: 'DELETE',
-      });
+      const { error } = await supabase
+        .from('store_applications')
+        .delete()
+        .eq('id', applicationToComplete.id);
 
-      if (!res.ok) throw new Error('Failed to delete');
+      if (error) throw error;
 
       toast.success('登録完了済みにしました', {
         description: `${applicationToComplete.store_name}の申し込みを登録完了済みにしました`,
@@ -136,16 +137,17 @@ export default function ApplicationsManagePage() {
   };
 
   const handleRejectConfirm = async () => {
-    if (!applicationToReject) return;
+    if (!applicationToReject || !user) return;
 
     setRejecting(true);
 
     try {
-      const res = await fetch(`/api/store-applications/${applicationToReject.id}`, {
-        method: 'DELETE',
-      });
+      const { error } = await supabase
+        .from('store_applications')
+        .delete()
+        .eq('id', applicationToReject.id);
 
-      if (!res.ok) throw new Error('Failed to delete');
+      if (error) throw error;
 
       toast.success('申し込みを却下しました', {
         description: `${applicationToReject.store_name}の申し込みを削除しました`,
