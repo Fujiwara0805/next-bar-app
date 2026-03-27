@@ -3,6 +3,7 @@
  * APIエンドポイント: /api/store-applications/[id]
  * GET: 単件取得
  * PATCH: ステータス更新・管理メモ更新
+ * DELETE: 物理削除（却下）
  * ============================================
  */
 
@@ -64,5 +65,29 @@ export async function PATCH(
   } catch (error) {
     console.error('Store application PATCH error:', error);
     return NextResponse.json({ error: '申し込みの更新に失敗しました' }, { status: 500 });
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const supabase = createServerSupabaseClient();
+
+    const { error } = await supabase
+      .from('store_applications')
+      .delete()
+      .eq('id', params.id);
+
+    if (error) {
+      console.error('Store application delete error:', error);
+      return NextResponse.json({ error: '申し込みの削除に失敗しました' }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Store application DELETE error:', error);
+    return NextResponse.json({ error: '申し込みの削除に失敗しました' }, { status: 500 });
   }
 }

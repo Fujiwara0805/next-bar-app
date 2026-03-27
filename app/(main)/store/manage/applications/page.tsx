@@ -15,6 +15,7 @@ import {
   Clock,
   ChevronRight,
   Loader2,
+  Trash2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -40,6 +41,10 @@ export default function ApplicationsManagePage() {
   const [applicationToComplete, setApplicationToComplete] =
     useState<StoreApplication | null>(null);
   const [completing, setCompleting] = useState(false);
+  const [rejectModalOpen, setRejectModalOpen] = useState(false);
+  const [applicationToReject, setApplicationToReject] =
+    useState<StoreApplication | null>(null);
+  const [rejecting, setRejecting] = useState(false);
 
   // 認証チェック
   useEffect(() => {
@@ -95,11 +100,13 @@ export default function ApplicationsManagePage() {
     setCompleting(true);
 
     try {
-      const { error } = await (supabase.from('store_applications') as any)
-        .update({ status: 'approved' })
-        .eq('id', applicationToComplete.id);
+      const res = await fetch(`/api/store-applications/${applicationToComplete.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'approved' }),
+      });
 
-      if (error) throw error;
+      if (!res.ok) throw new Error('Failed to update');
 
       toast.success('登録完了済みにしました', {
         description: `${applicationToComplete.store_name}の申し込みを登録完了済みにしました`,
@@ -124,6 +131,49 @@ export default function ApplicationsManagePage() {
       });
     } finally {
       setCompleting(false);
+    }
+  };
+
+  // 却下（物理削除）処理
+  const handleRejectClick = (application: StoreApplication) => {
+    setApplicationToReject(application);
+    setRejectModalOpen(true);
+  };
+
+  const handleRejectConfirm = async () => {
+    if (!applicationToReject) return;
+
+    setRejecting(true);
+
+    try {
+      const res = await fetch(`/api/store-applications/${applicationToReject.id}`, {
+        method: 'DELETE',
+      });
+
+      if (!res.ok) throw new Error('Failed to delete');
+
+      toast.success('申し込みを却下しました', {
+        description: `${applicationToReject.store_name}の申し込みを削除しました`,
+        position: 'top-center',
+        duration: 1500,
+        className: 'bg-gray-100',
+      });
+
+      setApplications((prev) =>
+        prev.filter((app) => app.id !== applicationToReject.id),
+      );
+
+      setRejectModalOpen(false);
+      setApplicationToReject(null);
+    } catch (error) {
+      console.error('Error rejecting application:', error);
+      toast.error('却下処理に失敗しました', {
+        position: 'top-center',
+        duration: 3000,
+        className: 'bg-gray-100',
+      });
+    } finally {
+      setRejecting(false);
     }
   };
 
@@ -359,7 +409,7 @@ export default function ApplicationsManagePage() {
                         </div>
 
                         {/* アクションボタン */}
-                        <div className="flex gap-3">
+                        <div className="flex gap-2">
                           <Link
                             href={`/store/manage/new?application_id=${application.id}`}
                             className="flex-1"
@@ -389,6 +439,19 @@ export default function ApplicationsManagePage() {
                           >
                             登録完了済み
                           </Button>
+                          <Button
+                            variant="outline"
+                            className="rounded-xl font-bold"
+                            onClick={() => handleRejectClick(application)}
+                            style={{
+                              borderColor: 'rgba(239, 68, 68, 0.3)',
+                              backgroundColor: 'rgba(239, 68, 68, 0.05)',
+                              color: '#DC2626',
+                            }}
+                          >
+                            <Trash2 className="w-4 h-4 mr-1" />
+                            却下
+                          </Button>
                         </div>
                       </div>
                     </Card>
@@ -399,6 +462,78 @@ export default function ApplicationsManagePage() {
           </div>
         )}
       </main>
+
+      {/* 却下確認モーダル */}
+      <CustomModal
+        isOpen={rejectModalOpen}
+        onClose={() => !rejecting && setRejectModalOpen(false)}
+        title=""
+        showCloseButton={!rejecting}
+      >
+        <div className="space-y-4">
+          <div className="text-center">
+            <div
+              className="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center"
+              style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)' }}
+            >
+              <Trash2 className="w-6 h-6 text-red-600" />
+            </div>
+            <h3
+              className="text-lg font-bold"
+              style={{ color: COLORS.deepNavy }}
+            >
+              この申し込みを却下しますか？
+            </h3>
+          </div>
+          {applicationToReject && (
+            <p
+              className="text-sm text-center"
+              style={{ color: COLORS.warmGray }}
+            >
+              <span
+                className="font-bold"
+                style={{ color: COLORS.charcoal }}
+              >
+                {applicationToReject.store_name}
+              </span>
+              の申し込みを完全に削除します。この操作は取り消せません。
+            </p>
+          )}
+          <div className="flex gap-3 pt-2">
+            <Button
+              variant="outline"
+              className="flex-1 font-bold rounded-xl"
+              onClick={() => setRejectModalOpen(false)}
+              disabled={rejecting}
+              style={{
+                borderColor: 'rgba(201, 168, 108, 0.3)',
+                backgroundColor: 'rgba(201, 168, 108, 0.08)',
+                color: COLORS.charcoal,
+              }}
+            >
+              キャンセル
+            </Button>
+            <Button
+              className="flex-1 font-bold rounded-xl"
+              onClick={handleRejectConfirm}
+              disabled={rejecting}
+              style={{
+                background: 'linear-gradient(135deg, #DC2626, #EF4444)',
+                color: '#FFFFFF',
+              }}
+            >
+              {rejecting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  処理中...
+                </>
+              ) : (
+                '却下・削除する'
+              )}
+            </Button>
+          </div>
+        </div>
+      </CustomModal>
 
       {/* 登録完了確認モーダル */}
       <CustomModal

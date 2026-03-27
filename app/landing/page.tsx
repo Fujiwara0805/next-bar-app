@@ -375,16 +375,10 @@ export default function LandingPage() {
     };
   }, [showLanguageMenu]);
 
-  // 広告モーダル: 5分間隔制御 + 3秒遅延表示
+  // 広告モーダル: ページロード時に毎回表示（3秒遅延）
   useEffect(() => {
-    const AD_MODAL_KEY = 'nikenme_ad_modal_last_shown';
-    const INTERVAL_MS = 5 * 60 * 1000; // 5分
-    const lastShown = localStorage.getItem(AD_MODAL_KEY);
-    const now = Date.now();
-    if (lastShown && now - Number(lastShown) < INTERVAL_MS) return;
     const timer = setTimeout(() => {
       setShowAdModal(true);
-      localStorage.setItem(AD_MODAL_KEY, String(Date.now()));
     }, 3000);
     return () => clearTimeout(timer);
   }, []);
