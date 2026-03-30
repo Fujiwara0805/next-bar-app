@@ -605,7 +605,10 @@ export default function LandingPage() {
             >
               <div
                 className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-                style={{ backgroundImage: `url('${heroImages[heroImageIndex]}')` }}
+                style={{
+                  backgroundImage: `url('${heroImages[heroImageIndex]}')`,
+                  filter: 'brightness(1.06)',
+                }}
               />
             </motion.div>
           </AnimatePresence>
@@ -613,8 +616,8 @@ export default function LandingPage() {
             className="absolute inset-0"
             style={{
               background: isCafe
-                ? 'linear-gradient(to bottom, rgba(0,0,0,0.18) 0%, rgba(0,0,0,0.10) 50%, rgba(0,0,0,0.28) 100%)'
-                : `linear-gradient(to bottom, ${colors.background}8C 0%, ${colors.background}5A 40%, ${colors.background}C4 100%)`,
+                ? 'linear-gradient(to bottom, rgba(0,0,0,0.12) 0%, rgba(0,0,0,0.06) 50%, rgba(0,0,0,0.20) 100%)'
+                : `linear-gradient(to bottom, ${colors.background}73 0%, ${colors.background}41 40%, ${colors.background}AA 100%)`,
             }}
           />
         </motion.div>
