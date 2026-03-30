@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Plus, Store as StoreIcon, Edit, Trash2, Loader2, Mail,
-  Search, ChevronLeft, ChevronRight, Users, Ticket, Armchair, UserCheck,
+  Search, ChevronLeft, ChevronRight, Users, Ticket, Armchair,
   LayoutDashboard, Megaphone, FileText, Handshake, BarChart3, RefreshCw,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -24,6 +24,42 @@ type Store = Database['public']['Tables']['stores']['Row'];
 
 const ITEMS_PER_PAGE = 10;
 
+/** Google formatted_address 等から都道府県名＋市区町村名のみを返す */
+const JP_PREFECTURES_DESC = [
+  '北海道', '青森県', '岩手県', '宮城県', '秋田県', '山形県', '福島県', '茨城県', '栃木県', '群馬県', '埼玉県', '千葉県', '東京都', '神奈川県',
+  '新潟県', '富山県', '石川県', '福井県', '山梨県', '長野県', '岐阜県', '静岡県', '愛知県', '三重県', '滋賀県', '京都府', '大阪府', '兵庫県',
+  '奈良県', '和歌山県', '鳥取県', '島根県', '岡山県', '広島県', '山口県', '徳島県', '香川県', '愛媛県', '高知県', '福岡県', '佐賀県', '長崎県',
+  '熊本県', '大分県', '宮崎県', '鹿児島県', '沖縄県',
+].sort((a, b) => b.length - a.length);
+
+function formatStoreAreaLabel(address: string | null | undefined): string {
+  if (!address?.trim()) return '—';
+  let s = address
+    .trim()
+    .replace(/^日本[、,]\s*/, '')
+    .replace(/^Japan[、,]?\s*/i, '')
+    .replace(/〒\s*[\d０-９]{3}[-－‐−][\d０-９]{4}\s*/, '')
+    .replace(/\b\d{3}-\d{4}\b/, '');
+
+  let pref = '';
+  for (const p of JP_PREFECTURES_DESC) {
+    const idx = s.indexOf(p);
+    if (idx !== -1) {
+      pref = p;
+      s = s.slice(idx + p.length).trim();
+      break;
+    }
+  }
+  if (!pref) {
+    const first = s.split(/[\s、,]+/).find((t) => t && !/^〒/.test(t));
+    return first || '—';
+  }
+
+  const m = s.match(/^(.+?[市区町村])/);
+  const muni = m?.[1]?.trim();
+  return muni ? `${pref} ${muni}` : pref;
+}
+
 export default function StoreManagePage() {
   const { colors: C, isDark } = useAdminTheme();
   const router = useRouter();
@@ -39,7 +75,6 @@ export default function StoreManagePage() {
   const [resetPasswordModalOpen, setResetPasswordModalOpen] = useState(false);
   const [storeToResetPassword, setStoreToResetPassword] = useState<Store | null>(null);
   const [sendingResetEmail, setSendingResetEmail] = useState(false);
-  const [activeUserCount, setActiveUserCount] = useState(0);
   const [campaignCount, setCampaignCount] = useState(0);
   const [sponsorCount, setSponsorCount] = useState(0);
   const [pendingApps, setPendingApps] = useState(0);
@@ -50,7 +85,6 @@ export default function StoreManagePage() {
       return;
     }
     fetchStores();
-    fetchActiveUsers();
     fetchDashboardCounts();
   }, [accountType, store, router]);
 
@@ -68,21 +102,6 @@ export default function StoreManagePage() {
       console.error('Error fetching stores:', error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const fetchActiveUsers = async () => {
-    try {
-      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-      const { data, error } = await supabase
-        .from('coupon_usages')
-        .select('session_id')
-        .gte('used_at', thirtyDaysAgo);
-      if (error) throw error;
-      const uniqueSessions = new Set((data || []).map((d) => d.session_id));
-      setActiveUserCount(uniqueSessions.size);
-    } catch (error) {
-      console.error('Error fetching active users:', error);
     }
   };
 
@@ -230,11 +249,11 @@ export default function StoreManagePage() {
     {
       key: 'area',
       header: 'エリア',
-      width: '140px',
+      width: 'minmax(140px, 1.2fr)',
       hideOnMobile: true,
       render: (s) => (
-        <span className="text-sm truncate" style={{ color: C.textMuted }}>
-          {s.address?.split(' ')[0] || '—'}
+        <span className="text-sm line-clamp-2 break-all" style={{ color: C.textMuted }} title={formatStoreAreaLabel(s.address)}>
+          {formatStoreAreaLabel(s.address)}
         </span>
       ),
     },
@@ -325,11 +344,10 @@ export default function StoreManagePage() {
         {/* KPI Cards - LINE Harness style */}
         <AdminKpiGrid>
           <AdminKpiCard icon={StoreIcon} label="店舗数" value={stores.length} subLabel="登録済み店舗" gradient={getKpiGradient('gold')} href="/store/manage" index={0} />
-          <AdminKpiCard icon={Megaphone} label="アクティブキャンペーン" value={campaignCount} subLabel="稼働中のシナリオ" gradient={getKpiGradient('teal')} href="/store/manage/campaigns" index={1} />
+          <AdminKpiCard icon={Megaphone} label="キャンペーン" value={campaignCount} subLabel="アクティブキャンペーン" gradient={getKpiGradient('teal')} href="/store/manage/campaigns" index={1} />
           <AdminKpiCard icon={Ticket} label="クーポン店舗" value={couponStoreCount} subLabel="クーポン有効" gradient={getKpiGradient('blue')} index={2} />
           <AdminKpiCard icon={Handshake} label="スポンサー数" value={sponsorCount} subLabel="アクティブ契約" gradient={getKpiGradient('purple')} href="/store/manage/sponsors" index={3} />
-          <AdminKpiCard icon={UserCheck} label="月間ユーザー" value={activeUserCount} subLabel="過去30日間" gradient={getKpiGradient('amber')} index={4} />
-          <AdminKpiCard icon={FileText} label="申込" value={pendingApps} subLabel="未処理の申込" gradient={getKpiGradient('rose')} href="/store/manage/applications" index={5} badge={pendingApps > 0 ? 'NEW' : undefined} />
+          <AdminKpiCard icon={FileText} label="申込" value={pendingApps} subLabel="未処理の申込" gradient={getKpiGradient('rose')} href="/store/manage/applications" index={4} badge={pendingApps > 0 ? 'NEW' : undefined} />
         </AdminKpiGrid>
 
         {/* Quick Actions */}
