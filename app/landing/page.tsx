@@ -543,12 +543,19 @@ export default function LandingPage() {
                 </nav>
                 {/* 店舗向けリンク */}
                 <div className="mt-8 pt-6" style={{ borderTop: `1px solid ${colors.borderGold}` }}>
-                  <p className="text-sm font-medium mb-3" style={{ color: colors.textMuted }}>{t('menu.for_stores') || '店舗向け'}</p>
-                  <Link href="/login" onClick={() => setShowMenu(false)} className="flex items-center gap-3 p-4 rounded-lg transition-colors group" style={{ color: colors.textMuted }}>
+                  <p className="text-sm font-medium mb-3" style={{ color: colors.textMuted }}>{t('menu.for_stores')}</p>
+                  <Link href="/login?role=store" onClick={() => setShowMenu(false)} className="flex items-center gap-3 p-4 rounded-lg transition-colors group" style={{ color: colors.textMuted }}>
                     <LogIn className="w-5 h-5" style={{ color: colors.accent }} /><span className="group-hover:opacity-100 font-medium">{t('header.store_login')}</span><ChevronRight className="w-4 h-4 ml-auto opacity-30" />
                   </Link>
                   <Link href="/partner/apply" onClick={() => setShowMenu(false)} className="flex items-center gap-3 p-4 rounded-lg transition-colors group" style={{ color: colors.textMuted }}>
                     <Building2 className="w-5 h-5" style={{ color: colors.accent }} /><span className="group-hover:opacity-100 font-medium">{t('landing.cta_button_recruitment')}</span><ChevronRight className="w-4 h-4 ml-auto opacity-30" />
+                  </Link>
+                </div>
+                {/* 運営者向け */}
+                <div className="mt-8 pt-6" style={{ borderTop: `1px solid ${colors.borderGold}` }}>
+                  <p className="text-sm font-medium mb-3" style={{ color: colors.textMuted }}>{t('menu.for_operators')}</p>
+                  <Link href="/login?role=platform" onClick={() => setShowMenu(false)} className="flex items-center gap-3 p-4 rounded-lg transition-colors group" style={{ color: colors.textMuted }}>
+                    <Shield className="w-5 h-5" style={{ color: colors.accent }} /><span className="group-hover:opacity-100 font-medium">{t('header.operator_login')}</span><ChevronRight className="w-4 h-4 ml-auto opacity-30" />
                   </Link>
                 </div>
                 {/* Official Account */}
@@ -1693,7 +1700,7 @@ export default function LandingPage() {
                   </motion.div>
                   <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                     <Link
-                      href="/login"
+                      href="/login?role=store"
                       onClick={() => setShowStoreActionsModal(false)}
                       className="flex w-full items-center justify-center gap-2 rounded-xl py-4 px-6 text-base font-medium transition-all"
                       style={{

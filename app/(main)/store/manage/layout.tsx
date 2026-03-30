@@ -4,8 +4,8 @@ import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  LayoutDashboard, Store, PartyPopper, ClipboardList, Megaphone,
-  LogOut, Menu, X, ChevronRight,
+  LayoutDashboard, PartyPopper, ClipboardList, Megaphone,
+  LogOut, Menu, X,
 } from 'lucide-react';
 import { AdminThemeProvider, useAdminTheme } from '@/lib/admin-theme-context';
 import { AdminThemeToggle } from '@/components/admin/admin-theme-toggle';
@@ -26,7 +26,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   const { colors: C } = useAdminTheme();
   const router = useRouter();
   const pathname = usePathname();
-  const { signOut } = useAuth();
+  const { signOut, accountType } = useAuth();
 
   const isActive = (item: typeof NAV_ITEMS[0]) => {
     if (item.exact) return pathname === item.href;
@@ -37,7 +37,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
     try {
       await signOut();
       toast.success('ログアウトしました', { position: 'top-center', duration: 1000 });
-      router.push('/login');
+      router.push(accountType === 'store' ? '/login?role=store' : '/login?role=platform');
     } catch {
       toast.error('ログアウトに失敗しました', { position: 'top-center' });
     }
@@ -189,28 +189,63 @@ function ManageLayoutInner({ children }: { children: React.ReactNode }) {
   );
 }
 
+/** 店舗アカウントがログイン後に使うパス（運営ダッシュボードとは別） */
+const STORE_SELF_MANAGE_SEGMENTS = /^(update|edit|change-password)$/;
+
 export default function ManageLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { profile, accountType, loading } = useAuth();
+  const { profile, accountType, store, loading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
   const [checked, setChecked] = useState(false);
 
   useEffect(() => {
     if (loading) return;
 
+    // 店舗アカウント: 自分の store id の update / edit / change-password のみ通過（それ以外は運営エリア扱いで弾く）
+    if (accountType === 'store') {
+      if (!store?.id) {
+        setChecked(false);
+        router.push('/login?role=store');
+        return;
+      }
+      const m = pathname.match(/^\/store\/manage\/([^/]+)\/([^/]+)$/);
+      const allowed =
+        m &&
+        m[1] === store.id &&
+        STORE_SELF_MANAGE_SEGMENTS.test(m[2]);
+      if (allowed) {
+        setChecked(true);
+        return;
+      }
+      setChecked(false);
+      if (m && m[1] !== store.id && STORE_SELF_MANAGE_SEGMENTS.test(m[2])) {
+        router.replace(`/store/manage/${store.id}/update`);
+        return;
+      }
+      router.push('/login?role=store');
+      return;
+    }
+
     if (!profile?.is_business || accountType !== 'platform') {
-      router.push('/login');
+      setChecked(false);
+      router.push('/login?role=platform');
       return;
     }
 
     setChecked(true);
-  }, [loading, profile, accountType, router]);
+  }, [loading, profile, accountType, store, router, pathname]);
 
   if (loading || !checked) {
     return <LoadingScreen />;
+  }
+
+  // 店舗アカウント: 空席更新など店舗向け画面のみ。管理者用サイドバー・テーマは付けない。
+  if (accountType === 'store') {
+    return <>{children}</>;
   }
 
   return (

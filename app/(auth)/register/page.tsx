@@ -219,7 +219,7 @@ export default function RegisterPage() {
             <p className="text-sm text-muted-foreground">
               すでにアカウントをお持ちですか？{' '}
               <Link
-                href="/login"
+                href="/login?role=store"
                 className="text-primary font-medium hover:underline"
               >
                 ログイン

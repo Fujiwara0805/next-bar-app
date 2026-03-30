@@ -165,6 +165,21 @@ export default function StoreEditPage() {
   const router = useRouter();
   const params = useParams();
   const { user, accountType } = useAuth();
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const body = document.body;
+    const prevRoot = root.style.background;
+    const prevBody = body.style.background;
+    const bg = COLORS.cardGradient;
+    root.style.background = bg;
+    body.style.background = bg;
+    return () => {
+      root.style.background = prevRoot;
+      body.style.background = prevBody;
+    };
+  }, [COLORS.cardGradient]);
+
   const [loading, setLoading] = useState(false);
   const [fetchingStore, setFetchingStore] = useState(true);
   const [geocoding, setGeocoding] = useState(false);
@@ -789,8 +804,8 @@ export default function StoreEditPage() {
   if (!authChecked || fetchingStore) {
     return (
       <div 
-        className="min-h-screen flex items-center justify-center"
-        style={{ background: COLORS.luxuryGradient }}
+        className="min-h-[100dvh] flex items-center justify-center"
+        style={{ background: COLORS.cardGradient }}
       >
         <motion.div
           animate={{ rotate: 360 }}
@@ -804,7 +819,7 @@ export default function StoreEditPage() {
 
   return (
     <div 
-      className="min-h-screen pb-20"
+      className="min-h-[100dvh] pb-20"
       style={{ background: COLORS.cardGradient }}
     >
       {/* ヘッダー */}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Lock, Loader2, Save } from 'lucide-react';
@@ -17,8 +17,22 @@ export default function ChangePasswordPage() {
   const router = useRouter();
   const params = useParams();
   const { accountType } = useAuth();
-  const { colorsA, colorsB: COLORS } = useAppMode();
+  const { colorsB: COLORS } = useAppMode();
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const body = document.body;
+    const prevRoot = root.style.background;
+    const prevBody = body.style.background;
+    const bg = COLORS.cardGradient;
+    root.style.background = bg;
+    body.style.background = bg;
+    return () => {
+      root.style.background = prevRoot;
+      body.style.background = prevBody;
+    };
+  }, [COLORS.cardGradient]);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -123,7 +137,7 @@ export default function ChangePasswordPage() {
   };
 
   return (
-    <div className="min-h-screen pb-20" style={{ backgroundColor: colorsA.background }}>
+    <div className="min-h-[100dvh] pb-20" style={{ background: COLORS.cardGradient }}>
       <header
         className="sticky top-0 z-10 safe-top"
         style={{

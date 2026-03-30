@@ -16,7 +16,7 @@
 
 'use client';
 
-import { Suspense, useEffect, useState, useRef, useCallback } from 'react';
+import { Suspense, useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MapIcon, Star, Filter, Check, Sparkles, X, Ticket, PartyPopper, Loader2 } from 'lucide-react';
@@ -132,31 +132,61 @@ function StoreListContent() {
   const [isConciergeActive, setIsConciergeActive] = useState(false);
   const [navigatingTo, setNavigatingTo] = useState<string | null>(null);
 
-  // 無限スクロール: 10件ずつ表示
+  // モバイルのみ: 初回10件＋下方向スクロールで自動的に10件ずつ追加（デスクトップは常に全件）
   const ITEMS_PER_BATCH = 10;
   const [displayCount, setDisplayCount] = useState(ITEMS_PER_BATCH);
   const loadMoreRef = useRef<HTMLDivElement>(null);
+  const [isMobileListLayout, setIsMobileListLayout] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mq = window.matchMedia('(max-width: 767px)');
+    const apply = () => setIsMobileListLayout(mq.matches);
+    apply();
+    mq.addEventListener('change', apply);
+    return () => mq.removeEventListener('change', apply);
+  }, []);
+
+  // モバイルに切り替わったら表示件数をリセット
+  useEffect(() => {
+    if (isMobileListLayout) {
+      setDisplayCount(ITEMS_PER_BATCH);
+    }
+  }, [isMobileListLayout]);
+
+  const visibleStores = useMemo(() => {
+    if (!isMobileListLayout) return filteredStores;
+    const n = Math.min(displayCount, filteredStores.length);
+    return filteredStores.slice(0, n);
+  }, [isMobileListLayout, filteredStores, displayCount]);
 
   // フィルター変更時にリセット
   const resetDisplayCount = useCallback(() => {
     setDisplayCount(ITEMS_PER_BATCH);
   }, []);
 
-  // Intersection Observerで追加読み込み
+  // Intersection Observerで追加読み込み（モバイル時のみ）
   useEffect(() => {
+    if (!isMobileListLayout) return;
+    if (filteredStores.length <= ITEMS_PER_BATCH) return;
+
     const el = loadMoreRef.current;
     if (!el) return;
+
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting) {
-          setDisplayCount((prev) => prev + ITEMS_PER_BATCH);
-        }
+        if (!entries[0]?.isIntersecting) return;
+        setDisplayCount((prev) => {
+          const cap = filteredStores.length;
+          const next = Math.min(prev + ITEMS_PER_BATCH, cap);
+          return next === prev ? prev : next;
+        });
       },
-      { rootMargin: '200px' }
+      { root: null, rootMargin: '120px', threshold: 0 }
     );
     observer.observe(el);
     return () => observer.disconnect();
-  }, [filteredStores]);
+  }, [filteredStores, isMobileListLayout]);
 
   const isOpenUpdatedRef = useRef(false);
   const isInitializedRef = useRef(false);
@@ -729,7 +759,7 @@ function StoreListContent() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <AnimatePresence mode="popLayout">
-                {filteredStores.slice(0, displayCount).map((store, index) => {
+                {visibleStores.map((store, index) => {
                   const matchScore = getMatchScore(store);
                   
                   return (
@@ -911,8 +941,8 @@ function StoreListContent() {
             </div>
 
             {/* 無限スクロール: ロードトリガー */}
-            {displayCount < filteredStores.length && (
-              <div ref={loadMoreRef} className="flex items-center justify-center py-8">
+            {isMobileListLayout && displayCount < filteredStores.length && (
+              <div ref={loadMoreRef} className="flex items-center justify-center py-8 min-h-[48px]">
                 <Loader2 className="w-5 h-5 animate-spin" style={{ color: COLORS.champagneGold }} />
               </div>
             )}

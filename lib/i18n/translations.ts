@@ -2,7 +2,8 @@ export const translations = {
   ja: {
     // Header
     header: {
-      store_login: 'ログイン',
+      store_login: '店舗ログイン',
+      operator_login: '運営者アカウント',
     },
     // 共通テキスト
     common: {
@@ -78,6 +79,21 @@ export const translations = {
       logging_in: 'ログイン中...',
       welcome_back: 'おかえりなさい',
       login_to_store: '店舗アカウントにログインしてください',
+      login_to_operator: '運営者（管理者）アカウントでログインしてください',
+      login_role_store_hint: '掲載店のオーナー・スタッフ専用です。',
+      login_role_platform_hint:
+        'NIKENME+ の運営・審査担当のみ利用できます。店舗の方は「店舗ログイン」をお使いください。',
+      wrong_account_for_operator: '運営者アカウントではありません',
+      wrong_account_for_operator_desc:
+        'このメールアドレスは店舗アカウントです。ランディングの「店舗ログイン」からログインしてください。',
+      wrong_account_for_store: '店舗アカウントではありません',
+      wrong_account_for_store_desc:
+        'このメールアドレスは運営者アカウントです。「運営者アカウント」からログインしてください。',
+      login_switch_to_store: '店舗の方はこちら（店舗ログイン）',
+      login_switch_to_operator: '運営者の方はこちら',
+      session_mismatch_store: 'いま運営者でログイン中です。店舗用の画面を使うにはログアウトしてください。',
+      session_mismatch_operator:
+        'いま店舗アカウントでログイン中です。管理者画面を使うにはログアウトしてください。',
       back_to_home: 'ホーム画面に戻る',
       vision_link_text: 'NIKENME+が目指すビジョンは',
       vacancy_map: '空席マップ',
@@ -140,6 +156,7 @@ export const translations = {
       contact: 'お問い合わせ',
       official_account: '公式アカウント',
       for_stores: '店舗向け',
+      for_operators: '運営者向け',
       language: '言語設定',
       version: 'Version 1.2.0',
     },
@@ -996,7 +1013,8 @@ export const translations = {
   en: {
     // Header
     header: {
-      store_login: 'Store Login',
+      store_login: 'Store login',
+      operator_login: 'Operator account',
     },
     // Common texts
     common: {
@@ -1072,6 +1090,22 @@ export const translations = {
       logging_in: 'Logging in...',
       welcome_back: 'Welcome Back',
       login_to_store: 'Login to your store account',
+      login_to_operator: 'Sign in with your operator (admin) account',
+      login_role_store_hint: 'For store owners and staff of listed venues only.',
+      login_role_platform_hint:
+        'For NIKENME+ operators and reviewers only. Store users should use “Store login”.',
+      wrong_account_for_operator: 'Not an operator account',
+      wrong_account_for_operator_desc:
+        'This email is a store account. Please use “Store login” on the landing page.',
+      wrong_account_for_store: 'Not a store account',
+      wrong_account_for_store_desc:
+        'This email is an operator account. Please sign in via “Operator account”.',
+      login_switch_to_store: 'Store login',
+      login_switch_to_operator: 'Operator account login',
+      session_mismatch_store:
+        'You are signed in as an operator. Sign out to use the store login screen.',
+      session_mismatch_operator:
+        'You are signed in with a store account. Sign out to use the operator login screen.',
       back_to_home: 'Back to Home',
       vision_link_text: 'NIKENME+ Vision',
       vacancy_map: 'Vacancy Map',
@@ -1134,6 +1168,7 @@ export const translations = {
       contact: 'Contact Us',
       official_account: 'Official Account',
       for_stores: 'For Stores',
+      for_operators: 'For operators',
       language: 'Language Settings',
       version: 'Version 1.2.0',
     },
@@ -1991,6 +2026,7 @@ export const translations = {
     // Header
     header: {
       store_login: '매장 로그인',
+      operator_login: '운영자 계정',
     },
     // 공통 텍스트
     common: {
@@ -2066,6 +2102,22 @@ export const translations = {
       logging_in: '로그인 중...',
       welcome_back: '돌아오신 것을 환영합니다',
       login_to_store: '매장 계정으로 로그인해 주세요',
+      login_to_operator: '운영자(관리자) 계정으로 로그인해 주세요',
+      login_role_store_hint: '등록 매장의 오너・스태프 전용입니다.',
+      login_role_platform_hint:
+        'NIKENME+ 운영・심사 담당만 이용할 수 있습니다. 매장은「매장 로그인」을 이용해 주세요.',
+      wrong_account_for_operator: '운영자 계정이 아닙니다',
+      wrong_account_for_operator_desc:
+        '이 이메일은 매장 계정입니다. 랜딩의「매장 로그인」에서 로그인해 주세요.',
+      wrong_account_for_store: '매장 계정이 아닙니다',
+      wrong_account_for_store_desc:
+        '이 이메일은 운영자 계정입니다.「운영자 계정」에서 로그인해 주세요.',
+      login_switch_to_store: '매장 로그인으로',
+      login_switch_to_operator: '운영자 로그인으로',
+      session_mismatch_store:
+        '지금 운영자로 로그인되어 있습니다. 매장 화면을 쓰려면 로그아웃해 주세요.',
+      session_mismatch_operator:
+        '지금 매장 계정으로 로그인되어 있습니다. 관리자 화면을 쓰려면 로그아웃해 주세요.',
       back_to_home: '홈 화면으로 돌아가기',
       vision_link_text: 'NIKENME+가 추구하는 비전',
       vacancy_map: '빈자리 지도',
@@ -2128,6 +2180,7 @@ export const translations = {
       contact: '문의하기',
       official_account: '공식 계정',
       for_stores: '매장 전용',
+      for_operators: '운영자 전용',
       language: '언어 설정',
       version: 'Version 1.2.0',
     },
@@ -2977,6 +3030,7 @@ export const translations = {
     // Header
     header: {
       store_login: '店铺登录',
+      operator_login: '运营者账户',
     },
     // 通用文本
     common: {
@@ -3052,6 +3106,20 @@ export const translations = {
       logging_in: '登录中...',
       welcome_back: '欢迎回来',
       login_to_store: '请登录您的店铺账户',
+      login_to_operator: '请使用运营者（管理员）账户登录',
+      login_role_store_hint: '仅供已入驻门店的老板和员工使用。',
+      login_role_platform_hint:
+        '仅供 NIKENME+ 运营与审核人员使用。门店用户请使用「店铺登录」。',
+      wrong_account_for_operator: '不是运营者账户',
+      wrong_account_for_operator_desc:
+        '该邮箱为店铺账户。请从落地页的「店铺登录」入口登录。',
+      wrong_account_for_store: '不是店铺账户',
+      wrong_account_for_store_desc:
+        '该邮箱为运营者账户。请从「运营者账户」入口登录。',
+      login_switch_to_store: '门店用户请走店铺登录',
+      login_switch_to_operator: '运营者请走此入口',
+      session_mismatch_store: '当前以运营者身份登录。使用门店功能请先退出登录。',
+      session_mismatch_operator: '当前为店铺账户登录。使用管理后台请先退出登录。',
       back_to_home: '返回首页',
       vision_link_text: 'NIKENME+的愿景',
       vacancy_map: '空位地图',
@@ -3114,6 +3182,7 @@ export const translations = {
       contact: '联系我们',
       official_account: '官方账号',
       for_stores: '店铺专区',
+      for_operators: '运营者专区',
       language: '语言设置',
       version: 'Version 1.2.0',
     },

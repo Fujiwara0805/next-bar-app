@@ -147,6 +147,22 @@ export default function StoreUpdatePage() {
   const router = useRouter();
   const params = useParams();
   const { user, accountType, signOut } = useAuth();
+
+  // ルートの body 背景が透ける（オーバースクロール等）とき、カードエリアと同色に揃える
+  useEffect(() => {
+    const root = document.documentElement;
+    const body = document.body;
+    const prevRoot = root.style.background;
+    const prevBody = body.style.background;
+    const bg = COLORS.cardGradient;
+    root.style.background = bg;
+    body.style.background = bg;
+    return () => {
+      root.style.background = prevRoot;
+      body.style.background = prevBody;
+    };
+  }, [COLORS.cardGradient]);
+
   const [loading, setLoading] = useState(false);
   const [fetchingStore, setFetchingStore] = useState(true);
   const [store, setStore] = useState<Store | null>(null);
@@ -204,7 +220,7 @@ export default function StoreUpdatePage() {
               userEmail: user.email,
             });
             toast.error('アクセス権限がありません', { position: 'top-center' });
-            router.push('/login');
+            router.push('/login?role=store');
             return;
           }
         }
@@ -239,7 +255,7 @@ export default function StoreUpdatePage() {
       if (accountType === 'platform') {
         router.push('/store/manage');
       } else {
-        router.push('/login');
+        router.push('/login?role=store');
       }
     } finally {
       setFetchingStore(false);
@@ -285,7 +301,7 @@ export default function StoreUpdatePage() {
 
     // 未ログインまたは不正なアカウントタイプの場合はリダイレクト
     if (!accountType || (accountType !== 'platform' && accountType !== 'store')) {
-      router.push('/login');
+      router.push('/login?role=store');
       return;
     }
   }, [accountType, router]);
@@ -565,7 +581,7 @@ export default function StoreUpdatePage() {
         duration: 1000,
         className: 'bg-gray-100'
       });
-      router.push('/login');
+      router.push('/login?role=store');
     } catch (error) {
       toast.error('ログアウトに失敗しました', { 
         position: 'top-center',
@@ -579,8 +595,8 @@ export default function StoreUpdatePage() {
   if (!authChecked || fetchingStore) {
     return (
       <div 
-        className="min-h-screen flex items-center justify-center"
-        style={{ background: COLORS.luxuryGradient }}
+        className="min-h-[100dvh] flex items-center justify-center"
+        style={{ background: COLORS.cardGradient }}
       >
         <motion.div
           animate={{ rotate: 360 }}
@@ -598,7 +614,7 @@ export default function StoreUpdatePage() {
 
   return (
     <div 
-      className="min-h-screen pb-20"
+      className="min-h-[100dvh] pb-20"
       style={{ background: COLORS.cardGradient }}
     >
       <PushNotificationManager />
@@ -644,30 +660,25 @@ export default function StoreUpdatePage() {
           >
             <div>
               <h2
-                className="text-2xl font-bold mb-1"
+                className="text-2xl font-bold mb-4"
                 style={{ color: COLORS.deepNavy }}
               >
                 {store.name}
               </h2>
-              <p
-                className="text-sm font-medium mb-3"
-                style={{ color: COLORS.warmGray }}
-              >
-                {store.address}
-              </p>
               <div className="flex gap-2 flex-wrap">
                 <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
                   <Button
                     type="button"
                     size="sm"
+                    variant="outline"
                     onClick={() => router.push(`/store/manage/${store.id}/edit`)}
-                    className="rounded-xl font-bold shadow-md"
+                    className="rounded-xl font-bold shadow-md border-0 hover:opacity-95 [&_svg]:stroke-[currentColor]"
                     style={{
                       background: COLORS.goldGradient,
-                      color: COLORS.deepNavy,
+                      color: COLORS.charcoal,
                     }}
                   >
-                    <Edit className="w-4 h-4 mr-2" />
+                    <Edit className="w-4 h-4 mr-2 shrink-0" strokeWidth={2} />
                     編集
                   </Button>
                 </motion.div>
@@ -680,7 +691,7 @@ export default function StoreUpdatePage() {
                       className="rounded-xl font-bold"
                       style={{
                         background: COLORS.goldGradient,
-                        color: '#FFFFFF',
+                        color: COLORS.deepNavy,
                       }}
                     >
                       <Key className="w-4 h-4 mr-2" />
