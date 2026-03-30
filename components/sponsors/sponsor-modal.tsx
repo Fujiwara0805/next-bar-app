@@ -43,7 +43,6 @@ export function SponsorModal() {
       contract_id: ad.contract_id,
       sponsor_id: ad.sponsor_id,
     });
-    window.open(ad.cta_url, '_blank', 'noopener,noreferrer');
     handleClose();
   }, [ad, trackEvent, handleClose]);
 
@@ -127,24 +126,45 @@ export function SponsorModal() {
               <X className="h-4 w-4 text-white" />
             </motion.button>
 
-            {/* Image (clickable if cta_url exists) */}
+            {/* Image — use <a> tag for reliable mobile navigation */}
             {imageUrl ? (
-              <div
-                className={`rounded-2xl overflow-hidden shadow-2xl ${ad.cta_url ? 'cursor-pointer' : ''}`}
-                onClick={ad.cta_url ? handleImageClick : undefined}
-                style={{ maxWidth: '360px', maxHeight: '80vh' }}
-              >
-                <img
-                  src={imageUrl}
-                  alt={ad.company_name || '広告'}
-                  className="w-full h-auto object-contain"
-                  style={{ aspectRatio: '1080 / 1350' }}
-                  loading="eager"
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none';
-                  }}
-                />
-              </div>
+              ad.cta_url ? (
+                <a
+                  href={ad.cta_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={handleImageClick}
+                  className="block rounded-2xl overflow-hidden shadow-2xl cursor-pointer"
+                  style={{ maxWidth: '360px', maxHeight: '80vh' }}
+                >
+                  <img
+                    src={imageUrl}
+                    alt={ad.company_name || '広告'}
+                    className="w-full h-auto object-contain"
+                    style={{ aspectRatio: '1080 / 1350' }}
+                    loading="eager"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                </a>
+              ) : (
+                <div
+                  className="rounded-2xl overflow-hidden shadow-2xl"
+                  style={{ maxWidth: '360px', maxHeight: '80vh' }}
+                >
+                  <img
+                    src={imageUrl}
+                    alt={ad.company_name || '広告'}
+                    className="w-full h-auto object-contain"
+                    style={{ aspectRatio: '1080 / 1350' }}
+                    loading="eager"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                </div>
+              )
             ) : null}
           </motion.div>
         </motion.div>

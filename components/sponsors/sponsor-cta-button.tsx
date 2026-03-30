@@ -13,6 +13,7 @@ export function SponsorCtaButton() {
   const { language } = useLanguage();
   const [dismissed, setDismissed] = useState(false);
   const [visible, setVisible] = useState(false);
+  const [passedHero, setPassedHero] = useState(false);
   const trackedRef = useRef(false);
 
   const ad = ads?.cta_button;
@@ -28,13 +29,30 @@ export function SponsorCtaButton() {
     }
   }, []);
 
-  // Show with delay for smooth entry
+  // Detect scroll past hero section (approx 1 viewport height)
   useEffect(() => {
-    if (ad && !dismissed) {
-      const timer = setTimeout(() => setVisible(true), 1000);
-      return () => clearTimeout(timer);
-    }
+    if (!ad || dismissed) return;
+
+    const handleScroll = () => {
+      const scrollY = window.scrollY || window.pageYOffset;
+      const threshold = window.innerHeight * 0.8;
+      setPassedHero(scrollY > threshold);
+    };
+
+    handleScroll(); // check initial position
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
   }, [ad, dismissed]);
+
+  // Show with delay after passing hero
+  useEffect(() => {
+    if (ad && !dismissed && passedHero) {
+      const timer = setTimeout(() => setVisible(true), 500);
+      return () => clearTimeout(timer);
+    } else {
+      setVisible(false);
+    }
+  }, [ad, dismissed, passedHero]);
 
   // Track impression
   useEffect(() => {
@@ -59,12 +77,11 @@ export function SponsorCtaButton() {
       contract_id: ad.contract_id,
       sponsor_id: ad.sponsor_id,
     });
-    if (ad.cta_url) {
-      window.open(ad.cta_url, '_blank', 'noopener,noreferrer');
-    }
+    // Navigation handled by <a> tag
   }, [ad, trackEvent]);
 
   const handleDismiss = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
     setDismissed(true);
     setVisible(false);
@@ -92,46 +109,52 @@ export function SponsorCtaButton() {
           transition={{ type: 'spring', damping: 20, stiffness: 200 }}
           className="fixed bottom-24 right-4 z-30"
         >
-          <motion.button
-            onClick={handleClick}
+          <motion.div
             animate={{ scale: [1, 1.03, 1] }}
             transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
-            className="relative flex items-center gap-2 px-5 py-3 rounded-full shadow-lg font-bold text-sm"
-            style={{
-              backgroundColor: ad.cta_color || '#C9A86C',
-              color: (ad.display_config as any)?.cta_text_color || '#FFFFFF',
-              willChange: 'transform',
-            }}
           >
-            {/* PR badge */}
-            <span className="absolute -top-2 -left-1 text-[9px] font-medium bg-white/90 text-gray-600 px-1.5 py-0.5 rounded-full">
-              PR
-            </span>
-
-            {/* Icon */}
-            {ad.icon_url && (
-              <img
-                src={ad.icon_url}
-                alt=""
-                className="w-5 h-5 rounded-full object-cover"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                }}
-              />
-            )}
-
-            <span>{ctaText}</span>
-
-            {/* Dismiss button */}
-            <span
-              onClick={handleDismiss}
-              className="ml-1 p-0.5 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
-              role="button"
-              aria-label="閉じる"
+            <a
+              href={ad.cta_url || '#'}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={handleClick}
+              className="relative flex items-center gap-2 px-5 py-3 rounded-full shadow-lg font-bold text-sm no-underline"
+              style={{
+                backgroundColor: ad.cta_color || '#C9A86C',
+                color: (ad.display_config as any)?.cta_text_color || '#FFFFFF',
+                willChange: 'transform',
+              }}
             >
-              <X className="w-3 h-3" />
-            </span>
-          </motion.button>
+              {/* PR badge */}
+              <span className="absolute -top-2 -left-1 text-[9px] font-medium bg-white/90 text-gray-600 px-1.5 py-0.5 rounded-full">
+                PR
+              </span>
+
+              {/* Icon */}
+              {ad.icon_url && (
+                <img
+                  src={ad.icon_url}
+                  alt=""
+                  className="w-5 h-5 rounded-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+              )}
+
+              <span>{ctaText}</span>
+
+              {/* Dismiss button */}
+              <span
+                onClick={handleDismiss}
+                className="ml-1 p-0.5 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
+                role="button"
+                aria-label="閉じる"
+              >
+                <X className="w-3 h-3" />
+              </span>
+            </a>
+          </motion.div>
         </motion.div>
       )}
     </AnimatePresence>

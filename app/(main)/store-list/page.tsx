@@ -33,7 +33,6 @@ import { OgoriTicketBadge } from '@/components/ogori/OgoriTicketBadge';
 import { isCouponValid, type CouponData } from '@/lib/types/coupon';
 import { getTodayOpenTime, isTodayClosedDay, checkIsOpenFromStructuredHours as checkIsOpenFromStructuredHoursClient } from '@/lib/structured-business-hours';
 import { useOptimizedLocation } from '@/lib/hooks/useOptimizedLocation';
-import { SponsorCtaButton } from '@/components/sponsors/sponsor-cta-button';
 import { SponsorCampaignBanner } from '@/components/sponsors/sponsor-campaign-banner';
 
 type Store = Database['public']['Tables']['stores']['Row'];
@@ -132,6 +131,32 @@ function StoreListContent() {
   const [conciergeFilters, setConciergeFilters] = useState<string[]>([]);
   const [isConciergeActive, setIsConciergeActive] = useState(false);
   const [navigatingTo, setNavigatingTo] = useState<string | null>(null);
+
+  // 無限スクロール: 10件ずつ表示
+  const ITEMS_PER_BATCH = 10;
+  const [displayCount, setDisplayCount] = useState(ITEMS_PER_BATCH);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+
+  // フィルター変更時にリセット
+  const resetDisplayCount = useCallback(() => {
+    setDisplayCount(ITEMS_PER_BATCH);
+  }, []);
+
+  // Intersection Observerで追加読み込み
+  useEffect(() => {
+    const el = loadMoreRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setDisplayCount((prev) => prev + ITEMS_PER_BATCH);
+        }
+      },
+      { rootMargin: '200px' }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [filteredStores]);
 
   const isOpenUpdatedRef = useRef(false);
   const isInitializedRef = useRef(false);
@@ -429,7 +454,8 @@ function StoreListContent() {
     }
 
     setFilteredStores(result);
-  }, [stores, vacantOnly, openNowOnly, couponOnly, campaignOnly, campaignNameFilter, conciergeFilters, isConciergeActive]);
+    resetDisplayCount();
+  }, [stores, vacantOnly, openNowOnly, couponOnly, campaignOnly, campaignNameFilter, conciergeFilters, isConciergeActive, resetDisplayCount]);
 
   useEffect(() => {
     if (!isInitializedRef.current) return;
@@ -703,7 +729,7 @@ function StoreListContent() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <AnimatePresence mode="popLayout">
-                {filteredStores.map((store, index) => {
+                {filteredStores.slice(0, displayCount).map((store, index) => {
                   const matchScore = getMatchScore(store);
                   
                   return (
@@ -883,6 +909,13 @@ function StoreListContent() {
                 })}
               </AnimatePresence>
             </div>
+
+            {/* 無限スクロール: ロードトリガー */}
+            {displayCount < filteredStores.length && (
+              <div ref={loadMoreRef} className="flex items-center justify-center py-8">
+                <Loader2 className="w-5 h-5 animate-spin" style={{ color: COLORS.champagneGold }} />
+              </div>
+            )}
           </>
         )}
 
@@ -1036,7 +1069,6 @@ function StoreListContent() {
       />
 
       {/* スポンサー広告 */}
-      <SponsorCtaButton />
       <SponsorCampaignBanner />
     </div>
   );

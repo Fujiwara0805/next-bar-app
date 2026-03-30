@@ -45,7 +45,6 @@ import { sendGAEvent } from '@/lib/analytics';
 import { StoreDetailPanel } from '@/components/map/StoreDetailPanel';
 import { checkIsOpenFromStructuredHours } from '@/lib/structured-business-hours';
 import type { BusinessHours } from '@/lib/supabase/types';
-import { SponsorCtaButton } from '@/components/sponsors/sponsor-cta-button';
 import { SponsorMapIcon } from '@/components/sponsors/sponsor-map-icon';
 
 type Store = Database['public']['Tables']['stores']['Row'];
@@ -1158,7 +1157,6 @@ function MapPageContent() {
       </div>
 
       {/* スポンサー広告 */}
-      <SponsorCtaButton />
       <SponsorMapIcon />
     </div>
   );

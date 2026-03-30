@@ -53,10 +53,9 @@ import { isCouponValid, type CouponData } from '@/lib/types/coupon';
 import { ImageLightbox } from '@/components/ui/ImageLightbox';
 import { sendGAEvent } from '@/lib/analytics';
 import { OgoriSection } from '@/components/ogori/OgoriSection';
+import { SponsorCampaignBanner } from '@/components/sponsors/sponsor-campaign-banner';
 import { getTodayOpenTime, isTodayClosedDay, checkIsOpenFromStructuredHours } from '@/lib/structured-business-hours';
 import { useOptimizedLocation } from '@/lib/hooks/useOptimizedLocation';
-import { SponsorCtaButton } from '@/components/sponsors/sponsor-cta-button';
-
 type Store = Database['public']['Tables']['stores']['Row'];
 
 // ============================================
@@ -631,6 +630,9 @@ export default function StoreDetailPage() {
       </header>
 
       <div className="p-4 space-y-4">
+        {/* スポンサーバナー広告 */}
+        <SponsorCampaignBanner />
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -1364,8 +1366,6 @@ export default function StoreDetailPage() {
         alt={store.name}
       />
 
-      {/* スポンサー広告 */}
-      <SponsorCtaButton />
     </div>
   );
 }

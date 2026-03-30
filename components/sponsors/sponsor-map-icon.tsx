@@ -35,9 +35,7 @@ export function SponsorMapIcon() {
         contract_id: icon.contract_id,
         sponsor_id: icon.sponsor_id,
       });
-      if (icon.cta_url) {
-        window.open(icon.cta_url, '_blank', 'noopener,noreferrer');
-      }
+      // Navigation handled by <a> tag
     },
     [trackEvent]
   );
@@ -50,6 +48,26 @@ export function SponsorMapIcon() {
         const top = icon.icon_position?.top || `${16 + index * 64}px`;
         const left = icon.icon_position?.left || '16px';
         const size = icon.icon_size || 48;
+
+        const content = icon.icon_url ? (
+          <img
+            src={icon.icon_url}
+            alt={icon.company_name}
+            width={size}
+            height={size}
+            className="rounded-lg shadow-md object-cover"
+            onError={(e) => {
+              e.currentTarget.style.display = 'none';
+            }}
+          />
+        ) : (
+          <div
+            className="rounded-lg shadow-md bg-gradient-to-br from-[#C9A86C] to-[#A88B5A] flex items-center justify-center text-white font-bold text-xs"
+            style={{ width: size, height: size }}
+          >
+            {icon.company_name.charAt(0)}
+          </div>
+        );
 
         return (
           <motion.div
@@ -65,25 +83,19 @@ export function SponsorMapIcon() {
             }}
           >
             <div className="relative">
-              {icon.icon_url ? (
-                <img
-                  src={icon.icon_url}
-                  alt={icon.company_name}
-                  width={size}
-                  height={size}
-                  className="rounded-lg shadow-md object-cover"
+              {icon.cta_url ? (
+                <a
+                  href={icon.cta_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   onClick={() => handleClick(icon)}
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none';
-                  }}
-                />
-              ) : (
-                <div
-                  className="rounded-lg shadow-md bg-gradient-to-br from-[#C9A86C] to-[#A88B5A] flex items-center justify-center text-white font-bold text-xs"
-                  style={{ width: size, height: size }}
-                  onClick={() => handleClick(icon)}
+                  className="block"
                 >
-                  {icon.company_name.charAt(0)}
+                  {content}
+                </a>
+              ) : (
+                <div onClick={() => handleClick(icon)}>
+                  {content}
                 </div>
               )}
 
