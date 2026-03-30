@@ -51,12 +51,21 @@ function LoginPageInner() {
       (loginRole === 'store' && accountType === 'platform'));
 
   useEffect(() => {
-    const prev = document.body.style.backgroundColor;
-    document.body.style.backgroundColor = COLORS.deepNavy;
+    const root = document.documentElement;
+    const body = document.body;
+    const prevRoot = root.style.background;
+    const prevBody = body.style.background;
+    const prevBodyColor = body.style.backgroundColor;
+    const bg = COLORS.luxuryGradient;
+    root.style.background = bg;
+    body.style.background = bg;
+    body.style.backgroundColor = '';
     return () => {
-      document.body.style.backgroundColor = prev;
+      root.style.background = prevRoot;
+      body.style.background = prevBody;
+      body.style.backgroundColor = prevBodyColor;
     };
-  }, [COLORS.deepNavy]);
+  }, [COLORS.luxuryGradient]);
 
   useEffect(() => {
     if (authLoading || !user || sessionMismatch) return;
@@ -135,7 +144,7 @@ function LoginPageInner() {
 
   return (
     <div
-      className="min-h-screen relative overflow-hidden"
+      className="min-h-[100dvh] relative overflow-hidden"
       style={{ background: COLORS.luxuryGradient }}
     >
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -153,7 +162,7 @@ function LoginPageInner() {
         />
       </div>
 
-      <div className="relative mx-auto grid w-full max-w-6xl grid-cols-1 md:grid-cols-2 gap-0 md:gap-12 px-4 sm:px-6 min-h-screen">
+      <div className="relative mx-auto grid w-full max-w-6xl grid-cols-1 md:grid-cols-2 gap-0 md:gap-12 px-4 sm:px-6 min-h-[100dvh]">
         <motion.aside
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -516,9 +525,25 @@ function LoginPageInner() {
 
 function LoginPageFallback() {
   const { colorsB: COLORS } = useAppMode();
+  useEffect(() => {
+    const root = document.documentElement;
+    const body = document.body;
+    const prevRoot = root.style.background;
+    const prevBody = body.style.background;
+    const prevBodyColor = body.style.backgroundColor;
+    const bg = COLORS.luxuryGradient;
+    root.style.background = bg;
+    body.style.background = bg;
+    body.style.backgroundColor = '';
+    return () => {
+      root.style.background = prevRoot;
+      body.style.background = prevBody;
+      body.style.backgroundColor = prevBodyColor;
+    };
+  }, [COLORS.luxuryGradient]);
   return (
     <div
-      className="min-h-screen flex items-center justify-center"
+      className="min-h-[100dvh] flex items-center justify-center"
       style={{ background: COLORS.luxuryGradient }}
     >
       <Loader2 className="w-8 h-8 animate-spin" style={{ color: COLORS.champagneGold }} />

@@ -148,6 +148,23 @@ export default function LandingPage() {
   ];
   const heroImages = isCafe ? dayHeroImages : nightHeroImages;
 
+  useEffect(() => {
+    const root = document.documentElement;
+    const body = document.body;
+    const prevRoot = root.style.background;
+    const prevBody = body.style.background;
+    const prevBodyColor = body.style.backgroundColor;
+    const bg = colors.background;
+    root.style.background = bg;
+    body.style.background = bg;
+    body.style.backgroundColor = '';
+    return () => {
+      root.style.background = prevRoot;
+      body.style.background = prevBody;
+      body.style.backgroundColor = prevBodyColor;
+    };
+  }, [colors.background]);
+
   // 画像をプリロードして切り替え時の空白を防ぐ（夜モード・昼モード共通）
   useEffect(() => {
     [...nightHeroImages, ...dayHeroImages].forEach((src) => {
@@ -372,7 +389,7 @@ export default function LandingPage() {
   const prevSlide = () => { if (partnerStores.length === 0) return; setCurrentSlide((prev) => (prev - 1 + partnerStores.length) % partnerStores.length); };
 
   return (
-    <div className="min-h-screen overflow-x-hidden" style={{ background: colors.background }}>
+    <div className="min-h-[100dvh] overflow-x-hidden" style={{ background: colors.background }}>
       {/* 背景装飾エフェクト */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <motion.div className="absolute w-[700px] h-[700px] rounded-full" style={{ background: `radial-gradient(circle, ${colors.accent}10 0%, transparent 60%)`, top: '-250px', right: '-250px', filter: 'blur(80px)' }} animate={{ opacity: [0.3, 0.5, 0.3] }} transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }} />

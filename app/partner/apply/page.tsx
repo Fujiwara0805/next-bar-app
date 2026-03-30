@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Store,
@@ -916,7 +916,28 @@ function SuccessScreen() {
 
 export default function PartnerApplyPage() {
   const { colorsB: COLORS } = useAppMode();
-  const partnerApplyPageGradient = 'linear-gradient(165deg, ' + COLORS.deepNavy + ' 0%, ' + COLORS.midnightBlue + ' 50%, ' + COLORS.royalNavy + ' 100%)';
+  const partnerApplyPageGradient = useMemo(
+    () =>
+      `linear-gradient(165deg, ${COLORS.deepNavy} 0%, ${COLORS.midnightBlue} 50%, ${COLORS.royalNavy} 100%)`,
+    [COLORS.deepNavy, COLORS.midnightBlue, COLORS.royalNavy]
+  );
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const body = document.body;
+    const prevRoot = root.style.background;
+    const prevBody = body.style.background;
+    const prevBodyColor = body.style.backgroundColor;
+    root.style.background = partnerApplyPageGradient;
+    body.style.background = partnerApplyPageGradient;
+    body.style.backgroundColor = '';
+    return () => {
+      root.style.background = prevRoot;
+      body.style.background = prevBody;
+      body.style.backgroundColor = prevBodyColor;
+    };
+  }, [partnerApplyPageGradient]);
+
   const [currentStep, setCurrentStep] = useState(1);
   const [formValues, setFormValues] = useState<ApplicationFormValues>(
     getDefaultApplicationFormValues()
@@ -1042,7 +1063,7 @@ export default function PartnerApplyPage() {
   };
 
   return (
-    <div className="min-h-screen" style={{ background: partnerApplyPageGradient }}>
+    <div className="min-h-[100dvh]" style={{ background: partnerApplyPageGradient }}>
       {/* Header */}
       <header
         className="sticky top-0 z-50 backdrop-blur-md"
