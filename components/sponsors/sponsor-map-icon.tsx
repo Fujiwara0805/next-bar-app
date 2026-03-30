@@ -43,10 +43,8 @@ export function SponsorMapIcon() {
   if (icons.length === 0) return null;
 
   return (
-    <div className="absolute top-0 left-0 z-20 pointer-events-none">
+    <div className="fixed top-20 left-4 z-20 flex flex-col items-start gap-3 pointer-events-none safe-top">
       {icons.map((icon, index) => {
-        const top = icon.icon_position?.top || `${16 + index * 64}px`;
-        const left = icon.icon_position?.left || '16px';
         const size = icon.icon_size || 48;
 
         const content = icon.icon_url ? (
@@ -55,14 +53,14 @@ export function SponsorMapIcon() {
             alt={icon.company_name}
             width={size}
             height={size}
-            className="rounded-lg shadow-md object-cover"
+            className="rounded-xl shadow-lg object-cover"
             onError={(e) => {
               e.currentTarget.style.display = 'none';
             }}
           />
         ) : (
           <div
-            className="rounded-lg shadow-md bg-gradient-to-br from-[#C9A86C] to-[#A88B5A] flex items-center justify-center text-white font-bold text-xs"
+            className="rounded-xl shadow-lg bg-gradient-to-br from-[#C9A86C] to-[#A88B5A] flex items-center justify-center text-white font-bold text-xs"
             style={{ width: size, height: size }}
           >
             {icon.company_name.charAt(0)}
@@ -72,38 +70,42 @@ export function SponsorMapIcon() {
         return (
           <motion.div
             key={icon.creative_id}
-            className="absolute pointer-events-auto cursor-pointer"
-            style={{ top, left }}
-            animate={{ y: [0, -6, 0] }}
-            transition={{
-              duration: 1.5,
-              repeat: Infinity,
-              repeatDelay: 1.5,
-              delay: index * 0.5,
-            }}
+            className="pointer-events-auto cursor-pointer"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: index * 0.15, duration: 0.3 }}
           >
-            <div className="relative">
-              {icon.cta_url ? (
-                <a
-                  href={icon.cta_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={() => handleClick(icon)}
-                  className="block"
-                >
-                  {content}
-                </a>
-              ) : (
-                <div onClick={() => handleClick(icon)}>
-                  {content}
-                </div>
-              )}
+            <motion.div
+              animate={{ y: [0, -5, 0] }}
+              transition={{
+                duration: 1.8,
+                repeat: Infinity,
+                repeatDelay: 2,
+                delay: index * 0.5,
+              }}
+            >
+              <div className="relative">
+                {icon.cta_url ? (
+                  <a
+                    href={icon.cta_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => handleClick(icon)}
+                    className="block"
+                  >
+                    {content}
+                  </a>
+                ) : (
+                  <div onClick={() => handleClick(icon)}>
+                    {content}
+                  </div>
+                )}
 
-              {/* AD badge */}
-              <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 text-[8px] font-bold bg-black/60 text-white px-1 py-px rounded">
-                AD
-              </span>
-            </div>
+                <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 text-[7px] font-bold bg-black/60 text-white px-1 py-px rounded">
+                  AD
+                </span>
+              </div>
+            </motion.div>
           </motion.div>
         );
       })}
