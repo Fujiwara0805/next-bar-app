@@ -116,8 +116,12 @@ export interface ReportSummary {
   total_impressions: number;
   total_clicks: number;
   total_cta_clicks: number;
+  total_conversions: number;
   avg_ctr: number;
   unique_users: number;
+  frequency: number;
+  estimated_cpm: number | null;
+  estimated_cpc: number | null;
 }
 
 export interface DailyReport {
@@ -126,6 +130,13 @@ export interface DailyReport {
   clicks: number;
   ctr: number;
   unique_users: number;
+}
+
+export interface CreativePerformance {
+  creative_id: string;
+  impressions: number;
+  clicks: number;
+  ctr: number;
 }
 
 export interface ReportResponse {
@@ -139,6 +150,8 @@ export interface ReportResponse {
     clicks: number;
     ctr: number;
   }[];
+  creative_performance: CreativePerformance[];
+  contract_total_price: number | null;
 }
 
 // ============================================

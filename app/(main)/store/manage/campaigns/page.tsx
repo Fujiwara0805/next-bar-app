@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
@@ -11,21 +11,18 @@ import {
   Edit,
   Trash2,
   Loader2,
-  ArrowLeft,
   AlertCircle,
   Check,
   X,
   ImageIcon,
   Upload,
-  Sparkles,
+  Timer,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Card } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
-// AlertDialog removed - using CustomModal for delete confirmation
 import { CustomModal } from '@/components/ui/custom-modal';
 import { useAuth } from '@/lib/auth/context';
 import { toast } from 'sonner';
@@ -36,7 +33,6 @@ import {
   getDefaultCampaignMasterFormValues,
   dbDataToCampaignMasterForm,
   campaignMasterFormSchema,
-  isCampaignValid,
   getCampaignRemainingDays,
 } from '@/lib/types/campaign';
 import {
@@ -45,40 +41,20 @@ import {
   updateCampaign,
   deleteCampaign,
 } from '@/lib/actions/campaign';
-import { useAppMode } from '@/lib/app-mode-context';
-
-// ============================================
-// 入力スタイル（ゴールドアクセント）
-// ============================================
-const inputStyles = {
-  base: `
-    w-full px-3 py-2.5 rounded-lg
-    bg-white border-2
-    transition-all duration-200
-    font-medium
-    placeholder:text-gray-400
-    focus:outline-none
-  `,
-  focus: `
-    focus:border-[#C9A86C] 
-    focus:ring-2 
-    focus:ring-[#C9A86C]/20
-  `,
-  default: 'border-gray-200 hover:border-gray-300',
-};
-
-const getInputClassName = (disabled?: boolean) => 
-  `${inputStyles.base} ${inputStyles.focus} ${inputStyles.default} ${disabled ? 'opacity-60 cursor-not-allowed' : ''}`;
+import { useAdminTheme } from '@/lib/admin-theme-context';
+import { AdminKpiCard, AdminKpiGrid, getKpiGradient } from '@/components/admin/admin-kpi-card';
+import { AdminDataTable, type AdminColumn } from '@/components/admin/admin-data-table';
+import { AdminStatusBadge } from '@/components/admin/admin-status-badge';
 
 // ============================================
 // メインコンポーネント
 // ============================================
 export default function CampaignsManagePage() {
-  const { colorsB: COLORS } = useAppMode();
+  const { colors: C, isDark } = useAdminTheme();
   const router = useRouter();
   const { profile, accountType } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   // 状態管理
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
@@ -88,11 +64,38 @@ export default function CampaignsManagePage() {
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
-  
+
   // 削除確認
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [campaignToDelete, setCampaignToDelete] = useState<Campaign | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  // KPI集計
+  const activeCampaigns = useMemo(() => campaigns.filter(c => c.is_active), [campaigns]);
+  const inactiveCampaigns = useMemo(() => campaigns.filter(c => !c.is_active), [campaigns]);
+  const endingSoonCount = useMemo(() => {
+    return activeCampaigns.filter(c => {
+      const days = getCampaignRemainingDays({
+        ...c,
+        startDate: c.start_date,
+        endDate: c.end_date,
+        isActive: c.is_active,
+      });
+      return days !== null && days >= 0 && days <= 7;
+    }).length;
+  }, [activeCampaigns]);
+
+  // 入力スタイルのクラス名生成
+  const getInputClassName = (disabled?: boolean) =>
+    `w-full px-3 py-2.5 rounded-lg border transition-all duration-200 font-medium focus:outline-none focus:ring-2 ${disabled ? 'opacity-60 cursor-not-allowed' : ''}`;
+
+  // 入力スタイルオブジェクト
+  const getInputStyle = () => ({
+    fontSize: '16px',
+    color: C.text,
+    backgroundColor: C.bgInput,
+    borderColor: C.border,
+  });
 
   // 認証チェック
   useEffect(() => {
@@ -100,7 +103,7 @@ export default function CampaignsManagePage() {
       router.push('/login');
       return;
     }
-    
+
     fetchCampaigns();
   }, [profile, accountType, router]);
 
@@ -242,7 +245,6 @@ export default function CampaignsManagePage() {
 
     try {
       if (editingCampaign) {
-        // 更新
         const result = await updateCampaign(editingCampaign.id, formValues);
         if (result.success) {
           toast.success('キャンペーンを更新しました', { position: 'top-center', duration: 1500 });
@@ -252,7 +254,6 @@ export default function CampaignsManagePage() {
           throw new Error(result.error);
         }
       } else {
-        // 新規作成
         const result = await createCampaign(formValues);
         if (result.success) {
           toast.success('キャンペーンを作成しました', { position: 'top-center', duration: 1500 });
@@ -306,7 +307,6 @@ export default function CampaignsManagePage() {
     value: CampaignMasterFormValues[K]
   ) => {
     setFormValues(prev => ({ ...prev, [key]: value }));
-    // エラーをクリア
     if (formErrors[key]) {
       setFormErrors(prev => {
         const newErrors = { ...prev };
@@ -319,181 +319,164 @@ export default function CampaignsManagePage() {
   // ローディング表示
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen" style={{ background: COLORS.luxuryGradient }}>
-        <div className="text-center">
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-          >
-            <Sparkles className="w-10 h-10 mx-auto mb-2" style={{ color: COLORS.champagneGold }} />
-          </motion.div>
-          <p className="text-sm font-bold" style={{ color: COLORS.ivory }}>読み込み中...</p>
-        </div>
+      <div className="flex items-center justify-center h-screen" style={{ background: C.bg }}>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center gap-3">
+          <Loader2 className="w-8 h-8 animate-spin" style={{ color: C.accent }} />
+          <p className="text-xs tracking-wider" style={{ color: C.textSubtle }}>Loading...</p>
+        </motion.div>
       </div>
     );
   }
 
-  // アクティブ・非アクティブでキャンペーンを分類
-  const activeCampaigns = campaigns.filter(c => c.is_active);
-  const inactiveCampaigns = campaigns.filter(c => !c.is_active);
-
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: COLORS.cardGradient }}>
-      {/* ヘッダー（店舗詳細画面準拠のラグジュアリーデザイン） */}
-      <header 
-        className="sticky top-0 z-20 safe-top"
-        style={{ 
-          background: COLORS.luxuryGradient,
-          borderBottom: `1px solid rgba(201, 168, 108, 0.2)`,
-        }}
-      >
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => router.push('/store/manage')}
-              className="rounded-full hover:bg-white/10"
-              style={{ color: COLORS.champagneGold }}
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-            <div className="text-center flex-1">
-              <h1 className="text-xl font-light tracking-widest flex items-center justify-center gap-2" style={{ color: COLORS.ivory }}>
-                <PartyPopper className="w-6 h-6" style={{ color: COLORS.champagneGold }} />
-                キャンペーン管理
-              </h1>
-              <p className="text-sm mt-1 font-bold" style={{ color: COLORS.platinum }}>
-                {activeCampaigns.length}件のアクティブなキャンペーン
-              </p>
-            </div>
-            <div className="w-10" /> {/* スペーサー */}
-          </div>
-        </div>
-      </header>
-
-      {/* メインコンテンツ */}
-      <main className="flex-1 max-w-4xl mx-auto w-full px-4 py-6">
-        {/* 新規作成ボタン（ゴールドグラデーション） */}
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-6"
-        >
-          <Button 
-            onClick={handleOpenCreateModal}
-            className="w-full sm:w-auto rounded-xl font-bold shadow-lg"
-            style={{ 
-              background: COLORS.goldGradient,
-              color: COLORS.deepNavy,
-              boxShadow: '0 8px 25px rgba(201, 168, 108, 0.35)',
-            }}
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            新しいキャンペーンを作成
-          </Button>
+    <div className="min-h-screen" style={{ background: C.bg }}>
+      <div className="max-w-6xl mx-auto px-6 md:px-8 py-8 space-y-8">
+        {/* ページタイトル */}
+        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}>
+          <h1 className="text-2xl font-bold tracking-tight" style={{ color: C.text }}>キャンペーン管理</h1>
+          <p className="text-sm mt-1" style={{ color: C.textSubtle }}>キャンペーンの作成・管理を行います</p>
         </motion.div>
 
-        {/* キャンペーン一覧 */}
-        {campaigns.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            <Card 
-              className="p-12 text-center rounded-2xl shadow-lg"
-              style={{ 
-                background: '#FFFFFF',
-                border: `1px solid rgba(201, 168, 108, 0.15)`,
-              }}
+        {/* KPI Cards - LINE Harness style */}
+        <AdminKpiGrid>
+          <AdminKpiCard icon={PartyPopper} label="全キャンペーン" value={campaigns.length} gradient={getKpiGradient('gold')} index={0} />
+          <AdminKpiCard icon={Check} label="アクティブ" value={activeCampaigns.length} subLabel="稼働中のシナリオ" gradient={getKpiGradient('green')} index={1} />
+          <AdminKpiCard icon={X} label="終了済み" value={inactiveCampaigns.length} gradient={getKpiGradient('slate')} index={2} />
+          <AdminKpiCard icon={Timer} label="残り7日以内" value={endingSoonCount} gradient={getKpiGradient('rose')} index={3} badge={endingSoonCount > 0 ? '注意' : undefined} />
+        </AdminKpiGrid>
+
+        {/* Campaign Section */}
+        <section>
+          <div className="flex items-center gap-3 mb-5">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.15em]" style={{ color: C.textSubtle }}>
+              Campaigns
+            </p>
+            {campaigns.length > 0 && (
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-medium" style={{ background: C.accentBg, color: C.accent }}>
+                {campaigns.length}
+              </span>
+            )}
+            <div className="flex-1 h-px" style={{ background: C.borderSubtle }} />
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={handleOpenCreateModal}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold"
+              style={{ background: C.accent, color: '#fff' }}
             >
-              <PartyPopper className="w-16 h-16 mx-auto mb-4" style={{ color: COLORS.champagneGold }} />
-              <h2 className="text-xl font-bold mb-2" style={{ color: COLORS.deepNavy }}>
+              <Plus className="w-3.5 h-3.5" />
+              新規作成
+            </motion.button>
+          </div>
+
+          {/* キャンペーン一覧 - テーブル形式 */}
+          {campaigns.length === 0 ? (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="p-16 text-center rounded-xl"
+              style={{ background: C.bgCard, border: `1px dashed ${C.border}` }}
+            >
+              <PartyPopper className="w-16 h-16 mx-auto mb-4" style={{ color: C.textSubtle }} />
+              <h3 className="text-base font-semibold mb-1.5" style={{ color: C.text }}>
                 キャンペーンがまだありません
-              </h2>
-              <p className="mb-6 font-bold" style={{ color: COLORS.warmGray }}>
+              </h3>
+              <p className="text-sm mb-6" style={{ color: C.textMuted }}>
                 地域のイベントや季節のキャンペーンを作成して、店舗に参加を促しましょう
               </p>
               <Button
                 onClick={handleOpenCreateModal}
-                className="rounded-xl font-bold shadow-lg"
-                style={{ 
-                  background: COLORS.goldGradient,
-                  color: COLORS.deepNavy,
-                  boxShadow: '0 8px 25px rgba(201, 168, 108, 0.35)',
-                }}
+                className="rounded-lg font-semibold text-sm px-6"
+                style={{ background: C.accent, color: '#fff' }}
               >
-                <Plus className="w-4 h-4 mr-2" />
+                <Plus className="w-4 h-4 mr-1.5" />
                 キャンペーンを作成
               </Button>
-            </Card>
-          </motion.div>
-        ) : (
-          <div className="space-y-6">
-            {/* アクティブなキャンペーン */}
-            {activeCampaigns.length > 0 && (
-              <div>
-                <div className="flex items-center gap-3 mb-4">
-                  <div 
-                    className="p-2 rounded-lg"
-                    style={{ background: COLORS.goldGradient }}
-                  >
-                    <Check className="w-4 h-4" style={{ color: COLORS.deepNavy }} />
-                  </div>
-                  <h2 className="text-lg font-bold" style={{ color: COLORS.deepNavy }}>
-                    アクティブなキャンペーン
-                  </h2>
-                </div>
-                <div className="grid gap-4">
-                  <AnimatePresence mode="popLayout">
-                    {activeCampaigns.map((campaign, index) => (
-                      <CampaignCard
-                        key={campaign.id}
-                        campaign={campaign}
-                        index={index}
-                        onEdit={() => handleOpenEditModal(campaign)}
-                        onDelete={() => handleOpenDeleteDialog(campaign)}
-                      />
-                    ))}
-                  </AnimatePresence>
-                </div>
-              </div>
-            )}
+            </motion.div>
+          ) : (
+            <AdminDataTable
+              columns={[
+                {
+                  key: 'name',
+                  header: 'キャンペーン名',
+                  width: '2fr',
+                  render: (c: Campaign) => (
+                    <div className="flex items-center gap-2.5">
+                      <PartyPopper className="w-4 h-4 flex-shrink-0" style={{ color: c.is_active ? C.accent : C.textSubtle }} />
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold truncate" style={{ color: C.text }}>{c.name}</p>
+                        {c.description && <p className="text-xs truncate" style={{ color: C.textSubtle }}>{c.description}</p>}
+                      </div>
+                    </div>
+                  ),
+                },
+                {
+                  key: 'status',
+                  header: 'ステータス',
+                  width: '120px',
+                  render: (c: Campaign) => {
+                    const days = getCampaignRemainingDays({ ...c, startDate: c.start_date, endDate: c.end_date, isActive: c.is_active });
+                    const isExpired = days !== null && days < 0;
+                    if (!c.is_active || isExpired) return <AdminStatusBadge label="終了" variant="neutral" />;
+                    if (days !== null && days <= 7) return <AdminStatusBadge label={`残り${days}日`} variant="danger" dot />;
+                    return <AdminStatusBadge label="アクティブ" variant="success" dot />;
+                  },
+                },
+                {
+                  key: 'period',
+                  header: '期間',
+                  width: '180px',
+                  hideOnMobile: true,
+                  render: (c: Campaign) => (
+                    <span className="text-xs" style={{ color: C.textMuted }}>
+                      {new Date(c.start_date).toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' })}
+                      {' 〜 '}
+                      {new Date(c.end_date).toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' })}
+                    </span>
+                  ),
+                },
+                {
+                  key: 'created',
+                  header: '作成日',
+                  width: '100px',
+                  hideOnMobile: true,
+                  render: (c: Campaign) => (
+                    <span className="text-xs" style={{ color: C.textSubtle }}>
+                      {new Date(c.created_at).toLocaleDateString('ja-JP')}
+                    </span>
+                  ),
+                },
+                {
+                  key: 'actions',
+                  header: '',
+                  width: '100px',
+                  render: (c: Campaign) => (
+                    <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                      <button onClick={() => handleOpenEditModal(c)} className="p-1.5 rounded-md transition-colors" style={{ color: C.accent }}
+                        onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = C.accentBg; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}>
+                        <Edit className="w-3.5 h-3.5" />
+                      </button>
+                      <button onClick={() => handleOpenDeleteDialog(c)} className="p-1.5 rounded-md transition-colors" style={{ color: C.danger }}
+                        onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = C.dangerBg; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}>
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ),
+                },
+              ] as AdminColumn<Campaign>[]}
+              data={[...activeCampaigns, ...inactiveCampaigns]}
+              keyExtractor={(c) => c.id}
+              onRowClick={(c) => handleOpenEditModal(c)}
+              emptyIcon={<PartyPopper className="w-12 h-12" style={{ color: C.textSubtle }} />}
+              emptyTitle="キャンペーンがまだありません"
+            />
+          )}
+        </section>
+      </div>
 
-            {/* 非アクティブなキャンペーン */}
-            {inactiveCampaigns.length > 0 && (
-              <div>
-                <div className="flex items-center gap-3 mb-4">
-                  <div 
-                    className="p-2 rounded-lg"
-                    style={{ backgroundColor: 'rgba(156, 163, 175, 0.15)' }}
-                  >
-                    <X className="w-4 h-4 text-gray-400" />
-                  </div>
-                  <h2 className="text-lg font-bold" style={{ color: COLORS.warmGray }}>
-                    終了したキャンペーン
-                  </h2>
-                </div>
-                <div className="grid gap-4 opacity-60">
-                  <AnimatePresence mode="popLayout">
-                    {inactiveCampaigns.map((campaign, index) => (
-                      <CampaignCard
-                        key={campaign.id}
-                        campaign={campaign}
-                        index={index}
-                        onEdit={() => handleOpenEditModal(campaign)}
-                        onDelete={() => handleOpenDeleteDialog(campaign)}
-                      />
-                    ))}
-                  </AnimatePresence>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-      </main>
-
-      {/* 作成/編集モーダル（店舗詳細画面準拠のラグジュアリーデザイン） */}
+      {/* 作成/編集モーダル */}
       <CustomModal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
@@ -505,10 +488,10 @@ export default function CampaignsManagePage() {
             <Label
               htmlFor="campaign-name"
               className="text-sm font-bold flex items-center gap-1.5"
-              style={{ color: COLORS.deepNavy }}
+              style={{ color: C.text }}
             >
-              <PartyPopper className="w-3.5 h-3.5" style={{ color: COLORS.champagneGold }} />
-              キャンペーン名 <span style={{ color: COLORS.champagneGold }}>*</span>
+              <PartyPopper className="w-3.5 h-3.5" style={{ color: C.accent }} />
+              キャンペーン名 <span style={{ color: C.accent }}>*</span>
             </Label>
             <Input
               id="campaign-name"
@@ -517,7 +500,7 @@ export default function CampaignsManagePage() {
               placeholder="例：別府温泉まつり2026"
               disabled={saving}
               className={getInputClassName(saving)}
-              style={{ fontSize: '16px', color: COLORS.charcoal }}
+              style={getInputStyle()}
             />
             {formErrors.name && (
               <p className="text-xs text-red-500 flex items-center gap-1">
@@ -532,7 +515,7 @@ export default function CampaignsManagePage() {
             <Label
               htmlFor="campaign-description"
               className="text-sm font-bold"
-              style={{ color: COLORS.deepNavy }}
+              style={{ color: C.text }}
             >
               説明
             </Label>
@@ -544,7 +527,7 @@ export default function CampaignsManagePage() {
               rows={2}
               disabled={saving}
               className={getInputClassName(saving)}
-              style={{ fontSize: '16px', minHeight: '60px', color: COLORS.charcoal }}
+              style={{ ...getInputStyle(), minHeight: '60px' }}
             />
           </div>
 
@@ -552,9 +535,9 @@ export default function CampaignsManagePage() {
           <div className="space-y-1">
             <Label
               className="text-sm font-bold flex items-center gap-1.5"
-              style={{ color: COLORS.deepNavy }}
+              style={{ color: C.text }}
             >
-              <ImageIcon className="w-3.5 h-3.5" style={{ color: COLORS.champagneGold }} />
+              <ImageIcon className="w-3.5 h-3.5" style={{ color: C.accent }} />
               キャンペーン画像
             </Label>
 
@@ -591,25 +574,25 @@ export default function CampaignsManagePage() {
               <label
                 className="flex items-center justify-center gap-3 p-4 rounded-lg cursor-pointer transition-all"
                 style={{
-                  border: `2px dashed rgba(201, 168, 108, 0.4)`,
-                  backgroundColor: 'rgba(201, 168, 108, 0.05)',
+                  border: `2px dashed ${C.border}`,
+                  backgroundColor: C.accentBg,
                 }}
               >
                 {uploadingImage ? (
-                  <Loader2 className="w-6 h-6 animate-spin" style={{ color: COLORS.champagneGold }} />
+                  <Loader2 className="w-6 h-6 animate-spin" style={{ color: C.accent }} />
                 ) : (
                   <>
                     <div
                       className="p-2 rounded-full"
-                      style={{ backgroundColor: 'rgba(201, 168, 108, 0.15)' }}
+                      style={{ backgroundColor: C.accentBg }}
                     >
-                      <Upload className="w-5 h-5" style={{ color: COLORS.champagneGold }} />
+                      <Upload className="w-5 h-5" style={{ color: C.accent }} />
                     </div>
                     <div>
-                      <p className="font-bold text-sm" style={{ color: COLORS.deepNavy }}>
+                      <p className="font-bold text-sm" style={{ color: C.text }}>
                         画像をアップロード
                       </p>
-                      <p className="text-xs" style={{ color: COLORS.warmGray }}>
+                      <p className="text-xs" style={{ color: C.textMuted }}>
                         PNG, JPG, WEBP（最大10MB）
                       </p>
                     </div>
@@ -633,10 +616,10 @@ export default function CampaignsManagePage() {
               <Label
                 htmlFor="campaign-start"
                 className="text-sm font-bold flex items-center gap-1.5"
-                style={{ color: COLORS.deepNavy }}
+                style={{ color: C.text }}
               >
-                <Calendar className="w-3.5 h-3.5" style={{ color: COLORS.champagneGold }} />
-                開始日 <span style={{ color: COLORS.champagneGold }}>*</span>
+                <Calendar className="w-3.5 h-3.5" style={{ color: C.accent }} />
+                開始日 <span style={{ color: C.accent }}>*</span>
               </Label>
               <Input
                 id="campaign-start"
@@ -645,7 +628,7 @@ export default function CampaignsManagePage() {
                 onChange={(e) => handleFormChange('startDate', e.target.value)}
                 disabled={saving}
                 className={getInputClassName(saving)}
-                style={{ fontSize: '16px', color: COLORS.charcoal }}
+                style={getInputStyle()}
               />
               {formErrors.startDate && (
                 <p className="text-xs text-red-500">{formErrors.startDate}</p>
@@ -656,10 +639,10 @@ export default function CampaignsManagePage() {
               <Label
                 htmlFor="campaign-end"
                 className="text-sm font-bold flex items-center gap-1.5"
-                style={{ color: COLORS.deepNavy }}
+                style={{ color: C.text }}
               >
-                <Calendar className="w-3.5 h-3.5" style={{ color: COLORS.champagneGold }} />
-                終了日 <span style={{ color: COLORS.champagneGold }}>*</span>
+                <Calendar className="w-3.5 h-3.5" style={{ color: C.accent }} />
+                終了日 <span style={{ color: C.accent }}>*</span>
               </Label>
               <Input
                 id="campaign-end"
@@ -668,7 +651,7 @@ export default function CampaignsManagePage() {
                 onChange={(e) => handleFormChange('endDate', e.target.value)}
                 disabled={saving}
                 className={getInputClassName(saving)}
-                style={{ fontSize: '16px', color: COLORS.charcoal }}
+                style={getInputStyle()}
               />
               {formErrors.endDate && (
                 <p className="text-xs text-red-500">{formErrors.endDate}</p>
@@ -680,15 +663,15 @@ export default function CampaignsManagePage() {
           <div
             className="flex items-center justify-between p-3 rounded-lg"
             style={{
-              backgroundColor: 'rgba(201, 168, 108, 0.1)',
-              border: `1px solid rgba(201, 168, 108, 0.2)`,
+              backgroundColor: C.accentBg,
+              border: `1px solid ${C.border}`,
             }}
           >
             <div>
-              <Label className="text-sm font-bold" style={{ color: COLORS.deepNavy }}>
+              <Label className="text-sm font-bold" style={{ color: C.text }}>
                 キャンペーンを有効にする
               </Label>
-              <p className="text-xs" style={{ color: COLORS.warmGray }}>
+              <p className="text-xs" style={{ color: C.textMuted }}>
                 有効にすると店舗側で選択できます
               </p>
             </div>
@@ -707,9 +690,9 @@ export default function CampaignsManagePage() {
               onClick={handleCloseModal}
               disabled={saving}
               style={{
-                borderColor: 'rgba(201, 168, 108, 0.3)',
-                backgroundColor: 'rgba(201, 168, 108, 0.08)',
-                color: COLORS.charcoal,
+                borderColor: C.border,
+                backgroundColor: C.bgInput,
+                color: C.text,
               }}
             >
               キャンセル
@@ -719,9 +702,8 @@ export default function CampaignsManagePage() {
               onClick={handleSave}
               disabled={saving}
               style={{
-                background: COLORS.goldGradient,
-                color: COLORS.deepNavy,
-                boxShadow: '0 8px 25px rgba(201, 168, 108, 0.35)',
+                background: C.accent,
+                color: '#fff',
               }}
             >
               {saving ? (
@@ -739,7 +721,7 @@ export default function CampaignsManagePage() {
         </div>
       </CustomModal>
 
-      {/* 削除確認ダイアログ（CustomModal） */}
+      {/* 削除確認ダイアログ */}
       <CustomModal
         isOpen={deleteDialogOpen}
         onClose={() => !deleting && setDeleteDialogOpen(false)}
@@ -750,17 +732,17 @@ export default function CampaignsManagePage() {
           <div className="text-center">
             <div
               className="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center"
-              style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)' }}
+              style={{ backgroundColor: C.dangerBg }}
             >
-              <Trash2 className="w-6 h-6 text-red-500" />
+              <Trash2 className="w-6 h-6" style={{ color: C.danger }} />
             </div>
-            <h3 className="text-lg font-bold" style={{ color: COLORS.deepNavy }}>
+            <h3 className="text-lg font-bold" style={{ color: C.text }}>
               キャンペーンを削除しますか？
             </h3>
           </div>
           {campaignToDelete && (
-            <p className="text-sm text-center" style={{ color: COLORS.warmGray }}>
-              <span className="font-bold" style={{ color: COLORS.charcoal }}>{campaignToDelete.name}</span>
+            <p className="text-sm text-center" style={{ color: C.textMuted }}>
+              <span className="font-bold" style={{ color: C.text }}>{campaignToDelete.name}</span>
               を完全に削除します。この操作は取り消せません。
               <br />
               <br />
@@ -774,17 +756,21 @@ export default function CampaignsManagePage() {
               onClick={() => setDeleteDialogOpen(false)}
               disabled={deleting}
               style={{
-                borderColor: 'rgba(201, 168, 108, 0.3)',
-                backgroundColor: 'rgba(201, 168, 108, 0.08)',
-                color: COLORS.charcoal,
+                borderColor: C.border,
+                backgroundColor: C.bgInput,
+                color: C.text,
               }}
             >
               キャンセル
             </Button>
             <Button
-              className="flex-1 font-bold rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="flex-1 font-bold rounded-xl"
               onClick={handleDeleteConfirm}
               disabled={deleting}
+              style={{
+                background: C.danger,
+                color: '#fff',
+              }}
             >
               {deleting ? (
                 <>
@@ -816,119 +802,113 @@ interface CampaignCardProps {
 }
 
 function CampaignCard({ campaign, index, onEdit, onDelete }: CampaignCardProps) {
-  const { colorsB: COLORS } = useAppMode();
+  const { colors: C } = useAdminTheme();
   const remainingDays = getCampaignRemainingDays({
     ...campaign,
     startDate: campaign.start_date,
     endDate: campaign.end_date,
     isActive: campaign.is_active,
   });
-  
+
   const isExpired = remainingDays !== null && remainingDays < 0;
   const isEndingSoon = remainingDays !== null && remainingDays >= 0 && remainingDays <= 7;
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.9 }}
-      transition={{ delay: index * 0.05 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      transition={{ delay: index * 0.03 }}
+      className="overflow-hidden rounded-xl transition-all"
+      style={{
+        background: C.bgCard,
+        border: `1px solid ${C.border}`,
+        borderLeft: `3px solid ${campaign.is_active ? C.success : C.textSubtle}`,
+      }}
+      onMouseEnter={(e) => { e.currentTarget.style.borderColor = C.accent + '40'; e.currentTarget.style.borderLeftColor = campaign.is_active ? C.success : C.textSubtle; }}
+      onMouseLeave={(e) => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.borderLeftColor = campaign.is_active ? C.success : C.textSubtle; }}
     >
-      <Card 
-        className="overflow-hidden rounded-2xl shadow-lg"
-        style={{ 
-          background: '#FFFFFF',
-          border: `1px solid ${campaign.is_active ? 'rgba(201, 168, 108, 0.2)' : 'rgba(0, 0, 0, 0.05)'}`,
-        }}
-      >
-        <div className="p-4">
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-2">
-                <div 
-                  className="p-1.5 rounded-lg"
-                  style={{ 
-                    background: campaign.is_active ? COLORS.goldGradient : 'rgba(156, 163, 175, 0.1)',
+      <div className="p-4">
+        <div className="flex items-start justify-between">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-2">
+              <PartyPopper
+                className="w-4 h-4 flex-shrink-0"
+                style={{ color: campaign.is_active ? C.accent : C.textSubtle }}
+              />
+              <h3 className="font-semibold text-sm tracking-tight truncate" style={{ color: C.text }}>
+                {campaign.name}
+              </h3>
+            </div>
+
+            {campaign.description && (
+              <p className="text-[11px] mb-3 line-clamp-2" style={{ color: C.textMuted }}>
+                {campaign.description}
+              </p>
+            )}
+
+            <div className="flex flex-wrap items-center gap-3">
+              {/* 期間 */}
+              <div className="flex items-center gap-1" style={{ color: C.textMuted }}>
+                <Calendar className="w-3 h-3" style={{ color: C.accent }} />
+                <span className="text-[11px]">
+                  {new Date(campaign.start_date).toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' })}
+                  {' 〜 '}
+                  {new Date(campaign.end_date).toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' })}
+                </span>
+              </div>
+
+              {/* 残り日数 */}
+              {campaign.is_active && !isExpired && remainingDays !== null && (
+                <span
+                  className="px-2 py-0.5 rounded-full text-[10px] font-bold"
+                  style={{
+                    backgroundColor: isEndingSoon ? C.dangerBg : C.accentBg,
+                    color: isEndingSoon ? C.danger : C.accent,
                   }}
                 >
-                  <PartyPopper 
-                    className="w-4 h-4" 
-                    style={{ color: campaign.is_active ? COLORS.deepNavy : '#9CA3AF' }} 
-                  />
-                </div>
-                <h3 className="font-bold text-lg" style={{ color: COLORS.deepNavy }}>
-                  {campaign.name}
-                </h3>
-              </div>
-              
-              {campaign.description && (
-                <p className="text-sm mb-3" style={{ color: COLORS.warmGray }}>
-                  {campaign.description}
-                </p>
+                  {isEndingSoon ? `残り${remainingDays}日` : `あと${remainingDays}日`}
+                </span>
               )}
-              
-              <div className="flex flex-wrap items-center gap-3 text-sm">
-                {/* 期間 */}
-                <div className="flex items-center gap-1" style={{ color: COLORS.warmGray }}>
-                  <Calendar className="w-4 h-4" style={{ color: COLORS.champagneGold }} />
-                  <span>
-                    {new Date(campaign.start_date).toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' })}
-                    {' 〜 '}
-                    {new Date(campaign.end_date).toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' })}
-                  </span>
-                </div>
-                
-                {/* 残り日数 */}
-                {campaign.is_active && !isExpired && remainingDays !== null && (
-                  <span 
-                    className="px-2 py-0.5 rounded-full text-xs font-bold"
-                    style={{ 
-                      backgroundColor: isEndingSoon ? 'rgba(239, 68, 68, 0.1)' : 'rgba(201, 168, 108, 0.15)',
-                      color: isEndingSoon ? '#EF4444' : COLORS.antiqueGold,
-                    }}
-                  >
-                    {isEndingSoon ? `残り${remainingDays}日` : `あと${remainingDays}日`}
-                  </span>
-                )}
-                
-                {isExpired && (
-                  <span 
-                    className="px-2 py-0.5 rounded-full text-xs font-bold"
-                    style={{ 
-                      backgroundColor: 'rgba(156, 163, 175, 0.1)',
-                      color: '#9CA3AF',
-                    }}
-                  >
-                    終了済み
-                  </span>
-                )}
-              </div>
-            </div>
-            
-            <div className="flex gap-1 ml-4">
-              <Button
-                size="icon"
-                variant="ghost"
-                onClick={onEdit}
-                title="編集"
-                className="hover:bg-[#C9A86C]/10"
-                style={{ color: COLORS.champagneGold }}
-              >
-                <Edit className="w-4 h-4" />
-              </Button>
-              <Button
-                size="icon"
-                variant="ghost"
-                onClick={onDelete}
-                className="text-destructive hover:text-destructive hover:bg-red-50"
-                title="削除"
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
+
+              {isExpired && (
+                <span
+                  className="px-2 py-0.5 rounded-full text-[10px] font-bold"
+                  style={{
+                    backgroundColor: C.bgElevated,
+                    color: C.textSubtle,
+                  }}
+                >
+                  終了済み
+                </span>
+              )}
             </div>
           </div>
+
+          <div className="flex gap-1 ml-4">
+            <button
+              onClick={onEdit}
+              className="flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium transition-all"
+              style={{ color: C.accent }}
+              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = C.accentBg; }}
+              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+            >
+              <Edit className="w-3 h-3" />
+              編集
+            </button>
+            <button
+              onClick={onDelete}
+              className="flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium transition-all"
+              style={{ color: C.danger }}
+              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = C.dangerBg; }}
+              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+            >
+              <Trash2 className="w-3 h-3" />
+              削除
+            </button>
+          </div>
         </div>
-      </Card>
+      </div>
     </motion.div>
   );
 }

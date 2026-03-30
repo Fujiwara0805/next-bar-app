@@ -16,6 +16,9 @@ import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase/client';
 import { defaultSponsorFormValues, sponsorFormSchema, type SponsorFormValues } from '@/lib/sponsors/schemas';
 import type { Sponsor } from '@/lib/sponsors/types';
+import { AdminKpiCard, AdminKpiGrid, getKpiGradient } from '@/components/admin/admin-kpi-card';
+import { AdminDataTable, type AdminColumn } from '@/components/admin/admin-data-table';
+import { AdminStatusBadge } from '@/components/admin/admin-status-badge';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -192,202 +195,128 @@ export default function SponsorsPage() {
         {/* Page Header */}
         <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight" style={{ color: C.text }}>
-              Sponsor Management
-            </h1>
-            <p className="text-sm mt-1" style={{ color: C.textSubtle }}>
-              {filtered.length} sponsors
-            </p>
+            <h1 className="text-2xl font-bold tracking-tight" style={{ color: C.text }}>スポンサー管理</h1>
+            <p className="text-sm mt-1" style={{ color: C.textSubtle }}>{filtered.length} スポンサー</p>
           </div>
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={openCreate}
+          <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={openCreate}
             className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold"
-            style={{ background: C.accent, color: '#fff' }}
-          >
-            <Plus className="w-4 h-4" />
-            New Sponsor
+            style={{ background: C.accent, color: '#fff' }}>
+            <Plus className="w-4 h-4" /> 新規登録
           </motion.button>
         </motion.div>
+
+        {/* KPI Cards */}
+        <AdminKpiGrid>
+          <AdminKpiCard icon={Building2} label="全スポンサー" value={sponsors.length} gradient={getKpiGradient('purple')} index={0} />
+          <AdminKpiCard icon={CheckCircle2} label="アクティブ" value={sponsors.filter(s => s.is_active).length} subLabel="契約中" gradient={getKpiGradient('green')} index={1} />
+          <AdminKpiCard icon={XCircle} label="非アクティブ" value={sponsors.filter(s => !s.is_active).length} gradient={getKpiGradient('slate')} index={2} />
+        </AdminKpiGrid>
 
         {/* Filters */}
         <div className="flex flex-wrap items-center gap-3">
           <div className="relative flex-1 min-w-[200px] max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: C.textSubtle }} />
-            <input
-              type="text"
-              placeholder="企業名・担当者・メールで検索..."
-              value={searchQuery}
+            <input type="text" placeholder="企業名・担当者・メールで検索..." value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-lg text-sm outline-none transition-colors"
-              style={inputStyle}
-            />
+              className="w-full pl-10 pr-4 py-2.5 rounded-lg text-sm outline-none transition-colors" style={inputStyle} />
           </div>
           {(['all', 'active', 'inactive'] as const).map((f) => (
-            <motion.button
-              key={f}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setStatusFilter(f)}
+            <motion.button key={f} whileTap={{ scale: 0.95 }} onClick={() => setStatusFilter(f)}
               className="px-3 py-2 rounded-lg text-xs font-medium transition-colors"
-              style={{
-                background: statusFilter === f ? C.accentBg : C.bgCard,
-                color: statusFilter === f ? C.accent : C.textMuted,
-                border: `1px solid ${statusFilter === f ? C.accent : C.border}`,
-              }}
-            >
-              {f === 'all' ? 'All' : f === 'active' ? 'Active' : 'Inactive'}
+              style={{ background: statusFilter === f ? C.accentBg : C.bgCard, color: statusFilter === f ? C.accent : C.textMuted, border: `1px solid ${statusFilter === f ? C.accent : C.border}` }}>
+              {f === 'all' ? 'すべて' : f === 'active' ? 'アクティブ' : '非アクティブ'}
             </motion.button>
           ))}
         </div>
 
-        {/* Content */}
+        {/* Sponsor Table */}
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <Loader2 className="w-6 h-6 animate-spin" style={{ color: C.accent }} />
           </div>
-        ) : paginated.length === 0 ? (
-          <div className="text-center py-20">
-            <Building2 className="w-12 h-12 mx-auto mb-3" style={{ color: C.textSubtle }} />
-            <p className="text-sm" style={{ color: C.textMuted }}>
-              {searchQuery ? '検索結果がありません' : 'スポンサーが登録されていません'}
-            </p>
-          </div>
         ) : (
           <>
-            {/* Desktop Table */}
-            <div className="hidden md:block rounded-xl overflow-hidden" style={{ border: `1px solid ${C.border}` }}>
-              <div
-                className="grid grid-cols-[1fr_120px_100px_100px_80px] gap-4 px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.12em]"
-                style={{ background: C.bgElevated, color: C.textSubtle, borderBottom: `1px solid ${C.border}` }}
-              >
-                <span>企業名</span>
-                <span>連絡先</span>
-                <span>契約数</span>
-                <span>ステータス</span>
-                <span></span>
-              </div>
-              <AnimatePresence>
-                {paginated.map((sponsor, idx) => (
-                  <motion.div
-                    key={sponsor.id}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: idx * 0.03 }}
-                    className="grid grid-cols-[1fr_120px_100px_100px_80px] gap-4 px-5 py-3.5 items-center cursor-pointer transition-colors relative"
-                    style={{ background: C.bgCard, borderBottom: `1px solid ${C.borderSubtle}` }}
-                    onMouseEnter={(e) => { e.currentTarget.style.background = C.bgCardHover; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.background = C.bgCard; }}
-                    onClick={() => handleSponsorClick(sponsor.id)}
-                  >
-                    {navigatingId === sponsor.id && (
-                      <div className="absolute inset-0 z-10 flex items-center justify-center" style={{ background: isDark ? 'rgba(0,0,0,0.4)' : 'rgba(255,255,255,0.6)' }}>
-                        <Loader2 className="w-5 h-5 animate-spin" style={{ color: C.accent }} />
-                      </div>
-                    )}
-                    <div className="flex items-center gap-3 min-w-0">
+            <AdminDataTable
+              columns={[
+                {
+                  key: 'company',
+                  header: '企業名',
+                  width: '2fr',
+                  render: (s: Sponsor) => (
+                    <div className="flex items-center gap-3 relative">
+                      {navigatingId === s.id && (
+                        <div className="absolute inset-0 z-10 flex items-center justify-center">
+                          <Loader2 className="w-4 h-4 animate-spin" style={{ color: C.accent }} />
+                        </div>
+                      )}
                       <div className="w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold shrink-0" style={{ background: C.accentBg, color: C.accent }}>
-                        {sponsor.company_name.charAt(0)}
+                        {s.company_name.charAt(0)}
                       </div>
                       <div className="min-w-0">
-                        <p className="text-sm font-semibold truncate" style={{ color: C.text }}>{sponsor.company_name}</p>
-                        {sponsor.website_url && (
-                          <p className="text-[11px] truncate" style={{ color: C.textSubtle }}>{sponsor.website_url.replace(/^https?:\/\//, '')}</p>
-                        )}
+                        <p className="text-sm font-semibold truncate" style={{ color: C.text }}>{s.company_name}</p>
+                        {s.contact_name && <p className="text-xs truncate" style={{ color: C.textSubtle }}>{s.contact_name}</p>}
                       </div>
                     </div>
+                  ),
+                },
+                {
+                  key: 'status',
+                  header: 'ステータス',
+                  width: '120px',
+                  render: (s: Sponsor) => (
+                    <AdminStatusBadge label={s.is_active ? 'アクティブ' : '非アクティブ'} variant={s.is_active ? 'success' : 'neutral'} dot />
+                  ),
+                },
+                {
+                  key: 'contracts',
+                  header: '契約数',
+                  width: '80px',
+                  hideOnMobile: true,
+                  render: (s: Sponsor) => (
+                    <span className="text-sm font-medium" style={{ color: C.text }}>{contractCounts[s.id] ?? 0}</span>
+                  ),
+                },
+                {
+                  key: 'contact',
+                  header: '連絡先',
+                  width: '120px',
+                  hideOnMobile: true,
+                  render: (s: Sponsor) => (
                     <div className="flex items-center gap-1.5">
-                      {sponsor.contact_email && <Mail className="w-3.5 h-3.5" style={{ color: C.textSubtle }} />}
-                      {sponsor.contact_phone && <Phone className="w-3.5 h-3.5" style={{ color: C.textSubtle }} />}
-                      {sponsor.website_url && <Globe className="w-3.5 h-3.5" style={{ color: C.textSubtle }} />}
-                      {!sponsor.contact_email && !sponsor.contact_phone && !sponsor.website_url && (
-                        <span className="text-xs" style={{ color: C.textSubtle }}>-</span>
-                      )}
+                      {s.contact_email && <Mail className="w-3.5 h-3.5" style={{ color: C.textSubtle }} />}
+                      {s.contact_phone && <Phone className="w-3.5 h-3.5" style={{ color: C.textSubtle }} />}
+                      {s.website_url && <Globe className="w-3.5 h-3.5" style={{ color: C.textSubtle }} />}
+                      {!s.contact_email && !s.contact_phone && !s.website_url && <span className="text-xs" style={{ color: C.textSubtle }}>—</span>}
                     </div>
-                    <div className="flex items-center gap-1.5">
-                      <FileText className="w-3.5 h-3.5" style={{ color: C.textSubtle }} />
-                      <span className="text-sm font-medium" style={{ color: C.text }}>{contractCounts[sponsor.id] ?? 0}</span>
-                    </div>
-                    <div>
-                      <span
-                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium"
-                        style={{ background: sponsor.is_active ? C.successBg : C.dangerBg, color: sponsor.is_active ? C.success : C.danger }}
-                      >
-                        {sponsor.is_active ? <><CheckCircle2 className="w-3 h-3" /> Active</> : <><XCircle className="w-3 h-3" /> Inactive</>}
-                      </span>
-                    </div>
+                  ),
+                },
+                {
+                  key: 'actions',
+                  header: '',
+                  width: '80px',
+                  render: (s: Sponsor) => (
                     <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-                      <button onClick={() => openEdit(sponsor)} className="p-1.5 rounded-lg transition-colors" style={{ color: C.textMuted }}
+                      <button onClick={() => openEdit(s)} className="p-1.5 rounded-md transition-colors" style={{ color: C.accent }}
                         onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = C.accentBg; }}
                         onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}>
                         <Edit className="w-3.5 h-3.5" />
                       </button>
-                      <button onClick={() => { setDeleteTarget(sponsor); setDeleteOpen(true); }} className="p-1.5 rounded-lg transition-colors" style={{ color: C.danger }}
+                      <button onClick={() => { setDeleteTarget(s); setDeleteOpen(true); }} className="p-1.5 rounded-md transition-colors" style={{ color: C.danger }}
                         onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = C.dangerBg; }}
                         onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}>
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-            </div>
+                  ),
+                },
+              ] as AdminColumn<Sponsor>[]}
+              data={paginated}
+              keyExtractor={(s) => s.id}
+              onRowClick={(s) => handleSponsorClick(s.id)}
+              emptyIcon={<Building2 className="w-12 h-12" style={{ color: C.textSubtle }} />}
+              emptyTitle={searchQuery ? '検索結果がありません' : 'スポンサーが登録されていません'}
+            />
 
-            {/* Mobile Cards */}
-            <div className="md:hidden space-y-3">
-              {paginated.map((sponsor, idx) => (
-                <motion.div
-                  key={sponsor.id}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: idx * 0.03 }}
-                  className="p-4 rounded-xl cursor-pointer transition-all relative"
-                  style={{ background: C.bgCard, border: `1px solid ${C.border}` }}
-                  onClick={() => handleSponsorClick(sponsor.id)}
-                >
-                  {navigatingId === sponsor.id && (
-                    <div className="absolute inset-0 z-10 flex items-center justify-center rounded-xl" style={{ background: isDark ? 'rgba(0,0,0,0.4)' : 'rgba(255,255,255,0.6)' }}>
-                      <Loader2 className="w-5 h-5 animate-spin" style={{ color: C.accent }} />
-                    </div>
-                  )}
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold shrink-0" style={{ background: C.accentBg, color: C.accent }}>
-                        {sponsor.company_name.charAt(0)}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold truncate" style={{ color: C.text }}>{sponsor.company_name}</p>
-                        <div className="flex items-center gap-2 mt-0.5">
-                          <span
-                            className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-medium"
-                            style={{ background: sponsor.is_active ? C.successBg : C.dangerBg, color: sponsor.is_active ? C.success : C.danger }}
-                          >
-                            {sponsor.is_active ? 'Active' : 'Inactive'}
-                          </span>
-                          <span className="text-[11px]" style={{ color: C.textSubtle }}>
-                            {contractCounts[sponsor.id] ?? 0} contracts
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                    <button onClick={() => openEdit(sponsor)} className="flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium" style={{ color: C.accent }}
-                      onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = C.accentBg; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}>
-                      <Edit className="w-3 h-3" /> 編集
-                    </button>
-                    <button onClick={() => { setDeleteTarget(sponsor); setDeleteOpen(true); }} className="flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium" style={{ color: C.danger }}
-                      onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = C.dangerBg; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}>
-                      <Trash2 className="w-3 h-3" /> 削除
-                    </button>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-
-            {/* Pagination */}
             {totalPages > 1 && (
               <div className="flex items-center justify-between mt-4 px-1">
                 <p className="text-xs" style={{ color: C.textSubtle }}>
