@@ -79,7 +79,7 @@ export const translations = {
       logging_in: 'ログイン中...',
       welcome_back: 'おかえりなさい',
       login_to_store: '店舗アカウントにログインしてください',
-      login_to_operator: '運営者（管理者）アカウントでログインしてください',
+      login_to_operator: '管理者アカウントでログインしてください',
       login_role_store_hint: '掲載店のオーナー・スタッフ専用です。',
       login_role_platform_hint:
         'NIKENME+ の運営・審査担当のみ利用できます。店舗の方は「店舗ログイン」をお使いください。',
