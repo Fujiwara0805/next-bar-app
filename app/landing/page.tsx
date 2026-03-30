@@ -613,8 +613,8 @@ export default function LandingPage() {
             className="absolute inset-0"
             style={{
               background: isCafe
-                ? 'linear-gradient(to bottom, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.15) 50%, rgba(0,0,0,0.35) 100%)'
-                : `linear-gradient(to bottom, ${colors.background}A5 0%, ${colors.background}78 40%, ${colors.background}DD 100%)`,
+                ? 'linear-gradient(to bottom, rgba(0,0,0,0.18) 0%, rgba(0,0,0,0.10) 50%, rgba(0,0,0,0.28) 100%)'
+                : `linear-gradient(to bottom, ${colors.background}8C 0%, ${colors.background}5A 40%, ${colors.background}C4 100%)`,
             }}
           />
         </motion.div>
