@@ -13,6 +13,7 @@ import type { ActiveAdsResponse, TrackEvent } from './types';
 import { isWithinSchedule } from './utils';
 import { createEventTracker } from './tracking';
 import type { ScheduleConfig } from './types';
+import { supabase } from '@/lib/supabase/client';
 
 interface SponsorContextType {
   ads: ActiveAdsResponse | null;
@@ -80,32 +81,56 @@ export function SponsorProvider({ children }: { children: ReactNode }) {
     };
   }, [sessionId]);
 
-  // Fetch active ads
-  useEffect(() => {
+  const fetchAds = useCallback(() => {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 5000);
 
-    fetch('/api/sponsors/active', { signal: controller.signal })
+    fetch('/api/sponsors/active', {
+      signal: controller.signal,
+      cache: 'no-store',
+    })
       .then((res) => res.json())
       .then((data: ActiveAdsResponse) => {
-        // Apply schedule filtering
         const filtered = filterBySchedule(data);
         setAds(filtered);
       })
-      .catch(() => {
-        // Timeout or network error — ads stay null (graceful degradation)
-        setAds(null);
-      })
+      .catch(() => {})
       .finally(() => {
         clearTimeout(timeout);
         setLoading(false);
       });
 
+    return controller;
+  }, []);
+
+  // Initial fetch + realtime subscription for instant updates
+  useEffect(() => {
+    const controller = fetchAds();
+
+    const channel = supabase
+      .channel('sponsor-ads-realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'sponsor_ad_creatives' },
+        () => { fetchAds(); }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'sponsor_ad_slots' },
+        () => { fetchAds(); }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'sponsor_contracts' },
+        () => { fetchAds(); }
+      )
+      .subscribe();
+
     return () => {
       controller.abort();
-      clearTimeout(timeout);
+      supabase.removeChannel(channel);
     };
-  }, []);
+  }, [fetchAds]);
 
   const trackEvent = useCallback((event: TrackEvent) => {
     trackerRef.current?.track(event);

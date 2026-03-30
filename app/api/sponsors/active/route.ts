@@ -169,6 +169,6 @@ function emptyResponse(): ActiveAdsResponse {
 
 function cacheHeaders(): HeadersInit {
   return {
-    'Cache-Control': 'public, max-age=0, s-maxage=30, stale-while-revalidate=30',
+    'Cache-Control': 'no-cache, no-store, must-revalidate',
   };
 }
