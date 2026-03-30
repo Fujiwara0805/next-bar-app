@@ -46,6 +46,13 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // body背景色をページの背景色に同期（画面外の色漏れ防止）
+  useEffect(() => {
+    const prev = document.body.style.backgroundColor;
+    document.body.style.backgroundColor = COLORS.deepNavy;
+    return () => { document.body.style.backgroundColor = prev; };
+  }, [COLORS.deepNavy]);
+
   // ログイン済みの場合は自動的にリダイレクト
   useEffect(() => {
     if (authLoading) return;

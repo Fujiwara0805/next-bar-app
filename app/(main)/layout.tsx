@@ -1,7 +1,9 @@
+import { SponsorProvider } from '@/lib/sponsors/context';
+
 export default function MainLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
+  return <SponsorProvider>{children}</SponsorProvider>;
 }

@@ -30,9 +30,11 @@ import { useLanguage } from '@/lib/i18n/context';
 import { useAppMode } from '@/lib/app-mode-context';
 import { ConciergeModal } from '@/components/concierge-modal';
 import { OgoriTicketBadge } from '@/components/ogori/OgoriTicketBadge';
-import { isCouponValid } from '@/lib/types/coupon';
+import { isCouponValid, type CouponData } from '@/lib/types/coupon';
 import { getTodayOpenTime, isTodayClosedDay, checkIsOpenFromStructuredHours as checkIsOpenFromStructuredHoursClient } from '@/lib/structured-business-hours';
 import { useOptimizedLocation } from '@/lib/hooks/useOptimizedLocation';
+import { SponsorCtaButton } from '@/components/sponsors/sponsor-cta-button';
+import { SponsorCampaignBanner } from '@/components/sponsors/sponsor-campaign-banner';
 
 type Store = Database['public']['Tables']['stores']['Row'];
 
@@ -107,11 +109,18 @@ function StoreListContent() {
   const searchParams = useSearchParams();
   const { t } = useLanguage();
   const { colorsB: COLORS, colorsA, mode, isBar, isCafe } = useAppMode();
+
+  // body背景色をページの背景色に同期（画面外の色漏れ防止）
+  useEffect(() => {
+    const prev = document.body.style.backgroundColor;
+    document.body.style.backgroundColor = colorsA.background;
+    return () => { document.body.style.backgroundColor = prev; };
+  }, [colorsA.background]);
+
   const [stores, setStores] = useState<Store[]>([]);
   const [filteredStores, setFilteredStores] = useState<Store[]>([]);
   const [loading, setLoading] = useState(true);
   const { location: userLocation } = useOptimizedLocation();
-  
   const [vacantOnly, setVacantOnly] = useState(false);
   const [openNowOnly, setOpenNowOnly] = useState(false);
   const [couponOnly, setCouponOnly] = useState(false);
@@ -357,7 +366,7 @@ function StoreListContent() {
 
   const hasCoupon = (store: Store): boolean => {
     if (!store.coupon_title) return false;
-    return isCouponValid(store);
+    return isCouponValid(store as Partial<CouponData>);
   };
 
   const hasCampaign = (store: Store): boolean => {
@@ -1025,6 +1034,10 @@ function StoreListContent() {
         onClose={() => setShowConcierge(false)}
         onComplete={handleConciergeComplete}
       />
+
+      {/* スポンサー広告 */}
+      <SponsorCtaButton />
+      <SponsorCampaignBanner />
     </div>
   );
 }

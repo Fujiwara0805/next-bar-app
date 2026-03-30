@@ -401,7 +401,7 @@ export default function ApplicationsManagePage() {
                               className="w-4 h-4 shrink-0"
                               style={{ color: COLORS.champagneGold }}
                             />
-                            <span>{formatDate(application.created_at)}</span>
+                            <span>{formatDate(application.created_at ?? '')}</span>
                           </div>
                         </div>
 

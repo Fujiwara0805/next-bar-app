@@ -2,22 +2,26 @@
 
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Store as StoreIcon, Edit, Trash2, Loader2, LogOut, Mail, PartyPopper, Sparkles } from 'lucide-react';
+import {
+  Plus, Store as StoreIcon, Edit, Trash2, Loader2, LogOut, Mail,
+  PartyPopper, Megaphone, ClipboardList, LayoutDashboard, ChevronRight,
+  Activity,
+} from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { CustomModal } from '@/components/ui/custom-modal';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/auth/context';
+import { useAdminTheme } from '@/lib/admin-theme-context';
+import { AdminThemeToggle } from '@/components/admin/admin-theme-toggle';
 import { toast } from 'sonner';
-import { useAppMode } from '@/lib/app-mode-context';
 import type { Database } from '@/lib/supabase/types';
 
 type Store = Database['public']['Tables']['stores']['Row'];
 
 export default function StoreManagePage() {
-  const { colorsB: COLORS } = useAppMode();
+  const { colors: C, isDark } = useAdminTheme();
   const router = useRouter();
   const { user, profile, accountType, store, signOut } = useAuth();
   const [stores, setStores] = useState<Store[]>([]);
@@ -25,7 +29,7 @@ export default function StoreManagePage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [storeToDelete, setStoreToDelete] = useState<Store | null>(null);
   const [deleting, setDeleting] = useState(false);
-  
+
   // パスワードリセット用
   const [resetPasswordModalOpen, setResetPasswordModalOpen] = useState(false);
   const [storeToResetPassword, setStoreToResetPassword] = useState<Store | null>(null);
@@ -38,14 +42,8 @@ export default function StoreManagePage() {
       return;
     }
 
-    // 運営会社アカウントのみこの画面にアクセス可能
-    if (!profile?.is_business || accountType !== 'platform') {
-      router.push('/login');
-      return;
-    }
-
     fetchStores();
-  }, [profile, accountType, store, router]);
+  }, [accountType, store, router]);
 
   const fetchStores = async () => {
     if (!user) return;
@@ -77,7 +75,6 @@ export default function StoreManagePage() {
     setDeleting(true);
 
     try {
-      // storesテーブルから削除
       const { error } = await supabase
         .from('stores')
         .delete()
@@ -90,10 +87,8 @@ export default function StoreManagePage() {
         description: `${storeToDelete.name}の情報を削除しました`,
         position: 'top-center',
         duration: 1000,
-        className: 'bg-gray-100'
       });
 
-      // リストから削除
       setStores(stores.filter((s) => s.id !== storeToDelete.id));
       setDeleteDialogOpen(false);
       setStoreToDelete(null);
@@ -102,7 +97,6 @@ export default function StoreManagePage() {
       toast.error('店舗の削除に失敗しました', {
         position: 'top-center',
         duration: 3000,
-        className: 'bg-gray-100'
       });
     } finally {
       setDeleting(false);
@@ -130,10 +124,9 @@ export default function StoreManagePage() {
       if (error) throw error;
 
       toast.success('パスワードリセットメールを送信しました', {
-        description: `${storeToResetPassword.email} にメールを送信しました。店舗に確認を依頼してください。`,
+        description: `${storeToResetPassword.email} にメールを送信しました。`,
         position: 'top-center',
         duration: 1000,
-        className: 'bg-gray-100'
       });
 
       setResetPasswordModalOpen(false);
@@ -144,7 +137,6 @@ export default function StoreManagePage() {
         description: error instanceof Error ? error.message : '不明なエラーが発生しました',
         position: 'top-center',
         duration: 3000,
-        className: 'bg-gray-100'
       });
     } finally {
       setSendingResetEmail(false);
@@ -154,241 +146,367 @@ export default function StoreManagePage() {
   const handleSignOut = async () => {
     try {
       await signOut();
-      toast.success('ログアウトしました', { 
+      toast.success('ログアウトしました', {
         position: 'top-center',
         duration: 1000,
-        className: 'bg-gray-100'
       });
       router.push('/login');
-    } catch (error) {
-      toast.error('ログアウトに失敗しました', { 
+    } catch {
+      toast.error('ログアウトに失敗しました', {
         position: 'top-center',
         duration: 3000,
-        className: 'bg-gray-100'
       });
     }
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen" style={{ background: COLORS.luxuryGradient }}>
-        <div className="text-center">
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-          >
-            <Sparkles className="w-10 h-10 mx-auto mb-2" style={{ color: COLORS.champagneGold }} />
-          </motion.div>
-          <p className="text-sm font-bold" style={{ color: COLORS.ivory }}>読み込み中...</p>
-        </div>
+      <div className="flex items-center justify-center h-screen" style={{ background: C.bg }}>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="flex flex-col items-center gap-3"
+        >
+          <Loader2 className="w-8 h-8 animate-spin" style={{ color: C.accent }} />
+          <p className="text-xs tracking-wider" style={{ color: C.textSubtle }}>Loading...</p>
+        </motion.div>
       </div>
     );
   }
 
+  const quickActions = [
+    { href: '/store/manage/new', icon: Plus, label: '店舗を追加', desc: '新しい店舗を登録', color: C.accent },
+    { href: '/store/manage/campaigns', icon: PartyPopper, label: 'キャンペーン', desc: 'キャンペーンの管理', color: '#EC4899' },
+    { href: '/store/manage/applications', icon: ClipboardList, label: '申し込み管理', desc: '申し込みの確認', color: C.info },
+    { href: '/store/manage/sponsors', icon: Megaphone, label: 'スポンサー', desc: 'スポンサーの管理', color: '#8B5CF6' },
+  ];
+
+  const latestStore = stores[0];
+
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: COLORS.cardGradient }}>
+    <div className="min-h-screen" style={{ background: C.bg }}>
+      {/* ゴールドアクセントライン */}
+      <motion.div
+        initial={{ scaleX: 0 }}
+        animate={{ scaleX: 1 }}
+        transition={{ duration: 0.8, ease: 'easeOut' }}
+        className="h-[1px]"
+        style={{ background: `linear-gradient(90deg, transparent, ${C.accent}, transparent)` }}
+      />
+
       {/* ヘッダー */}
-      <header 
-        className="sticky top-0 z-20 safe-top"
-        style={{ 
-          background: COLORS.luxuryGradient,
-          borderBottom: `1px solid rgba(201, 168, 108, 0.2)`,
+      <header
+        className="sticky top-0 z-30 backdrop-blur-xl"
+        style={{
+          background: C.bg + 'ee',
+          borderBottom: `1px solid ${C.border}`,
+          boxShadow: isDark ? '0 1px 3px rgba(0,0,0,0.2)' : '0 1px 3px rgba(0,0,0,0.04)',
         }}
       >
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-center relative">
-            <div className="text-center">
-              <h1 className="text-xl font-light tracking-widest" style={{ color: COLORS.ivory }}>管理者画面</h1>
-              <p className="text-sm mt-2 font-bold" style={{ color: COLORS.platinum }}>
-                {stores.length}件の店舗
-              </p>
+        <div className="max-w-7xl mx-auto px-6 md:px-8 py-5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3.5">
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center"
+                style={{ background: C.accentBg, boxShadow: `0 0 0 1px ${C.border}` }}
+              >
+                <LayoutDashboard className="w-[18px] h-[18px]" style={{ color: C.accent }} />
+              </div>
+              <div>
+                <h1 className="text-xl font-semibold tracking-tight" style={{ color: C.text }}>
+                  Dashboard
+                </h1>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <div className="w-1.5 h-1.5 rounded-full" style={{ background: C.accent }} />
+                  <p className="text-[11px] tracking-wide" style={{ color: C.textSubtle }}>
+                    {stores.length} stores registered
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <AdminThemeToggle />
+              <button
+                onClick={handleSignOut}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all hover:opacity-80"
+                style={{ color: C.textSubtle }}
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">ログアウト</span>
+              </button>
             </div>
           </div>
         </div>
       </header>
 
-      {/* 店舗リスト */}
-      <main className="flex-1 max-w-7xl mx-auto w-full px-4 py-6">
-        {stores.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            <Card 
-              className="p-12 text-center rounded-2xl shadow-lg"
-              style={{ 
-                background: '#FFFFFF',
-                border: `1px solid rgba(201, 168, 108, 0.15)`,
+      <main className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-8">
+        {/* エグゼクティブサマリー */}
+        <section>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {[
+              {
+                label: '登録店舗数',
+                value: String(stores.length),
+                accentColor: C.accent,
+              },
+              {
+                label: '最新登録',
+                value: latestStore?.name ?? '--',
+                accentColor: C.info,
+              },
+              {
+                label: 'ステータス',
+                value: '稼働中',
+                accentColor: C.success,
+                pulse: true,
+              },
+            ].map((kpi, i) => (
+              <motion.div
+                key={kpi.label}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.08, duration: 0.4 }}
+                className="p-5 rounded-xl"
+                style={{
+                  background: C.bgCard,
+                  border: `1px solid ${C.border}`,
+                  borderLeft: `3px solid ${kpi.accentColor}`,
+                }}
+              >
+                <p
+                  className="text-[10px] font-semibold uppercase tracking-[0.15em] mb-2"
+                  style={{ color: C.textSubtle }}
+                >
+                  {kpi.label}
+                </p>
+                <div className="flex items-center gap-2">
+                  {kpi.pulse && (
+                    <span className="relative flex h-2 w-2">
+                      <span
+                        className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+                        style={{ backgroundColor: kpi.accentColor }}
+                      />
+                      <span
+                        className="relative inline-flex rounded-full h-2 w-2"
+                        style={{ backgroundColor: kpi.accentColor }}
+                      />
+                    </span>
+                  )}
+                  <p
+                    className="text-2xl font-semibold tracking-tight truncate"
+                    style={{ color: C.text }}
+                  >
+                    {kpi.value}
+                  </p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </section>
+
+        {/* クイックアクション */}
+        <section>
+          <div className="flex items-center gap-3 mb-5">
+            <p
+              className="text-[10px] font-semibold uppercase tracking-[0.15em]"
+              style={{ color: C.textSubtle }}
+            >
+              Quick Actions
+            </p>
+            <div className="flex-1 h-px" style={{ background: C.borderSubtle }} />
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {quickActions.map((action, i) => (
+              <Link key={action.href} href={action.href}>
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 + i * 0.05 }}
+                  whileHover={{ y: -2 }}
+                  whileTap={{ y: 0 }}
+                  className="group p-5 rounded-xl cursor-pointer transition-colors relative"
+                  style={{
+                    background: C.bgCard,
+                    border: `1px solid ${C.border}`,
+                  }}
+                >
+                  <ChevronRight
+                    className="w-3.5 h-3.5 absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity"
+                    style={{ color: C.textSubtle }}
+                  />
+                  <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center mb-3"
+                    style={{ background: action.color + '10' }}
+                  >
+                    <action.icon className="w-[18px] h-[18px]" style={{ color: action.color }} />
+                  </div>
+                  <p className="text-[13px] font-medium" style={{ color: C.text }}>
+                    {action.label}
+                  </p>
+                  <p className="text-[11px] mt-0.5" style={{ color: C.textSubtle }}>
+                    {action.desc}
+                  </p>
+                </motion.div>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        {/* 店舗一覧 */}
+        <section>
+          <div className="flex items-center gap-3 mb-5">
+            <div className="flex items-center gap-2">
+              <p
+                className="text-[10px] font-semibold uppercase tracking-[0.15em]"
+                style={{ color: C.textSubtle }}
+              >
+                Stores
+              </p>
+              {stores.length > 0 && (
+                <span
+                  className="px-2 py-0.5 rounded-full text-[10px] font-medium"
+                  style={{ background: C.accentBg, color: C.accent }}
+                >
+                  {stores.length}
+                </span>
+              )}
+            </div>
+            <div className="flex-1 h-px" style={{ background: C.borderSubtle }} />
+          </div>
+
+          {stores.length === 0 ? (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="p-16 text-center rounded-xl"
+              style={{
+                background: C.bgCard,
+                border: `1px dashed ${C.border}`,
               }}
             >
-              <StoreIcon className="w-16 h-16 mx-auto mb-4" style={{ color: COLORS.warmGray }} />
-              <h2 className="text-xl font-bold mb-2" style={{ color: COLORS.deepNavy }}>
+              <StoreIcon className="w-16 h-16 mx-auto mb-4" style={{ color: C.textSubtle }} />
+              <h3 className="text-base font-semibold mb-1.5" style={{ color: C.text }}>
                 まだ店舗が登録されていません
-              </h2>
-              <p className="mb-6 font-bold" style={{ color: COLORS.warmGray }}>
+              </h3>
+              <p className="text-sm mb-6" style={{ color: C.textMuted }}>
                 最初の店舗を登録して、情報を共有しましょう
               </p>
               <Link href="/store/manage/new">
                 <Button
-                  className="rounded-xl font-bold shadow-lg"
-                  style={{ 
-                    background: COLORS.goldGradient,
-                    color: COLORS.deepNavy,
-                    boxShadow: '0 8px 25px rgba(201, 168, 108, 0.35)',
-                  }}
+                  className="rounded-lg font-semibold text-sm px-6"
+                  style={{ background: C.accent, color: '#fff' }}
                 >
-                  <Plus className="w-4 h-4 mr-2" />
+                  <Plus className="w-4 h-4 mr-1.5" />
                   店舗を登録
                 </Button>
               </Link>
-            </Card>
-          </motion.div>
-        ) : (
-          <>
-            {/* 新規追加ボタン */}
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mb-6"
-            >
-              <div className="flex flex-wrap gap-3">
-                <Link href="/store/manage/new">
-                  <Button 
-                    className="w-full sm:w-auto rounded-xl font-bold shadow-lg"
-                    style={{ 
-                      background: COLORS.goldGradient,
-                      color: COLORS.deepNavy,
-                      boxShadow: '0 8px 25px rgba(201, 168, 108, 0.35)',
-                    }}
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    新しい店舗を追加
-                  </Button>
-                </Link>
-                <Link href="/store/manage/campaigns">
-                  <Button
-                    variant="outline"
-                    className="w-full sm:w-auto rounded-xl font-bold"
-                    style={{
-                      borderColor: 'rgba(236, 72, 153, 0.3)',
-                      backgroundColor: 'rgba(236, 72, 153, 0.08)',
-                      color: COLORS.charcoal,
-                    }}
-                  >
-                    <PartyPopper className="w-4 h-4 mr-2" style={{ color: '#EC4899' }} />
-                    キャンペーン管理
-                  </Button>
-                </Link>
-                <Link href="/store/manage/applications">
-                  <Button
-                    variant="outline"
-                    className="w-full sm:w-auto rounded-xl font-bold"
-                    style={{
-                      borderColor: 'rgba(201, 168, 108, 0.3)',
-                      backgroundColor: 'rgba(201, 168, 108, 0.08)',
-                      color: COLORS.charcoal,
-                    }}
-                  >
-                    <StoreIcon className="w-4 h-4 mr-2" style={{ color: COLORS.champagneGold }} />
-                    申し込み管理
-                  </Button>
-                </Link>
-              </div>
             </motion.div>
-
+          ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <AnimatePresence mode="popLayout">
-                {stores.map((store, index) => (
+                {stores.map((s, index) => (
                   <motion.div
-                    key={store.id}
-                    initial={{ opacity: 0, y: 20 }}
+                    key={s.id}
+                    initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    transition={{ delay: index * 0.05 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ delay: index * 0.03 }}
+                    className="rounded-xl overflow-hidden transition-all"
+                    style={{
+                      background: C.bgCard,
+                      border: `1px solid ${C.border}`,
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = C.accent + '40';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = C.border;
+                    }}
                   >
-                    <Card
-                      className="rounded-2xl shadow-lg"
-                      style={{
-                        background: '#FFFFFF',
-                        border: `1px solid rgba(201, 168, 108, 0.15)`,
-                      }}
-                    >
-                      <div className="p-4">
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex-1">
-                            <h3 className="font-bold text-lg mb-1" style={{ color: COLORS.deepNavy }}>
-                              {store.name}
-                            </h3>
-                            <p className="text-sm font-bold" style={{ color: COLORS.warmGray }}>
-                              {store.address}
+                    <div className="p-5">
+                      <div className="flex items-start gap-3 mb-3">
+                        {/* モノグラムアバター */}
+                        <div
+                          className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                          style={{ background: C.accentBg }}
+                        >
+                          <span className="text-sm font-bold" style={{ color: C.accent }}>
+                            {s.name.charAt(0)}
+                          </span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-sm tracking-tight truncate" style={{ color: C.text }}>
+                            {s.name}
+                          </h3>
+                          <div className="flex items-center gap-1 mt-1">
+                            <Mail className="w-3 h-3 flex-shrink-0" style={{ color: C.textSubtle }} />
+                            <p className="text-[11px] truncate" style={{ color: C.textSubtle }}>
+                              {s.email}
                             </p>
-                            <p className="text-xs font-bold mt-1" style={{ color: COLORS.warmGray }}>
-                              {store.email}
-                            </p>
-                          </div>
-                          <div className="flex gap-1">
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              onClick={() => router.push(`/store/manage/${store.id}/update`)}
-                              title="店舗情報を表示"
-                            >
-                              <Edit className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              onClick={() => handlePasswordResetClick(store)}
-                              title="パスワードをリセット"
-                              className="text-blue-600 hover:text-blue-800"
-                            >
-                              <Mail className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              onClick={() => handleDeleteClick(store)}
-                              className="text-destructive hover:text-destructive"
-                              title="店舗を削除"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
                           </div>
                         </div>
                       </div>
-                    </Card>
+                      <div
+                        className="flex items-center gap-1.5 pt-3 mt-1"
+                        style={{ borderTop: `1px solid ${C.borderSubtle}` }}
+                      >
+                        <button
+                          onClick={() => router.push(`/store/manage/${s.id}/update`)}
+                          className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all"
+                          style={{ color: C.accent }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = C.accentBg;
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                          }}
+                          title="店舗情報を編集"
+                        >
+                          <Edit className="w-3 h-3" />
+                          編集
+                        </button>
+                        <button
+                          onClick={() => handlePasswordResetClick(s)}
+                          className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all"
+                          style={{ color: C.info }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = C.infoBg;
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                          }}
+                          title="パスワードをリセット"
+                        >
+                          <Mail className="w-3 h-3" />
+                          PW
+                        </button>
+                        <button
+                          onClick={() => handleDeleteClick(s)}
+                          className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all"
+                          style={{ color: C.danger }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = C.dangerBg;
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                          }}
+                          title="店舗を削除"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                          削除
+                        </button>
+                      </div>
+                    </div>
                   </motion.div>
                 ))}
               </AnimatePresence>
             </div>
-          </>
-        )}
-
-        {/* ログアウトボタン */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="mt-6 max-w-md mx-auto"
-        >
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full font-bold rounded-xl"
-            style={{
-              borderColor: 'rgba(201, 168, 108, 0.3)',
-              backgroundColor: COLORS.ivory,
-              color: '#dc2626',
-            }}
-            onClick={handleSignOut}
-          >
-            <LogOut className="w-4 h-4 mr-2" />
-            ログアウト
-          </Button>
-        </motion.div>
+          )}
+        </section>
       </main>
 
-      {/* 削除確認ダイアログ（CustomModal） */}
+      {/* 削除確認ダイアログ */}
       <CustomModal
         isOpen={deleteDialogOpen}
         onClose={() => !deleting && setDeleteDialogOpen(false)}
@@ -399,41 +517,38 @@ export default function StoreManagePage() {
           <div className="text-center">
             <div
               className="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center"
-              style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)' }}
+              style={{ background: C.dangerBg }}
             >
-              <Trash2 className="w-6 h-6 text-red-500" />
+              <Trash2 className="w-6 h-6" style={{ color: C.danger }} />
             </div>
-            <h3 className="text-lg font-bold" style={{ color: COLORS.deepNavy }}>
+            <h3 className="text-lg font-bold" style={{ color: C.text }}>
               店舗を削除しますか？
             </h3>
           </div>
           {storeToDelete && (
-            <p className="text-sm text-center" style={{ color: COLORS.warmGray }}>
-              <span className="font-bold" style={{ color: COLORS.charcoal }}>{storeToDelete.name}</span>
+            <p className="text-sm text-center" style={{ color: C.textMuted }}>
+              <span className="font-bold" style={{ color: C.text }}>{storeToDelete.name}</span>
               を削除します。この操作は取り消せません。
-              <br />
-              <br />
-              店舗のログインアカウントも削除されますが、Supabase Authからは手動で削除する必要があります。
             </p>
           )}
           <div className="flex gap-3 pt-2">
             <Button
               variant="outline"
-              className="flex-1 font-bold rounded-xl"
+              className="flex-1 font-semibold rounded-lg"
               onClick={() => setDeleteDialogOpen(false)}
               disabled={deleting}
               style={{
-                borderColor: 'rgba(201, 168, 108, 0.3)',
-                backgroundColor: 'rgba(201, 168, 108, 0.08)',
-                color: COLORS.charcoal,
+                borderColor: C.border,
+                color: C.textMuted,
               }}
             >
               キャンセル
             </Button>
             <Button
-              className="flex-1 font-bold rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="flex-1 font-semibold rounded-lg"
               onClick={handleDeleteConfirm}
               disabled={deleting}
+              style={{ background: C.danger, color: '#fff' }}
             >
               {deleting ? (
                 <>
@@ -460,10 +575,10 @@ export default function StoreManagePage() {
         {storeToResetPassword && (
           <div className="space-y-4">
             <div className="text-center py-4">
-              <p className="text-lg font-bold text-card-foreground mb-2">
+              <p className="text-lg font-bold" style={{ color: C.text }}>
                 {storeToResetPassword.name}
               </p>
-              <p className="text-sm text-card-foreground/70 font-bold">
+              <p className="text-sm mt-1" style={{ color: C.textMuted }}>
                 {storeToResetPassword.email}
               </p>
             </div>
@@ -471,16 +586,21 @@ export default function StoreManagePage() {
             <div className="flex gap-3">
               <Button
                 variant="outline"
-                className="flex-1 font-bold"
+                className="flex-1 font-semibold rounded-lg"
                 onClick={() => setResetPasswordModalOpen(false)}
                 disabled={sendingResetEmail}
+                style={{
+                  borderColor: C.border,
+                  color: C.textMuted,
+                }}
               >
                 キャンセル
               </Button>
               <Button
-                className="flex-1 font-bold bg-blue-600 hover:bg-blue-700"
+                className="flex-1 font-semibold rounded-lg"
                 onClick={handlePasswordResetConfirm}
                 disabled={sendingResetEmail}
+                style={{ background: C.info, color: '#fff' }}
               >
                 {sendingResetEmail ? (
                   <>

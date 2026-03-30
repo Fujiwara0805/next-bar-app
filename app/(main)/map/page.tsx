@@ -45,6 +45,8 @@ import { sendGAEvent } from '@/lib/analytics';
 import { StoreDetailPanel } from '@/components/map/StoreDetailPanel';
 import { checkIsOpenFromStructuredHours } from '@/lib/structured-business-hours';
 import type { BusinessHours } from '@/lib/supabase/types';
+import { SponsorCtaButton } from '@/components/sponsors/sponsor-cta-button';
+import { SponsorMapIcon } from '@/components/sponsors/sponsor-map-icon';
 
 type Store = Database['public']['Tables']['stores']['Row'];
 
@@ -478,6 +480,13 @@ function MapPageContent() {
   const { t, language } = useLanguage();
   const { colorsA: colors } = useAppMode();
 
+  // body背景色をページの背景色に同期（画面外の色漏れ防止）
+  useEffect(() => {
+    const prev = document.body.style.backgroundColor;
+    document.body.style.backgroundColor = colors.background;
+    return () => { document.body.style.backgroundColor = prev; };
+  }, [colors.background]);
+
   const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [currentBounds, setCurrentBounds] = useState<ViewportBounds | null>(null);
@@ -487,7 +496,6 @@ function MapPageContent() {
 
   const { location: userLocation, refreshLocation } = useOptimizedLocation();
   const { stores, isLoading, error, retryCount, fetchStores, refreshStores } = useStores();
-
   const isOpenUpdatedRef = useRef(false);
   const lastFetchBoundsRef = useRef<string | null>(null);
 
@@ -1148,6 +1156,10 @@ function MapPageContent() {
           </div>
         </div>
       </div>
+
+      {/* スポンサー広告 */}
+      <SponsorCtaButton />
+      <SponsorMapIcon />
     </div>
   );
 }

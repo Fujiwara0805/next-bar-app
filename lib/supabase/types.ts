@@ -1,7 +1,3 @@
-// ============================================
-// 型定義(lib/supabase/types.ts)
-// ============================================
-
 export type Json =
   | string
   | number
@@ -10,734 +6,1322 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
-export interface Database {
+export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "13.0.5"
+  }
   public: {
     Tables: {
-      // ============================================
-      // キャンペーンマスタテーブル
-      // ============================================
-      campaigns: {
-        Row: {
-          id: string
-          name: string
-          description: string | null
-          start_date: string
-          end_date: string
-          is_active: boolean
-          region: string | null
-          created_at: string
-          updated_at: string
-          created_by: string | null
-        }
-        Insert: {
-          id?: string
-          name: string
-          description?: string | null
-          start_date: string
-          end_date: string
-          is_active?: boolean
-          region?: string | null
-          created_at?: string
-          updated_at?: string
-          created_by?: string | null
-        }
-        Update: {
-          id?: string
-          name?: string
-          description?: string | null
-          start_date?: string
-          end_date?: string
-          is_active?: boolean
-          region?: string | null
-          created_at?: string
-          updated_at?: string
-          created_by?: string | null
-        }
-      }
-      // ============================================
-      // 加盟店申し込みテーブル
-      // ============================================
-      store_applications: {
-        Row: {
-          id: string
-          status: 'pending' | 'reviewing' | 'approved' | 'rejected'
-          store_name: string
-          description: string | null
-          address: string
-          latitude: number | null
-          longitude: number | null
-          phone: string | null
-          business_hours: string | null
-          regular_holiday: string | null
-          budget_min: number | null
-          budget_max: number | null
-          payment_methods: string[]
-          facilities: string[]
-          contact_email: string
-          image_urls: string[]
-          terms_agreed: boolean
-          remarks: string | null
-          admin_notes: string | null
-          reviewed_by: string | null
-          reviewed_at: string | null
-          created_at: string
-          updated_at: string
-          /** 店舗カテゴリ（バー/カフェ/両方） */
-          store_category: 'bar' | 'cafe' | 'both'
-        }
-        Insert: {
-          id?: string
-          status?: 'pending' | 'reviewing' | 'approved' | 'rejected'
-          store_name: string
-          description?: string | null
-          address: string
-          latitude?: number | null
-          longitude?: number | null
-          phone?: string | null
-          business_hours?: string | null
-          regular_holiday?: string | null
-          budget_min?: number | null
-          budget_max?: number | null
-          payment_methods?: string[]
-          facilities?: string[]
-          contact_email: string
-          image_urls?: string[]
-          terms_agreed: boolean
-          remarks?: string | null
-          admin_notes?: string | null
-          reviewed_by?: string | null
-          reviewed_at?: string | null
-          created_at?: string
-          updated_at?: string
-          /** 店舗カテゴリ（バー/カフェ/両方） */
-          store_category?: 'bar' | 'cafe' | 'both'
-        }
-        Update: {
-          id?: string
-          status?: 'pending' | 'reviewing' | 'approved' | 'rejected'
-          store_name?: string
-          description?: string | null
-          address?: string
-          latitude?: number | null
-          longitude?: number | null
-          phone?: string | null
-          business_hours?: string | null
-          regular_holiday?: string | null
-          budget_min?: number | null
-          budget_max?: number | null
-          payment_methods?: string[]
-          facilities?: string[]
-          contact_email?: string
-          image_urls?: string[]
-          terms_agreed?: boolean
-          remarks?: string | null
-          admin_notes?: string | null
-          reviewed_by?: string | null
-          reviewed_at?: string | null
-          created_at?: string
-          updated_at?: string
-          /** 店舗カテゴリ（バー/カフェ/両方） */
-          store_category?: 'bar' | 'cafe' | 'both'
-        }
-      }
-      // ============================================
-      // ボーナスクリック記録テーブル
-      // ============================================
       bonus_clicks: {
         Row: {
-          id: string
-          coupon_usage_id: string | null
-          store_id: string
-          click_type: 'instagram' | 'google_review' | 'additional_bonus'
-          session_id: string | null
-          user_agent: string | null
-          referrer: string | null
-          clicked_at: string
-          // 詳細データ
-          store_name: string | null
-          instagram_url: string | null
-          google_place_id: string | null
           additional_bonus_text: string | null
+          click_type: string
+          clicked_at: string | null
+          coupon_usage_id: string | null
+          google_place_id: string | null
+          id: string
+          instagram_url: string | null
+          referrer: string | null
+          session_id: string | null
+          store_id: string
+          store_name: string | null
+          user_agent: string | null
         }
         Insert: {
-          id?: string
-          coupon_usage_id?: string | null
-          store_id: string
-          click_type: 'instagram' | 'google_review' | 'additional_bonus'
-          session_id?: string | null
-          user_agent?: string | null
-          referrer?: string | null
-          clicked_at?: string
-          store_name?: string | null
-          instagram_url?: string | null
-          google_place_id?: string | null
           additional_bonus_text?: string | null
+          click_type: string
+          clicked_at?: string | null
+          coupon_usage_id?: string | null
+          google_place_id?: string | null
+          id?: string
+          instagram_url?: string | null
+          referrer?: string | null
+          session_id?: string | null
+          store_id: string
+          store_name?: string | null
+          user_agent?: string | null
         }
         Update: {
-          id?: string
-          coupon_usage_id?: string | null
-          store_id?: string
-          click_type?: 'instagram' | 'google_review' | 'additional_bonus'
-          session_id?: string | null
-          user_agent?: string | null
-          referrer?: string | null
-          clicked_at?: string
-          store_name?: string | null
-          instagram_url?: string | null
-          google_place_id?: string | null
           additional_bonus_text?: string | null
+          click_type?: string
+          clicked_at?: string | null
+          coupon_usage_id?: string | null
+          google_place_id?: string | null
+          id?: string
+          instagram_url?: string | null
+          referrer?: string | null
+          session_id?: string | null
+          store_id?: string
+          store_name?: string | null
+          user_agent?: string | null
         }
+        Relationships: []
       }
-      // ============================================
-      // クーポン利用記録テーブル（参照用）
-      // ============================================
+      campaigns: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          end_date: string
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          name: string
+          start_date: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          end_date: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          name: string
+          start_date: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          end_date?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          name?: string
+          start_date?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       coupon_usages: {
         Row: {
-          id: string
-          store_id: string
-          store_name: string
-          session_id: string
-          user_id: string | null
-          is_first_visit: boolean
-          is_local_resident: boolean
-          gender: string | null
           age_group: string | null
-          user_agent: string | null
-          referrer: string | null
-          used_at: string
-          // キャンペーン関連
           campaign_id: string | null
           campaign_name: string | null
-          // クーポン詳細
-          coupon_title: string | null
+          coupon_additional_bonus: string | null
+          coupon_code: string | null
+          coupon_conditions: string | null
           coupon_discount_type: string | null
           coupon_discount_value: number | null
-          coupon_conditions: string | null
-          coupon_code: string | null
-          coupon_additional_bonus: string | null
-        }
-        Insert: {
-          id?: string
+          coupon_id: string | null
+          coupon_title: string | null
+          created_at: string
+          gender: string | null
+          id: string
+          ip_address: unknown
+          is_first_visit: boolean
+          is_local_resident: boolean
+          referrer: string | null
+          session_id: string | null
           store_id: string
           store_name: string
-          session_id: string
-          user_id?: string | null
-          is_first_visit?: boolean
-          is_local_resident?: boolean
-          gender?: string | null
+          used_at: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
           age_group?: string | null
-          user_agent?: string | null
-          referrer?: string | null
-          used_at?: string
-          // キャンペーン関連
           campaign_id?: string | null
           campaign_name?: string | null
-          // クーポン詳細
-          coupon_title?: string | null
+          coupon_additional_bonus?: string | null
+          coupon_code?: string | null
+          coupon_conditions?: string | null
           coupon_discount_type?: string | null
           coupon_discount_value?: number | null
-          coupon_conditions?: string | null
-          coupon_code?: string | null
-          coupon_additional_bonus?: string | null
+          coupon_id?: string | null
+          coupon_title?: string | null
+          created_at?: string
+          gender?: string | null
+          id?: string
+          ip_address?: unknown
+          is_first_visit: boolean
+          is_local_resident: boolean
+          referrer?: string | null
+          session_id?: string | null
+          store_id: string
+          store_name?: string
+          used_at?: string
+          user_agent?: string | null
+          user_id?: string | null
         }
         Update: {
-          id?: string
-          store_id?: string
-          store_name?: string
-          session_id?: string
-          user_id?: string | null
-          is_first_visit?: boolean
-          is_local_resident?: boolean
-          gender?: string | null
           age_group?: string | null
-          user_agent?: string | null
-          referrer?: string | null
-          used_at?: string
-          // キャンペーン関連
           campaign_id?: string | null
           campaign_name?: string | null
-          // クーポン詳細
-          coupon_title?: string | null
+          coupon_additional_bonus?: string | null
+          coupon_code?: string | null
+          coupon_conditions?: string | null
           coupon_discount_type?: string | null
           coupon_discount_value?: number | null
-          coupon_conditions?: string | null
-          coupon_code?: string | null
-          coupon_additional_bonus?: string | null
+          coupon_id?: string | null
+          coupon_title?: string | null
+          created_at?: string
+          gender?: string | null
+          id?: string
+          ip_address?: unknown
+          is_first_visit?: boolean
+          is_local_resident?: boolean
+          referrer?: string | null
+          session_id?: string | null
+          store_id?: string
+          store_name?: string
+          used_at?: string
+          user_agent?: string | null
+          user_id?: string | null
         }
+        Relationships: [
+          {
+            foreignKeyName: "coupon_usages_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coupon_usages_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coupon_usages_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ogori_drinks: {
+        Row: {
+          created_at: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          name: string
+          price: number
+          sort_order: number | null
+          store_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          name: string
+          price: number
+          sort_order?: number | null
+          store_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          name?: string
+          price?: number
+          sort_order?: number | null
+          store_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ogori_drinks_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ogori_price_options: {
+        Row: {
+          amount: number
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          sort_order: number | null
+          store_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          sort_order?: number | null
+          store_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          sort_order?: number | null
+          store_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ogori_price_options_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ogori_tickets: {
+        Row: {
+          amount: number
+          created_at: string | null
+          drink_id: string | null
+          drink_name: string | null
+          id: string
+          purchaser_id: string | null
+          status: string | null
+          store_id: string
+          stripe_payment_id: string | null
+          used_at: string | null
+          used_by: string | null
+          used_drink_id: string | null
+          used_drink_name: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          drink_id?: string | null
+          drink_name?: string | null
+          id?: string
+          purchaser_id?: string | null
+          status?: string | null
+          store_id: string
+          stripe_payment_id?: string | null
+          used_at?: string | null
+          used_by?: string | null
+          used_drink_id?: string | null
+          used_drink_name?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          drink_id?: string | null
+          drink_name?: string | null
+          id?: string
+          purchaser_id?: string | null
+          status?: string | null
+          store_id?: string
+          stripe_payment_id?: string | null
+          used_at?: string | null
+          used_by?: string | null
+          used_drink_id?: string | null
+          used_drink_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ogori_tickets_purchaser_id_fkey"
+            columns: ["purchaser_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ogori_tickets_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ogori_tickets_used_by_fkey"
+            columns: ["used_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
-          id: string
-          email: string
-          display_name: string
           avatar_url: string | null
           bio: string | null
-          phone: string | null
-          is_business: boolean
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id: string
-          email: string
+          created_at: string | null
           display_name: string
-          avatar_url?: string | null
-          bio?: string | null
-          phone?: string | null
-          is_business?: boolean
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          email?: string
-          display_name?: string
-          avatar_url?: string | null
-          bio?: string | null
-          phone?: string | null
-          is_business?: boolean
-          created_at?: string
-          updated_at?: string
-        }
-      }
-      stores: {
-        Row: {
-          id: string
-          owner_id: string
           email: string
-          name: string
-          description: string | null
-          address: string
-          latitude: number
-          longitude: number
+          id: string
+          is_business: boolean | null
           phone: string | null
-          website_url: string | null
-          opening_hours: Json | null
-          business_hours: Json | null
-          regular_holiday: string | null
-          structured_business_hours: Json | null
-          budget_min: number | null
-          budget_max: number | null
-          payment_methods: string[] | null
-          facilities: string[] | null
-          image_urls: string[] | null
-          is_open: boolean
-          vacancy_status: 'vacant' | 'open' | 'full' | 'closed'
-          status_message: string | null
-          male_ratio: number
-          female_ratio: number
-          /** 空席数（空席ありの場合に任意入力） */
-          vacant_seats: number | null
-          last_updated: string
-          created_at: string
-          updated_at: string
-          google_place_id: string | null
-          google_rating: number | null
-          google_reviews_count: number | null
-          // ============================================
-          // 臨時休業（manual_closed）関連のカラム
-          // ============================================
-          /** 臨時休業フラグ。trueの場合、Google Maps APIの結果に関わらず閉店扱い */
-          manual_closed: boolean
-          /** 閉店理由。'manual'=臨時休業、'business_hours'=営業時間外 */
-          closed_reason: 'manual' | 'business_hours' | null
-          /** 臨時休業の理由（店主が入力） */
-          manual_close_reason: string | null
-          /** 臨時休業を設定した日時 */
-          manual_closed_at: string | null
-          /** 再開予定日時（任意） */
-          estimated_reopen_at: string | null
-          /** 最後にis_openをチェックした日時（キャッシュ用） */
-          last_is_open_check_at: string | null
-          // ============================================
-          // クーポン関連のカラム
-          // ============================================
-          /** クーポンタイトル */
-          coupon_title: string | null
-          /** クーポン説明 */
-          coupon_description: string | null
-          /** クーポン割引タイプ */
-          coupon_discount_type: 'percentage' | 'fixed' | 'free_item' | null
-          /** クーポン割引値 */
-          coupon_discount_value: number | null
-          /** クーポン利用条件 */
-          coupon_conditions: string | null
-          /** クーポン開始日時 */
-          coupon_start_date: string | null
-          /** クーポン有効期限 */
-          coupon_expiry_date: string | null
-          /** クーポン画像URL */
-          coupon_image_url: string | null
-          /** クーポン有効フラグ */
-          coupon_is_active: boolean
-          /** クーポン最大利用回数 */
-          coupon_max_uses: number | null
-          /** クーポン現在の利用回数 */
-          coupon_current_uses: number
-          /** クーポンコード */
-          coupon_code: string | null
-          /** クーポンバーコードURL */
-          coupon_barcode_url: string | null
-          /** InstagramのURL */
-          instagram_url: string | null
-          /** 追加特典テキスト */
-          coupon_additional_bonus: string | null
-          /** キャンペーン用クーポンかどうか */
-          coupon_is_campaign: boolean
-          // ============================================
-          // おごり酒関連のカラム
-          // ============================================
-          /** おごり酒機能ON/OFF */
-          ogori_enabled: boolean
-          // ============================================
-          // キャンペーン関連のカラム
-          // ============================================
-          /** キャンペーン実施フラグ */
-          has_campaign: boolean
-          /** キャンペーンID（マスタ参照） */
-          campaign_id: string | null
-          /** キャンペーン名 */
-          campaign_name: string | null
-          /** キャンペーン開始日時 */
-          campaign_start_date: string | null
-          /** キャンペーン終了日時 */
-          campaign_end_date: string | null
-          /** 店舗カテゴリ（バー/カフェ/両方） */
-          store_category: 'bar' | 'cafe' | 'both'
+          updated_at: string | null
         }
         Insert: {
-          id?: string
-          owner_id: string
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string | null
+          display_name: string
           email: string
-          name: string
-          description?: string | null
-          address: string
-          latitude: number
-          longitude: number
+          id: string
+          is_business?: boolean | null
           phone?: string | null
-          website_url?: string | null
-          opening_hours?: Json | null
-          business_hours?: Json | null
-          regular_holiday?: string | null
-          structured_business_hours?: Json | null
-          budget_min?: number | null
-          budget_max?: number | null
-          payment_methods?: string[] | null
-          facilities?: string[] | null
-          image_urls?: string[] | null
-          is_open?: boolean
-          vacancy_status?: 'vacant' | 'open' | 'full' | 'closed'
-          status_message?: string | null
-          male_ratio?: number
-          female_ratio?: number
-          vacant_seats?: number | null
-          last_updated?: string
-          created_at?: string
-          updated_at?: string
-          google_place_id?: string | null
-          google_rating?: number | null
-          google_reviews_count?: number | null
-          // 臨時休業関連（すべてオプショナル）
-          manual_closed?: boolean
-          closed_reason?: 'manual' | 'business_hours' | null
-          manual_close_reason?: string | null
-          manual_closed_at?: string | null
-          estimated_reopen_at?: string | null
-          last_is_open_check_at?: string | null
-          // クーポン関連（すべてオプショナル）
-          coupon_title?: string | null
-          coupon_description?: string | null
-          coupon_discount_type?: 'percentage' | 'fixed' | 'free_item' | null
-          coupon_discount_value?: number | null
-          coupon_conditions?: string | null
-          coupon_start_date?: string | null
-          coupon_expiry_date?: string | null
-          coupon_image_url?: string | null
-          coupon_is_active?: boolean
-          coupon_max_uses?: number | null
-          coupon_current_uses?: number
-          coupon_code?: string | null
-          coupon_barcode_url?: string | null
-          instagram_url?: string | null
-          coupon_additional_bonus?: string | null
-          coupon_is_campaign?: boolean
-          // おごり酒関連（オプショナル）
-          ogori_enabled?: boolean
-          // キャンペーン関連（すべてオプショナル）
-          has_campaign?: boolean
-          campaign_id?: string | null
-          campaign_name?: string | null
-          campaign_start_date?: string | null
-          campaign_end_date?: string | null
-          /** 店舗カテゴリ（バー/カフェ/両方） */
-          store_category?: 'bar' | 'cafe' | 'both'
+          updated_at?: string | null
         }
         Update: {
-          id?: string
-          owner_id?: string
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string | null
+          display_name?: string
           email?: string
-          name?: string
-          description?: string | null
-          address?: string
-          latitude?: number
-          longitude?: number
+          id?: string
+          is_business?: boolean | null
           phone?: string | null
-          website_url?: string | null
-          opening_hours?: Json | null
-          business_hours?: Json | null
-          regular_holiday?: string | null
-          structured_business_hours?: Json | null
-          budget_min?: number | null
-          budget_max?: number | null
-          payment_methods?: string[] | null
-          facilities?: string[] | null
-          image_urls?: string[] | null
-          is_open?: boolean
-          vacancy_status?: 'vacant' | 'open' | 'full' | 'closed'
-          status_message?: string | null
-          male_ratio?: number
-          female_ratio?: number
-          vacant_seats?: number | null
-          last_updated?: string
-          created_at?: string
-          updated_at?: string
-          google_place_id?: string | null
-          google_rating?: number | null
-          google_reviews_count?: number | null
-          // 臨時休業関連（すべてオプショナル）
-          manual_closed?: boolean
-          closed_reason?: 'manual' | 'business_hours' | null
-          manual_close_reason?: string | null
-          manual_closed_at?: string | null
-          estimated_reopen_at?: string | null
-          last_is_open_check_at?: string | null
-          // クーポン関連（すべてオプショナル）
-          coupon_title?: string | null
-          coupon_description?: string | null
-          coupon_discount_type?: 'percentage' | 'fixed' | 'free_item' | null
-          coupon_discount_value?: number | null
-          coupon_conditions?: string | null
-          coupon_start_date?: string | null
-          coupon_expiry_date?: string | null
-          coupon_image_url?: string | null
-          coupon_is_active?: boolean
-          coupon_max_uses?: number | null
-          coupon_current_uses?: number
-          coupon_code?: string | null
-          coupon_barcode_url?: string | null
-          instagram_url?: string | null
-          coupon_additional_bonus?: string | null
-          coupon_is_campaign?: boolean
-          // おごり酒関連（オプショナル）
-          ogori_enabled?: boolean
-          // キャンペーン関連（すべてオプショナル）
-          has_campaign?: boolean
-          campaign_id?: string | null
-          campaign_name?: string | null
-          campaign_start_date?: string | null
-          campaign_end_date?: string | null
-          /** 店舗カテゴリ（バー/カフェ/両方） */
-          store_category?: 'bar' | 'cafe' | 'both'
+          updated_at?: string | null
         }
+        Relationships: []
       }
-      // ============================================
-      // おごり酒チケットテーブル
-      // ============================================
-      ogori_tickets: {
+      push_subscriptions: {
         Row: {
+          auth: string
+          created_at: string | null
+          endpoint: string
           id: string
+          p256dh: string
           store_id: string
-          purchaser_id: string | null
-          amount: number
-          drink_id: string | null
-          drink_name: string | null
-          stripe_payment_id: string | null
-          status: 'available' | 'used' | 'expired'
-          used_by: string | null
-          used_at: string | null
-          used_drink_id: string | null
-          used_drink_name: string | null
-          created_at: string
         }
         Insert: {
+          auth: string
+          created_at?: string | null
+          endpoint: string
           id?: string
+          p256dh: string
           store_id: string
-          purchaser_id?: string | null
-          amount: number
-          drink_id?: string | null
-          drink_name?: string | null
-          stripe_payment_id?: string | null
-          status?: 'available' | 'used' | 'expired'
-          used_by?: string | null
-          used_at?: string | null
-          used_drink_id?: string | null
-          used_drink_name?: string | null
-          created_at?: string
         }
         Update: {
+          auth?: string
+          created_at?: string | null
+          endpoint?: string
           id?: string
+          p256dh?: string
           store_id?: string
-          purchaser_id?: string | null
-          amount?: number
-          drink_id?: string | null
-          drink_name?: string | null
-          stripe_payment_id?: string | null
-          status?: 'available' | 'used' | 'expired'
-          used_by?: string | null
-          used_at?: string | null
-          used_drink_id?: string | null
-          used_drink_name?: string | null
-          created_at?: string
         }
-      }
-      // ============================================
-      // おごり酒ドリンクメニューテーブル
-      // ============================================
-      ogori_drinks: {
-        Row: {
-          id: string
-          store_id: string
-          name: string
-          price: number
-          image_url: string | null
-          is_active: boolean
-          sort_order: number
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          store_id: string
-          name: string
-          price: number
-          image_url?: string | null
-          is_active?: boolean
-          sort_order?: number
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          store_id?: string
-          name?: string
-          price?: number
-          image_url?: string | null
-          is_active?: boolean
-          sort_order?: number
-          created_at?: string
-        }
-      }
-      // ============================================
-      // おごり酒金額設定テーブル
-      // ============================================
-      ogori_price_options: {
-        Row: {
-          id: string
-          store_id: string
-          amount: number
-          is_active: boolean
-          sort_order: number
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          store_id: string
-          amount: number
-          is_active?: boolean
-          sort_order?: number
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          store_id?: string
-          amount?: number
-          is_active?: boolean
-          sort_order?: number
-          created_at?: string
-        }
+        Relationships: []
       }
       quick_reservations: {
         Row: {
-          id: string
-          store_id: string
-          user_id: string | null
+          arrival_time: string
+          arrived_at: string | null
+          call_sid: string | null
           caller_name: string | null
           caller_phone: string
-          party_size: number
-          arrival_time: string
-          status: 'pending' | 'confirmed' | 'rejected' | 'cancelled' | 'expired'
-          call_sid: string | null
-          confirmed_at: string | null
-          rejection_reason: string | null
-          notes: string | null
-          expires_at: string
-          created_at: string
-          updated_at: string
-          // ============================================
-          // 来店管理関連のカラム
-          // ============================================
-          /** 店舗名（キャッシュ用） */
-          store_name: string | null
-          /** 来店日時。値があれば来店済み */
-          arrived_at: string | null
-          /** ノーショー（無断キャンセル）日時 */
-          no_show_at: string | null
-          /** キャンセル日時 */
           cancelled_at: string | null
-          /** 論理削除日時（店舗管理画面での削除用） */
+          confirmed_at: string | null
+          created_at: string | null
           deleted_at: string | null
+          expires_at: string
+          id: string
+          no_show_at: string | null
+          notes: string | null
+          party_size: number
+          rejection_reason: string | null
+          status: string
+          store_id: string
+          store_name: string | null
+          updated_at: string | null
+          user_id: string | null
         }
         Insert: {
-          id?: string
-          store_id: string
-          user_id?: string | null
+          arrival_time: string
+          arrived_at?: string | null
+          call_sid?: string | null
           caller_name?: string | null
           caller_phone: string
-          party_size: number
-          arrival_time: string
-          status?: 'pending' | 'confirmed' | 'rejected' | 'cancelled' | 'expired'
-          call_sid?: string | null
-          confirmed_at?: string | null
-          rejection_reason?: string | null
-          notes?: string | null
-          expires_at: string
-          created_at?: string
-          updated_at?: string
-          // 来店管理関連（すべてオプショナル）
-          store_name?: string | null
-          arrived_at?: string | null
-          no_show_at?: string | null
           cancelled_at?: string | null
+          confirmed_at?: string | null
+          created_at?: string | null
           deleted_at?: string | null
+          expires_at: string
+          id?: string
+          no_show_at?: string | null
+          notes?: string | null
+          party_size?: number
+          rejection_reason?: string | null
+          status?: string
+          store_id: string
+          store_name?: string | null
+          updated_at?: string | null
+          user_id?: string | null
         }
         Update: {
-          id?: string
-          store_id?: string
-          user_id?: string | null
+          arrival_time?: string
+          arrived_at?: string | null
+          call_sid?: string | null
           caller_name?: string | null
           caller_phone?: string
-          party_size?: number
-          arrival_time?: string
-          status?: 'pending' | 'confirmed' | 'rejected' | 'cancelled' | 'expired'
-          call_sid?: string | null
-          confirmed_at?: string | null
-          rejection_reason?: string | null
-          notes?: string | null
-          expires_at?: string
-          created_at?: string
-          updated_at?: string
-          // 来店管理関連（すべてオプショナル）
-          store_name?: string | null
-          arrived_at?: string | null
-          no_show_at?: string | null
           cancelled_at?: string | null
+          confirmed_at?: string | null
+          created_at?: string | null
           deleted_at?: string | null
+          expires_at?: string
+          id?: string
+          no_show_at?: string | null
+          notes?: string | null
+          party_size?: number
+          rejection_reason?: string | null
+          status?: string
+          store_id?: string
+          store_name?: string | null
+          updated_at?: string | null
+          user_id?: string | null
         }
+        Relationships: [
+          {
+            foreignKeyName: "quick_reservations_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sponsor_ad_creatives: {
+        Row: {
+          ad_slot_id: string
+          background_image_url: string | null
+          created_at: string
+          cta_color: string
+          cta_text: string | null
+          cta_url: string | null
+          custom_css: Json | null
+          display_config: Json
+          icon_position: Json | null
+          icon_size: number
+          icon_url: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          translations: Json
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          ad_slot_id: string
+          background_image_url?: string | null
+          created_at?: string
+          cta_color?: string
+          cta_text?: string | null
+          cta_url?: string | null
+          custom_css?: Json | null
+          display_config?: Json
+          icon_position?: Json | null
+          icon_size?: number
+          icon_url?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          translations?: Json
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          ad_slot_id?: string
+          background_image_url?: string | null
+          created_at?: string
+          cta_color?: string
+          cta_text?: string | null
+          cta_url?: string | null
+          custom_css?: Json | null
+          display_config?: Json
+          icon_position?: Json | null
+          icon_size?: number
+          icon_url?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          translations?: Json
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sponsor_ad_creatives_ad_slot_id_fkey"
+            columns: ["ad_slot_id"]
+            isOneToOne: false
+            referencedRelation: "sponsor_ad_slots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sponsor_ad_slots: {
+        Row: {
+          contract_id: string
+          created_at: string
+          display_priority: number
+          id: string
+          is_enabled: boolean
+          schedule_config: Json
+          slot_type: string
+          updated_at: string
+        }
+        Insert: {
+          contract_id: string
+          created_at?: string
+          display_priority?: number
+          id?: string
+          is_enabled?: boolean
+          schedule_config?: Json
+          slot_type: string
+          updated_at?: string
+        }
+        Update: {
+          contract_id?: string
+          created_at?: string
+          display_priority?: number
+          id?: string
+          is_enabled?: boolean
+          schedule_config?: Json
+          slot_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sponsor_ad_slots_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "sponsor_contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sponsor_contracts: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          currency: string
+          end_date: string
+          id: string
+          notes: string | null
+          plan_type: string
+          price: number | null
+          sponsor_id: string
+          start_date: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          end_date: string
+          id?: string
+          notes?: string | null
+          plan_type: string
+          price?: number | null
+          sponsor_id: string
+          start_date: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          end_date?: string
+          id?: string
+          notes?: string | null
+          plan_type?: string
+          price?: number | null
+          sponsor_id?: string
+          start_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sponsor_contracts_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sponsor_contracts_sponsor_id_fkey"
+            columns: ["sponsor_id"]
+            isOneToOne: false
+            referencedRelation: "sponsors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sponsor_impressions: {
+        Row: {
+          ad_slot_id: string | null
+          contract_id: string | null
+          created_at: string
+          creative_id: string | null
+          device_type: string | null
+          event_type: string
+          geo_data: Json | null
+          id: string
+          metadata: Json
+          referrer: string | null
+          session_id: string | null
+          sponsor_id: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          ad_slot_id?: string | null
+          contract_id?: string | null
+          created_at?: string
+          creative_id?: string | null
+          device_type?: string | null
+          event_type: string
+          geo_data?: Json | null
+          id?: string
+          metadata?: Json
+          referrer?: string | null
+          session_id?: string | null
+          sponsor_id?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          ad_slot_id?: string | null
+          contract_id?: string | null
+          created_at?: string
+          creative_id?: string | null
+          device_type?: string | null
+          event_type?: string
+          geo_data?: Json | null
+          id?: string
+          metadata?: Json
+          referrer?: string | null
+          session_id?: string | null
+          sponsor_id?: string | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sponsor_impressions_ad_slot_id_fkey"
+            columns: ["ad_slot_id"]
+            isOneToOne: false
+            referencedRelation: "sponsor_ad_slots"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sponsor_impressions_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "sponsor_contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sponsor_impressions_creative_id_fkey"
+            columns: ["creative_id"]
+            isOneToOne: false
+            referencedRelation: "sponsor_ad_creatives"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sponsor_impressions_sponsor_id_fkey"
+            columns: ["sponsor_id"]
+            isOneToOne: false
+            referencedRelation: "sponsors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sponsor_reports: {
+        Row: {
+          clicks_count: number
+          contract_id: string
+          created_at: string
+          cta_clicks_count: number
+          ctr: number
+          device_breakdown: Json
+          hourly_breakdown: Json
+          id: string
+          impressions_count: number
+          report_date: string
+          slot_breakdown: Json
+          sponsor_id: string
+          unique_users_count: number
+        }
+        Insert: {
+          clicks_count?: number
+          contract_id: string
+          created_at?: string
+          cta_clicks_count?: number
+          ctr?: number
+          device_breakdown?: Json
+          hourly_breakdown?: Json
+          id?: string
+          impressions_count?: number
+          report_date: string
+          slot_breakdown?: Json
+          sponsor_id: string
+          unique_users_count?: number
+        }
+        Update: {
+          clicks_count?: number
+          contract_id?: string
+          created_at?: string
+          cta_clicks_count?: number
+          ctr?: number
+          device_breakdown?: Json
+          hourly_breakdown?: Json
+          id?: string
+          impressions_count?: number
+          report_date?: string
+          slot_breakdown?: Json
+          sponsor_id?: string
+          unique_users_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sponsor_reports_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "sponsor_contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sponsor_reports_sponsor_id_fkey"
+            columns: ["sponsor_id"]
+            isOneToOne: false
+            referencedRelation: "sponsors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sponsors: {
+        Row: {
+          company_logo_url: string | null
+          company_name: string
+          contact_email: string | null
+          contact_name: string | null
+          contact_phone: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          notes: string | null
+          updated_at: string
+          website_url: string | null
+        }
+        Insert: {
+          company_logo_url?: string | null
+          company_name: string
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          updated_at?: string
+          website_url?: string | null
+        }
+        Update: {
+          company_logo_url?: string | null
+          company_name?: string
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          updated_at?: string
+          website_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sponsors_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      store_applications: {
+        Row: {
+          address: string
+          admin_notes: string | null
+          budget_max: number | null
+          budget_min: number | null
+          business_hours: string | null
+          contact_email: string
+          created_at: string | null
+          description: string | null
+          facilities: string[] | null
+          id: string
+          image_urls: string[] | null
+          latitude: number | null
+          longitude: number | null
+          payment_methods: string[] | null
+          phone: string | null
+          regular_holiday: string | null
+          remarks: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          store_category: string
+          store_name: string
+          terms_agreed: boolean
+          updated_at: string | null
+        }
+        Insert: {
+          address: string
+          admin_notes?: string | null
+          budget_max?: number | null
+          budget_min?: number | null
+          business_hours?: string | null
+          contact_email: string
+          created_at?: string | null
+          description?: string | null
+          facilities?: string[] | null
+          id?: string
+          image_urls?: string[] | null
+          latitude?: number | null
+          longitude?: number | null
+          payment_methods?: string[] | null
+          phone?: string | null
+          regular_holiday?: string | null
+          remarks?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          store_category?: string
+          store_name: string
+          terms_agreed?: boolean
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string
+          admin_notes?: string | null
+          budget_max?: number | null
+          budget_min?: number | null
+          business_hours?: string | null
+          contact_email?: string
+          created_at?: string | null
+          description?: string | null
+          facilities?: string[] | null
+          id?: string
+          image_urls?: string[] | null
+          latitude?: number | null
+          longitude?: number | null
+          payment_methods?: string[] | null
+          phone?: string | null
+          regular_holiday?: string | null
+          remarks?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          store_category?: string
+          store_name?: string
+          terms_agreed?: boolean
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      stores: {
+        Row: {
+          address: string
+          budget_max: number | null
+          budget_min: number | null
+          business_hours: Json | null
+          campaign_end_date: string | null
+          campaign_id: string | null
+          campaign_name: string | null
+          campaign_start_date: string | null
+          closed_reason: string | null
+          coupon_additional_bonus: string | null
+          coupon_barcode_url: string | null
+          coupon_code: string | null
+          coupon_conditions: string | null
+          coupon_current_uses: number | null
+          coupon_description: string | null
+          coupon_discount_type: string | null
+          coupon_discount_value: number | null
+          coupon_expiry_date: string | null
+          coupon_image_url: string | null
+          coupon_is_active: boolean | null
+          coupon_is_campaign: boolean | null
+          coupon_max_uses: number | null
+          coupon_start_date: string | null
+          coupon_title: string | null
+          created_at: string | null
+          description: string | null
+          email: string
+          facilities: string[] | null
+          female_ratio: number | null
+          google_place_id: string | null
+          google_rating: number | null
+          google_reviews_count: number | null
+          has_campaign: boolean | null
+          id: string
+          image_urls: string[] | null
+          is_open: boolean | null
+          last_is_open_check_at: string | null
+          last_updated: string | null
+          latitude: number
+          longitude: number
+          male_ratio: number | null
+          manual_closed: boolean | null
+          manual_closed_at: string | null
+          name: string
+          ogori_enabled: boolean | null
+          owner_id: string
+          payment_methods: string[] | null
+          phone: string | null
+          regular_holiday: string | null
+          status_message: string | null
+          store_category: string
+          structured_business_hours: Json | null
+          updated_at: string | null
+          vacancy_status: string | null
+          vacant_seats: number | null
+          website_url: string | null
+        }
+        Insert: {
+          address: string
+          budget_max?: number | null
+          budget_min?: number | null
+          business_hours?: Json | null
+          campaign_end_date?: string | null
+          campaign_id?: string | null
+          campaign_name?: string | null
+          campaign_start_date?: string | null
+          closed_reason?: string | null
+          coupon_additional_bonus?: string | null
+          coupon_barcode_url?: string | null
+          coupon_code?: string | null
+          coupon_conditions?: string | null
+          coupon_current_uses?: number | null
+          coupon_description?: string | null
+          coupon_discount_type?: string | null
+          coupon_discount_value?: number | null
+          coupon_expiry_date?: string | null
+          coupon_image_url?: string | null
+          coupon_is_active?: boolean | null
+          coupon_is_campaign?: boolean | null
+          coupon_max_uses?: number | null
+          coupon_start_date?: string | null
+          coupon_title?: string | null
+          created_at?: string | null
+          description?: string | null
+          email?: string
+          facilities?: string[] | null
+          female_ratio?: number | null
+          google_place_id?: string | null
+          google_rating?: number | null
+          google_reviews_count?: number | null
+          has_campaign?: boolean | null
+          id?: string
+          image_urls?: string[] | null
+          is_open?: boolean | null
+          last_is_open_check_at?: string | null
+          last_updated?: string | null
+          latitude: number
+          longitude: number
+          male_ratio?: number | null
+          manual_closed?: boolean | null
+          manual_closed_at?: string | null
+          name: string
+          ogori_enabled?: boolean | null
+          owner_id: string
+          payment_methods?: string[] | null
+          phone?: string | null
+          regular_holiday?: string | null
+          status_message?: string | null
+          store_category?: string
+          structured_business_hours?: Json | null
+          updated_at?: string | null
+          vacancy_status?: string | null
+          vacant_seats?: number | null
+          website_url?: string | null
+        }
+        Update: {
+          address?: string
+          budget_max?: number | null
+          budget_min?: number | null
+          business_hours?: Json | null
+          campaign_end_date?: string | null
+          campaign_id?: string | null
+          campaign_name?: string | null
+          campaign_start_date?: string | null
+          closed_reason?: string | null
+          coupon_additional_bonus?: string | null
+          coupon_barcode_url?: string | null
+          coupon_code?: string | null
+          coupon_conditions?: string | null
+          coupon_current_uses?: number | null
+          coupon_description?: string | null
+          coupon_discount_type?: string | null
+          coupon_discount_value?: number | null
+          coupon_expiry_date?: string | null
+          coupon_image_url?: string | null
+          coupon_is_active?: boolean | null
+          coupon_is_campaign?: boolean | null
+          coupon_max_uses?: number | null
+          coupon_start_date?: string | null
+          coupon_title?: string | null
+          created_at?: string | null
+          description?: string | null
+          email?: string
+          facilities?: string[] | null
+          female_ratio?: number | null
+          google_place_id?: string | null
+          google_rating?: number | null
+          google_reviews_count?: number | null
+          has_campaign?: boolean | null
+          id?: string
+          image_urls?: string[] | null
+          is_open?: boolean | null
+          last_is_open_check_at?: string | null
+          last_updated?: string | null
+          latitude?: number
+          longitude?: number
+          male_ratio?: number | null
+          manual_closed?: boolean | null
+          manual_closed_at?: string | null
+          name?: string
+          ogori_enabled?: boolean | null
+          owner_id?: string
+          payment_methods?: string[] | null
+          phone?: string | null
+          regular_holiday?: string | null
+          status_message?: string | null
+          store_category?: string
+          structured_business_hours?: Json | null
+          updated_at?: string | null
+          vacancy_status?: string | null
+          vacant_seats?: number | null
+          website_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stores_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
-    Views: {}
-    Functions: {}
-    Enums: {}
+    Views: {
+      coupon_usage_daily_stats: {
+        Row: {
+          first_visit_count: number | null
+          local_resident_count: number | null
+          repeat_visit_count: number | null
+          store_id: string | null
+          total_usages: number | null
+          usage_date: string | null
+          visitor_count: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coupon_usages_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coupon_usage_monthly_stats: {
+        Row: {
+          first_visit_count: number | null
+          first_visit_percentage: number | null
+          local_resident_count: number | null
+          local_resident_percentage: number | null
+          repeat_visit_count: number | null
+          store_id: string | null
+          total_usages: number | null
+          usage_month: string | null
+          visitor_count: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coupon_usages_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+    }
+    Functions: {
+      aggregate_sponsor_daily_reports: { Args: never; Returns: undefined }
+      check_coupon_duplicate: {
+        Args: {
+          p_coupon_id: string
+          p_device_fingerprint: string
+          p_session_id: string
+          p_user_id: string
+        }
+        Returns: boolean
+      }
+      check_coupon_duplicate_usage: {
+        Args: {
+          p_minutes_threshold?: number
+          p_session_id: string
+          p_store_id: string
+        }
+        Returns: boolean
+      }
+      is_platform_admin: { Args: never; Returns: boolean }
+      record_coupon_usage: {
+        Args: {
+          p_is_first_visit?: boolean
+          p_is_local_resident?: boolean
+          p_referrer?: string
+          p_session_id: string
+          p_store_id: string
+          p_user_agent?: string
+          p_user_id?: string
+        }
+        Returns: Json
+      }
+      update_sponsor_contract_statuses: { Args: never; Returns: undefined }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
 }
+
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  public: {
+    Enums: {},
+  },
+} as const
 
 // ============================================
 // 予約ステータス関連の型定義

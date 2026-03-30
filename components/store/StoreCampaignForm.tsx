@@ -45,7 +45,7 @@ export function getDefaultCampaignFormValues(): CampaignFormValues {
 
 // DBデータをフォーム値に変換
 export function dbDataToCampaignForm(dbData: {
-  has_campaign?: boolean;
+  has_campaign?: boolean | null;
   campaign_id?: string | null;
   campaign_name?: string | null;
   campaign_start_date?: string | null;

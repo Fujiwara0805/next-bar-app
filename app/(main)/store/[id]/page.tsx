@@ -55,6 +55,7 @@ import { sendGAEvent } from '@/lib/analytics';
 import { OgoriSection } from '@/components/ogori/OgoriSection';
 import { getTodayOpenTime, isTodayClosedDay, checkIsOpenFromStructuredHours } from '@/lib/structured-business-hours';
 import { useOptimizedLocation } from '@/lib/hooks/useOptimizedLocation';
+import { SponsorCtaButton } from '@/components/sponsors/sponsor-cta-button';
 
 type Store = Database['public']['Tables']['stores']['Row'];
 
@@ -188,7 +189,14 @@ export default function StoreDetailPage() {
   const params = useParams();
   const { t, language } = useLanguage();
   const { colorsB: COLORS } = useAppMode();
-  
+
+  // body背景色をページの背景色に同期（画面外の色漏れ防止）
+  useEffect(() => {
+    const prev = document.body.style.backgroundColor;
+    document.body.style.backgroundColor = COLORS.ivory;
+    return () => { document.body.style.backgroundColor = prev; };
+  }, [COLORS.ivory]);
+
   // 設備名を翻訳するヘルパー関数
   const translateFacility = (facility: string): string => {
     const facilitiesMap = (translations as any)[language]?.facilities_map;
@@ -211,12 +219,12 @@ export default function StoreDetailPage() {
   const [photosRequested, setPhotosRequested] = useState(false);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
   const [showCouponModal, setShowCouponModal] = useState(false);
-  
+
   // ライトボックス用の状態
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxImages, setLightboxImages] = useState<string[]>([]);
   const [lightboxInitialIndex, setLightboxInitialIndex] = useState(0);
-  
+
   // 自動スライド用のタイマーRef
   const autoSlideTimerRef = useRef<NodeJS.Timeout | null>(null);
   const photoCarouselTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -870,7 +878,7 @@ export default function StoreDetailPage() {
                 })()}
 
                 {/* 高級感のあるクーポンボタン */}
-                {isCouponValid(store) && store.coupon_title && (
+                {isCouponValid(store as Partial<CouponData>) && store.coupon_title && (
                   <motion.button
                     whileHover={{ scale: 1.03, y: -2 }}
                     whileTap={{ scale: 0.97 }}
@@ -1339,7 +1347,7 @@ export default function StoreDetailPage() {
           coupon={store as Partial<CouponData>}
           storeName={store.name}
           storeId={store.id}
-          instagramUrl={store.instagram_url ?? (store.website_url?.includes('instagram.com') ? store.website_url : undefined) ?? undefined}
+          instagramUrl={(store.website_url?.includes('instagram.com') ? store.website_url : undefined) ?? undefined}
           googlePlaceId={store.google_place_id ?? undefined}
           onCouponUsed={() => fetchStore(store.id)}
           campaignId={store.campaign_id}
@@ -1355,6 +1363,9 @@ export default function StoreDetailPage() {
         onClose={closeLightbox}
         alt={store.name}
       />
+
+      {/* スポンサー広告 */}
+      <SponsorCtaButton />
     </div>
   );
 }

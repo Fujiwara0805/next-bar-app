@@ -92,7 +92,7 @@ interface DeviceOrientationState {
 interface StoreMarkerData {
   marker: google.maps.Marker;
   touchArea: google.maps.Circle;
-  lastStatus: string;
+  lastStatus: string | null;
   lastPosition: { lat: number; lng: number };
 }
 
@@ -142,7 +142,7 @@ function calculateDistanceMeters(
 /**
  * マーカーアイコンURLを取得
  */
-function getMarkerIconUrl(status: string): string {
+function getMarkerIconUrl(status: string | null): string {
   switch (status) {
     case 'vacant':
       return 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761311529/%E7%A9%BA%E5%B8%AD%E3%81%82%E3%82%8A_rzejgw.png';
@@ -1303,7 +1303,7 @@ export function MapView({
             sendGAEvent('map_pin_click', {
               store_id: store.id,
               store_name: store.name,
-              vacancy_status: store.vacancy_status,
+              vacancy_status: store.vacancy_status ?? 'unknown',
             });
             marker.setAnimation(google.maps.Animation.BOUNCE);
             setTimeout(() => marker.setAnimation(null), 700);

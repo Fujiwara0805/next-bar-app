@@ -122,7 +122,7 @@ export default function ProfilePage() {
               <div className="flex items-center gap-1">
                 <Calendar className="w-4 h-4" />
                 <span>
-                  {t('profile.member_since').replace('{date}', format(new Date(profile.created_at), language === 'ja' ? 'yyyy年M月' : 'MMM yyyy', { locale: getDateLocale() }))}
+                  {t('profile.member_since').replace('{date}', format(new Date(profile.created_at ?? Date.now()), language === 'ja' ? 'yyyy年M月' : 'MMM yyyy', { locale: getDateLocale() }))}
                 </span>
               </div>
             </div>

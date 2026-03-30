@@ -476,8 +476,8 @@ export default function StoreUpdatePage() {
       const headers = ['No', '受付時刻', '名前', '電話番号', '人数', '到着予定', 'ステータス', '来店状況', '来店時刻'];
       
       const csvRows = reservationsData.map((reservation, index) => {
-        const createdAt = new Date(reservation.created_at);
-        const arrivalTime = new Date(reservation.arrival_time);
+        const createdAt = new Date(reservation.created_at ?? Date.now());
+        const arrivalTime = new Date(reservation.arrival_time ?? Date.now());
         const arrivedAt = reservation.arrived_at ? new Date(reservation.arrived_at) : null;
         
         // 来店状況の判定
@@ -985,8 +985,8 @@ export default function StoreUpdatePage() {
                 ) : (
                   <div className="space-y-4">
                     {reservations.map((reservation) => {
-                      const createdAt = new Date(reservation.created_at);
-                      const arrivalTime = new Date(reservation.arrival_time);
+                      const createdAt = new Date(reservation.created_at ?? Date.now());
+                      const arrivalTime = new Date(reservation.arrival_time ?? Date.now());
                       const statusLabels: Record<string, { label: string; color: string; bgColor: string; icon: React.ReactNode }> = {
                         pending: { 
                           label: '保留中', 
