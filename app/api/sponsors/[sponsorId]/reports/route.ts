@@ -54,13 +54,19 @@ export async function GET(
       console.error('[sponsors/reports] sponsor_impressions query error:', impError);
     }
 
+    const allEvents = impressions || [];
+
     // Filter raw events to only uncovered dates
-    const rawEvents = (impressions || []).filter((event) => {
+    const rawEvents = allEvents.filter((event) => {
       const date = new Date(event.created_at).toLocaleDateString('sv-SE', { timeZone: 'Asia/Tokyo' });
       return !coveredDates.has(date);
     });
 
-    console.log(`[sponsors/reports] raw impressions=${(impressions || []).length}, uncovered rawEvents=${rawEvents.length}`);
+    // 全期間の真のユニークユーザー数（日別合算ではなく重複排除）
+    const allSessionIds = new Set(allEvents.map((e) => e.session_id).filter(Boolean));
+    const trueUniqueUsers = allSessionIds.size;
+
+    console.log(`[sponsors/reports] raw impressions=${allEvents.length}, uncovered rawEvents=${rawEvents.length}, trueUniqueUsers=${trueUniqueUsers}`);
 
     // 3. Get contract total price for CPM/CPC calculation
     const { data: contracts } = await supabase
@@ -72,7 +78,7 @@ export async function GET(
     const contractTotalPrice = (contracts || []).reduce((sum, c) => sum + (c.price || 0), 0) || null;
 
     // 4. Merge both sources
-    const response = buildMergedResponse(reports, rawEvents, contractTotalPrice);
+    const response = buildMergedResponse(reports, rawEvents, allEvents, contractTotalPrice, trueUniqueUsers);
     console.log(`[sponsors/reports] response summary:`, JSON.stringify(response.summary));
     return NextResponse.json(response);
   } catch (err) {
@@ -95,38 +101,36 @@ function parseJsonField<T>(value: unknown, fallback: T): T {
 function buildMergedResponse(
   reports: any[],
   rawEvents: any[],
-  contractTotalPrice: number | null
+  allEvents: any[],
+  contractTotalPrice: number | null,
+  trueUniqueUsers: number
 ): ReportResponse {
   let totalImpressions = 0;
   let totalClicks = 0;
   let totalCtaClicks = 0;
   let totalConversions = 0;
-  let totalUniqueUsers = 0;
 
   const daily: ReportResponse['daily'] = [];
   const deviceTotals = { mobile: 0, tablet: 0, desktop: 0 };
   const hourlyMerged: Record<string, Record<string, number>> = {};
   const slotTotals: Record<string, { impressions: number; clicks: number }> = {};
-  const creativeTotals: Record<string, { impressions: number; clicks: number }> = {};
 
   // --- Process pre-aggregated sponsor_reports ---
   for (const row of reports) {
     const imp = row.impressions_count || 0;
     const clicks = row.clicks_count || 0;
     const ctaClicks = row.cta_clicks_count || 0;
-    const unique = row.unique_users_count || 0;
 
     totalImpressions += imp;
     totalClicks += clicks;
     totalCtaClicks += ctaClicks;
-    totalUniqueUsers += unique;
 
     daily.push({
       date: row.report_date,
       impressions: imp,
       clicks,
       ctr: imp > 0 ? clicks / imp : 0,
-      unique_users: unique,
+      unique_users: row.unique_users_count || 0,
     });
 
     const deviceData = parseJsonField<Record<string, number>>(row.device_breakdown, {});
@@ -175,25 +179,20 @@ function buildMergedResponse(
     const day = byDate[date];
     if (event.session_id) day.sessions.add(event.session_id);
 
-    const device = event.device_type || 'desktop';
-    day.devices[device] = (day.devices[device] || 0) + 1;
-
     const slotKey = event.ad_slot_id || 'unknown';
-    const creativeKey = event.creative_id || 'unknown';
 
     if (event.event_type === 'impression') {
       day.impressions++;
+      // デバイス集計はimpressionのみカウント
+      const device = event.device_type || 'desktop';
+      day.devices[device] = (day.devices[device] || 0) + 1;
       if (!day.slots[slotKey]) day.slots[slotKey] = { impressions: 0, clicks: 0 };
       day.slots[slotKey].impressions++;
-      if (!creativeTotals[creativeKey]) creativeTotals[creativeKey] = { impressions: 0, clicks: 0 };
-      creativeTotals[creativeKey].impressions++;
     } else if (event.event_type === 'click' || event.event_type === 'cta_click') {
       day.clicks++;
       if (event.event_type === 'cta_click') day.ctaClicks++;
       if (!day.slots[slotKey]) day.slots[slotKey] = { impressions: 0, clicks: 0 };
       day.slots[slotKey].clicks++;
-      if (!creativeTotals[creativeKey]) creativeTotals[creativeKey] = { impressions: 0, clicks: 0 };
-      creativeTotals[creativeKey].clicks++;
     } else if (event.event_type === 'conversion') {
       day.conversions++;
     }
@@ -204,14 +203,12 @@ function buildMergedResponse(
     day.hours[hour] = (day.hours[hour] || 0) + 1;
   }
 
-  const allRawSessions = new Set<string>();
   for (const date of Object.keys(byDate).sort()) {
     const day = byDate[date];
     totalImpressions += day.impressions;
     totalClicks += day.clicks;
     totalCtaClicks += day.ctaClicks;
     totalConversions += day.conversions;
-    day.sessions.forEach((s) => allRawSessions.add(s));
 
     daily.push({
       date,
@@ -242,17 +239,20 @@ function buildMergedResponse(
     }
   }
 
-  totalUniqueUsers += allRawSessions.size;
-
   daily.sort((a, b) => a.date.localeCompare(b.date));
 
-  const frequency = totalUniqueUsers > 0 ? totalImpressions / totalUniqueUsers : 0;
-  const estimatedCpm = contractTotalPrice && totalImpressions > 0
-    ? (contractTotalPrice / totalImpressions) * 1000
-    : null;
-  const estimatedCpc = contractTotalPrice && totalClicks > 0
-    ? contractTotalPrice / totalClicks
-    : null;
+  // クリエイティブ別パフォーマンスは全期間の生データから算出（集計済み日も含む）
+  const creativeTotals: Record<string, { impressions: number; clicks: number }> = {};
+  for (const event of allEvents) {
+    const creativeKey = event.creative_id || 'unknown';
+    if (event.event_type === 'impression') {
+      if (!creativeTotals[creativeKey]) creativeTotals[creativeKey] = { impressions: 0, clicks: 0 };
+      creativeTotals[creativeKey].impressions++;
+    } else if (event.event_type === 'click' || event.event_type === 'cta_click') {
+      if (!creativeTotals[creativeKey]) creativeTotals[creativeKey] = { impressions: 0, clicks: 0 };
+      creativeTotals[creativeKey].clicks++;
+    }
+  }
 
   const creativePerformance: CreativePerformance[] = Object.entries(creativeTotals)
     .filter(([id]) => id !== 'unknown')
@@ -263,6 +263,15 @@ function buildMergedResponse(
       ctr: v.impressions > 0 ? v.clicks / v.impressions : 0,
     }));
 
+  // ユニークユーザーは全期間の真の重複排除値を使用
+  const frequency = trueUniqueUsers > 0 ? totalImpressions / trueUniqueUsers : 0;
+  const estimatedCpm = contractTotalPrice && totalImpressions > 0
+    ? (contractTotalPrice / totalImpressions) * 1000
+    : null;
+  const estimatedCpc = contractTotalPrice && totalClicks > 0
+    ? contractTotalPrice / totalClicks
+    : null;
+
   return {
     summary: {
       total_impressions: totalImpressions,
@@ -270,7 +279,7 @@ function buildMergedResponse(
       total_cta_clicks: totalCtaClicks,
       total_conversions: totalConversions,
       avg_ctr: totalImpressions > 0 ? totalClicks / totalImpressions : 0,
-      unique_users: totalUniqueUsers,
+      unique_users: trueUniqueUsers,
       frequency: Math.round(frequency * 100) / 100,
       estimated_cpm: estimatedCpm ? Math.round(estimatedCpm) : null,
       estimated_cpc: estimatedCpc ? Math.round(estimatedCpc) : null,
