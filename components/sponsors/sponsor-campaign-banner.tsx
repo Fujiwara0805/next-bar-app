@@ -33,7 +33,6 @@ export function SponsorCampaignBanner() {
       contract_id: ad.contract_id,
       sponsor_id: ad.sponsor_id,
     });
-    // Navigation handled by <a> tag
   }, [ad, trackEvent]);
 
   if (!ad) return null;
@@ -45,65 +44,85 @@ export function SponsorCampaignBanner() {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: -10 }}
+      initial={{ opacity: 0, y: -8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
-      className="mb-3"
+      transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
+      className="mb-4"
     >
       <Wrapper
         {...wrapperProps}
-        className="relative block w-full rounded-xl overflow-hidden shadow-md cursor-pointer no-underline"
-        style={{ minHeight: 80 }}
+        className="relative block w-full rounded-2xl overflow-hidden no-underline group"
+        style={{
+          boxShadow: '0 4px 24px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.08)',
+        }}
       >
-        {/* Background */}
-        {ad.image_url ? (
-          <img
-            src={ad.image_url}
-            alt={ad.company_name || ''}
-            className="w-full h-full object-cover absolute inset-0"
-            loading="lazy"
-            onError={(e) => {
-              e.currentTarget.style.display = 'none';
-            }}
+        {/* 3:1 アスペクト比コンテナ */}
+        <div className="relative w-full" style={{ paddingBottom: '33.333%' }}>
+          {ad.image_url ? (
+            <img
+              src={ad.image_url}
+              alt={ad.company_name || ''}
+              className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+              loading="lazy"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+                const fallback = e.currentTarget.parentElement?.querySelector('.fallback-bg') as HTMLElement;
+                if (fallback) fallback.style.display = 'block';
+              }}
+            />
+          ) : null}
+
+          {/* フォールバック背景 */}
+          <div
+            className="fallback-bg absolute inset-0 bg-gradient-to-br from-[#1A2E4A] via-[#162447] to-[#0A1628]"
+            style={{ display: ad.image_url ? 'none' : 'block' }}
           />
-        ) : (
-          <div className="absolute inset-0 bg-gradient-to-r from-[#1A2E4A] to-[#0A1628]" />
-        )}
 
-        {/* Dark overlay */}
-        <div className="absolute inset-0 bg-black/10" />
+          {/* 微細なグラデーションオーバーレイ（テキスト可読性） */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/15 via-transparent to-transparent" />
 
-        {/* Content */}
-        <div className="relative z-10 p-4 flex items-center justify-between">
-          <div className="flex-1 min-w-0">
-            {/* PR label */}
-            <span className="inline-block text-[9px] font-medium bg-white/20 text-white/80 px-1.5 py-0.5 rounded-full mb-1">
-              PR
+          {/* PR ラベル */}
+          <div className="absolute top-2.5 left-2.5 sm:top-3 sm:left-3">
+            <span
+              className="inline-flex items-center text-[9px] sm:text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded-md"
+              style={{
+                background: 'rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(8px)',
+                WebkitBackdropFilter: 'blur(8px)',
+                color: 'rgba(255, 255, 255, 0.85)',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+              }}
+            >
+              AD
             </span>
-            {ad.company_name && (
-              <h3 className="text-sm font-bold text-white truncate">{ad.company_name}</h3>
-            )}
           </div>
 
-          {/* CTA arrow */}
+          {/* CTA インジケーター */}
           {ad.cta_url && (
-            <div
-              className="ml-3 flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center"
-              style={{ backgroundColor: ad.cta_color || '#C9A86C' }}
-            >
-              <svg
-                className="w-4 h-4 text-white"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2.5}
+            <div className="absolute bottom-2.5 right-2.5 sm:bottom-3 sm:right-3">
+              <motion.div
+                whileHover={{ scale: 1.1 }}
+                className="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center transition-shadow"
+                style={{
+                  backgroundColor: ad.cta_color || '#C9A86C',
+                  boxShadow: `0 2px 12px ${ad.cta_color || '#C9A86C'}88`,
+                }}
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
+                <svg
+                  className="w-4 h-4 text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2.5}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </motion.div>
             </div>
           )}
         </div>

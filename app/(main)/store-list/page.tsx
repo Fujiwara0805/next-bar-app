@@ -757,6 +757,9 @@ function StoreListContent() {
               </motion.div>
             )}
 
+            {/* スポンサーバナー広告 */}
+            <SponsorCampaignBanner />
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <AnimatePresence mode="popLayout">
                 {visibleStores.map((store, index) => {
@@ -1098,8 +1101,6 @@ function StoreListContent() {
         onComplete={handleConciergeComplete}
       />
 
-      {/* スポンサー広告 */}
-      <SponsorCampaignBanner />
     </div>
   );
 }
