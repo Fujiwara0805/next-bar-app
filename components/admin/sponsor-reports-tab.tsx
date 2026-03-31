@@ -21,12 +21,11 @@ import {
   DollarSign,
   Zap,
   Layers,
+  Calendar,
 } from 'lucide-react';
 import {
   LineChart,
   Line,
-  BarChart,
-  Bar,
   PieChart,
   Pie,
   Cell,
@@ -48,13 +47,33 @@ interface Props {
 
 type Period = '1d' | '7d' | '30d' | 'all';
 
-function getDateRange(period: Period): { start: string; end: string } {
-  const end = new Date().toISOString().split('T')[0];
-  const days = period === '1d' ? 1 : period === '7d' ? 7 : period === '30d' ? 30 : 365;
-  const start = new Date(Date.now() - days * 24 * 60 * 60 * 1000)
-    .toISOString()
-    .split('T')[0];
-  return { start, end };
+/** JST基準で正確な日付範囲を算出 */
+function getDateRange(period: Period): { start: string; end: string; label: string } {
+  const nowJST = new Date(
+    new Date().toLocaleString('en-US', { timeZone: 'Asia/Tokyo' })
+  );
+  const fmt = (d: Date) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const fmtJP = (d: Date) =>
+    `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
+
+  const end = fmt(nowJST);
+
+  if (period === '1d') {
+    return { start: end, end, label: `${fmtJP(nowJST)}（本日）` };
+  }
+
+  const days = period === '7d' ? 6 : period === '30d' ? 29 : 365;
+  const startDate = new Date(nowJST);
+  startDate.setDate(startDate.getDate() - days);
+  const start = fmt(startDate);
+
+  const label =
+    period === 'all'
+      ? '全期間'
+      : `${fmtJP(startDate)} 〜 ${fmtJP(nowJST)}（${days + 1}日間）`;
+
+  return { start, end, label };
 }
 
 const INDUSTRY_AVG = { cpm: 400, cpc: 80 };
@@ -65,6 +84,13 @@ const HEATMAP_DAY_LABELS: Record<string, string> = {
 };
 const HEATMAP_HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
 
+const SLOT_LABELS: Record<string, string> = {
+  modal: 'モーダル',
+  cta_button: 'CTAボタン',
+  map_icon: 'マップアイコン',
+  campaign_banner: 'バナー',
+};
+
 export function SponsorReportsTab({ sponsorId }: Props) {
   const { colors: C } = useAdminTheme();
   const [period, setPeriod] = useState<Period>('30d');
@@ -73,12 +99,15 @@ export function SponsorReportsTab({ sponsorId }: Props) {
   const [exporting, setExporting] = useState(false);
   const [aggregating, setAggregating] = useState(false);
 
+  const dateRange = useMemo(() => getDateRange(period), [period]);
+
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const { start, end } = getDateRange(period);
+      const { start, end } = dateRange;
       const res = await fetch(
-        `/api/sponsors/${sponsorId}/reports?start_date=${start}&end_date=${end}`
+        `/api/sponsors/${sponsorId}/reports?start_date=${start}&end_date=${end}`,
+        { cache: 'no-store' }
       );
       if (res.ok) {
         setData(await res.json());
@@ -90,7 +119,7 @@ export function SponsorReportsTab({ sponsorId }: Props) {
     } finally {
       setLoading(false);
     }
-  }, [sponsorId, period]);
+  }, [sponsorId, dateRange]);
 
   useEffect(() => {
     fetchData();
@@ -101,7 +130,7 @@ export function SponsorReportsTab({ sponsorId }: Props) {
   const handleExport = async (format: 'csv' | 'pdf') => {
     setExporting(true);
     try {
-      const { start, end } = getDateRange(period);
+      const { start, end } = dateRange;
       const url = `/api/sponsors/${sponsorId}/reports/export?format=${format}&start_date=${start}&end_date=${end}`;
       if (format === 'csv') {
         const res = await fetch(url);
@@ -190,9 +219,9 @@ export function SponsorReportsTab({ sponsorId }: Props) {
   }, [data?.hourly_heatmap]);
 
   const periods: { key: Period; label: string }[] = [
-    { key: '1d', label: '1日' },
-    { key: '7d', label: '7日' },
-    { key: '30d', label: '30日' },
+    { key: '1d', label: '本日' },
+    { key: '7d', label: '7日間' },
+    { key: '30d', label: '30日間' },
     { key: 'all', label: '全期間' },
   ];
 
@@ -203,18 +232,35 @@ export function SponsorReportsTab({ sponsorId }: Props) {
   ];
   const pieColors = [C.info, C.accent, C.warning];
 
+  const formatDateAxis = (v: string) => {
+    const [, m, d] = v.split('-');
+    return `${Number(m)}/${Number(d)}`;
+  };
+
+  const formatDateTooltip = (label: string) => {
+    const [y, m, d] = label.split('-');
+    return `${y}年${Number(m)}月${Number(d)}日`;
+  };
+
   return (
     <div className="space-y-6">
       {/* Period selector + Actions */}
       <div className="flex items-center justify-between flex-wrap gap-2">
-        <div className="flex gap-1">
-          {periods.map((p) => (
-            <button key={p.key} onClick={() => setPeriod(p.key)}
-              className="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors"
-              style={{ background: period === p.key ? C.accent : C.bgInput, color: period === p.key ? '#fff' : C.textMuted, border: `1px solid ${period === p.key ? C.accent : C.border}` }}>
-              {p.label}
-            </button>
-          ))}
+        <div className="flex items-center gap-2">
+          <div className="flex gap-1">
+            {periods.map((p) => (
+              <button key={p.key} onClick={() => setPeriod(p.key)}
+                className="px-3 py-1.5 text-xs font-medium rounded-lg transition-all"
+                style={{
+                  background: period === p.key ? C.accent : C.bgInput,
+                  color: period === p.key ? '#fff' : C.textMuted,
+                  border: `1px solid ${period === p.key ? C.accent : C.border}`,
+                  fontWeight: period === p.key ? 700 : 500,
+                }}>
+                {p.label}
+              </button>
+            ))}
+          </div>
           <button onClick={fetchData} className="px-2 py-1.5 rounded-lg" style={{ background: C.bgInput, border: `1px solid ${C.border}` }} title="更新">
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} style={{ color: C.textMuted }} />
           </button>
@@ -238,7 +284,20 @@ export function SponsorReportsTab({ sponsorId }: Props) {
         </div>
       </div>
 
-      {/* KPI Cards - 8 cards with gradient backgrounds */}
+      {/* 集計期間表示 */}
+      <div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ background: C.bgElevated, border: `1px solid ${C.border}` }}>
+        <Calendar className="w-3.5 h-3.5" style={{ color: C.accent }} />
+        <span className="text-xs font-medium" style={{ color: C.textMuted }}>
+          集計期間: {dateRange.label}
+        </span>
+        {daily.length > 0 && (
+          <span className="text-xs ml-auto" style={{ color: C.textSubtle }}>
+            {daily.length}日分のデータ
+          </span>
+        )}
+      </div>
+
+      {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <AdminKpiCard icon={Eye} label="インプレッション" value={summary ? summary.total_impressions.toLocaleString('ja-JP') : '-'} gradient={getKpiGradient('blue')} index={0} />
         <AdminKpiCard icon={MousePointer} label="クリック" value={summary ? summary.total_clicks.toLocaleString('ja-JP') : '-'} gradient={getKpiGradient('gold')} index={1} />
@@ -263,11 +322,7 @@ export function SponsorReportsTab({ sponsorId }: Props) {
             <span className="text-sm font-bold" style={{ color: C.text }}>投資効率ダッシュボード</span>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <CostMetricCard
-              label="契約金額"
-              value={`¥${data.contract_total_price.toLocaleString('ja-JP')}`}
-              C={C}
-            />
+            <CostMetricCard label="契約金額" value={`¥${data.contract_total_price.toLocaleString('ja-JP')}`} C={C} />
             <CostMetricCard
               label="CPM"
               value={summary.estimated_cpm ? `¥${summary.estimated_cpm.toLocaleString('ja-JP')}` : '—'}
@@ -297,6 +352,9 @@ export function SponsorReportsTab({ sponsorId }: Props) {
         <div className="flex items-center gap-2 mb-4">
           <BarChart3 className="w-4 h-4" style={{ color: C.accent }} />
           <span className="text-sm font-bold" style={{ color: C.text }}>日次推移</span>
+          <span className="text-[10px] ml-auto" style={{ color: C.textSubtle }}>
+            {daily.length > 0 ? `${formatDateAxis(daily[0].date)} 〜 ${formatDateAxis(daily[daily.length - 1].date)}` : ''}
+          </span>
         </div>
         {daily.length > 0 ? (
           <ResponsiveContainer width="100%" height={240}>
@@ -305,28 +363,23 @@ export function SponsorReportsTab({ sponsorId }: Props) {
               <XAxis
                 dataKey="date"
                 tick={{ fontSize: 10, fill: C.textMuted }}
-                tickFormatter={(v: string) => {
-                  const [, m, d] = v.split('-');
-                  return `${Number(m)}/${Number(d)}`;
-                }}
+                tickFormatter={formatDateAxis}
+                interval={daily.length > 14 ? Math.floor(daily.length / 7) : 0}
               />
-              <YAxis yAxisId="left" tick={{ fontSize: 10, fill: C.textMuted }} />
-              <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 10, fill: C.textMuted }} />
+              <YAxis yAxisId="left" tick={{ fontSize: 10, fill: C.textMuted }} label={{ value: 'Imp', angle: -90, position: 'insideLeft', style: { fontSize: 9, fill: C.textSubtle } }} />
+              <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 10, fill: C.textMuted }} label={{ value: 'Click', angle: 90, position: 'insideRight', style: { fontSize: 9, fill: C.textSubtle } }} />
               <Tooltip
                 contentStyle={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 8, fontSize: 12 }}
-                labelFormatter={(label: string) => {
-                  const [y, m, d] = label.split('-');
-                  return `${y}年${Number(m)}月${Number(d)}日`;
-                }}
+                labelFormatter={formatDateTooltip}
               />
               <Legend wrapperStyle={{ fontSize: 11 }} />
-              <Line yAxisId="left" type="monotone" dataKey="impressions" name="インプレッション" stroke={C.info} strokeWidth={2} dot={daily.length <= 7} />
-              <Line yAxisId="right" type="monotone" dataKey="clicks" name="クリック" stroke={C.accent} strokeWidth={2} dot={daily.length <= 7} />
+              <Line yAxisId="left" type="monotone" dataKey="impressions" name="インプレッション" stroke={C.info} strokeWidth={2} dot={daily.length <= 14} activeDot={{ r: 5 }} />
+              <Line yAxisId="right" type="monotone" dataKey="clicks" name="クリック" stroke={C.accent} strokeWidth={2} dot={daily.length <= 14} activeDot={{ r: 5 }} />
             </LineChart>
           </ResponsiveContainer>
         ) : (
           <div className="h-48 rounded-lg flex items-center justify-center" style={{ background: C.bgInput, border: `1px dashed ${C.border}` }}>
-            <p className="text-sm" style={{ color: C.textSubtle }}>{loading ? '読み込み中...' : 'データがありません'}</p>
+            <p className="text-sm" style={{ color: C.textSubtle }}>{loading ? '読み込み中...' : '選択期間にデータがありません'}</p>
           </div>
         )}
       </div>
@@ -334,25 +387,23 @@ export function SponsorReportsTab({ sponsorId }: Props) {
       {/* CTR Trend */}
       {daily.length > 0 && (
         <div className="rounded-2xl p-6" style={{ background: C.bgCard, border: `1px solid ${C.border}` }}>
-          <span className="text-sm font-bold mb-4 block" style={{ color: C.text }}>CTR推移</span>
+          <div className="flex items-center gap-2 mb-4">
+            <TrendingUp className="w-4 h-4" style={{ color: C.success }} />
+            <span className="text-sm font-bold" style={{ color: C.text }}>CTR推移</span>
+          </div>
           <ResponsiveContainer width="100%" height={180}>
             <AreaChart data={daily}>
               <CartesianGrid strokeDasharray="3 3" stroke={C.border} />
               <XAxis
                 dataKey="date"
                 tick={{ fontSize: 10, fill: C.textMuted }}
-                tickFormatter={(v: string) => {
-                  const [, m, d] = v.split('-');
-                  return `${Number(m)}/${Number(d)}`;
-                }}
+                tickFormatter={formatDateAxis}
+                interval={daily.length > 14 ? Math.floor(daily.length / 7) : 0}
               />
               <YAxis tick={{ fontSize: 10, fill: C.textMuted }} tickFormatter={(v: number) => `${(v * 100).toFixed(1)}%`} />
               <Tooltip
                 formatter={(value: number) => [`${(value * 100).toFixed(2)}%`, 'CTR']}
-                labelFormatter={(label: string) => {
-                  const [y, m, d] = label.split('-');
-                  return `${y}年${Number(m)}月${Number(d)}日`;
-                }}
+                labelFormatter={formatDateTooltip}
                 contentStyle={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 8, fontSize: 12 }}
               />
               <Area type="monotone" dataKey="ctr" stroke={C.success} fill={`${C.success}30`} strokeWidth={2} />
@@ -372,7 +423,6 @@ export function SponsorReportsTab({ sponsorId }: Props) {
           <span className="text-sm font-bold mb-4 block" style={{ color: C.text }}>時間帯別アクティビティ</span>
           <div className="overflow-x-auto">
             <div className="min-w-[640px]">
-              {/* 時間軸ラベル（全24時間表示） */}
               <div className="flex gap-0.5 mb-1 ml-8">
                 {HEATMAP_HOURS.map((h) => (
                   <span key={h} className="text-[8px] w-[22px] text-center" style={{ color: C.textSubtle }}>
@@ -403,7 +453,6 @@ export function SponsorReportsTab({ sponsorId }: Props) {
                   })}
                 </div>
               ))}
-              {/* 補足ラベル */}
               <div className="flex justify-between mt-2 ml-8 pr-1">
                 <span className="text-[9px]" style={{ color: C.textSubtle }}>0:00（深夜）</span>
                 <span className="text-[9px]" style={{ color: C.textSubtle }}>12:00（正午）</span>
@@ -414,7 +463,7 @@ export function SponsorReportsTab({ sponsorId }: Props) {
         </motion.div>
       )}
 
-      {/* Device + Slot + Creative Performance */}
+      {/* Device + Slot Performance */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Device breakdown */}
         <div className="rounded-2xl p-6" style={{ background: C.bgCard, border: `1px solid ${C.border}` }}>
@@ -435,21 +484,16 @@ export function SponsorReportsTab({ sponsorId }: Props) {
                     <d.icon className="w-4 h-4" style={{ color: C.textSubtle }} />
                     <span className="text-xs" style={{ color: C.textMuted }}>{d.name}</span>
                     <span className="text-xs font-bold" style={{ color: C.text }}>
-                      {deviceTotal > 0 ? `${Math.round((d.value / deviceTotal) * 100)}%` : '-'}
+                      {`${Math.round((d.value / deviceTotal) * 100)}%`}
                     </span>
+                    <span className="text-[10px]" style={{ color: C.textSubtle }}>({d.value})</span>
                   </div>
                 ))}
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-3 gap-4">
-              {deviceData.map((d) => (
-                <div key={d.name} className="text-center">
-                  <d.icon className="w-6 h-6 mx-auto mb-1" style={{ color: C.textSubtle }} />
-                  <p className="text-lg font-bold" style={{ color: C.text }}>-</p>
-                  <p className="text-xs" style={{ color: C.textMuted }}>{d.name}</p>
-                </div>
-              ))}
+            <div className="h-36 rounded-lg flex items-center justify-center" style={{ background: C.bgInput, border: `1px dashed ${C.border}` }}>
+              <p className="text-sm" style={{ color: C.textSubtle }}>{loading ? '読み込み中...' : '選択期間にデータがありません'}</p>
             </div>
           )}
         </div>
@@ -458,20 +502,38 @@ export function SponsorReportsTab({ sponsorId }: Props) {
         <div className="rounded-2xl p-6" style={{ background: C.bgCard, border: `1px solid ${C.border}` }}>
           <span className="text-sm font-bold mb-4 block" style={{ color: C.text }}>広告枠別パフォーマンス</span>
           {data?.slot_performance && data.slot_performance.length > 0 ? (
-            <ResponsiveContainer width="100%" height={140}>
-              <BarChart data={data.slot_performance} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" stroke={C.border} />
-                <XAxis type="number" tick={{ fontSize: 10, fill: C.textMuted }} />
-                <YAxis type="category" dataKey="slot_type" tick={{ fontSize: 10, fill: C.textMuted }} width={100} />
-                <Tooltip contentStyle={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 8, fontSize: 12 }} />
-                <Bar dataKey="impressions" name="Imp" fill={C.info} radius={[0, 4, 4, 0]} />
-                <Bar dataKey="clicks" name="Click" fill={C.accent} radius={[0, 4, 4, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            <div className="space-y-3">
+              {data.slot_performance.map((slot) => {
+                const maxImp = Math.max(...data.slot_performance.map((s) => s.impressions), 1);
+                return (
+                  <div key={slot.slot_type} className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-medium" style={{ color: C.text }}>
+                        {SLOT_LABELS[slot.slot_type] || slot.slot_type}
+                      </span>
+                      <div className="flex items-center gap-3 text-[10px]" style={{ color: C.textMuted }}>
+                        <span>Imp: <b style={{ color: C.text }}>{slot.impressions.toLocaleString('ja-JP')}</b></span>
+                        <span>Click: <b style={{ color: C.text }}>{slot.clicks.toLocaleString('ja-JP')}</b></span>
+                        <span>CTR: <b style={{ color: C.success }}>{(slot.ctr * 100).toFixed(2)}%</b></span>
+                      </div>
+                    </div>
+                    <div className="h-2 rounded-full overflow-hidden" style={{ background: C.bgInput }}>
+                      <div
+                        className="h-full rounded-full transition-all duration-500"
+                        style={{
+                          width: `${(slot.impressions / maxImp) * 100}%`,
+                          background: `linear-gradient(90deg, ${C.info}, ${C.accent})`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           ) : (
-            <p className="text-sm text-center py-8" style={{ color: C.textSubtle }}>
-              {loading ? '読み込み中...' : 'データがありません'}
-            </p>
+            <div className="h-36 rounded-lg flex items-center justify-center" style={{ background: C.bgInput, border: `1px dashed ${C.border}` }}>
+              <p className="text-sm" style={{ color: C.textSubtle }}>{loading ? '読み込み中...' : '選択期間にデータがありません'}</p>
+            </div>
           )}
         </div>
       </div>
