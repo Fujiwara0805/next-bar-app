@@ -134,6 +134,7 @@ export interface DailyReport {
 
 export interface CreativePerformance {
   creative_id: string;
+  slot_type?: string;
   impressions: number;
   clicks: number;
   ctr: number;

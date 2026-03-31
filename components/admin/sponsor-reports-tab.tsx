@@ -85,10 +85,10 @@ const HEATMAP_DAY_LABELS: Record<string, string> = {
 const HEATMAP_HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
 
 const SLOT_LABELS: Record<string, string> = {
-  modal: 'モーダル',
+  modal: '広告モーダル',
   cta_button: 'CTAボタン',
-  map_icon: 'マップアイコン',
-  campaign_banner: 'バナー',
+  map_icon: 'マップアイコン広告',
+  campaign_banner: 'バナー広告',
 };
 
 export function SponsorReportsTab({ sponsorId }: Props) {
@@ -131,16 +131,22 @@ export function SponsorReportsTab({ sponsorId }: Props) {
     setExporting(true);
     try {
       const { start, end } = dateRange;
-      const url = `/api/sponsors/${sponsorId}/reports/export?format=${format}&start_date=${start}&end_date=${end}`;
       if (format === 'csv') {
-        const res = await fetch(url);
-        const blob = await res.blob();
+        if (!data) return;
+        const header = 'date,impressions,clicks,ctr,unique_users';
+        const csvRows = data.daily.map((d) =>
+          `${d.date},${d.impressions},${d.clicks},${(d.ctr * 100).toFixed(2)}%,${d.unique_users}`
+        );
+        const summaryRow = `合計,${data.summary.total_impressions},${data.summary.total_clicks},${(data.summary.avg_ctr * 100).toFixed(2)}%,${data.summary.unique_users}`;
+        const csv = '\uFEFF' + [header, ...csvRows, '', summaryRow].join('\n');
+        const blob = new Blob([csv], { type: 'text/csv; charset=utf-8' });
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
         a.download = `report_${start}_${end}.csv`;
         a.click();
         URL.revokeObjectURL(a.href);
       } else {
+        const url = `/api/sponsors/${sponsorId}/reports/export?format=pdf&start_date=${start}&end_date=${end}`;
         const res = await fetch(url);
         const pdfData = await res.json();
         const { jsPDF } = await import('jspdf');
@@ -557,8 +563,8 @@ export function SponsorReportsTab({ sponsorId }: Props) {
                 className="flex items-center gap-4 p-3 rounded-xl text-sm"
                 style={{ background: C.bgElevated }}
               >
-                <span className="text-xs font-mono truncate w-24" style={{ color: C.textSubtle }}>
-                  {cp.creative_id.slice(0, 8)}...
+                <span className="text-xs font-medium truncate w-32" style={{ color: C.text }}>
+                  {cp.slot_type ? (SLOT_LABELS[cp.slot_type] || cp.slot_type) : cp.creative_id.slice(0, 8) + '...'}
                 </span>
                 <div className="flex-1 flex items-center gap-6">
                   <div>

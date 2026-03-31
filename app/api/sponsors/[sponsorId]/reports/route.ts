@@ -77,8 +77,26 @@ export async function GET(
 
     const contractTotalPrice = (contracts || []).reduce((sum, c) => sum + (c.price || 0), 0) || null;
 
-    // 4. Merge both sources
-    const response = buildMergedResponse(reports, rawEvents, allEvents, contractTotalPrice, trueUniqueUsers);
+    // 4. クリエイティブIDからスロットタイプのマッピングを取得
+    const creativeIds = Array.from(new Set(allEvents.map((e) => e.creative_id).filter(Boolean)));
+    const creativeSlotMap: Record<string, string> = {};
+    if (creativeIds.length > 0) {
+      const { data: creativeRows } = await supabase
+        .from('sponsor_ad_creatives')
+        .select('id, sponsor_ad_slots!inner(slot_type)')
+        .in('id', creativeIds);
+      if (creativeRows) {
+        for (const row of creativeRows) {
+          const slot = row.sponsor_ad_slots as unknown as { slot_type: string };
+          if (slot?.slot_type) {
+            creativeSlotMap[row.id] = slot.slot_type;
+          }
+        }
+      }
+    }
+
+    // 5. Merge both sources
+    const response = buildMergedResponse(reports, rawEvents, allEvents, contractTotalPrice, trueUniqueUsers, creativeSlotMap);
     console.log(`[sponsors/reports] response summary:`, JSON.stringify(response.summary));
     return NextResponse.json(response);
   } catch (err) {
@@ -103,7 +121,8 @@ function buildMergedResponse(
   rawEvents: any[],
   allEvents: any[],
   contractTotalPrice: number | null,
-  trueUniqueUsers: number
+  trueUniqueUsers: number,
+  creativeSlotMap: Record<string, string>
 ): ReportResponse {
   let totalImpressions = 0;
   let totalClicks = 0;
@@ -258,6 +277,7 @@ function buildMergedResponse(
     .filter(([id]) => id !== 'unknown')
     .map(([creativeId, v]) => ({
       creative_id: creativeId,
+      slot_type: creativeSlotMap[creativeId],
       impressions: v.impressions,
       clicks: v.clicks,
       ctr: v.impressions > 0 ? v.clicks / v.impressions : 0,
