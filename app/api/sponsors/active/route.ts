@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import type { ActiveAdsResponse, ActiveAdCreative, SlotType, ScheduleConfig } from '@/lib/sponsors/types';
 
+export const dynamic = 'force-dynamic';
+
 /** Supabase PostgRESTのネストselect結果をフラット化するための中間型 */
 interface NestedSlotRow {
   id: string;
