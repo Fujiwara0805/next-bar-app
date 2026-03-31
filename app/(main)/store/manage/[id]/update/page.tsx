@@ -403,9 +403,9 @@ export default function StoreUpdatePage() {
       
       if (accountType === 'store') {
         fetchStore();
-        // 状況更新後にマップ画面へ遷移
+        // 状況更新後に LP（ランディング）へ遷移
         setTimeout(() => {
-          router.push('/map');
+          router.push('/landing');
         }, 1500);
       } else {
         router.push('/store/manage');
