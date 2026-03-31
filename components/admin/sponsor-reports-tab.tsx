@@ -46,11 +46,11 @@ interface Props {
   sponsorId: string;
 }
 
-type Period = '7d' | '30d' | 'all';
+type Period = '1d' | '7d' | '30d' | 'all';
 
 function getDateRange(period: Period): { start: string; end: string } {
   const end = new Date().toISOString().split('T')[0];
-  const days = period === '7d' ? 7 : period === '30d' ? 30 : 365;
+  const days = period === '1d' ? 1 : period === '7d' ? 7 : period === '30d' ? 30 : 365;
   const start = new Date(Date.now() - days * 24 * 60 * 60 * 1000)
     .toISOString()
     .split('T')[0];
@@ -190,6 +190,7 @@ export function SponsorReportsTab({ sponsorId }: Props) {
   }, [data?.hourly_heatmap]);
 
   const periods: { key: Period; label: string }[] = [
+    { key: '1d', label: '1日' },
     { key: '7d', label: '7日' },
     { key: '30d', label: '30日' },
     { key: 'all', label: '全期間' },
@@ -301,13 +302,26 @@ export function SponsorReportsTab({ sponsorId }: Props) {
           <ResponsiveContainer width="100%" height={240}>
             <LineChart data={daily}>
               <CartesianGrid strokeDasharray="3 3" stroke={C.border} />
-              <XAxis dataKey="date" tick={{ fontSize: 10, fill: C.textMuted }} tickFormatter={(v: string) => v.slice(5)} />
+              <XAxis
+                dataKey="date"
+                tick={{ fontSize: 10, fill: C.textMuted }}
+                tickFormatter={(v: string) => {
+                  const [, m, d] = v.split('-');
+                  return `${Number(m)}/${Number(d)}`;
+                }}
+              />
               <YAxis yAxisId="left" tick={{ fontSize: 10, fill: C.textMuted }} />
               <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 10, fill: C.textMuted }} />
-              <Tooltip contentStyle={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 8, fontSize: 12 }} />
+              <Tooltip
+                contentStyle={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 8, fontSize: 12 }}
+                labelFormatter={(label: string) => {
+                  const [y, m, d] = label.split('-');
+                  return `${y}年${Number(m)}月${Number(d)}日`;
+                }}
+              />
               <Legend wrapperStyle={{ fontSize: 11 }} />
-              <Line yAxisId="left" type="monotone" dataKey="impressions" name="インプレッション" stroke={C.info} strokeWidth={2} dot={false} />
-              <Line yAxisId="right" type="monotone" dataKey="clicks" name="クリック" stroke={C.accent} strokeWidth={2} dot={false} />
+              <Line yAxisId="left" type="monotone" dataKey="impressions" name="インプレッション" stroke={C.info} strokeWidth={2} dot={daily.length <= 7} />
+              <Line yAxisId="right" type="monotone" dataKey="clicks" name="クリック" stroke={C.accent} strokeWidth={2} dot={daily.length <= 7} />
             </LineChart>
           </ResponsiveContainer>
         ) : (
@@ -324,9 +338,23 @@ export function SponsorReportsTab({ sponsorId }: Props) {
           <ResponsiveContainer width="100%" height={180}>
             <AreaChart data={daily}>
               <CartesianGrid strokeDasharray="3 3" stroke={C.border} />
-              <XAxis dataKey="date" tick={{ fontSize: 10, fill: C.textMuted }} tickFormatter={(v: string) => v.slice(5)} />
+              <XAxis
+                dataKey="date"
+                tick={{ fontSize: 10, fill: C.textMuted }}
+                tickFormatter={(v: string) => {
+                  const [, m, d] = v.split('-');
+                  return `${Number(m)}/${Number(d)}`;
+                }}
+              />
               <YAxis tick={{ fontSize: 10, fill: C.textMuted }} tickFormatter={(v: number) => `${(v * 100).toFixed(1)}%`} />
-              <Tooltip formatter={(value: number) => [`${(value * 100).toFixed(2)}%`, 'CTR']} contentStyle={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 8, fontSize: 12 }} />
+              <Tooltip
+                formatter={(value: number) => [`${(value * 100).toFixed(2)}%`, 'CTR']}
+                labelFormatter={(label: string) => {
+                  const [y, m, d] = label.split('-');
+                  return `${y}年${Number(m)}月${Number(d)}日`;
+                }}
+                contentStyle={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 8, fontSize: 12 }}
+              />
               <Area type="monotone" dataKey="ctr" stroke={C.success} fill={`${C.success}30`} strokeWidth={2} />
             </AreaChart>
           </ResponsiveContainer>
@@ -343,10 +371,13 @@ export function SponsorReportsTab({ sponsorId }: Props) {
         >
           <span className="text-sm font-bold mb-4 block" style={{ color: C.text }}>時間帯別アクティビティ</span>
           <div className="overflow-x-auto">
-            <div className="min-w-[600px]">
+            <div className="min-w-[640px]">
+              {/* 時間軸ラベル（全24時間表示） */}
               <div className="flex gap-0.5 mb-1 ml-8">
-                {HEATMAP_HOURS.filter((_, i) => i % 3 === 0).map((h) => (
-                  <span key={h} className="text-[9px] w-[22px] text-center" style={{ color: C.textSubtle }}>{h}</span>
+                {HEATMAP_HOURS.map((h) => (
+                  <span key={h} className="text-[8px] w-[22px] text-center" style={{ color: C.textSubtle }}>
+                    {Number(h) % 2 === 0 ? `${Number(h)}時` : ''}
+                  </span>
                 ))}
               </div>
               {HEATMAP_DAYS.map((day) => (
@@ -366,12 +397,18 @@ export function SponsorReportsTab({ sponsorId }: Props) {
                             ? `rgba(201, 168, 108, ${0.15 + intensity * 0.85})`
                             : C.bgInput,
                         }}
-                        title={`${HEATMAP_DAY_LABELS[day] || day} ${hour}時: ${count}件`}
+                        title={`${HEATMAP_DAY_LABELS[day] || day}曜日 ${Number(hour)}:00〜${Number(hour)}:59 — ${count}件`}
                       />
                     );
                   })}
                 </div>
               ))}
+              {/* 補足ラベル */}
+              <div className="flex justify-between mt-2 ml-8 pr-1">
+                <span className="text-[9px]" style={{ color: C.textSubtle }}>0:00（深夜）</span>
+                <span className="text-[9px]" style={{ color: C.textSubtle }}>12:00（正午）</span>
+                <span className="text-[9px]" style={{ color: C.textSubtle }}>23:00</span>
+              </div>
             </div>
           </div>
         </motion.div>
@@ -452,7 +489,7 @@ export function SponsorReportsTab({ sponsorId }: Props) {
             <span className="text-sm font-bold" style={{ color: C.text }}>クリエイティブ別パフォーマンス</span>
           </div>
           <div className="space-y-2">
-            {data.creative_performance.map((cp, i) => (
+            {data.creative_performance.map((cp) => (
               <div
                 key={cp.creative_id}
                 className="flex items-center gap-4 p-3 rounded-xl text-sm"
