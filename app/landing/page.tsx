@@ -578,7 +578,7 @@ export default function LandingPage() {
                 {/* Official Account */}
                 <div className="mt-8 pt-6" style={{ borderTop: `1px solid ${colors.borderGold}` }}>
                   <p className="text-sm font-medium mb-3" style={{ color: colors.textMuted }}>{t('menu.official_account')}</p>
-                  <a href="https://www.instagram.com/nikenme_plus/" target="_blank" rel="noopener noreferrer" onClick={() => setShowMenu(false)} className="flex items-center gap-3 p-4 rounded-lg transition-colors group" style={{ color: colors.textMuted }}>
+                  <a href="https://www.instagram.com/nikenme_nobody/" target="_blank" rel="noopener noreferrer" onClick={() => setShowMenu(false)} className="flex items-center gap-3 p-4 rounded-lg transition-colors group" style={{ color: colors.textMuted }}>
                     <Instagram className="w-5 h-5" style={{ color: colors.accent }} /><span className="group-hover:opacity-100 font-medium">Instagram</span><ChevronRight className="w-4 h-4 ml-auto opacity-30" />
                   </a>
                 </div>
