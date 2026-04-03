@@ -167,7 +167,7 @@ const ImageWithLoading = ({
  */
 const GOLD = '#C9A86C';
 /** リンク・強調テキスト用ダークネイビー（ライトブルー系の代替） */
-const STORE_LINK_NAVY = '#12284C';
+const STORE_LINK_NAVY = '#13294b';
 const GoldDivider = () => (
   <div className="flex items-center justify-center gap-3 my-4">
     <div
@@ -1287,7 +1287,7 @@ export default function StoreDetailPage() {
                       const sc = (store as any).store_category || 'bar';
                       const cats = getFacilityCategoriesByStoreCategory(sc);
                       const categoryColors: Record<string, { bg: string; border: string; text: string; badgeBg: string; badgeBorder: string }> = {
-                        newcomer: { bg: 'rgba(18, 40, 76, 0.06)', border: 'rgba(18, 40, 76, 0.14)', text: STORE_LINK_NAVY, badgeBg: 'rgba(18, 40, 76, 0.1)', badgeBorder: 'rgba(18, 40, 76, 0.2)' },
+                        newcomer: { bg: 'rgba(19, 41, 75, 0.06)', border: 'rgba(19, 41, 75, 0.14)', text: STORE_LINK_NAVY, badgeBg: 'rgba(19, 41, 75, 0.1)', badgeBorder: 'rgba(19, 41, 75, 0.2)' },
                         atmosphere: { bg: 'rgba(10, 22, 40, 0.05)', border: 'rgba(10, 22, 40, 0.1)', text: COLORS.royalNavy, badgeBg: 'rgba(31, 64, 104, 0.1)', badgeBorder: 'rgba(31, 64, 104, 0.2)' },
                         women: { bg: 'rgba(201, 168, 108, 0.08)', border: 'rgba(201, 168, 108, 0.15)', text: COLORS.antiqueGold, badgeBg: 'rgba(201, 168, 108, 0.15)', badgeBorder: 'rgba(201, 168, 108, 0.25)' },
                         women_family: { bg: 'rgba(201, 168, 108, 0.08)', border: 'rgba(201, 168, 108, 0.15)', text: COLORS.antiqueGold, badgeBg: 'rgba(201, 168, 108, 0.15)', badgeBorder: 'rgba(201, 168, 108, 0.25)' },

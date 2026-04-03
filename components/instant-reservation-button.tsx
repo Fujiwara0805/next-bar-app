@@ -160,7 +160,7 @@ export function InstantReservationButton({
           <Button
             onClick={() => setShowDialog(true)}
             className="font-bold text-white hover:opacity-90 rounded-xl shadow-md"
-            style={{ backgroundColor: '#12284C' }}
+            style={{ backgroundColor: '#13294b' }}
             size="default"
           >
             <Clock className="w-3 h-3 mr-2" />
@@ -309,7 +309,7 @@ export function InstantReservationButton({
               onClick={handleRequest}
               disabled={requesting}
               className="flex-1 font-bold text-white hover:opacity-90 rounded-xl"
-              style={{ backgroundColor: '#12284C' }}
+              style={{ backgroundColor: '#13294b' }}
             >
               {requesting ? (
                 <>
