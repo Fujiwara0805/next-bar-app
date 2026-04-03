@@ -87,24 +87,30 @@ const DEFAULT_LOCATION = {
   isDefault: true,
 };
 
-const ACCENT_GOLD = '#FFC52F';
-const GoldDivider = () => (
-  <div className="flex items-center justify-center gap-3 my-6">
-    <div className="h-px flex-1 max-w-16" style={{ background: `linear-gradient(90deg, transparent, ${ACCENT_GOLD}40)` }} />
-    <div className="w-1.5 h-1.5 rotate-45" style={{ backgroundColor: ACCENT_GOLD }} />
-    <div className="h-px flex-1 max-w-16" style={{ background: `linear-gradient(90deg, ${ACCENT_GOLD}40, transparent)` }} />
-  </div>
-);
-
-// LP用ライトセクション配色（ブルー背景 → オフホワイト背景 + ダークテキスト）
-const LIGHT_SECTION = {
+const LP_NAVY = '#12284C';
+const LP_YELLOW = '#FFC52F';
+const LP_ON_NAVY = {
+  text: '#FFFFFF',
+  textMuted: 'rgba(255, 255, 255, 0.78)',
+  textSubtle: 'rgba(255, 255, 255, 0.55)',
+  border: 'rgba(255, 255, 255, 0.14)',
+} as const;
+/** Company以外のセクション上のカード（オフホワイト） */
+const LP_CARD = {
   bg: '#FDFBF7',
-  text: '#13294b',
+  text: '#12284C',
   textMuted: '#4A5568',
   textSubtle: '#718096',
-  cardBg: '#FFFFFF',
-  borderSubtle: 'rgba(19, 41, 75, 0.08)',
-};
+  borderSubtle: 'rgba(18, 40, 76, 0.1)',
+} as const;
+
+const GoldDivider = () => (
+  <div className="flex items-center justify-center gap-3 my-6">
+    <div className="h-px flex-1 max-w-16" style={{ background: `linear-gradient(90deg, transparent, ${LP_YELLOW}40)` }} />
+    <div className="w-1.5 h-1.5 rotate-45" style={{ backgroundColor: LP_YELLOW }} />
+    <div className="h-px flex-1 max-w-16" style={{ background: `linear-gradient(90deg, ${LP_YELLOW}40, transparent)` }} />
+  </div>
+);
 
 export default function LandingPage() {
   const router = useRouter();
@@ -164,7 +170,7 @@ export default function LandingPage() {
     const prevRoot = root.style.background;
     const prevBody = body.style.background;
     const prevBodyColor = body.style.backgroundColor;
-    const bg = colors.background;
+    const bg = LP_NAVY;
     root.style.background = bg;
     body.style.background = bg;
     body.style.backgroundColor = '';
@@ -173,7 +179,7 @@ export default function LandingPage() {
       body.style.background = prevBody;
       body.style.backgroundColor = prevBodyColor;
     };
-  }, [colors.background]);
+  }, []);
 
   // 画像をプリロードして切り替え時の空白を防ぐ（夜モード・昼モード共通）
   useEffect(() => {
@@ -399,27 +405,27 @@ export default function LandingPage() {
   const prevSlide = () => { if (partnerStores.length === 0) return; setCurrentSlide((prev) => (prev - 1 + partnerStores.length) % partnerStores.length); };
 
   return (
-    <div className="min-h-[100dvh] overflow-x-hidden" style={{ background: colors.background }}>
+    <div className="min-h-[100dvh] overflow-x-hidden" style={{ background: LP_NAVY }}>
       {/* 背景装飾エフェクト */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <motion.div className="absolute w-[700px] h-[700px] rounded-full" style={{ background: `radial-gradient(circle, ${colors.accent}10 0%, transparent 60%)`, top: '-250px', right: '-250px', filter: 'blur(80px)' }} animate={{ opacity: [0.3, 0.5, 0.3] }} transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }} />
-        <motion.div className="absolute w-[500px] h-[500px] rounded-full" style={{ background: `radial-gradient(circle, ${colors.surfaceLight}20 0%, transparent 60%)`, bottom: '10%', left: '-150px', filter: 'blur(60px)' }} animate={{ opacity: [0.2, 0.35, 0.2] }} transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 3 }} />
+        <motion.div className="absolute w-[700px] h-[700px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(255, 197, 47, 0.12) 0%, transparent 60%)', top: '-250px', right: '-250px', filter: 'blur(80px)' }} animate={{ opacity: [0.3, 0.5, 0.3] }} transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }} />
+        <motion.div className="absolute w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(255, 255, 255, 0.06) 0%, transparent 60%)', bottom: '10%', left: '-150px', filter: 'blur(60px)' }} animate={{ opacity: [0.2, 0.35, 0.2] }} transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 3 }} />
       </div>
 
       {/* Toast Notification */}
       <AnimatePresence>
         {showToast && (
           <motion.div initial={{ opacity: 0, y: -20, x: '-50%' }} animate={{ opacity: 1, y: 0, x: '-50%' }} exit={{ opacity: 0, y: -20, x: '-50%' }} className="fixed top-20 left-1/2 z-50">
-            <div className="flex items-center gap-3 px-5 py-3 rounded-full" style={{ background: colors.surface, backdropFilter: 'blur(20px)', border: `1px solid ${colors.borderGold}`, boxShadow: colors.shadowGold }}>
+            <div className="flex items-center gap-3 px-5 py-3 rounded-full" style={{ background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255, 197, 47, 0.35)', boxShadow: '0 8px 30px rgba(0,0,0,0.25)' }}>
               <motion.div animate={{ scale: [1, 1.3, 1], opacity: [1, 0.7, 1] }} transition={{ duration: 1, repeat: Infinity }} className="w-2.5 h-2.5 rounded-full" style={{ background: '#4ADE80', boxShadow: '0 0 10px #4ADE80' }} />
-              <span className="text-sm font-medium" style={{ color: colors.text }}>{t('landing.seats_available')}</span>
+              <span className="text-sm font-medium" style={{ color: LP_ON_NAVY.text }}>{t('landing.seats_available')}</span>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 safe-top" style={{ background: colors.luxuryGradient, backdropFilter: 'blur(20px)', borderBottom: `1px solid ${colors.borderGold}` }}>
+      <header className="fixed top-0 left-0 right-0 z-50 safe-top" style={{ background: LP_NAVY, backdropFilter: 'blur(20px)', borderBottom: `1px solid ${LP_ON_NAVY.border}` }}>
         <div className="container mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-3 min-w-0">
             <motion.button
@@ -428,7 +434,7 @@ export default function LandingPage() {
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.95 }}
               className="inline-flex h-10 w-10 shrink-0 items-center justify-center gap-3 rounded-lg touch-manipulation text-left sm:h-auto sm:min-h-10 sm:w-auto sm:justify-start sm:px-1 sm:-ml-1"
-              style={{ color: colors.accent }}
+              style={{ color: LP_YELLOW }}
               aria-label={t('menu.for_stores')}
             >
               <img
@@ -436,12 +442,12 @@ export default function LandingPage() {
                 alt="NIKENME+"
                 className="h-8 w-auto shrink-0"
               />
-              <span className="hidden sm:inline-block text-[9px] px-2 py-1 rounded-full font-medium tracking-[0.1em] uppercase shrink-0" style={{ background: `${colors.accent}15`, border: `1px solid ${colors.borderGold}`, color: colors.accent }}>{isCafe ? t('common.day_spot') : t('landing.night_spot')}</span>
+              <span className="hidden sm:inline-block text-[9px] px-2 py-1 rounded-full font-medium tracking-[0.1em] uppercase shrink-0" style={{ background: 'rgba(255, 197, 47, 0.15)', border: `1px solid rgba(255, 197, 47, 0.4)`, color: LP_YELLOW }}>{isCafe ? t('common.day_spot') : t('landing.night_spot')}</span>
             </motion.button>
           </motion.div>
           <div className="flex items-center gap-2 sm:gap-3">
             {/* モード切替（バー / カフェ） */}
-            <div className="flex items-center rounded-full p-0.5" style={{ background: `${colors.accent}15`, border: `1px solid ${colors.borderGold}` }}>
+            <div className="flex items-center rounded-full p-0.5" style={{ background: 'rgba(255, 197, 47, 0.12)', border: '1px solid rgba(255, 197, 47, 0.35)' }}>
               {([
                 { key: 'bar', icon: Beer, label: 'Bar' },
                 { key: 'cafe', icon: Coffee, label: 'Cafe' },
@@ -451,8 +457,8 @@ export default function LandingPage() {
                   onClick={toggleMode}
                   className="relative px-2 py-1.5 rounded-full transition-all duration-200 touch-manipulation active:scale-95 flex items-center gap-1"
                   style={{
-                    background: mode === key ? colors.accent : 'transparent',
-                    color: mode === key ? (isCafe ? colors.background : '#FDF5E6') : colors.textMuted,
+                    background: mode === key ? LP_YELLOW : 'transparent',
+                    color: mode === key ? LP_NAVY : LP_ON_NAVY.textMuted,
                   }}
                   title={label}
                 >
@@ -468,7 +474,7 @@ export default function LandingPage() {
                 size="icon"
                 onClick={(e) => { e.stopPropagation(); setShowLanguageMenu(!showLanguageMenu); }}
                 className="touch-manipulation active:scale-95 rounded-lg"
-                style={{ color: showLanguageMenu ? colors.accent : colors.text }}
+                style={{ color: showLanguageMenu ? LP_YELLOW : LP_ON_NAVY.text }}
                 title={t('menu.language')}
               >
                 <Globe className="w-5 h-5" />
@@ -488,12 +494,12 @@ export default function LandingPage() {
                       style={{
                         background: isCafe ? 'rgba(247, 243, 238, 0.98)' : 'rgba(30, 30, 30, 0.95)',
                         backdropFilter: 'blur(12px)',
-                        border: isCafe ? `1px solid ${colors.borderGold}` : '1px solid rgba(255,255,255,0.1)',
+                        border: isCafe ? `1px solid rgba(255, 197, 47, 0.35)` : '1px solid rgba(255,255,255,0.1)',
                         boxShadow: isCafe ? '0 10px 40px rgba(0,0,0,0.15)' : '0 10px 40px rgba(0,0,0,0.5)',
                       }}
                     >
                       <div className="p-2">
-                        <p className="text-xs px-3 py-2 font-bold" style={{ color: colors.textMuted }}>
+                        <p className="text-xs px-3 py-2 font-bold" style={{ color: isCafe ? colors.textMuted : LP_ON_NAVY.textMuted }}>
                           {t('language_selector.title') || t('menu.language')}
                         </p>
                         {SUPPORTED_LANGUAGES.map((lang) => (
@@ -505,14 +511,14 @@ export default function LandingPage() {
                                 ? (!isCafe ? 'bg-amber-500/20' : 'bg-amber-700/10')
                                 : (!isCafe ? 'hover:bg-white/10' : 'hover:bg-black/5')
                             }`}
-                            style={{ color: language === lang ? colors.accent : colors.text }}
+                            style={{ color: language === lang ? LP_YELLOW : LP_ON_NAVY.text }}
                           >
                             <span className="text-xl">{LANGUAGE_META[lang].flag}</span>
                             <span className="font-bold text-sm flex-1 text-left">
                               {LANGUAGE_META[lang].nativeName}
                             </span>
                             {language === lang && (
-                              <CheckCircle className="w-4 h-4" style={{ color: colors.accent }} />
+                              <CheckCircle className="w-4 h-4" style={{ color: LP_YELLOW }} />
                             )}
                           </button>
                         ))}
@@ -523,7 +529,7 @@ export default function LandingPage() {
               </AnimatePresence>
             </div>
             {/* ハンバーガーメニュー */}
-            <Button variant="ghost" size="icon" onClick={() => setShowMenu(!showMenu)} style={{ color: colors.textMuted }}>{showMenu ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}</Button>
+            <Button variant="ghost" size="icon" onClick={() => setShowMenu(!showMenu)} style={{ color: LP_ON_NAVY.textMuted }}>{showMenu ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}</Button>
           </div>
         </div>
       </header>
@@ -533,17 +539,17 @@ export default function LandingPage() {
         {showMenu && (
           <>
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-40" style={{ background: 'rgba(10, 22, 40, 0.9)' }} onClick={() => setShowMenu(false)} />
-            <motion.div initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'spring', damping: 25, stiffness: 200 }} className="fixed right-0 top-0 bottom-0 w-80 z-50 overflow-y-auto" style={{ background: colors.luxuryGradient, borderLeft: `1px solid ${colors.borderGold}` }}>
+            <motion.div initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'spring', damping: 25, stiffness: 200 }} className="fixed right-0 top-0 bottom-0 w-80 z-50 overflow-y-auto" style={{ background: LP_NAVY, borderLeft: `1px solid ${LP_ON_NAVY.border}` }}>
               <div className="p-6 pt-20">
                 <motion.div
                   initial={{ opacity: 0, y: -12 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ type: 'spring', damping: 22, stiffness: 260 }}
                   className="flex flex-col items-center mb-8 pb-6"
-                  style={{ borderBottom: `1px solid ${colors.borderGold}` }}
+                  style={{ borderBottom: `1px solid ${LP_ON_NAVY.border}` }}
                 >
                   {isCafe ? (
-                    <Coffee className="h-12 w-12" style={{ color: colors.accent }} />
+                    <Coffee className="h-12 w-12" style={{ color: LP_YELLOW }} />
                   ) : (
                     <img
                       src="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761355092/%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png"
@@ -553,47 +559,47 @@ export default function LandingPage() {
                   )}
                 </motion.div>
                 <div className="mb-8">
-                  <h2 className="text-xl font-bold mb-1" style={{ color: colors.text }}>{t('menu.title')}</h2>
-                  <p className="text-sm" style={{ color: colors.textSubtle }}>{t('menu.subtitle')}</p>
+                  <h2 className="text-xl font-bold mb-1" style={{ color: LP_ON_NAVY.text }}>{t('menu.title')}</h2>
+                  <p className="text-sm" style={{ color: LP_ON_NAVY.textSubtle }}>{t('menu.subtitle')}</p>
                 </div>
                 <nav className="space-y-1">
                   {menuItems.map((item, index) => {
                     const Icon = item.icon;
                     return (
                       <motion.div key={index} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: index * 0.05 }}>
-                        <Link href={item.href} onClick={() => setShowMenu(false)} className="flex items-center gap-3 p-4 rounded-lg transition-colors group" style={{ color: colors.textMuted }}>
-                          <Icon className="w-5 h-5" style={{ color: colors.accent }} /><span className="group-hover:opacity-100 font-medium">{item.label}</span><ChevronRight className="w-4 h-4 ml-auto opacity-30" />
+                        <Link href={item.href} onClick={() => setShowMenu(false)} className="flex items-center gap-3 p-4 rounded-lg transition-colors group" style={{ color: LP_ON_NAVY.textMuted }}>
+                          <Icon className="w-5 h-5" style={{ color: LP_YELLOW }} /><span className="group-hover:opacity-100 font-medium">{item.label}</span><ChevronRight className="w-4 h-4 ml-auto opacity-30" />
                         </Link>
                       </motion.div>
                     );
                   })}
                 </nav>
                 {/* 店舗向けリンク */}
-                <div className="mt-8 pt-6" style={{ borderTop: `1px solid ${colors.borderGold}` }}>
-                  <p className="text-sm font-medium mb-3" style={{ color: colors.textMuted }}>{t('menu.for_stores')}</p>
-                  <Link href="/login?role=store" onClick={() => setShowMenu(false)} className="flex items-center gap-3 p-4 rounded-lg transition-colors group" style={{ color: colors.textMuted }}>
-                    <LogIn className="w-5 h-5" style={{ color: colors.accent }} /><span className="group-hover:opacity-100 font-medium">{t('header.store_login')}</span><ChevronRight className="w-4 h-4 ml-auto opacity-30" />
+                <div className="mt-8 pt-6" style={{ borderTop: `1px solid ${LP_ON_NAVY.border}` }}>
+                  <p className="text-sm font-medium mb-3" style={{ color: LP_ON_NAVY.textMuted }}>{t('menu.for_stores')}</p>
+                  <Link href="/login?role=store" onClick={() => setShowMenu(false)} className="flex items-center gap-3 p-4 rounded-lg transition-colors group" style={{ color: LP_ON_NAVY.textMuted }}>
+                    <LogIn className="w-5 h-5" style={{ color: LP_YELLOW }} /><span className="group-hover:opacity-100 font-medium">{t('header.store_login')}</span><ChevronRight className="w-4 h-4 ml-auto opacity-30" />
                   </Link>
-                  <Link href="/partner/apply" onClick={() => setShowMenu(false)} className="flex items-center gap-3 p-4 rounded-lg transition-colors group" style={{ color: colors.textMuted }}>
-                    <Building2 className="w-5 h-5" style={{ color: colors.accent }} /><span className="group-hover:opacity-100 font-medium">{t('landing.cta_button_recruitment')}</span><ChevronRight className="w-4 h-4 ml-auto opacity-30" />
+                  <Link href="/partner/apply" onClick={() => setShowMenu(false)} className="flex items-center gap-3 p-4 rounded-lg transition-colors group" style={{ color: LP_ON_NAVY.textMuted }}>
+                    <Building2 className="w-5 h-5" style={{ color: LP_YELLOW }} /><span className="group-hover:opacity-100 font-medium">{t('landing.cta_button_recruitment')}</span><ChevronRight className="w-4 h-4 ml-auto opacity-30" />
                   </Link>
                 </div>
                 {/* 運営者向け */}
-                <div className="mt-8 pt-6" style={{ borderTop: `1px solid ${colors.borderGold}` }}>
-                  <p className="text-sm font-medium mb-3" style={{ color: colors.textMuted }}>{t('menu.for_operators')}</p>
-                  <Link href="/login?role=platform" onClick={() => setShowMenu(false)} className="flex items-center gap-3 p-4 rounded-lg transition-colors group" style={{ color: colors.textMuted }}>
-                    <Shield className="w-5 h-5" style={{ color: colors.accent }} /><span className="group-hover:opacity-100 font-medium">{t('header.operator_login')}</span><ChevronRight className="w-4 h-4 ml-auto opacity-30" />
+                <div className="mt-8 pt-6" style={{ borderTop: `1px solid ${LP_ON_NAVY.border}` }}>
+                  <p className="text-sm font-medium mb-3" style={{ color: LP_ON_NAVY.textMuted }}>{t('menu.for_operators')}</p>
+                  <Link href="/login?role=platform" onClick={() => setShowMenu(false)} className="flex items-center gap-3 p-4 rounded-lg transition-colors group" style={{ color: LP_ON_NAVY.textMuted }}>
+                    <Shield className="w-5 h-5" style={{ color: LP_YELLOW }} /><span className="group-hover:opacity-100 font-medium">{t('header.operator_login')}</span><ChevronRight className="w-4 h-4 ml-auto opacity-30" />
                   </Link>
                 </div>
                 {/* Official Account */}
-                <div className="mt-8 pt-6" style={{ borderTop: `1px solid ${colors.borderGold}` }}>
-                  <p className="text-sm font-medium mb-3" style={{ color: colors.textMuted }}>{t('menu.official_account')}</p>
-                  <a href="https://www.instagram.com/nikenme_nobody/" target="_blank" rel="noopener noreferrer" onClick={() => setShowMenu(false)} className="flex items-center gap-3 p-4 rounded-lg transition-colors group" style={{ color: colors.textMuted }}>
-                    <Instagram className="w-5 h-5" style={{ color: colors.accent }} /><span className="group-hover:opacity-100 font-medium">Instagram</span><ChevronRight className="w-4 h-4 ml-auto opacity-30" />
+                <div className="mt-8 pt-6" style={{ borderTop: `1px solid ${LP_ON_NAVY.border}` }}>
+                  <p className="text-sm font-medium mb-3" style={{ color: LP_ON_NAVY.textMuted }}>{t('menu.official_account')}</p>
+                  <a href="https://www.instagram.com/nikenme_nobody/" target="_blank" rel="noopener noreferrer" onClick={() => setShowMenu(false)} className="flex items-center gap-3 p-4 rounded-lg transition-colors group" style={{ color: LP_ON_NAVY.textMuted }}>
+                    <Instagram className="w-5 h-5" style={{ color: LP_YELLOW }} /><span className="group-hover:opacity-100 font-medium">Instagram</span><ChevronRight className="w-4 h-4 ml-auto opacity-30" />
                   </a>
                 </div>
-                <div className="mt-6 pt-6" style={{ borderTop: `1px solid ${colors.borderGold}` }}>
-                  <p className="text-xs text-center" style={{ color: colors.textSubtle }}>© 2025 NIKENME+<br />{t('menu.version')}</p>
+                <div className="mt-6 pt-6" style={{ borderTop: `1px solid ${LP_ON_NAVY.border}` }}>
+                  <p className="text-xs text-center" style={{ color: LP_ON_NAVY.textSubtle }}>© 2025 NIKENME+<br />{t('menu.version')}</p>
                 </div>
               </div>
             </motion.div>
@@ -610,7 +616,7 @@ export default function LandingPage() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6 }}
             className="hidden lg:flex flex-col justify-center px-12 xl:px-16 relative z-10"
-            style={{ background: colors.background }}
+            style={{ background: LP_NAVY }}
           >
             <div className="max-w-lg">
               <motion.div
@@ -619,18 +625,18 @@ export default function LandingPage() {
                 transition={{ delay: 0.2 }}
               >
                 <div className="flex items-center gap-2 mb-8">
-                  <div className="h-[1px] w-8" style={{ background: colors.accent }} />
+                  <div className="h-[1px] w-8" style={{ background: LP_YELLOW }} />
                   <span
                     className="text-xs font-semibold uppercase tracking-[0.2em]"
-                    style={{ color: colors.accent }}
+                    style={{ color: LP_YELLOW }}
                   >
                     {t('landing.hero_pc_badge')}
                   </span>
                 </div>
-                <h1 className="text-4xl xl:text-5xl leading-[1.15] font-bold mb-6" style={{ color: colors.text }}>
+                <h1 className="text-4xl xl:text-5xl leading-[1.15] font-bold mb-6" style={{ color: LP_ON_NAVY.text }}>
                   {renderWithLineBreaks(t('landing.hero_pc_title'))}
                 </h1>
-                <p className="text-base xl:text-lg leading-relaxed mb-10" style={{ color: colors.textMuted }}>
+                <p className="text-base xl:text-lg leading-relaxed mb-10" style={{ color: LP_ON_NAVY.textMuted }}>
                   {renderWithLineBreaks(t('landing.hero_pc_description'))}
                 </p>
               </motion.div>
@@ -644,13 +650,13 @@ export default function LandingPage() {
                   whileHover={{ scale: 1.03, y: -2 }}
                   whileTap={{ scale: 0.98 }}
                   className="rounded-full relative overflow-hidden group inline-block"
-                  style={{ boxShadow: colors.shadowGold }}
+                  style={{ boxShadow: isCafe ? colors.shadowGold : '0 8px 28px rgba(255, 197, 47, 0.35)' }}
                 >
                   <Button
                     size="lg"
                     onClick={handleMapClick}
                     className="text-lg px-10 py-6 rounded-full font-semibold transition-all relative z-10"
-                    style={{ background: colors.goldGradient, color: colors.background }}
+                  style={{ background: isCafe ? colors.goldGradient : LP_YELLOW, color: isCafe ? colors.background : LP_NAVY }}
                   >
                     <Store className="w-5 h-5 mr-2" />{t('landing.cta_button_primary')}
                   </Button>
@@ -668,7 +674,7 @@ export default function LandingPage() {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.6 }}
                 className="text-xs tracking-wider mt-5"
-                style={{ color: colors.textSubtle }}
+                style={{ color: LP_ON_NAVY.textSubtle }}
               >
                 {isCafe ? t('landing.cafe_hero_subcopy') : t('landing.hero_subcopy')}
               </motion.p>
@@ -701,7 +707,7 @@ export default function LandingPage() {
                 style={{
                   background: isCafe
                     ? 'linear-gradient(to bottom, rgba(0,0,0,0.12) 0%, rgba(0,0,0,0.06) 50%, rgba(0,0,0,0.20) 100%)'
-                    : `linear-gradient(to bottom, ${colors.background}73 0%, ${colors.background}41 40%, ${colors.background}AA 100%)`,
+                    : 'linear-gradient(to bottom, rgba(18,40,76,0.45) 0%, rgba(18,40,76,0.25) 40%, rgba(18,40,76,0.72) 100%)',
                 }}
               />
             </motion.div>
@@ -716,7 +722,7 @@ export default function LandingPage() {
               transition={{ duration: 0.8, delay: 0.2 }}
             >
               <h1 className="text-lg sm:text-2xl md:text-3xl font-bold mb-6 leading-tight">
-                <span style={{ color: isCafe ? '#FFFFFF' : colors.text, textShadow: isCafe ? '0 2px 8px rgba(0,0,0,0.5)' : 'none' }}>
+                <span style={{ color: isCafe ? '#FFFFFF' : LP_ON_NAVY.text, textShadow: isCafe ? '0 2px 8px rgba(0,0,0,0.5)' : '0 2px 12px rgba(0,0,0,0.45)' }}>
                   {isCafe
                     ? renderWithLineBreaks(t('landing.cafe_hero_catchphrase'))
                     : renderWithLineBreaks(t('landing.hero_catchphrase'))}
@@ -726,13 +732,13 @@ export default function LandingPage() {
                 whileHover={{ scale: 1.03, y: -2 }}
                 whileTap={{ scale: 0.98 }}
                 className="rounded-full relative overflow-hidden group inline-block mb-6"
-                style={{ boxShadow: colors.shadowGold }}
+                style={{ boxShadow: isCafe ? colors.shadowGold : '0 8px 28px rgba(255, 197, 47, 0.35)' }}
               >
                 <Button
                   size="lg"
                   onClick={handleMapClick}
                   className="text-lg px-10 py-6 rounded-full font-semibold transition-all relative z-10"
-                  style={{ background: isCafe ? 'linear-gradient(135deg, #5C3D2E 0%, #7A5C3C 50%, #4A2E1F 100%)' : colors.goldGradient, color: isCafe ? '#F7F3EE' : colors.background }}
+                  style={{ background: isCafe ? 'linear-gradient(135deg, #5C3D2E 0%, #7A5C3C 50%, #4A2E1F 100%)' : LP_YELLOW, color: isCafe ? '#F7F3EE' : LP_NAVY }}
                 >
                   <Store className="w-5 h-5 mr-2" />{t('landing.cta_button_primary')}
                 </Button>
@@ -743,23 +749,23 @@ export default function LandingPage() {
                   transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 1 }}
                 />
               </motion.div>
-              <p className="text-xs sm:text-sm tracking-wider mb-3" style={{ color: isCafe ? 'rgba(255,255,255,0.85)' : colors.textMuted, textShadow: isCafe ? '0 1px 4px rgba(0,0,0,0.4)' : 'none' }}>
+              <p className="text-xs sm:text-sm tracking-wider mb-3" style={{ color: isCafe ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.88)', textShadow: isCafe ? '0 1px 4px rgba(0,0,0,0.4)' : '0 1px 6px rgba(0,0,0,0.4)' }}>
                 {isCafe
                   ? t('landing.cafe_hero_subcopy')
                   : t('landing.hero_subcopy')}
               </p>
-              <span className="text-[10px] font-medium tracking-[0.3em] uppercase block mb-2" style={{ color: colors.textSubtle }}>
+              <span className="text-[10px] font-medium tracking-[0.3em] uppercase block mb-2" style={{ color: isCafe ? LP_ON_NAVY.textSubtle : 'rgba(255,255,255,0.65)' }}>
                 SCROLL
               </span>
               <motion.div
                 className="w-5 h-8 rounded-full flex items-start justify-center pt-1.5 mx-auto"
-                style={{ border: `1.5px solid ${colors.textSubtle}` }}
+                style={{ border: `1.5px solid ${isCafe ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.45)'}` }}
                 animate={{ opacity: [0.5, 1, 0.5] }}
                 transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
               >
                 <motion.div
                   className="w-1 h-1.5 rounded-full"
-                  style={{ background: colors.textMuted }}
+                  style={{ background: isCafe ? LP_ON_NAVY.textMuted : 'rgba(255,255,255,0.85)' }}
                   animate={{ y: [0, 8, 0] }}
                   transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
                 />
@@ -773,46 +779,46 @@ export default function LandingPage() {
               animate={{ opacity: 1 }}
               transition={{ duration: 0.8, delay: 0.4 }}
             >
-              <span className="text-[10px] font-medium tracking-[0.3em] uppercase block mb-2" style={{ color: colors.textSubtle }}>
+              <span className="text-[10px] font-medium tracking-[0.3em] uppercase block mb-2" style={{ color: isCafe ? LP_ON_NAVY.textSubtle : 'rgba(255,255,255,0.65)' }}>
                 SCROLL
               </span>
               <motion.div
                 className="w-5 h-8 rounded-full flex items-start justify-center pt-1.5 mx-auto"
-                style={{ border: `1.5px solid ${colors.textSubtle}` }}
+                style={{ border: `1.5px solid ${isCafe ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.45)'}` }}
                 animate={{ opacity: [0.5, 1, 0.5] }}
                 transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
               >
                 <motion.div
                   className="w-1 h-1.5 rounded-full"
-                  style={{ background: colors.textMuted }}
+                  style={{ background: isCafe ? LP_ON_NAVY.textMuted : 'rgba(255,255,255,0.85)' }}
                   animate={{ y: [0, 8, 0] }}
                   transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
                 />
               </motion.div>
             </motion.div>
 
-            <motion.div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${colors.accent}60, transparent)` }} initial={{ scaleX: 0 }} whileInView={{ scaleX: 1 }} viewport={{ once: true }} transition={{ duration: 1.5, ease: 'easeOut' }} />
+            <motion.div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${LP_YELLOW}60, transparent)` }} initial={{ scaleX: 0 }} whileInView={{ scaleX: 1 }} viewport={{ once: true }} transition={{ duration: 1.5, ease: 'easeOut' }} />
           </div>
         </div>
       </section>
 
       {/* お知らせセクション */}
-      <section className="relative py-8 md:py-16 px-4 overflow-hidden" style={{ background: colors.background }}>
+      <section className="relative py-8 md:py-16 px-4 overflow-hidden" style={{ background: LP_NAVY }}>
         <div className="container mx-auto max-w-3xl">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-8">
             <GoldDivider />
-            <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-3" style={{ color: colors.accent }}>News</span>
-            <h2 className="text-2xl sm:text-3xl font-bold" style={{ color: colors.text }}>{t('landing.news_title')}</h2>
+            <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-3" style={{ color: LP_YELLOW }}>News</span>
+            <h2 className="text-2xl sm:text-3xl font-bold" style={{ color: LP_ON_NAVY.text }}>{t('landing.news_title')}</h2>
           </motion.div>
           <div className="space-y-3">
             {(newsTranslations[language] || newsTranslations.ja).slice(0, 3).map((item, index) => (
-              <motion.div key={index} initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.05 }} className="flex items-start gap-4 p-4 rounded-xl" style={{ background: isBar ? LIGHT_SECTION.cardBg : `${colors.surface}60`, border: `1px solid ${isBar ? LIGHT_SECTION.borderSubtle : colors.borderSubtle}`, boxShadow: isBar ? '0 2px 12px rgba(0,0,0,0.04)' : 'none' }}>
-                <span className="text-xs font-medium flex-shrink-0 pt-0.5" style={{ color: colors.accent }}>{item.date}</span>
+              <motion.div key={index} initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.05 }} className="flex items-start gap-4 p-4 rounded-xl" style={{ background: LP_CARD.bg, border: `1px solid ${LP_CARD.borderSubtle}`, boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+                <span className="text-xs font-medium flex-shrink-0 pt-0.5" style={{ color: LP_YELLOW }}>{item.date}</span>
                 <div>
-                  <p className="text-sm font-bold mb-0.5" style={{ color: isBar ? LIGHT_SECTION.text : colors.text }}>{item.title}</p>
-                  <p className="text-xs" style={{ color: isBar ? LIGHT_SECTION.textMuted : colors.textMuted }}>{item.body}</p>
+                  <p className="text-sm font-bold mb-0.5" style={{ color: LP_CARD.text }}>{item.title}</p>
+                  <p className="text-xs" style={{ color: LP_CARD.textMuted }}>{item.body}</p>
                   {item.link && (
-                    <a href={item.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 mt-1.5 text-xs font-medium transition-all hover:opacity-80" style={{ color: colors.accent }}>
+                    <a href={item.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 mt-1.5 text-xs font-medium transition-all hover:opacity-80" style={{ color: LP_NAVY }}>
                       <ExternalLink className="w-3 h-3" />
                       {item.linkLabel || item.link}
                     </a>
@@ -822,17 +828,17 @@ export default function LandingPage() {
             ))}
           </div>
           <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="text-center mt-6">
-            <Link href="/news" className="text-sm font-medium inline-flex items-center gap-1 transition-all hover:scale-105" style={{ color: colors.accent }}>
+            <Link href="/news" className="text-sm font-medium inline-flex items-center gap-1 transition-all hover:scale-105" style={{ color: LP_YELLOW }}>
               {t('landing.news_view_all')} <ChevronRight className="w-4 h-4" />
             </Link>
           </motion.div>
         </div>
-        <motion.div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${colors.accent}40, transparent)` }} />
+        <motion.div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${LP_YELLOW}40, transparent)` }} />
       </section>
 
       {/* キャンペーンセクション（campaignsテーブルからの動的データ） */}
       {(campaignMasters.length > 0 || campaignStores.length > 0) && (
-        <section className="relative py-8 md:py-16 px-4 overflow-hidden" style={{ background: isBar ? LIGHT_SECTION.bg : colors.surface }}>
+        <section className="relative py-8 md:py-16 px-4 overflow-hidden" style={{ background: LP_NAVY }}>
           <div className="container mx-auto max-w-5xl">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -841,13 +847,13 @@ export default function LandingPage() {
               className="text-center mb-10"
             >
               <GoldDivider />
-              <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-3" style={{ color: colors.accent }}>
+              <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-3" style={{ color: LP_YELLOW }}>
                 Special Campaign
               </span>
-              <h2 className="text-2xl sm:text-3xl font-bold mb-2" style={{ color: isBar ? LIGHT_SECTION.text : colors.text }}>
+              <h2 className="text-2xl sm:text-3xl font-bold mb-2" style={{ color: LP_ON_NAVY.text }}>
                 {t('campaign.section_title')}
               </h2>
-              <p className="text-base" style={{ color: isBar ? LIGHT_SECTION.textMuted : colors.textMuted }}>
+              <p className="text-base" style={{ color: LP_ON_NAVY.textMuted }}>
                 {t('campaign.dont_miss')}
               </p>
             </motion.div>
@@ -865,8 +871,8 @@ export default function LandingPage() {
                   <Card
                     className="relative overflow-hidden cursor-pointer group"
                     style={{
-                      background: `${colors.background}90`,
-                      border: `2px solid ${colors.accent}`,
+                      background: `rgba(18, 40, 76, 0.9)`,
+                      border: `2px solid ${LP_YELLOW}`,
                       boxShadow: colors.shadowGold,
                     }}
                     onClick={() => {
@@ -880,7 +886,7 @@ export default function LandingPage() {
                           alt=""
                           className="w-full h-full object-cover opacity-30 group-hover:opacity-40 transition-opacity duration-300"
                         />
-                        <div className="absolute inset-0" style={{ background: `linear-gradient(to top, ${colors.background} 0%, transparent 100%)` }} />
+                        <div className="absolute inset-0" style={{ background: `linear-gradient(to top, #12284C 0%, transparent 100%)` }} />
                       </div>
                     )}
                     <div className="relative z-10 p-6">
@@ -895,18 +901,18 @@ export default function LandingPage() {
                           {t('campaign.now_on')}
                         </span>
                       </div>
-                      <h3 className="text-xl font-bold mb-2 group-hover:translate-x-1 transition-transform" style={{ color: colors.text }}>
+                      <h3 className="text-xl font-bold mb-2 group-hover:translate-x-1 transition-transform" style={{ color: LP_ON_NAVY.text }}>
                         {campaignMasters[0].name} 🍺
                       </h3>
                       {campaignMasters[0].description && (
-                        <p className="text-sm mb-3 line-clamp-2" style={{ color: colors.textMuted }}>
+                        <p className="text-sm mb-3 line-clamp-2" style={{ color: LP_ON_NAVY.textMuted }}>
                           {campaignMasters[0].description}
                         </p>
                       )}
-                      <p className="text-xs mb-4" style={{ color: colors.accent }}>
+                      <p className="text-xs mb-4" style={{ color: LP_YELLOW }}>
                         {t('campaign.until').replace('{date}', new Date(campaignMasters[0].end_date + 'T00:00:00').toLocaleDateString(language === 'ja' ? 'ja-JP' : language === 'ko' ? 'ko-KR' : language === 'zh' ? 'zh-CN' : 'en-US', { month: 'short', day: 'numeric' }))}
                       </p>
-                      <div className="flex items-center gap-1 group-hover:gap-2 transition-all" style={{ color: colors.accent }}>
+                      <div className="flex items-center gap-1 group-hover:gap-2 transition-all" style={{ color: LP_YELLOW }}>
                         <span className="text-sm font-medium">{t('campaign.view_details')}</span>
                         <ChevronRight className="w-4 h-4" />
                       </div>
@@ -929,8 +935,8 @@ export default function LandingPage() {
                         <Card
                           className="relative overflow-hidden cursor-pointer group mx-auto max-w-lg"
                           style={{
-                            background: `${colors.background}90`,
-                            border: `2px solid ${colors.accent}`,
+                            background: `rgba(18, 40, 76, 0.9)`,
+                            border: `2px solid ${LP_YELLOW}`,
                             boxShadow: colors.shadowGold,
                           }}
                           onClick={() => {
@@ -944,7 +950,7 @@ export default function LandingPage() {
                                 alt=""
                                 className="w-full h-full object-cover opacity-30 group-hover:opacity-40 transition-opacity duration-300"
                               />
-                              <div className="absolute inset-0" style={{ background: `linear-gradient(to top, ${colors.background} 0%, transparent 100%)` }} />
+                              <div className="absolute inset-0" style={{ background: `linear-gradient(to top, #12284C 0%, transparent 100%)` }} />
                             </div>
                           )}
                           <div className="relative z-10 p-6">
@@ -959,18 +965,18 @@ export default function LandingPage() {
                                 {t('campaign.now_on')}
                               </span>
                             </div>
-                            <h3 className="text-xl font-bold mb-2 group-hover:translate-x-1 transition-transform" style={{ color: colors.text }}>
+                            <h3 className="text-xl font-bold mb-2 group-hover:translate-x-1 transition-transform" style={{ color: LP_ON_NAVY.text }}>
                               {campaignMasters[campaignSlide].name} 🍺
                             </h3>
                             {campaignMasters[campaignSlide].description && (
-                              <p className="text-sm mb-3 line-clamp-2" style={{ color: colors.textMuted }}>
+                              <p className="text-sm mb-3 line-clamp-2" style={{ color: LP_ON_NAVY.textMuted }}>
                                 {campaignMasters[campaignSlide].description}
                               </p>
                             )}
-                            <p className="text-xs mb-4" style={{ color: colors.accent }}>
+                            <p className="text-xs mb-4" style={{ color: LP_YELLOW }}>
                               {t('campaign.until').replace('{date}', new Date(campaignMasters[campaignSlide].end_date + 'T00:00:00').toLocaleDateString(language === 'ja' ? 'ja-JP' : language === 'ko' ? 'ko-KR' : language === 'zh' ? 'zh-CN' : 'en-US', { month: 'short', day: 'numeric' }))}
                             </p>
-                            <div className="flex items-center gap-1 group-hover:gap-2 transition-all" style={{ color: colors.accent }}>
+                            <div className="flex items-center gap-1 group-hover:gap-2 transition-all" style={{ color: LP_YELLOW }}>
                               <span className="text-sm font-medium">{t('campaign.view_details')}</span>
                               <ChevronRight className="w-4 h-4" />
                             </div>
@@ -984,18 +990,18 @@ export default function LandingPage() {
                   <button
                     onClick={(e) => { e.stopPropagation(); setCampaignSlide((prev) => (prev - 1 + campaignMasters.length) % campaignMasters.length); }}
                     className="absolute left-0 sm:left-4 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 z-10"
-                    style={{ background: `${colors.background}E6`, border: `1px solid ${colors.borderGold}`, backdropFilter: 'blur(10px)' }}
+                    style={{ background: `rgba(18, 40, 76, 0.9)`, border: `1px solid rgba(255, 197, 47, 0.35)`, backdropFilter: 'blur(10px)' }}
                     aria-label="Previous campaign"
                   >
-                    <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: colors.text }} />
+                    <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: LP_ON_NAVY.text }} />
                   </button>
                   <button
                     onClick={(e) => { e.stopPropagation(); setCampaignSlide((prev) => (prev + 1) % campaignMasters.length); }}
                     className="absolute right-0 sm:right-4 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 z-10"
-                    style={{ background: `${colors.background}E6`, border: `1px solid ${colors.borderGold}`, backdropFilter: 'blur(10px)' }}
+                    style={{ background: `rgba(18, 40, 76, 0.9)`, border: `1px solid rgba(255, 197, 47, 0.35)`, backdropFilter: 'blur(10px)' }}
                     aria-label="Next campaign"
                   >
-                    <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: colors.text }} />
+                    <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: LP_ON_NAVY.text }} />
                   </button>
 
                   {/* ドットインジケーター */}
@@ -1007,8 +1013,8 @@ export default function LandingPage() {
                         className="h-2 rounded-full transition-all duration-300"
                         style={{
                           width: campaignSlide === index ? '24px' : '8px',
-                          background: campaignSlide === index ? colors.accent : `${colors.text}30`,
-                          boxShadow: campaignSlide === index ? `0 0 10px ${colors.accent}60` : 'none',
+                          background: campaignSlide === index ? LP_YELLOW : 'rgba(255,255,255,0.28)',
+                          boxShadow: campaignSlide === index ? `0 0 10px ${LP_YELLOW}60` : 'none',
                         }}
                         aria-label={`Go to campaign ${index + 1}`}
                       />
@@ -1028,8 +1034,8 @@ export default function LandingPage() {
                   <Card
                     className="relative overflow-hidden cursor-pointer group"
                     style={{
-                      background: `${colors.background}90`,
-                      border: `2px solid ${colors.accent}`,
+                      background: `rgba(18, 40, 76, 0.9)`,
+                      border: `2px solid ${LP_YELLOW}`,
                       boxShadow: colors.shadowGold,
                     }}
                     onClick={() => {
@@ -1047,7 +1053,7 @@ export default function LandingPage() {
                           alt=""
                           className="w-full h-full object-cover opacity-20 group-hover:opacity-30 transition-opacity duration-300"
                         />
-                        <div className="absolute inset-0" style={{ background: `linear-gradient(to top, ${colors.background} 0%, transparent 100%)` }} />
+                        <div className="absolute inset-0" style={{ background: `linear-gradient(to top, #12284C 0%, transparent 100%)` }} />
                       </div>
                     )}
                     <div className="relative z-10 p-6">
@@ -1062,18 +1068,18 @@ export default function LandingPage() {
                           {t('campaign.now_on')}
                         </span>
                       </div>
-                      <h3 className="text-xl font-bold mb-2 group-hover:translate-x-1 transition-transform" style={{ color: colors.text }}>
+                      <h3 className="text-xl font-bold mb-2 group-hover:translate-x-1 transition-transform" style={{ color: LP_ON_NAVY.text }}>
                         {campaignStores[0].campaign_name || t('campaign.default_name')} 🍺
                       </h3>
-                      <p className="text-sm mb-3" style={{ color: colors.textMuted }}>
+                      <p className="text-sm mb-3" style={{ color: LP_ON_NAVY.textMuted }}>
                         {campaignStores[0].name}
                       </p>
                       {campaignStores[0].campaign_end_date && (
-                        <p className="text-xs mb-4" style={{ color: colors.accent }}>
+                        <p className="text-xs mb-4" style={{ color: LP_YELLOW }}>
                           {t('campaign.until').replace('{date}', new Date(campaignStores[0].campaign_end_date).toLocaleDateString(language === 'ja' ? 'ja-JP' : language === 'ko' ? 'ko-KR' : language === 'zh' ? 'zh-CN' : 'en-US', { month: 'short', day: 'numeric' }))}
                         </p>
                       )}
-                      <div className="flex items-center gap-1 group-hover:gap-2 transition-all" style={{ color: colors.accent }}>
+                      <div className="flex items-center gap-1 group-hover:gap-2 transition-all" style={{ color: LP_YELLOW }}>
                         <span className="text-sm font-medium">{t('campaign.view_details')}</span>
                         <ChevronRight className="w-4 h-4" />
                       </div>
@@ -1096,8 +1102,8 @@ export default function LandingPage() {
                         <Card
                           className="relative overflow-hidden cursor-pointer group mx-auto max-w-lg"
                           style={{
-                            background: `${colors.background}90`,
-                            border: `2px solid ${colors.accent}`,
+                            background: `rgba(18, 40, 76, 0.9)`,
+                            border: `2px solid ${LP_YELLOW}`,
                             boxShadow: colors.shadowGold,
                           }}
                           onClick={() => {
@@ -1115,7 +1121,7 @@ export default function LandingPage() {
                                 alt=""
                                 className="w-full h-full object-cover opacity-20 group-hover:opacity-30 transition-opacity duration-300"
                               />
-                              <div className="absolute inset-0" style={{ background: `linear-gradient(to top, ${colors.background} 0%, transparent 100%)` }} />
+                              <div className="absolute inset-0" style={{ background: `linear-gradient(to top, #12284C 0%, transparent 100%)` }} />
                             </div>
                           )}
                           <div className="relative z-10 p-6">
@@ -1130,18 +1136,18 @@ export default function LandingPage() {
                                 {t('campaign.now_on')}
                               </span>
                             </div>
-                            <h3 className="text-xl font-bold mb-2 group-hover:translate-x-1 transition-transform" style={{ color: colors.text }}>
+                            <h3 className="text-xl font-bold mb-2 group-hover:translate-x-1 transition-transform" style={{ color: LP_ON_NAVY.text }}>
                               {campaignStores[currentSlide].campaign_name || t('campaign.default_name')} 🍺
                             </h3>
-                            <p className="text-sm mb-3" style={{ color: colors.textMuted }}>
+                            <p className="text-sm mb-3" style={{ color: LP_ON_NAVY.textMuted }}>
                               {campaignStores[currentSlide].name}
                             </p>
                             {campaignStores[currentSlide].campaign_end_date && (
-                              <p className="text-xs mb-4" style={{ color: colors.accent }}>
+                              <p className="text-xs mb-4" style={{ color: LP_YELLOW }}>
                                 {t('campaign.until').replace('{date}', new Date(campaignStores[currentSlide].campaign_end_date).toLocaleDateString(language === 'ja' ? 'ja-JP' : language === 'ko' ? 'ko-KR' : language === 'zh' ? 'zh-CN' : 'en-US', { month: 'short', day: 'numeric' }))}
                               </p>
                             )}
-                            <div className="flex items-center gap-1 group-hover:gap-2 transition-all" style={{ color: colors.accent }}>
+                            <div className="flex items-center gap-1 group-hover:gap-2 transition-all" style={{ color: LP_YELLOW }}>
                               <span className="text-sm font-medium">{t('campaign.view_details')}</span>
                               <ChevronRight className="w-4 h-4" />
                             </div>
@@ -1155,18 +1161,18 @@ export default function LandingPage() {
                   <button
                     onClick={(e) => { e.stopPropagation(); setCurrentSlide((prev) => (prev - 1 + campaignStores.length) % campaignStores.length); }}
                     className="absolute left-0 sm:left-4 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 z-10"
-                    style={{ background: `${colors.background}E6`, border: `1px solid ${colors.borderGold}`, backdropFilter: 'blur(10px)' }}
+                    style={{ background: `rgba(18, 40, 76, 0.9)`, border: `1px solid rgba(255, 197, 47, 0.35)`, backdropFilter: 'blur(10px)' }}
                     aria-label="Previous campaign"
                   >
-                    <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: colors.text }} />
+                    <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: LP_ON_NAVY.text }} />
                   </button>
                   <button
                     onClick={(e) => { e.stopPropagation(); setCurrentSlide((prev) => (prev + 1) % campaignStores.length); }}
                     className="absolute right-0 sm:right-4 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 z-10"
-                    style={{ background: `${colors.background}E6`, border: `1px solid ${colors.borderGold}`, backdropFilter: 'blur(10px)' }}
+                    style={{ background: `rgba(18, 40, 76, 0.9)`, border: `1px solid rgba(255, 197, 47, 0.35)`, backdropFilter: 'blur(10px)' }}
                     aria-label="Next campaign"
                   >
-                    <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: colors.text }} />
+                    <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: LP_ON_NAVY.text }} />
                   </button>
 
                   {/* ドットインジケーター */}
@@ -1178,8 +1184,8 @@ export default function LandingPage() {
                         className="h-2 rounded-full transition-all duration-300"
                         style={{
                           width: currentSlide === index ? '24px' : '8px',
-                          background: currentSlide === index ? colors.accent : `${colors.text}30`,
-                          boxShadow: currentSlide === index ? `0 0 10px ${colors.accent}60` : 'none',
+                          background: currentSlide === index ? LP_YELLOW : 'rgba(255,255,255,0.28)',
+                          boxShadow: currentSlide === index ? `0 0 10px ${LP_YELLOW}60` : 'none',
                         }}
                         aria-label={`Go to campaign ${index + 1}`}
                       />
@@ -1200,9 +1206,9 @@ export default function LandingPage() {
                 onClick={() => router.push('/store-list?campaign=true')}
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-full font-medium transition-all hover:scale-105"
                 style={{
-                  background: `${colors.accent}15`,
-                  border: `1px solid ${colors.borderGold}`,
-                  color: colors.accent,
+                  background: `${LP_YELLOW}15`,
+                  border: `1px solid rgba(255, 197, 47, 0.35)`,
+                  color: LP_YELLOW,
                 }}
               >
                 <Sparkles className="w-5 h-5" />
@@ -1210,17 +1216,17 @@ export default function LandingPage() {
               </Button>
             </motion.div>
           </div>
-          <motion.div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${colors.accent}40, transparent)` }} />
+          <motion.div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${LP_YELLOW}40, transparent)` }} />
         </section>
       )}
 
       {/* 課題提起セクション */}
-      <section className="relative py-12 md:py-24 px-4 overflow-hidden" style={{ background: isBar ? LIGHT_SECTION.bg : colors.surface }}>
+      <section className="relative py-12 md:py-24 px-4 overflow-hidden" style={{ background: LP_NAVY }}>
         <div className="container mx-auto max-w-5xl">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
             <GoldDivider />
-            <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4" style={{ color: colors.accent }}>{t('landing.problems_subtitle')}</span>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold" style={{ color: isBar ? LIGHT_SECTION.text : colors.text }}>{t('landing.problems_title')}</h2>
+            <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4" style={{ color: LP_YELLOW }}>{t('landing.problems_subtitle')}</span>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold" style={{ color: LP_ON_NAVY.text }}>{t('landing.problems_title')}</h2>
           </motion.div>
           {(() => {
             const concernsData = [
@@ -1243,9 +1249,9 @@ export default function LandingPage() {
                 <Card
                   className="h-full overflow-hidden relative"
                   style={{
-                    background: isBar ? LIGHT_SECTION.cardBg : `${colors.background}80`,
-                    border: `1px solid ${isBar ? LIGHT_SECTION.borderSubtle : colors.borderGold}`,
-                    boxShadow: isBar ? '0 4px 20px rgba(0,0,0,0.06)' : 'none',
+                    background: LP_CARD.bg,
+                    border: `1px solid ${LP_CARD.borderSubtle}`,
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
                   }}
                 >
                   <div className="aspect-square w-full overflow-hidden">
@@ -1256,7 +1262,7 @@ export default function LandingPage() {
                     />
                   </div>
                   <div className="p-5 sm:p-6 text-center">
-                    <p className="text-base sm:text-lg font-bold leading-relaxed" style={{ color: isBar ? LIGHT_SECTION.text : colors.text }}>
+                    <p className="text-base sm:text-lg font-bold leading-relaxed" style={{ color: LP_CARD.text }}>
                       {renderWithLineBreaks(concern.text)}
                     </p>
                   </div>
@@ -1283,16 +1289,16 @@ export default function LandingPage() {
                   <button
                     onClick={() => setConcernsSlide((prev) => (prev - 1 + concernsData.length) % concernsData.length)}
                     className="absolute left-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 z-10"
-                    style={{ background: isBar ? '#FFFFFFE6' : `${colors.background}E6`, border: `1px solid ${isBar ? LIGHT_SECTION.borderSubtle : colors.borderGold}`, backdropFilter: 'blur(10px)' }}
+                    style={{ background: isBar ? '#FFFFFFE6' : `rgba(18, 40, 76, 0.9)`, border: `1px solid ${isBar ? LP_CARD.borderSubtle : 'rgba(255, 197, 47, 0.35)'}`, backdropFilter: 'blur(10px)' }}
                   >
-                    <ChevronLeft className="w-5 h-5" style={{ color: isBar ? LIGHT_SECTION.text : colors.text }} />
+                    <ChevronLeft className="w-5 h-5" style={{ color: LP_CARD.text }} />
                   </button>
                   <button
                     onClick={() => setConcernsSlide((prev) => (prev + 1) % concernsData.length)}
                     className="absolute right-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 z-10"
-                    style={{ background: isBar ? '#FFFFFFE6' : `${colors.background}E6`, border: `1px solid ${isBar ? LIGHT_SECTION.borderSubtle : colors.borderGold}`, backdropFilter: 'blur(10px)' }}
+                    style={{ background: isBar ? '#FFFFFFE6' : `rgba(18, 40, 76, 0.9)`, border: `1px solid ${isBar ? LP_CARD.borderSubtle : 'rgba(255, 197, 47, 0.35)'}`, backdropFilter: 'blur(10px)' }}
                   >
-                    <ChevronRight className="w-5 h-5" style={{ color: isBar ? LIGHT_SECTION.text : colors.text }} />
+                    <ChevronRight className="w-5 h-5" style={{ color: LP_CARD.text }} />
                   </button>
                   <div className="flex justify-center gap-2 mt-6">
                     {concernsData.map((_, index) => (
@@ -1302,8 +1308,8 @@ export default function LandingPage() {
                         className="h-2 rounded-full transition-all duration-300"
                         style={{
                           width: concernsSlide === index ? '24px' : '8px',
-                          background: concernsSlide === index ? colors.accent : (isBar ? `${LIGHT_SECTION.text}20` : `${colors.text}30`),
-                          boxShadow: concernsSlide === index ? `0 0 10px ${colors.accent}60` : 'none',
+                          background: concernsSlide === index ? LP_YELLOW : 'rgba(18, 40, 76, 0.25)',
+                          boxShadow: concernsSlide === index ? `0 0 10px ${LP_YELLOW}60` : 'none',
                         }}
                       />
                     ))}
@@ -1327,17 +1333,17 @@ export default function LandingPage() {
             );
           })()}
         </div>
-        <motion.div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${colors.accent}40, transparent)` }} />
+        <motion.div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${LP_YELLOW}40, transparent)` }} />
       </section>
 
       {/* 解決策・サービスの強みセクション */}
-      <section className="relative py-12 md:py-24 px-4 overflow-hidden" style={{ background: colors.background }}>
+      <section className="relative py-12 md:py-24 px-4 overflow-hidden" style={{ background: LP_NAVY }}>
         <div className="container mx-auto max-w-5xl">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
             <GoldDivider />
-            <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4" style={{ color: colors.accent }}>{t('landing.solution_subtitle')}</span>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4" style={{ color: colors.text }}>{t('landing.solution_title')}</h2>
-            <p className="text-lg max-w-xl mx-auto" style={{ color: colors.textMuted }}>{renderWithLineBreaks(t('landing.solution_body'))}</p>
+            <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4" style={{ color: LP_YELLOW }}>{t('landing.solution_subtitle')}</span>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4" style={{ color: LP_ON_NAVY.text }}>{t('landing.solution_title')}</h2>
+            <p className="text-lg max-w-xl mx-auto" style={{ color: LP_ON_NAVY.textMuted }}>{renderWithLineBreaks(t('landing.solution_body'))}</p>
           </motion.div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
@@ -1346,17 +1352,17 @@ export default function LandingPage() {
               { num: 3, Icon: Shield },
             ].map(({ num, Icon }, index) => (
                 <motion.div key={index} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.15 }}>
-                  <Card className="h-full p-8 group cursor-pointer transition-all duration-500 hover:translate-y-[-4px] relative overflow-hidden text-center" style={{ background: isBar ? LIGHT_SECTION.cardBg : `${colors.surface}80`, backdropFilter: 'blur(10px)', border: `1px solid ${isBar ? LIGHT_SECTION.borderSubtle : colors.borderGold}`, boxShadow: isBar ? '0 4px 20px rgba(0,0,0,0.06)' : 'none' }}>
-                    <motion.div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ background: `radial-gradient(circle at center, ${colors.accent}10 0%, transparent 70%)` }} />
+                  <Card className="h-full p-8 group cursor-pointer transition-all duration-500 hover:translate-y-[-4px] relative overflow-hidden text-center" style={{ background: LP_CARD.bg, backdropFilter: 'blur(10px)', border: `1px solid ${LP_CARD.borderSubtle}`, boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
+                    <motion.div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ background: `radial-gradient(circle at center, ${LP_YELLOW}10 0%, transparent 70%)` }} />
                     <div className="relative z-10 flex flex-col items-center">
-                      <motion.div className="w-16 h-16 rounded-xl flex items-center justify-center mb-6 mx-auto" style={{ background: `${colors.accent}15`, border: `1px solid ${isBar ? `${colors.accent}20` : colors.borderGold}` }} whileHover={{ scale: 1.05 }}>
-                        <Icon className="w-7 h-7" style={{ color: colors.accent }} />
+                      <motion.div className="w-16 h-16 rounded-xl flex items-center justify-center mb-6 mx-auto" style={{ background: `${LP_YELLOW}15`, border: `1px solid ${LP_YELLOW}25` }} whileHover={{ scale: 1.05 }}>
+                        <Icon className="w-7 h-7" style={{ color: LP_YELLOW }} />
                       </motion.div>
-                      <h3 className="text-xl font-bold mb-2" style={{ color: isBar ? LIGHT_SECTION.text : colors.text }}>{t(`landing.solution_feature${num}_title`)}</h3>
+                      <h3 className="text-xl font-bold mb-2" style={{ color: LP_CARD.text }}>{t(`landing.solution_feature${num}_title`)}</h3>
                       <p className="text-xs uppercase tracking-wider mb-4 font-medium" style={{ color: colors.accentDark }}>{t(`landing.solution_feature${num}_title_en`)}</p>
-                      <p style={{ color: isBar ? LIGHT_SECTION.textMuted : colors.textMuted }} className="leading-relaxed text-sm">{renderWithLineBreaks(t(`landing.solution_feature${num}_desc`))}</p>
+                      <p style={{ color: LP_CARD.textMuted }} className="leading-relaxed text-sm">{renderWithLineBreaks(t(`landing.solution_feature${num}_desc`))}</p>
                     </div>
-                    <motion.div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ background: colors.goldGradient }} initial={{ scaleX: 0 }} whileHover={{ scaleX: 1 }} transition={{ duration: 0.3 }} />
+                    <motion.div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ background: `linear-gradient(90deg, ${LP_YELLOW}, #E6B020)` }} initial={{ scaleX: 0 }} whileHover={{ scaleX: 1 }} transition={{ duration: 0.3 }} />
                   </Card>
                 </motion.div>
               ))}
@@ -1365,12 +1371,12 @@ export default function LandingPage() {
       </section>
 
       {/* How to Use Section */}
-      <section className="relative py-12 md:py-24 px-4 overflow-hidden" style={{ background: isBar ? LIGHT_SECTION.bg : colors.surface }}>
+      <section className="relative py-12 md:py-24 px-4 overflow-hidden" style={{ background: LP_NAVY }}>
         <div className="container mx-auto max-w-6xl">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
             <GoldDivider />
-            <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4" style={{ color: colors.accent }}>{t('landing.howto_subtitle')}</span>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold" style={{ color: isBar ? LIGHT_SECTION.text : colors.text }}>{t('landing.howto_title')}</h2>
+            <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4" style={{ color: LP_YELLOW }}>{t('landing.howto_subtitle')}</span>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold" style={{ color: LP_ON_NAVY.text }}>{t('landing.howto_title')}</h2>
           </motion.div>
           {(() => {
             const howtoSteps = [
@@ -1392,28 +1398,27 @@ export default function LandingPage() {
               const stepTitle = t(`landing.howto_step${num}_title`);
               const isStep4 = num === 4;
               return (
-                <Card className="h-full overflow-hidden group relative" style={{ background: isBar ? (highlight ? `${colors.accent}10` : LIGHT_SECTION.cardBg) : (highlight ? `${colors.accent}10` : colors.background), border: highlight ? `2px solid ${colors.accent}` : `1px solid ${isBar ? LIGHT_SECTION.borderSubtle : colors.borderGold}`, boxShadow: highlight ? colors.shadowGold : (isBar ? '0 4px 20px rgba(0,0,0,0.06)' : 'none') }}>
-                  {isStep4 && (<motion.div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(circle at 50% 0%, ${colors.accent}20 0%, transparent 50%)` }} animate={{ opacity: [0.5, 0.8, 0.5] }} transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }} />)}
+                <Card className="h-full overflow-hidden group relative" style={{ background: LP_CARD.bg, border: `1px solid ${LP_CARD.borderSubtle}`, boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
                   <div className="p-6 sm:p-8 relative z-10">
                     <div className="flex items-center justify-between mb-6">
                       <div className="flex items-center gap-3">
-                        <span className="text-4xl font-bold" style={{ color: highlight ? colors.accent : colors.accentDark }}>{step}</span>
-                        <motion.div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: `${colors.accent}15`, border: `1px solid ${isBar ? `${colors.accent}20` : colors.borderGold}` }} animate={isStep4 ? { scale: [1, 1.1, 1] } : {}} transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}>
-                          <Icon className="w-5 h-5" style={{ color: highlight ? colors.accent : (isBar ? LIGHT_SECTION.textMuted : colors.textMuted) }} />
+                        <span className="text-4xl font-bold" style={{ color: highlight ? LP_YELLOW : colors.accentDark }}>{step}</span>
+                        <motion.div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: `${LP_YELLOW}15`, border: `1px solid ${LP_YELLOW}25` }} animate={isStep4 ? { scale: [1, 1.1, 1] } : {}} transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}>
+                          <Icon className="w-5 h-5" style={{ color: highlight ? LP_YELLOW : LP_CARD.textMuted }} />
                         </motion.div>
                       </div>
-                      {badge === 'common.auto_voice' && (<span className="text-[10px] font-semibold px-3 py-1 rounded-full uppercase tracking-wider" style={{ background: `${colors.accent}20`, color: colors.accent, border: `1px solid ${colors.accent}40` }}>{t('common.auto_voice')}</span>)}
+                      {badge === 'common.auto_voice' && (<span className="text-[10px] font-semibold px-3 py-1 rounded-full uppercase tracking-wider" style={{ background: LP_NAVY, color: '#FFFFFF', border: '1px solid rgba(255, 197, 47, 0.45)' }}>{t('common.auto_voice')}</span>)}
                       {badge === 'bonus' && (<motion.span className="text-[10px] font-semibold px-3 py-1 rounded-full uppercase tracking-wider flex items-center gap-1" style={{ background: 'linear-gradient(135deg, #4ADE80 0%, #22C55E 100%)', color: '#fff', boxShadow: '0 0 12px rgba(74, 222, 128, 0.4)' }} animate={{ scale: [1, 1.05, 1] }} transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}><Sparkles className="w-3 h-3" />Bonus</motion.span>)}
                     </div>
-                    <h3 className="text-xl font-bold mb-1" style={{ color: isBar ? LIGHT_SECTION.text : colors.text }}>{stepTitle}</h3>
+                    <h3 className="text-xl font-bold mb-1" style={{ color: LP_CARD.text }}>{stepTitle}</h3>
                     <p className="text-xs uppercase tracking-wider mb-4 font-medium" style={{ color: colors.accentDark }}>{t(`landing.howto_step${num}_title_en`)}</p>
-                    <p className="mb-6 leading-relaxed text-sm" style={{ color: isBar ? LIGHT_SECTION.textMuted : colors.textMuted }}>{renderWithLineBreaks(t(`landing.howto_step${num}_desc`))}</p>
-                    <div className="rounded-xl overflow-hidden relative" style={{ border: `1px solid ${colors.borderGold}` }}>
+                    <p className="mb-6 leading-relaxed text-sm" style={{ color: LP_CARD.textMuted }}>{renderWithLineBreaks(t(`landing.howto_step${num}_desc`))}</p>
+                    <div className="rounded-xl overflow-hidden relative" style={{ border: `1px solid ${LP_CARD.borderSubtle}` }}>
                       <img src={images[index]} alt={stepTitle} className="w-full h-auto object-cover" />
                       {isStep4 && (<motion.div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(45deg, transparent 0%, rgba(201, 168, 108, 0.15) 50%, transparent 100%)' }} animate={{ x: ['-100%', '200%'] }} transition={{ duration: 3, repeat: Infinity, repeatDelay: 2, ease: 'easeInOut' }} />)}
                     </div>
                   </div>
-                  <motion.div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ background: colors.goldGradient }} initial={{ scaleX: 0 }} whileHover={{ scaleX: 1 }} transition={{ duration: 0.3 }} />
+                  <motion.div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ background: `linear-gradient(90deg, ${LP_YELLOW}, #E6B020)` }} initial={{ scaleX: 0 }} whileHover={{ scaleX: 1 }} transition={{ duration: 0.3 }} />
                 </Card>
               );
             };
@@ -1431,20 +1436,20 @@ export default function LandingPage() {
                   <button
                     onClick={() => setHowtoSlide((prev) => (prev - 1 + howtoSteps.length) % howtoSteps.length)}
                     className="absolute left-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 z-10"
-                    style={{ background: isBar ? '#FFFFFFE6' : `${colors.background}E6`, border: `1px solid ${isBar ? LIGHT_SECTION.borderSubtle : colors.borderGold}`, backdropFilter: 'blur(10px)' }}
+                    style={{ background: isBar ? '#FFFFFFE6' : `rgba(18, 40, 76, 0.9)`, border: `1px solid ${isBar ? LP_CARD.borderSubtle : 'rgba(255, 197, 47, 0.35)'}`, backdropFilter: 'blur(10px)' }}
                   >
-                    <ChevronLeft className="w-5 h-5" style={{ color: isBar ? LIGHT_SECTION.text : colors.text }} />
+                    <ChevronLeft className="w-5 h-5" style={{ color: LP_CARD.text }} />
                   </button>
                   <button
                     onClick={() => setHowtoSlide((prev) => (prev + 1) % howtoSteps.length)}
                     className="absolute right-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 z-10"
-                    style={{ background: isBar ? '#FFFFFFE6' : `${colors.background}E6`, border: `1px solid ${isBar ? LIGHT_SECTION.borderSubtle : colors.borderGold}`, backdropFilter: 'blur(10px)' }}
+                    style={{ background: isBar ? '#FFFFFFE6' : `rgba(18, 40, 76, 0.9)`, border: `1px solid ${isBar ? LP_CARD.borderSubtle : 'rgba(255, 197, 47, 0.35)'}`, backdropFilter: 'blur(10px)' }}
                   >
-                    <ChevronRight className="w-5 h-5" style={{ color: isBar ? LIGHT_SECTION.text : colors.text }} />
+                    <ChevronRight className="w-5 h-5" style={{ color: LP_CARD.text }} />
                   </button>
                   <div className="flex justify-center gap-2 mt-6">
                     {howtoSteps.map((_, index) => (
-                      <button key={index} onClick={() => setHowtoSlide(index)} className="h-2 rounded-full transition-all duration-300" style={{ width: howtoSlide === index ? '24px' : '8px', background: howtoSlide === index ? colors.accent : (isBar ? `${LIGHT_SECTION.text}20` : `${colors.text}30`), boxShadow: howtoSlide === index ? `0 0 10px ${colors.accent}60` : 'none' }} />
+                      <button key={index} onClick={() => setHowtoSlide(index)} className="h-2 rounded-full transition-all duration-300" style={{ width: howtoSlide === index ? '24px' : '8px', background: howtoSlide === index ? LP_YELLOW : 'rgba(18, 40, 76, 0.25)', boxShadow: howtoSlide === index ? `0 0 10px ${LP_YELLOW}60` : 'none' }} />
                     ))}
                   </div>
                 </div>
@@ -1463,13 +1468,13 @@ export default function LandingPage() {
       </section>
 
       {/* SEO エリアガイドセクション（カフェ版では非表示 - 後日カフェ版を作成予定） */}
-      {!isCafe && <section className="relative py-10 md:py-20 px-4 overflow-hidden" style={{ background: colors.background }}>
+      {!isCafe && <section className="relative py-10 md:py-20 px-4 overflow-hidden" style={{ background: LP_NAVY }}>
         <div className="container mx-auto max-w-4xl lg:max-w-7xl">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
             <GoldDivider />
-            <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4" style={{ color: colors.accent }}>{t('landing.area_guide_label')}</span>
-            <h2 className="text-2xl sm:text-3xl font-bold mb-4" style={{ color: colors.text }}>{renderWithLineBreaks(t('landing.area_guide_title'))}</h2>
-            <p className="text-base max-w-2xl mx-auto" style={{ color: colors.textMuted }}>{renderWithLineBreaks(t('landing.area_guide_subtitle'))}</p>
+            <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4" style={{ color: LP_YELLOW }}>{t('landing.area_guide_label')}</span>
+            <h2 className="text-2xl sm:text-3xl font-bold mb-4" style={{ color: LP_ON_NAVY.text }}>{renderWithLineBreaks(t('landing.area_guide_title'))}</h2>
+            <p className="text-base max-w-2xl mx-auto" style={{ color: LP_ON_NAVY.textMuted }}>{renderWithLineBreaks(t('landing.area_guide_subtitle'))}</p>
           </motion.div>
 
           {(() => {
@@ -1496,14 +1501,14 @@ export default function LandingPage() {
             const renderAreaCard = (index: number) => {
               const guide = areaGuides[index];
               return (
-                <article className="rounded-2xl overflow-hidden" style={{ background: isBar ? LIGHT_SECTION.cardBg : `${colors.surface}60`, border: `1px solid ${isBar ? LIGHT_SECTION.borderSubtle : colors.borderSubtle}`, boxShadow: isBar ? '0 4px 20px rgba(0,0,0,0.06)' : 'none' }}>
+                <article className="rounded-2xl overflow-hidden" style={{ background: LP_CARD.bg, border: `1px solid ${LP_CARD.borderSubtle}`, boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
                   <div className="aspect-[16/9] w-full overflow-hidden">
                     <img src={guide.image} alt={guide.title} className="w-full h-full object-cover" />
                   </div>
                   <div className="p-6">
-                    <h3 className="text-xl font-bold mb-3" style={{ color: isBar ? LIGHT_SECTION.text : colors.text }}>{guide.title}</h3>
-                    <p className="text-sm leading-relaxed mb-3" style={{ color: isBar ? LIGHT_SECTION.textMuted : colors.textMuted }}>{guide.desc1}</p>
-                    <p className="text-sm leading-relaxed" style={{ color: isBar ? LIGHT_SECTION.textMuted : colors.textMuted }}>{guide.desc2}</p>
+                    <h3 className="text-xl font-bold mb-3" style={{ color: LP_CARD.text }}>{guide.title}</h3>
+                    <p className="text-sm leading-relaxed mb-3" style={{ color: LP_CARD.textMuted }}>{guide.desc1}</p>
+                    <p className="text-sm leading-relaxed" style={{ color: LP_CARD.textMuted }}>{guide.desc2}</p>
                   </div>
                 </article>
               );
@@ -1522,20 +1527,20 @@ export default function LandingPage() {
                   <button
                     onClick={() => setAreaGuideSlide((prev) => (prev - 1 + areaGuides.length) % areaGuides.length)}
                     className="absolute left-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 z-10"
-                    style={{ background: `${colors.background}E6`, border: `1px solid ${colors.borderGold}`, backdropFilter: 'blur(10px)' }}
+                    style={{ background: `rgba(18, 40, 76, 0.9)`, border: `1px solid rgba(255, 197, 47, 0.35)`, backdropFilter: 'blur(10px)' }}
                   >
-                    <ChevronLeft className="w-5 h-5" style={{ color: colors.text }} />
+                    <ChevronLeft className="w-5 h-5" style={{ color: LP_ON_NAVY.text }} />
                   </button>
                   <button
                     onClick={() => setAreaGuideSlide((prev) => (prev + 1) % areaGuides.length)}
                     className="absolute right-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 z-10"
-                    style={{ background: `${colors.background}E6`, border: `1px solid ${colors.borderGold}`, backdropFilter: 'blur(10px)' }}
+                    style={{ background: `rgba(18, 40, 76, 0.9)`, border: `1px solid rgba(255, 197, 47, 0.35)`, backdropFilter: 'blur(10px)' }}
                   >
-                    <ChevronRight className="w-5 h-5" style={{ color: colors.text }} />
+                    <ChevronRight className="w-5 h-5" style={{ color: LP_ON_NAVY.text }} />
                   </button>
                   <div className="flex justify-center gap-2 mt-6">
                     {areaGuides.map((_, index) => (
-                      <button key={index} onClick={() => setAreaGuideSlide(index)} className="h-2 rounded-full transition-all duration-300" style={{ width: areaGuideSlide === index ? '24px' : '8px', background: areaGuideSlide === index ? colors.accent : `${colors.text}30`, boxShadow: areaGuideSlide === index ? `0 0 10px ${colors.accent}60` : 'none' }} />
+                      <button key={index} onClick={() => setAreaGuideSlide(index)} className="h-2 rounded-full transition-all duration-300" style={{ width: areaGuideSlide === index ? '24px' : '8px', background: areaGuideSlide === index ? LP_YELLOW : 'rgba(255,255,255,0.28)', boxShadow: areaGuideSlide === index ? `0 0 10px ${LP_YELLOW}60` : 'none' }} />
                     ))}
                   </div>
                 </div>
@@ -1558,18 +1563,18 @@ export default function LandingPage() {
             );
           })()}
         </div>
-        <motion.div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${colors.accent}40, transparent)` }} />
+        <motion.div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${LP_YELLOW}40, transparent)` }} />
       </section>}
 
       {/* Partner Stores Section - 流れるマーキー */}
       {partnerStores.length > 0 && (
-        <section className="relative py-12 md:py-24 overflow-hidden" style={{ background: colors.background }}>
+        <section className="relative py-12 md:py-24 overflow-hidden" style={{ background: LP_NAVY }}>
           <div className="container mx-auto max-w-6xl relative z-10 px-4">
             <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
               <GoldDivider />
-              <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4" style={{ color: colors.accent }}>Partner Stores</span>
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4" style={{ color: colors.text }}>{t('common.partner_stores')}</h2>
-              <p className="text-lg max-w-xl mx-auto" style={{ color: colors.textMuted }}>{t('common.partner_stores_subtitle')}</p>
+              <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4" style={{ color: LP_YELLOW }}>Partner Stores</span>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4" style={{ color: LP_ON_NAVY.text }}>{t('common.partner_stores')}</h2>
+              <p className="text-lg max-w-xl mx-auto" style={{ color: LP_ON_NAVY.textMuted }}>{t('common.partner_stores_subtitle')}</p>
             </motion.div>
           </div>
           <div className="relative w-full overflow-hidden">
@@ -1583,14 +1588,14 @@ export default function LandingPage() {
                 <div
                   key={`${store.id}-${index}`}
                   className="flex-shrink-0 w-[260px] sm:w-[320px] relative group cursor-pointer overflow-hidden rounded-2xl"
-                  style={{ border: `1px solid ${colors.borderGold}` }}
+                  style={{ border: '1px solid rgba(255, 197, 47, 0.35)' }}
                   onClick={() => handleStoreCardClick(store.id)}
                 >
                   <div className="relative aspect-[4/3]">
                     <img src={store.image_urls?.[0] || ''} alt={store.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                    <div className="absolute inset-0" style={{ background: `linear-gradient(to top, ${colors.background} 0%, transparent 60%)` }} />
+                    <div className="absolute inset-0" style={{ background: `linear-gradient(to top, #12284C 0%, transparent 60%)` }} />
                     <div className="absolute bottom-3 left-3 right-3">
-                      <h3 className="text-sm font-bold truncate" style={{ color: colors.text, textShadow: '0 1px 6px rgba(0,0,0,0.8)' }}>{store.name}</h3>
+                      <h3 className="text-sm font-bold truncate" style={{ color: '#FFFFFF', textShadow: '0 1px 6px rgba(0,0,0,0.8)' }}>{store.name}</h3>
                     </div>
                   </div>
                 </div>
@@ -1599,41 +1604,41 @@ export default function LandingPage() {
           </div>
           <div className="container mx-auto max-w-6xl relative z-10 px-4">
             <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mt-10">
-              <Button onClick={() => router.push('/store-list')} className="inline-flex items-center gap-2 px-6 py-3 rounded-full font-medium transition-all hover:scale-105 min-h-[48px]" style={{ background: `${colors.accent}15`, border: `1px solid ${colors.borderGold}`, color: colors.accent }}><Store className="w-5 h-5" />{t('common.view_all_partners')}</Button>
+              <Button onClick={() => router.push('/store-list')} className="inline-flex items-center gap-2 px-6 py-3 rounded-full font-medium transition-all hover:scale-105 min-h-[48px]" style={{ background: `${LP_YELLOW}15`, border: '1px solid rgba(255, 197, 47, 0.4)', color: LP_YELLOW }}><Store className="w-5 h-5" />{t('common.view_all_partners')}</Button>
             </motion.div>
           </div>
         </section>
       )}
 
       {/* Contact Section */}
-      <section className="relative py-12 md:py-24 px-4 overflow-hidden" style={{ background: colors.background }}>
+      <section className="relative py-12 md:py-24 px-4 overflow-hidden" style={{ background: LP_NAVY }}>
         <div className="container mx-auto max-w-3xl text-center">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
             <GoldDivider />
-            <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4" style={{ color: colors.accent }}>Contact</span>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4" style={{ color: colors.text }}>{t('landing.contact_title')}</h2>
-            <p className="text-base mb-8" style={{ color: colors.textMuted }}>{renderWithLineBreaks(t('landing.contact_subtitle'))}</p>
+            <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4" style={{ color: LP_YELLOW }}>Contact</span>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4" style={{ color: LP_ON_NAVY.text }}>{t('landing.contact_title')}</h2>
+            <p className="text-base mb-8" style={{ color: LP_ON_NAVY.textMuted }}>{renderWithLineBreaks(t('landing.contact_subtitle'))}</p>
             <Link href="/contact">
               <motion.div whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.98 }} className="inline-block">
-                <Button size="lg" className="text-base px-8 py-6 rounded-full font-semibold" style={{ background: isCafe ? 'linear-gradient(135deg, #5C3D2E 0%, #7A5C3C 50%, #4A2E1F 100%)' : colors.goldGradient, color: isCafe ? '#F7F3EE' : colors.background, boxShadow: colors.shadowGold }}>
+                <Button size="lg" className="text-base px-8 py-6 rounded-full font-semibold" style={{ background: isCafe ? 'linear-gradient(135deg, #5C3D2E 0%, #7A5C3C 50%, #4A2E1F 100%)' : LP_YELLOW, color: isCafe ? '#F7F3EE' : LP_NAVY, boxShadow: isCafe ? colors.shadowGold : '0 8px 28px rgba(255, 197, 47, 0.35)' }}>
                   <Mail className="w-5 h-5 mr-2" />{t('landing.contact_button')}
                 </Button>
               </motion.div>
             </Link>
           </motion.div>
         </div>
-        <motion.div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${colors.accent}40, transparent)` }} />
+        <motion.div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${LP_YELLOW}40, transparent)` }} />
       </section>
 
       {/* Company Section */}
-      <section className="relative py-12 md:py-24 px-4 overflow-hidden" style={{ background: isBar ? LIGHT_SECTION.bg : colors.surface }}>
+      <section className="relative py-12 md:py-24 px-4 overflow-hidden" style={{ background: LP_CARD.bg }}>
         <div className="container mx-auto max-w-3xl">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
             <GoldDivider />
-            <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4" style={{ color: colors.accent }}>Company</span>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold" style={{ color: isBar ? LIGHT_SECTION.text : colors.text }}>{t('landing.company_title')}</h2>
+            <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4" style={{ color: LP_NAVY }}>Company</span>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold" style={{ color: LP_CARD.text }}>{t('landing.company_title')}</h2>
           </motion.div>
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="rounded-2xl p-6 sm:p-8" style={{ background: isBar ? LIGHT_SECTION.cardBg : `${colors.background}80`, border: `1px solid ${isBar ? LIGHT_SECTION.borderSubtle : colors.borderSubtle}`, boxShadow: isBar ? '0 4px 20px rgba(0,0,0,0.06)' : 'none' }}>
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="rounded-2xl p-6 sm:p-8" style={{ background: '#FFFFFF', border: `1px solid ${LP_CARD.borderSubtle}`, boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
             <div className="space-y-4">
               {[
                 { label: t('landing.company_name_label'), value: t('landing.company_name_value') },
@@ -1641,14 +1646,14 @@ export default function LandingPage() {
                 { label: t('landing.company_ceo_label'), value: t('landing.company_ceo_value') },
                 { label: t('landing.company_business_label'), value: t('landing.company_business_value') },
               ].map((item, index) => (
-                <div key={index} className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-4 py-3" style={{ borderBottom: `1px solid ${isBar ? LIGHT_SECTION.borderSubtle : colors.borderSubtle}` }}>
-                  <span className="text-xs font-bold uppercase tracking-wider flex-shrink-0 sm:w-32" style={{ color: colors.accent }}>{item.label}</span>
-                  <span className="text-sm" style={{ color: isBar ? LIGHT_SECTION.textMuted : colors.textMuted }}>{renderWithLineBreaks(item.value)}</span>
+                <div key={index} className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-4 py-3" style={{ borderBottom: `1px solid ${LP_CARD.borderSubtle}` }}>
+                  <span className="text-xs font-bold uppercase tracking-wider flex-shrink-0 sm:w-32" style={{ color: LP_NAVY }}>{item.label}</span>
+                  <span className="text-sm" style={{ color: LP_CARD.textMuted }}>{renderWithLineBreaks(item.value)}</span>
                 </div>
               ))}
             </div>
             <div className="mt-6 text-center">
-              <a href="https://www.nobody-inc.jp/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm font-medium transition-all hover:scale-105" style={{ color: colors.accent }}>
+              <a href="https://www.nobody-inc.jp/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm font-medium transition-all hover:scale-105" style={{ color: LP_YELLOW }}>
                 {t('landing.company_website')} <ExternalLink className="w-4 h-4" />
               </a>
             </div>
@@ -1657,27 +1662,27 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="py-12 px-4" style={{ background: colors.background, borderTop: `1px solid ${colors.borderGold}` }}>
+      <footer className="py-12 px-4" style={{ background: LP_NAVY, borderTop: '1px solid rgba(255, 197, 47, 0.35)' }}>
         <div className="container mx-auto max-w-6xl">
           <div className="flex justify-center mb-8">
             {isCafe
-              ? <Coffee className="h-12 w-12 opacity-70" style={{ color: colors.accent }} />
+              ? <Coffee className="h-12 w-12 opacity-70" style={{ color: LP_YELLOW }} />
               : <img src="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761355092/%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png" alt="NIKENME+" className="h-12 w-auto object-contain opacity-70" />}
           </div>
           <nav className="grid grid-cols-2 gap-4 sm:gap-6 max-w-md mx-auto mb-8">
             {footerLinks.map((link, index) => {
               const Icon = link.icon;
               return (
-                <Link key={index} href={link.href} className="flex items-center justify-center gap-2 px-4 py-4 rounded-xl transition-all hover:scale-105 active:scale-95 min-h-[56px] group" style={{ background: isBar ? LIGHT_SECTION.cardBg : `${colors.surface}60`, border: `1px solid ${isBar ? LIGHT_SECTION.borderSubtle : colors.borderSubtle}`, boxShadow: isBar ? '0 2px 12px rgba(0,0,0,0.04)' : 'none' }}>
-                  <Icon className="w-5 h-5 transition-colors" style={{ color: colors.accent }} />
-                  <span className="text-base font-medium transition-colors" style={{ color: isBar ? LIGHT_SECTION.text : colors.textMuted }}>{link.label}</span>
+                <Link key={index} href={link.href} className="flex items-center justify-center gap-2 px-4 py-4 rounded-xl transition-all hover:scale-105 active:scale-95 min-h-[56px] group" style={{ background: LP_CARD.bg, border: `1px solid ${LP_CARD.borderSubtle}`, boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+                  <Icon className="w-5 h-5 transition-colors" style={{ color: LP_YELLOW }} />
+                  <span className="text-base font-medium transition-colors" style={{ color: LP_CARD.text }}>{link.label}</span>
                 </Link>
               );
             })}
           </nav>
           <div className="text-center">
-            <p className="text-sm mb-2" style={{ color: colors.textSubtle }}>{t('landing.footer_copyright')}</p>
-            <p className="text-lg font-bold" style={{ color: colors.accent }}>{t('common.slogan')}</p>
+            <p className="text-sm mb-2" style={{ color: LP_ON_NAVY.textSubtle }}>{t('landing.footer_copyright')}</p>
+            <p className="text-lg font-bold" style={{ color: LP_YELLOW }}>{t('common.slogan')}</p>
           </div>
         </div>
       </footer>
@@ -1687,15 +1692,15 @@ export default function LandingPage() {
         {showLocationModal && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: isCafe ? 'rgba(45, 36, 32, 0.95)' : 'rgba(10, 22, 40, 0.95)' }} onClick={() => locationPermission !== 'loading' && setShowLocationModal(false)}>
             <div className="absolute inset-0 backdrop-blur-md" style={{ backgroundColor: isCafe ? 'rgba(45, 36, 32, 0.5)' : 'rgba(10, 22, 40, 0.5)' }} />
-            <motion.div className="absolute w-[500px] h-[500px] rounded-full pointer-events-none" style={{ background: `radial-gradient(circle, ${colors.accent}15 0%, transparent 70%)`, top: '50%', left: '50%', transform: 'translate(-50%, -50%)', filter: 'blur(60px)' }} animate={{ opacity: [0.3, 0.6, 0.3], scale: [1, 1.1, 1] }} transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }} />
+            <motion.div className="absolute w-[500px] h-[500px] rounded-full pointer-events-none" style={{ background: `radial-gradient(circle, ${LP_YELLOW}15 0%, transparent 70%)`, top: '50%', left: '50%', transform: 'translate(-50%, -50%)', filter: 'blur(60px)' }} animate={{ opacity: [0.3, 0.6, 0.3], scale: [1, 1.1, 1] }} transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }} />
 
-              <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} transition={{ duration: 0.3 }} className="relative z-10 w-full max-w-md rounded-3xl overflow-hidden" style={{ background: colors.luxuryGradient, border: `1px solid ${colors.borderGold}`, boxShadow: `${colors.shadowDeep}, 0 0 60px ${colors.accent}15` }} onClick={(e) => e.stopPropagation()}>
+              <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} transition={{ duration: 0.3 }} className="relative z-10 w-full max-w-md rounded-3xl overflow-hidden" style={{ background: LP_NAVY, border: '1px solid rgba(255, 197, 47, 0.35)', boxShadow: `${colors.shadowDeep}, 0 0 60px rgba(255, 197, 47, 0.12)` }} onClick={(e) => e.stopPropagation()}>
                 <div className="absolute inset-0 opacity-5 pointer-events-none" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }} />
-                <div className="h-1" style={{ background: `linear-gradient(90deg, transparent, ${colors.accent}, transparent)` }} />
+                <div className="h-1" style={{ background: `linear-gradient(90deg, transparent, ${LP_YELLOW}, transparent)` }} />
                 <div className="p-8">
                   <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="text-center mb-6">
-                    <h2 className="text-2xl font-bold mb-3" style={{ color: colors.text }}>{t('modal.location_title')}</h2>
-                    <p className="text-base leading-relaxed" style={{ color: colors.textMuted }}>{t('modal.location_desc')}</p>
+                    <h2 className="text-2xl font-bold mb-3" style={{ color: LP_ON_NAVY.text }}>{t('modal.location_title')}</h2>
+                    <p className="text-base leading-relaxed" style={{ color: LP_ON_NAVY.textMuted }}>{t('modal.location_desc')}</p>
                   </motion.div>
                   <GoldDivider />
                   {locationPermission === 'denied' && (
@@ -1708,7 +1713,7 @@ export default function LandingPage() {
                     </motion.div>
                   )}
                   <div className="space-y-3">
-                    <motion.button whileHover={locationPermission !== 'loading' ? { scale: 1.02, y: -2 } : {}} whileTap={locationPermission !== 'loading' ? { scale: 0.98 } : {}} onClick={() => locationPermission !== 'loading' && handleLocationPermission(true)} className="w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all relative overflow-hidden group" style={{ background: isCafe ? 'linear-gradient(135deg, #5C3D2E 0%, #7A5C3C 50%, #4A2E1F 100%)' : colors.goldGradient, color: isCafe ? '#F7F3EE' : colors.background, boxShadow: colors.shadowGold, opacity: locationPermission === 'loading' ? 0.8 : 1 }}>
+                    <motion.button whileHover={locationPermission !== 'loading' ? { scale: 1.02, y: -2 } : {}} whileTap={locationPermission !== 'loading' ? { scale: 0.98 } : {}} onClick={() => locationPermission !== 'loading' && handleLocationPermission(true)} className="w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all relative overflow-hidden group" style={{ background: isCafe ? 'linear-gradient(135deg, #5C3D2E 0%, #7A5C3C 50%, #4A2E1F 100%)' : LP_YELLOW, color: isCafe ? '#F7F3EE' : LP_NAVY, boxShadow: isCafe ? colors.shadowGold : '0 8px 28px rgba(255, 197, 47, 0.35)', opacity: locationPermission === 'loading' ? 0.8 : 1 }}>
                       <motion.div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%)' }} animate={{ x: ['-100%', '200%'] }} transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 1 }} />
                       <span className="relative z-10 flex items-center justify-center gap-2">
                         {locationPermission === 'loading' ? (
@@ -1718,9 +1723,9 @@ export default function LandingPage() {
                         )}
                       </span>
                     </motion.button>
-                    <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => { setLocationPermission('prompt'); setShowLocationModal(false); }} className="w-full py-4 px-6 rounded-xl font-medium text-base transition-all" style={{ background: isBar ? LIGHT_SECTION.cardBg : `${colors.accent}08`, border: `1px solid ${isBar ? LIGHT_SECTION.borderSubtle : colors.borderGold}`, color: isBar ? LIGHT_SECTION.text : colors.textMuted }} disabled={locationPermission === 'loading'}>{t('modal.location_deny')}</motion.button>
+                    <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => { setLocationPermission('prompt'); setShowLocationModal(false); }} className="w-full py-4 px-6 rounded-xl font-medium text-base transition-all" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255, 197, 47, 0.35)', color: LP_ON_NAVY.textMuted }} disabled={locationPermission === 'loading'}>{t('modal.location_deny')}</motion.button>
                   </div>
-                  <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="text-center mt-6 text-xs" style={{ color: colors.textSubtle }}>{t('common.location_info_note')}</motion.p>
+                  <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="text-center mt-6 text-xs" style={{ color: LP_ON_NAVY.textSubtle }}>{t('common.location_info_note')}</motion.p>
                 </div>
               </motion.div>
           </motion.div>
@@ -1747,7 +1752,7 @@ export default function LandingPage() {
             <motion.div
               className="absolute w-[500px] h-[500px] rounded-full pointer-events-none"
               style={{
-                background: `radial-gradient(circle, ${colors.accent}15 0%, transparent 70%)`,
+                background: `radial-gradient(circle, ${LP_YELLOW}15 0%, transparent 70%)`,
                 top: '50%',
                 left: '50%',
                 transform: 'translate(-50%, -50%)',
@@ -1764,9 +1769,9 @@ export default function LandingPage() {
               transition={{ duration: 0.3 }}
               className="relative z-10 w-full max-w-md rounded-3xl overflow-hidden"
               style={{
-                background: colors.luxuryGradient,
-                border: `1px solid ${colors.borderGold}`,
-                boxShadow: `${colors.shadowDeep}, 0 0 60px ${colors.accent}15`,
+                background: LP_NAVY,
+                border: '1px solid rgba(255, 197, 47, 0.35)',
+                boxShadow: `${colors.shadowDeep}, 0 0 60px rgba(255, 197, 47, 0.12)`,
               }}
               onClick={(e) => e.stopPropagation()}
             >
@@ -1783,7 +1788,7 @@ export default function LandingPage() {
                 className="absolute top-3 right-3 z-20"
                 aria-label={t('common.close')}
               />
-              <div className="h-1" style={{ background: `linear-gradient(90deg, transparent, ${colors.accent}, transparent)` }} />
+              <div className="h-1" style={{ background: `linear-gradient(90deg, transparent, ${LP_YELLOW}, transparent)` }} />
               <div className="p-8 pt-10">
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
@@ -1791,18 +1796,18 @@ export default function LandingPage() {
                   transition={{ delay: 0.12 }}
                   className="text-center mb-6"
                 >
-                  <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl" style={{ background: `${colors.accent}18`, border: `1px solid ${colors.borderGold}` }}>
+                  <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl" style={{ background: `${LP_YELLOW}18`, border: `1px solid rgba(255, 197, 47, 0.35)` }}>
                     <motion.div
                       animate={{ scale: [1, 1.06, 1] }}
                       transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
                     >
-                      <Store className="h-7 w-7" style={{ color: colors.accent }} />
+                      <Store className="h-7 w-7" style={{ color: LP_YELLOW }} />
                     </motion.div>
                   </div>
-                  <h2 className="text-2xl font-bold mb-3" style={{ color: colors.text }}>
+                  <h2 className="text-2xl font-bold mb-3" style={{ color: LP_ON_NAVY.text }}>
                     {t('menu.for_stores')}
                   </h2>
-                  <p className="text-base leading-relaxed px-1" style={{ color: colors.textMuted }}>
+                  <p className="text-base leading-relaxed px-1" style={{ color: LP_ON_NAVY.textMuted }}>
                     {t('auth.login_join_us')}
                   </p>
                 </motion.div>
@@ -1814,9 +1819,9 @@ export default function LandingPage() {
                       onClick={() => setShowStoreActionsModal(false)}
                       className="relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-xl py-4 px-6 text-lg font-semibold transition-all group"
                       style={{
-                        background: isCafe ? 'linear-gradient(135deg, #5C3D2E 0%, #7A5C3C 50%, #4A2E1F 100%)' : colors.goldGradient,
-                        color: isCafe ? '#F7F3EE' : colors.background,
-                        boxShadow: colors.shadowGold,
+                        background: isCafe ? 'linear-gradient(135deg, #5C3D2E 0%, #7A5C3C 50%, #4A2E1F 100%)' : LP_YELLOW,
+                        color: isCafe ? '#F7F3EE' : LP_NAVY,
+                        boxShadow: isCafe ? colors.shadowGold : '0 8px 28px rgba(255, 197, 47, 0.35)',
                       }}
                     >
                       <motion.div
@@ -1837,12 +1842,12 @@ export default function LandingPage() {
                       onClick={() => setShowStoreActionsModal(false)}
                       className="flex w-full items-center justify-center gap-2 rounded-xl py-4 px-6 text-base font-medium transition-all"
                       style={{
-                        background: `${colors.accent}08`,
-                        border: `1px solid ${colors.borderGold}`,
-                        color: colors.textMuted,
+                        background: 'rgba(255,255,255,0.08)',
+                        border: '1px solid rgba(255, 197, 47, 0.35)',
+                        color: LP_ON_NAVY.textMuted,
                       }}
                     >
-                      <LogIn className="h-5 w-5 shrink-0" style={{ color: colors.accent }} />
+                      <LogIn className="h-5 w-5 shrink-0" style={{ color: LP_YELLOW }} />
                       {t('header.store_login')}
                     </Link>
                   </motion.div>
