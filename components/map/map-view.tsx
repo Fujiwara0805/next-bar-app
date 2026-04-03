@@ -619,7 +619,7 @@ function DirectionPermissionDialog({
       <div
         className="rounded-xl p-4"
         style={{
-          background: colorsA.surface,
+          background: colorsA.background,
           backdropFilter: 'blur(12px)',
           border: `1px solid ${colorsA.borderGold}`,
           boxShadow: colorsA.shadowGold,
@@ -682,47 +682,47 @@ function DirectionPermissionDialog({
 // ============================================================================
 
 const luxuryMapStyles: google.maps.MapTypeStyle[] = [
-  // ベース背景: Navy系（さらに2回り明るく）
-  { elementType: 'geometry', stylers: [{ color: '#3A5D80' }] },
+  // ベース背景: オフホワイト（ブルワーズ風ライトベース）
+  { elementType: 'geometry', stylers: [{ color: '#FDFBF7' }] },
   { elementType: 'labels.icon', stylers: [{ visibility: 'off' }] },
 
-  // ラベル文字を白系に（視認性向上）
-  { elementType: 'labels.text.fill', stylers: [{ color: '#FDFBF7' }] },
-  { elementType: 'labels.text.stroke', stylers: [{ color: '#1E3A58' }, { weight: 2.5 }] },
+  // ラベル文字をダークネイビー系に
+  { elementType: 'labels.text.fill', stylers: [{ color: '#13294b' }] },
+  { elementType: 'labels.text.stroke', stylers: [{ color: '#FDFBF7' }, { weight: 2.5 }] },
 
-  // 行政区域
-  { featureType: 'administrative', elementType: 'geometry', stylers: [{ color: '#D4B87E' }] },
+  // 行政区域: ダークネイビー
+  { featureType: 'administrative', elementType: 'geometry', stylers: [{ color: '#13294b' }, { weight: 0.8 }] },
   {
     featureType: 'administrative.country',
     elementType: 'labels.text.fill',
-    stylers: [{ color: '#FDFBF7' }],
+    stylers: [{ color: '#13294b' }],
   },
   {
     featureType: 'administrative.locality',
     elementType: 'labels.text.fill',
-    stylers: [{ color: '#FDFBF7' }],
+    stylers: [{ color: '#13294b' }],
   },
   {
     featureType: 'administrative.neighborhood',
     elementType: 'labels.text.fill',
-    stylers: [{ color: '#E8D5B7' }],
+    stylers: [{ color: '#1F57A4' }],
   },
 
-  // POI（店舗名などを表示）
+  // POI: ブルワーズブルー
   {
     featureType: 'poi',
     elementType: 'labels.text.fill',
-    stylers: [{ color: '#FDFBF7' }],
+    stylers: [{ color: '#1F57A4' }],
   },
   {
     featureType: 'poi',
     elementType: 'labels.text.stroke',
-    stylers: [{ color: '#1E3A58' }, { weight: 2 }],
+    stylers: [{ color: '#FDFBF7' }, { weight: 2 }],
   },
   {
     featureType: 'poi.business',
     elementType: 'labels',
-    stylers: [{ visibility: 'off' }],
+    stylers: [{ visibility: 'on' }],
   },
   {
     featureType: 'poi.attraction',
@@ -732,81 +732,81 @@ const luxuryMapStyles: google.maps.MapTypeStyle[] = [
   {
     featureType: 'poi.park',
     elementType: 'geometry',
-    stylers: [{ color: '#3E6666' }, { visibility: 'simplified' }],
+    stylers: [{ color: '#D4E8D0' }, { visibility: 'simplified' }],
   },
-  { featureType: 'poi.park', elementType: 'labels', stylers: [{ visibility: 'off' }] },
+  { featureType: 'poi.park', elementType: 'labels', stylers: [{ visibility: 'on' }] },
 
-  // 道路: ネイビー系グラデーション（さらに明るく）
-  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#4E7A9E' }] },
-  { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#345678' }] },
+  // 道路: 白ベース
+  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#FFFFFF' }] },
+  { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#E8E4DF' }] },
   {
     featureType: 'road',
     elementType: 'labels.text.fill',
-    stylers: [{ color: '#FDFBF7' }]
+    stylers: [{ color: '#636E72' }]
   },
   {
     featureType: 'road',
     elementType: 'labels.text.stroke',
-    stylers: [{ color: '#1E3A58' }, { weight: 3 }]
+    stylers: [{ color: '#FDFBF7' }, { weight: 3 }]
   },
 
-  // 高速道路: ゴールドアクセント
+  // 高速道路: イエローアクセント
   {
     featureType: 'road.highway',
     elementType: 'geometry',
-    stylers: [{ color: '#6282A2' }]
+    stylers: [{ color: '#FFF4D6' }]
   },
   {
     featureType: 'road.highway',
     elementType: 'geometry.stroke',
-    stylers: [{ color: '#D4B87E' }, { weight: 0.8 }]
+    stylers: [{ color: '#ffc72d' }, { weight: 0.8 }]
   },
   {
     featureType: 'road.highway',
     elementType: 'labels.text.fill',
-    stylers: [{ color: '#FDFBF7' }]
+    stylers: [{ color: '#13294b' }]
   },
 
   // 幹線道路
   {
     featureType: 'road.arterial',
     elementType: 'geometry',
-    stylers: [{ color: '#4E7A9E' }]
+    stylers: [{ color: '#FFFFFF' }]
   },
   {
     featureType: 'road.arterial',
     elementType: 'labels.text.fill',
-    stylers: [{ color: '#FDFBF7' }]
+    stylers: [{ color: '#636E72' }]
   },
 
   // 地方道路
   {
     featureType: 'road.local',
     elementType: 'geometry',
-    stylers: [{ color: '#436D95' }]
+    stylers: [{ color: '#F5F2ED' }]
   },
   {
     featureType: 'road.local',
     elementType: 'labels.text.fill',
-    stylers: [{ color: '#E8D5B7' }]
+    stylers: [{ color: '#9BA4A9' }]
   },
 
-  // 交通機関
-  { featureType: 'transit', elementType: 'geometry', stylers: [{ color: '#436D95' }] },
+  // 交通機関: ネイビーアクセント
+  { featureType: 'transit', elementType: 'geometry', stylers: [{ color: '#E8E4DF' }] },
   { featureType: 'transit', elementType: 'labels', stylers: [{ visibility: 'off' }] },
   {
     featureType: 'transit.station',
     elementType: 'labels.text.fill',
-    stylers: [{ color: '#FDFBF7' }]
+    stylers: [{ color: '#1F57A4' }]
   },
 
-  // 水域: ネイビーブルー（さらに明るく）
-  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#1E3A58' }] },
-  { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#8AACCE' }] },
+  // 水域: ライトブルー
+  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#86BFE8' }] },
+  { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#13294b' }] },
 
-  // 景観
-  { featureType: 'landscape.man_made', elementType: 'geometry', stylers: [{ color: '#3A5D80' }] },
-  { featureType: 'landscape.natural', elementType: 'geometry', stylers: [{ color: '#3A5D80' }] },
+  // 景観: オフホワイト
+  { featureType: 'landscape.man_made', elementType: 'geometry', stylers: [{ color: '#FDFBF7' }] },
+  { featureType: 'landscape.natural', elementType: 'geometry', stylers: [{ color: '#F5F2ED' }] },
 ];
 
 // ============================================================================
@@ -1445,7 +1445,7 @@ export function MapView({
           style={{
             background: compassEnabled
               ? colors.goldGradient
-              : colors.surface,
+              : colors.background,
             border: compassEnabled
               ? `1px solid ${colors.accent}`
               : `1px solid ${colors.borderGold}`,
@@ -1483,7 +1483,7 @@ export function MapView({
           onClick={handleZoomIn}
           className="w-11 h-11 rounded-full flex items-center justify-center text-lg font-medium"
           style={{
-            background: colors.surface,
+            background: colors.background,
             border: `1px solid ${colors.borderGold}`,
             color: colors.text,
             boxShadow: `0 2px 10px rgba(0,0,0,0.3)`,
@@ -1499,7 +1499,7 @@ export function MapView({
           onClick={handleZoomOut}
           className="w-11 h-11 rounded-full flex items-center justify-center text-lg font-medium"
           style={{
-            background: colors.surface,
+            background: colors.background,
             border: `1px solid ${colors.borderGold}`,
             color: colors.text,
             boxShadow: `0 2px 10px rgba(0,0,0,0.3)`,

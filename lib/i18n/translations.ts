@@ -862,6 +862,10 @@ export const translations = {
       cafe_hero_subcopy: 'ログイン不要 ー 地図上で空席状況を確認 ー',
       izakaya_hero_subcopy: 'ログイン不要 ー 地図から居酒屋の空席を確認 ー',
       hero_body: 'NIKENME+は、大分の夜を\n案内するはしご酒 Map 🍺です。',
+      // Hero PC section
+      hero_pc_badge: 'NIKENME+',
+      hero_pc_title: 'リアルタイムで\n空席がわかる。',
+      hero_pc_description: '大分の夜のお店の空席状況をリアルタイムで確認。\nログイン不要・無料で、地図からすぐにお店を探せます。',
       // Problems section
       problems_title: 'こんなお悩み、ありませんか？',
       problems_subtitle: 'Common Concerns',
@@ -1874,6 +1878,10 @@ export const translations = {
       cafe_hero_subcopy: 'No login required — Check seat availability on the map —',
       izakaya_hero_subcopy: 'No login required — Find izakaya seats on the map —',
       hero_body: 'NIKENME+ is a night spot map 🍺for Oita. Find available venues instantly and reserve your seat with auto-voice call.',
+      // Hero PC section
+      hero_pc_badge: 'NIKENME+',
+      hero_pc_title: 'Real-time\nseat availability.',
+      hero_pc_description: 'Check real-time seat availability at night spots in Oita.\nNo login required — find your next spot on the map, for free.',
       // Problems section
       problems_title: 'Sound Familiar?',
       problems_subtitle: 'Common Concerns',
@@ -2878,6 +2886,10 @@ export const translations = {
       cafe_hero_subcopy: '로그인 불필요 ー 지도에서 빈자리 확인 ー',
       izakaya_hero_subcopy: '로그인 불필요 ー 지도에서 이자카야 빈자리 확인 ー',
       hero_body: 'NIKENME+는 오이타의 밤을\n안내하는 Night Spot Map 🍺입니다.',
+      // Hero PC section
+      hero_pc_badge: 'NIKENME+',
+      hero_pc_title: '실시간으로\n빈자리를 확인.',
+      hero_pc_description: '오이타 밤거리의 빈자리 상황을 실시간으로 확인.\n로그인 불필요・무료로 지도에서 바로 가게를 찾을 수 있습니다.',
       // Problems section
       problems_title: '이런 고민, 있으신가요?',
       problems_subtitle: 'Common Concerns',
@@ -3880,6 +3892,10 @@ export const translations = {
       cafe_hero_subcopy: '无需登录 ー 在地图上查看空位 ー',
       izakaya_hero_subcopy: '无需登录 ー 在地图上查看居酒屋空位 ー',
       hero_body: 'NIKENME+是一款介绍大分夜生活的Night Spot Map 🍺。',
+      // Hero PC section
+      hero_pc_badge: 'NIKENME+',
+      hero_pc_title: '实时查看\n空座情况。',
+      hero_pc_description: '实时查看大分夜店的空座情况。\n无需登录・免费，在地图上即可找到心仪的店铺。',
       // Problems section
       problems_title: '有这些烦恼吗？',
       problems_subtitle: 'Common Concerns',

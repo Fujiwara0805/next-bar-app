@@ -918,8 +918,8 @@ export default function PartnerApplyPage() {
   const { colorsB: COLORS } = useAppMode();
   const partnerApplyPageGradient = useMemo(
     () =>
-      `linear-gradient(165deg, ${COLORS.deepNavy} 0%, ${COLORS.midnightBlue} 50%, ${COLORS.royalNavy} 100%)`,
-    [COLORS.deepNavy, COLORS.midnightBlue, COLORS.royalNavy]
+      `linear-gradient(165deg, ${COLORS.deepNavy} 0%, ${COLORS.deepNavy} 50%, ${COLORS.midnightBlue} 100%)`,
+    [COLORS.deepNavy, COLORS.midnightBlue]
   );
 
   useEffect(() => {

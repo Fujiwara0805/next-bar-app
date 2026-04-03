@@ -941,7 +941,7 @@ function MapPageContent() {
             <div
               className="flex items-center gap-2.5 px-4 py-2.5 rounded-full shadow-lg"
               style={{
-                background: `${colors.surface}F5`,
+                background: `${colors.background}F5`,
                 backdropFilter: 'blur(16px)',
                 border: `1px solid ${colors.borderGold}`,
                 boxShadow: `0 4px 20px rgba(0,0,0,0.3), 0 0 10px ${colors.accent}20`,
@@ -999,7 +999,7 @@ function MapPageContent() {
                   onClick={() => router.push('/landing')}
                   className="flex flex-col items-center justify-center gap-1 px-3 py-2 mt-12 touch-manipulation active:scale-95 rounded-xl"
                   style={{
-                    background: colors.surface,
+                    background: colors.background,
                     backdropFilter: 'blur(20px)',
                     border: `1px solid ${colors.borderGold}`,
                     boxShadow: `0 4px 20px rgba(0,0,0,0.4), 0 0 15px ${colors.accent}15`,
@@ -1025,7 +1025,7 @@ function MapPageContent() {
                   onClick={() => router.push('/store-list')}
                   className="flex flex-col items-center justify-center gap-1 px-3 py-2 touch-manipulation active:scale-95 rounded-xl"
                   style={{
-                    background: colors.surface,
+                    background: colors.background,
                     backdropFilter: 'blur(20px)',
                     border: `1px solid ${colors.borderGold}`,
                     boxShadow: `0 4px 20px rgba(0,0,0,0.4), 0 0 15px ${colors.accent}15`,
@@ -1052,7 +1052,7 @@ function MapPageContent() {
                   disabled={refreshing}
                   className="flex flex-col items-center justify-center gap-1 px-3 py-2 touch-manipulation active:scale-95 rounded-xl"
                   style={{
-                    background: colors.surface,
+                    background: colors.background,
                     backdropFilter: 'blur(20px)',
                     border: `1px solid ${colors.borderGold}`,
                     boxShadow: `0 4px 20px rgba(0,0,0,0.4), 0 0 15px ${colors.accent}15`,
@@ -1107,7 +1107,7 @@ function MapPageContent() {
       <div
         className="fixed bottom-24 left-4 z-20 rounded-xl shadow-lg p-3 safe-bottom pointer-events-auto"
         style={{
-          background: `${colors.surface}F0`,
+          background: `${colors.background}F0`,
           backdropFilter: 'blur(12px)',
           border: `1px solid ${colors.borderGold}`,
         }}

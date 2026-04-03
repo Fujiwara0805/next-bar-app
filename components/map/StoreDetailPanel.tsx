@@ -203,7 +203,7 @@ export function StoreDetailPanel({
         className="flex flex-col overflow-hidden rounded-t-3xl"
         animate={{
           height: isExpanded ? expandedHeight : 'auto',
-          backgroundColor: isExpanded ? '#FFFFFF' : darkTheme.surface,
+          backgroundColor: isExpanded ? '#FFFFFF' : darkTheme.background,
         }}
         transition={{ type: 'spring', stiffness: 260, damping: 28 }}
         style={{
@@ -470,7 +470,7 @@ export function StoreDetailPanel({
                       <a
                         href={`tel:${store.phone}`}
                         className="text-base font-bold hover:underline block"
-                        style={{ color: '#1F4068' }}
+                        style={{ color: '#13294b' }}
                       >
                         {store.phone}
                       </a>
@@ -579,7 +579,7 @@ export function StoreDetailPanel({
       <motion.div
         className="flex gap-2 px-4 py-3 flex-shrink-0"
         animate={{
-          backgroundColor: isExpanded ? '#FFFFFF' : darkTheme.surface,
+          backgroundColor: isExpanded ? '#FFFFFF' : darkTheme.background,
         }}
         transition={{ type: 'spring', stiffness: 260, damping: 28 }}
         style={{

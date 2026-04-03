@@ -676,7 +676,7 @@ function StoreListContent() {
               style={{
                 background: isConciergeActive
                   ? `linear-gradient(135deg, ${COLORS.champagneGold} 0%, ${COLORS.antiqueGold} 100%)`
-                  : `linear-gradient(135deg, ${COLORS.deepNavy} 0%, ${COLORS.midnightBlue} 100%)`,
+                  : `linear-gradient(135deg, ${COLORS.deepNavy} 0%, ${COLORS.deepNavy} 100%)`,
                 color: isConciergeActive ? COLORS.deepNavy : COLORS.champagneGold,
                 border: `1px solid ${COLORS.champagneGold}66`,
                 boxShadow: `0 4px 15px ${COLORS.champagneGold}40`,

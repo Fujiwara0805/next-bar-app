@@ -116,25 +116,25 @@ export function setStoredMode(mode: AppMode): void {
 // ============================================================================
 
 export const BAR_COLORS_A: ColorsShapeA = {
-  background: '#1A2E4A',
-  surface: '#2A3E5F',
-  surfaceLight: '#3A5278',
-  cardBackground: '#FDFBF7',
-  primary: '#3A5278',
+  background: '#13294b',              // Brewers Dark Navy
+  surface: '#1F57A4',                 // Brewers Blue
+  surfaceLight: '#86BFE8',            // Brewers Light Blue
+  cardBackground: '#FDFBF7',          // Off-white
+  primary: '#1F57A4',                 // Brewers Blue
   charcoal: '#2D3436',
   warmGray: '#636E72',
-  accent: '#C9A86C',
-  accentLight: '#E8D5B7',
-  accentDark: '#B8956E',
-  text: '#FDFBF7',
+  accent: '#ffc72d',                  // Brewers Yellow
+  accentLight: '#FFD966',             // Light Yellow
+  accentDark: '#C9A86C',              // Dark Gold
+  text: '#FDFBF7',                    // Off-white
   textMuted: 'rgba(253, 251, 247, 0.7)',
   textSubtle: 'rgba(253, 251, 247, 0.5)',
-  luxuryGradient: 'linear-gradient(165deg, #1A2E4A 0%, #2A3E5F 50%, #3A5278 100%)',
-  goldGradient: 'linear-gradient(135deg, #C9A86C 0%, #E8D5B7 50%, #B8956E 100%)',
+  luxuryGradient: 'linear-gradient(165deg, #12284B 0%, #1A3562 50%, #1F57A4 100%)',
+  goldGradient: 'linear-gradient(135deg, #FFC52F 0%, #FFD966 50%, #C9A86C 100%)',
   cardGradient: 'linear-gradient(145deg, #FDFBF7 0%, #F5F1EB 100%)',
-  borderGold: 'rgba(201, 168, 108, 0.3)',
-  borderSubtle: 'rgba(201, 168, 108, 0.15)',
-  shadowGold: '0 8px 30px rgba(201, 168, 108, 0.4)',
+  borderGold: 'rgba(255, 197, 47, 0.3)',
+  borderSubtle: 'rgba(255, 197, 47, 0.15)',
+  shadowGold: '0 8px 30px rgba(255, 197, 47, 0.3)',
   shadowDeep: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
   error: '#EF4444',
   errorBg: 'rgba(239, 68, 68, 0.15)',
@@ -142,45 +142,45 @@ export const BAR_COLORS_A: ColorsShapeA = {
 };
 
 export const BAR_COLORS_B: ColorsShapeB = {
-  deepNavy: '#1A2E4A',
-  midnightBlue: '#2A3E5F',
-  royalNavy: '#3A5278',
-  champagneGold: '#C9A86C',
-  paleGold: '#E8D5B7',
-  antiqueGold: '#B8956E',
+  deepNavy: '#12284B',              // Brewers Dark Navy
+  midnightBlue: '#1F57A4',          // Brewers Blue
+  royalNavy: '#86BFE8',             // Brewers Light Blue
+  champagneGold: '#FFC52F',         // Brewers Yellow
+  paleGold: '#FFD966',              // Light Yellow
+  antiqueGold: '#C9A86C',           // Dark Gold
   charcoal: '#2D3436',
   warmGray: '#636E72',
   platinum: '#DFE6E9',
   ivory: '#FDFBF7',
-  luxuryGradient: 'linear-gradient(165deg, #1A2E4A 0%, #2A3E5F 50%, #3A5278 100%)',
-  goldGradient: 'linear-gradient(135deg, #C9A86C 0%, #E8D5B7 50%, #B8956E 100%)',
+  luxuryGradient: 'linear-gradient(165deg, #12284B 0%, #1A3562 50%, #1F57A4 100%)',
+  goldGradient: 'linear-gradient(135deg, #FFC52F 0%, #FFD966 50%, #C9A86C 100%)',
   cardGradient: 'linear-gradient(145deg, #FDFBF7 0%, #F5F1EB 100%)',
 };
 
 export const BAR_PANEL_DARK: PanelDarkTheme = {
-  background: '#1A2E4A',
-  surface: '#2A3E5F',
-  accent: '#C9A86C',
-  accentLight: '#E8D5B7',
+  background: '#12284B',
+  surface: '#1F57A4',
+  accent: '#FFC52F',
+  accentLight: '#FFD966',
   text: '#FDFBF7',
   textMuted: 'rgba(253, 251, 247, 0.7)',
   textSubtle: 'rgba(253, 251, 247, 0.5)',
-  borderGold: 'rgba(201, 168, 108, 0.3)',
-  borderSubtle: 'rgba(201, 168, 108, 0.15)',
-  shadowGold: '0 8px 30px rgba(201, 168, 108, 0.4)',
-  goldGradient: 'linear-gradient(135deg, #C9A86C 0%, #E8D5B7 50%, #B8956E 100%)',
+  borderGold: 'rgba(255, 197, 47, 0.3)',
+  borderSubtle: 'rgba(255, 197, 47, 0.15)',
+  shadowGold: '0 8px 30px rgba(255, 197, 47, 0.3)',
+  goldGradient: 'linear-gradient(135deg, #FFC52F 0%, #FFD966 50%, #C9A86C 100%)',
 };
 
 export const BAR_PANEL_LIGHT: PanelLightTheme = {
   background: '#FFFFFF',
   surface: '#FDFBF7',
-  accent: '#C9A86C',
-  text: '#1A2E4A',
+  accent: '#FFC52F',
+  text: '#12284B',
   textMuted: '#636E72',
   textSubtle: '#9BA4A9',
-  borderGold: 'rgba(201, 168, 108, 0.25)',
-  borderSubtle: 'rgba(201, 168, 108, 0.12)',
-  badgeBg: 'rgba(10, 22, 40, 0.04)',
+  borderGold: 'rgba(255, 197, 47, 0.25)',
+  borderSubtle: 'rgba(255, 197, 47, 0.12)',
+  badgeBg: 'rgba(18, 40, 75, 0.04)',
 };
 
 // ============================================================================

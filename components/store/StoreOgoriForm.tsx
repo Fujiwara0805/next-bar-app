@@ -145,7 +145,7 @@ export function StoreOgoriForm({
       <div
         className="w-full p-4 flex items-center justify-between transition-colors"
         style={{
-          background: `linear-gradient(135deg, ${COLORS.midnightBlue} 0%, ${COLORS.royalNavy} 100%)`,
+          background: `linear-gradient(135deg, ${COLORS.deepNavy} 0%, ${COLORS.midnightBlue} 100%)`,
         }}
       >
         <div className="flex items-center gap-3">
