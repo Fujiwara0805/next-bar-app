@@ -1814,7 +1814,7 @@ export default function LandingPage() {
                         )}
                       </span>
                     </motion.button>
-                    <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => { setLocationPermission('prompt'); setShowLocationModal(false); }} className="w-full py-4 px-6 rounded-xl font-medium text-base transition-all" style={{ background: isCafe ? 'rgba(19,41,75,0.06)' : 'rgba(255,255,255,0.08)', border: '1px solid rgba(255, 198, 45, 0.35)', color: lpPage.textMuted }} disabled={locationPermission === 'loading'}>{t('modal.location_deny')}</motion.button>
+                    <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => { setLocationPermission('prompt'); setShowLocationModal(false); }} className="w-full py-4 px-6 rounded-xl font-medium text-base transition-all" style={{ background: LP_CARD.bg, border: `1px solid ${LP_CARD.borderSubtle}`, color: LP_CARD.textMuted, boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }} disabled={locationPermission === 'loading'}>{t('modal.location_deny')}</motion.button>
                   </div>
                   <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="text-center mt-6 text-xs" style={{ color: lpPage.textSubtle }}>{t('common.location_info_note')}</motion.p>
                 </div>
