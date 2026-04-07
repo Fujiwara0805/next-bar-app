@@ -67,7 +67,11 @@ import {
 // 構造化営業時間モーダル
 import { BusinessHoursModal } from '@/components/store/BusinessHoursModal';
 import type { BusinessHours } from '@/lib/supabase/types';
-import { getFacilityCategoriesByStoreCategory, getOtherFacilitiesByStoreCategory } from '@/lib/types/store-application';
+import {
+  getFacilityCategoriesByStoreCategory,
+  getOtherFacilitiesByStoreCategory,
+  normalizePaymentMethods,
+} from '@/lib/types/store-application';
 import { useAppMode } from '@/lib/app-mode-context';
 
 type Store = Database['public']['Tables']['stores']['Row'];
@@ -305,7 +309,7 @@ export default function StoreEditPage() {
         setStructuredBusinessHours(storeData.structured_business_hours as BusinessHours | null);
         setBudgetMin(storeData.budget_min || 0);
         setBudgetMax(storeData.budget_max || 0);
-        setPaymentMethods(storeData.payment_methods || []);
+        setPaymentMethods(normalizePaymentMethods(storeData.payment_methods));
         setFacilities(storeData.facilities || []);
         setImageUrls(storeData.image_urls || []);
         setLatitude(String(storeData.latitude || ''));
@@ -382,7 +386,7 @@ export default function StoreEditPage() {
           setStructuredBusinessHours(storeData.structured_business_hours as BusinessHours | null);
           setBudgetMin(storeData.budget_min || 0);
           setBudgetMax(storeData.budget_max || 0);
-          setPaymentMethods(storeData.payment_methods || []);
+          setPaymentMethods(normalizePaymentMethods(storeData.payment_methods));
           setFacilities(storeData.facilities || []);
           setImageUrls(storeData.image_urls || []);
           setLatitude(String(storeData.latitude || ''));

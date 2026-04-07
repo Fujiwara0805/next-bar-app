@@ -209,6 +209,31 @@ export default function StoreDetailPage() {
     const paymentMethodsMap = (translations as any)[language]?.payment_methods_map;
     return paymentMethodsMap?.[method] || method;
   };
+
+  /** 設備カテゴリ見出し（店舗カテゴリで bar / both の女性向け表記が異なる） */
+  const facilityCategoryTitle = (key: string, storeCategory: 'bar' | 'cafe' | 'both'): string => {
+    switch (key) {
+      case 'newcomer':
+        return t('store_detail.facility_heading_newcomer');
+      case 'atmosphere':
+        return t('store_detail.facility_heading_atmosphere');
+      case 'workspace':
+        return t('store_detail.facility_heading_workspace');
+      case 'women_family':
+        return t('store_detail.facility_heading_women_family');
+      case 'women':
+        return storeCategory === 'both'
+          ? t('store_detail.facility_heading_women_both')
+          : t('store_detail.facility_heading_women_bar');
+      case 'pricing':
+        return storeCategory === 'cafe'
+          ? t('store_detail.facility_heading_pricing_cafe')
+          : t('store_detail.facility_heading_pricing');
+      default:
+        return key;
+    }
+  };
+
   const [store, setStore] = useState<Store | null>(null);
   const [loading, setLoading] = useState(true);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
@@ -1284,7 +1309,7 @@ export default function StoreDetailPage() {
                     
                     {/* カテゴリ別の設備表示（店舗カテゴリに応じて動的） */}
                     {(() => {
-                      const sc = (store as any).store_category || 'bar';
+                      const sc = ((store as any).store_category || 'bar') as 'bar' | 'cafe' | 'both';
                       const cats = getFacilityCategoriesByStoreCategory(sc);
                       const categoryColors: Record<string, { bg: string; border: string; text: string; badgeBg: string; badgeBorder: string }> = {
                         newcomer: { bg: 'rgba(19, 41, 75, 0.06)', border: 'rgba(19, 41, 75, 0.14)', text: STORE_LINK_NAVY, badgeBg: 'rgba(19, 41, 75, 0.1)', badgeBorder: 'rgba(19, 41, 75, 0.2)' },
@@ -1309,7 +1334,7 @@ export default function StoreDetailPage() {
                             return (
                               <div key={key} className="mb-3 p-3 rounded-xl" style={{ backgroundColor: colors.bg, border: `1px solid ${colors.border}` }}>
                                 <p className="text-xs font-bold mb-2 flex items-center gap-1" style={{ color: colors.text }}>
-                                  {cat.title}
+                                  {facilityCategoryTitle(key, sc)}
                                 </p>
                                 <div className="flex flex-wrap gap-1">
                                   {matched.map((facility) => (

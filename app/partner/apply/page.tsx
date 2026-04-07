@@ -637,8 +637,10 @@ function Step4ImagesAccount({
             店舗用メールアドレス
             <RequiredBadge />
           </Label>
-          <p className="text-xs mb-2" style={{ color: COLORS.warmGray }}>
-            このメールアドレスが店舗管理用のログインアカウントになります
+          <p className="text-xs mb-2 leading-relaxed" style={{ color: COLORS.warmGray }}>
+            このメールアドレスが店舗管理用のログインアカウントになります。
+            登録申請以降のご連絡は、ご登録のメールアドレス宛に行います。
+            受信可能なアドレスの設定をお願いいたします。
           </p>
           <Input
             type="email"

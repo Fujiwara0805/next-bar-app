@@ -108,10 +108,21 @@ export const PAYMENT_METHOD_OPTIONS = [
   '現金',
   'クレジットカード',
   '電子マネー',
-  'QRコード決済（PayPay、LINE Payなど）',
+  'QRコード決済',
   'デビットカード',
-  '交通系IC（Suica、PASMOなど）',
+  '交通系IC',
 ] as const;
+
+/** 旧選択肢ラベル → 現行ラベル（DB・申請データの後方互換） */
+const LEGACY_PAYMENT_METHOD_LABELS: Record<string, string> = {
+  'QRコード決済（PayPay、LINE Payなど）': 'QRコード決済',
+  '交通系IC（Suica、PASMOなど）': '交通系IC',
+};
+
+export function normalizePaymentMethods(methods: string[] | null | undefined): string[] {
+  if (!methods?.length) return [];
+  return methods.map((m) => LEGACY_PAYMENT_METHOD_LABELS[m] ?? m);
+}
 
 // 設備カテゴリ（夜モード用 - 新規登録画面・編集画面と統一）
 export const FACILITY_CATEGORIES = {

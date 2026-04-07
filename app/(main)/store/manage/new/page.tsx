@@ -66,7 +66,11 @@ import {
 // 構造化営業時間モーダル
 import { BusinessHoursModal } from '@/components/store/BusinessHoursModal';
 import type { BusinessHours } from '@/lib/supabase/types';
-import { getFacilityCategoriesByStoreCategory, getOtherFacilitiesByStoreCategory } from '@/lib/types/store-application';
+import {
+  getFacilityCategoriesByStoreCategory,
+  getOtherFacilitiesByStoreCategory,
+  normalizePaymentMethods,
+} from '@/lib/types/store-application';
 import { useAppMode } from '@/lib/app-mode-context';
 
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
@@ -316,7 +320,7 @@ function NewStorePage() {
           setRegularHoliday(data.regular_holiday || '');
           setBudgetMin(data.budget_min || 0);
           setBudgetMax(data.budget_max || 0);
-          setPaymentMethods(data.payment_methods || []);
+          setPaymentMethods(normalizePaymentMethods(data.payment_methods));
           setFacilities(data.facilities || []);
           setImageUrls(data.image_urls || []);
           setApplicationLoaded(true);
