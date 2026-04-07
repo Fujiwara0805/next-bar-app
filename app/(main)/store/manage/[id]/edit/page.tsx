@@ -210,6 +210,15 @@ export default function StoreEditPage() {
   const [mainImageIndex, setMainImageIndex] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Google Places Autocomplete関連
+  const [googlePlaceId, setGooglePlaceId] = useState<string | null>(null);
+  const [googleRating, setGoogleRating] = useState<number | null>(null);
+  const [googleReviewsCount, setGoogleReviewsCount] = useState<number | null>(null);
+  const [suggestions, setSuggestions] = useState<google.maps.places.AutocompletePrediction[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [searchingName, setSearchingName] = useState(false);
+  const userEditedNameRef = useRef(false);
+
   // クーポン関連のステート
   const [couponValues, setCouponValues] = useState<CouponFormValues>(getDefaultCouponFormValues());
   const [couponErrors, setCouponErrors] = useState<Record<string, string>>({});
@@ -239,6 +248,9 @@ export default function StoreEditPage() {
   };
 
   const geocoderRef = useRef<google.maps.Geocoder | null>(null);
+  const autocompleteServiceRef = useRef<google.maps.places.AutocompleteService | null>(null);
+  const placesServiceRef = useRef<google.maps.places.PlacesService | null>(null);
+  const sessionTokenRef = useRef<google.maps.places.AutocompleteSessionToken | null>(null);
   const [mapsLoaded, setMapsLoaded] = useState(false);
 
   const fetchStore = useCallback(async () => {
@@ -299,10 +311,15 @@ export default function StoreEditPage() {
         setLatitude(String(storeData.latitude || ''));
         setLongitude(String(storeData.longitude || ''));
 
+        // Google Places データの読み込み
+        setGooglePlaceId((storeData as any).google_place_id || null);
+        setGoogleRating((storeData as any).google_rating || null);
+        setGoogleReviewsCount((storeData as any).google_reviews_count || null);
+
         // クーポンデータの読み込み
         setCouponValues(dbDataToCouponForm(storeData));
         setCouponCurrentUses(storeData.coupon_current_uses || 0);
-        
+
         // キャンペーンデータの読み込み
         setCampaignValues(dbDataToCampaignForm(storeData));
 
@@ -371,10 +388,15 @@ export default function StoreEditPage() {
           setLatitude(String(storeData.latitude || ''));
           setLongitude(String(storeData.longitude || ''));
 
+          // Google Places データの読み込み
+          setGooglePlaceId((storeData as any).google_place_id || null);
+          setGoogleRating((storeData as any).google_rating || null);
+          setGoogleReviewsCount((storeData as any).google_reviews_count || null);
+
           // クーポンデータの読み込み
           setCouponValues(dbDataToCouponForm(storeData));
           setCouponCurrentUses(storeData.coupon_current_uses || 0);
-          
+
           // キャンペーンデータの読み込み
           setCampaignValues(dbDataToCampaignForm(storeData));
 
@@ -390,8 +412,12 @@ export default function StoreEditPage() {
 
     if (GOOGLE_MAPS_API_KEY) {
       const initMaps = () => {
-        if (window.google?.maps) {
+        if (window.google?.maps?.places) {
           geocoderRef.current = new google.maps.Geocoder();
+          autocompleteServiceRef.current = new google.maps.places.AutocompleteService();
+          const div = document.createElement('div');
+          placesServiceRef.current = new google.maps.places.PlacesService(div);
+          sessionTokenRef.current = new google.maps.places.AutocompleteSessionToken();
           setMapsLoaded(true);
           return true;
         }
@@ -400,14 +426,120 @@ export default function StoreEditPage() {
 
       if (initMaps()) return;
 
+      const existing = document.querySelector<HTMLScriptElement>('script[data-gmaps-loader="true"]');
+      if (existing) {
+        existing.addEventListener('load', () => initMaps());
+        return;
+      }
+
       const script = document.createElement('script');
       script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places&language=ja`;
       script.async = true;
       script.defer = true;
+      script.setAttribute('data-gmaps-loader', 'true');
       script.onload = () => initMaps();
       document.head.appendChild(script);
     }
   }, [authChecked, accountType, user?.email, params.id]);
+
+  // 店舗名入力時の候補検索（ユーザーが手動で編集した場合のみ）
+  useEffect(() => {
+    if (!mapsLoaded || !autocompleteServiceRef.current || !userEditedNameRef.current || name.length < 2) {
+      setSuggestions([]);
+      return;
+    }
+
+    setSearchingName(true);
+
+    const timer = setTimeout(() => {
+      autocompleteServiceRef.current?.getPlacePredictions(
+        {
+          input: name,
+          componentRestrictions: { country: 'jp' },
+          sessionToken: sessionTokenRef.current,
+        } as any,
+        (predictions: google.maps.places.AutocompletePrediction[] | null, status: google.maps.places.PlacesServiceStatus) => {
+          setSearchingName(false);
+          if (status === google.maps.places.PlacesServiceStatus.OK && predictions) {
+            setSuggestions(predictions);
+            setShowSuggestions(true);
+          } else {
+            setSuggestions([]);
+          }
+        }
+      );
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [name, mapsLoaded]);
+
+  // 候補を選択
+  const handleSelectSuggestion = (prediction: google.maps.places.AutocompletePrediction) => {
+    if (!placesServiceRef.current) return;
+
+    setGeocoding(true);
+    placesServiceRef.current.getDetails(
+      {
+        placeId: prediction.place_id!,
+        fields: [
+          'name',
+          'formatted_address',
+          'geometry',
+          'formatted_phone_number',
+          'place_id',
+          'rating',
+          'user_ratings_total',
+        ],
+        sessionToken: sessionTokenRef.current,
+      } as any,
+      (place: any, status: any) => {
+        setGeocoding(false);
+
+        if (status === google.maps.places.PlacesServiceStatus.OK && place) {
+          userEditedNameRef.current = false;
+          setName(place.name || '');
+          setAddress(place.formatted_address || '');
+          setPhone(place.formatted_phone_number || phone);
+
+          if (place.geometry?.location) {
+            const lat = typeof place.geometry.location.lat === 'function'
+              ? place.geometry.location.lat()
+              : place.geometry.location.lat;
+            const lng = typeof place.geometry.location.lng === 'function'
+              ? place.geometry.location.lng()
+              : place.geometry.location.lng;
+
+            setLatitude(String(lat));
+            setLongitude(String(lng));
+          }
+
+          // Google評価データを保存
+          setGooglePlaceId(place.place_id || null);
+          setGoogleRating(place.rating || null);
+          setGoogleReviewsCount(place.user_ratings_total || null);
+
+          setSuggestions([]);
+          setShowSuggestions(false);
+
+          // セッショントークンをリセット
+          sessionTokenRef.current = new google.maps.places.AutocompleteSessionToken();
+
+          const ratingText = place.rating ? ` (Google評価: ⭐${place.rating})` : '';
+          toast.success(`店舗情報を取得しました${ratingText}`, {
+            position: 'top-center',
+            duration: 2000,
+            className: 'bg-gray-100'
+          });
+        } else {
+          toast.error('店舗情報の取得に失敗しました', {
+            position: 'top-center',
+            duration: 3000,
+            className: 'bg-gray-100'
+          });
+        }
+      }
+    );
+  };
 
   // 認証チェック完了後にデータを取得（sessionStorageにデータがない場合）
   useEffect(() => {
@@ -697,6 +829,9 @@ export default function StoreEditPage() {
           payment_methods: paymentMethods,
           facilities: facilities,
           image_urls: imageUrls,
+          google_place_id: googlePlaceId,
+          google_rating: googleRating,
+          google_reviews_count: googleReviewsCount,
           latitude: parseFloat(latitude),
           longitude: parseFloat(longitude),
           updated_at: new Date().toISOString(),
@@ -873,23 +1008,75 @@ export default function StoreEditPage() {
               
               {/* 店舗名 */}
               <div className="space-y-2 mb-5">
-                <Label 
-                  htmlFor="name" 
+                <Label
+                  htmlFor="name"
                   className="text-sm font-bold flex items-center gap-2"
                   style={{ color: COLORS.deepNavy }}
                 >
                   店舗名 <span style={{ color: COLORS.champagneGold }}>*</span>
                 </Label>
-                <Input
-                  id="name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                  disabled={loading}
-                  placeholder="例: Bar NIKENME"
-                  className={getInputClassName(loading)}
-                  style={{ fontSize: '16px' }}
-                />
+                <div className="relative">
+                  <Input
+                    id="name"
+                    value={name}
+                    onChange={(e) => {
+                      userEditedNameRef.current = true;
+                      setName(e.target.value);
+                    }}
+                    onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+                    onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                    required
+                    disabled={loading}
+                    placeholder="例: Bar NIKENME"
+                    className={getInputClassName(loading)}
+                    style={{ fontSize: '16px' }}
+                  />
+                  {showSuggestions && suggestions.length > 0 && (
+                    <div
+                      className="absolute z-50 w-full mt-2 bg-white rounded-xl shadow-xl max-h-64 overflow-auto"
+                      style={{ border: `1px solid rgba(201, 168, 108, 0.2)` }}
+                    >
+                      {suggestions.map((pred, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          className="w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors first:rounded-t-xl last:rounded-b-xl"
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            handleSelectSuggestion(pred);
+                          }}
+                        >
+                          <div className="font-bold text-sm" style={{ color: COLORS.deepNavy }}>
+                            {pred.structured_formatting?.main_text || pred.description}
+                          </div>
+                          <div className="text-xs mt-0.5" style={{ color: COLORS.warmGray }}>
+                            {pred.structured_formatting?.secondary_text || ''}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                {searchingName && (
+                  <p className="text-xs flex items-center gap-1" style={{ color: COLORS.warmGray }}>
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                    候補を検索中...
+                  </p>
+                )}
+                <p className="text-xs" style={{ color: COLORS.warmGray }}>
+                  Google Mapsから店舗情報を自動取得できます
+                </p>
+                {googlePlaceId ? (
+                  <p className="text-xs flex items-center gap-1" style={{ color: '#16a34a' }}>
+                    ✓ Google Place ID: {googlePlaceId}
+                    {googleRating != null && ` | 評価: ⭐${googleRating}`}
+                    {googleReviewsCount != null && ` (${googleReviewsCount}件)`}
+                  </p>
+                ) : (
+                  <p className="text-xs" style={{ color: '#d97706' }}>
+                    Google Place IDが未設定です。店舗名を編集してGoogle Mapsの候補から選択してください。
+                  </p>
+                )}
               </div>
 
               {/* 店舗カテゴリ */}

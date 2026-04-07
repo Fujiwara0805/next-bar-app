@@ -248,6 +248,7 @@ function NewStorePage() {
   const placesServiceRef = useRef<google.maps.places.PlacesService | null>(null);
   const geocoderRef = useRef<google.maps.Geocoder | null>(null);
   const sessionTokenRef = useRef<google.maps.places.AutocompleteSessionToken | null>(null);
+  const autoMatchAttemptedRef = useRef(false);
 
   // Google Maps API初期化
   useEffect(() => {
@@ -339,6 +340,54 @@ function NewStorePage() {
 
     fetchApplication();
   }, [applicationId, applicationLoaded]);
+
+  // 申し込みデータ読み込み後にGoogle Places自動マッチング
+  useEffect(() => {
+    if (!applicationLoaded || !mapsLoaded || !autocompleteServiceRef.current || autoMatchAttemptedRef.current) return;
+    if (!name || name.length < 2) return;
+
+    autoMatchAttemptedRef.current = true;
+
+    autocompleteServiceRef.current.getPlacePredictions(
+      {
+        input: name,
+        componentRestrictions: { country: 'jp' },
+        sessionToken: sessionTokenRef.current,
+      } as any,
+      (predictions: google.maps.places.AutocompletePrediction[] | null, status: google.maps.places.PlacesServiceStatus) => {
+        if (status === google.maps.places.PlacesServiceStatus.OK && predictions && predictions.length > 0) {
+          const topResult = predictions[0];
+          const mainText = topResult.structured_formatting?.main_text || '';
+
+          // トップ結果が店名と一致する場合は自動選択
+          if (mainText === name || mainText.includes(name) || name.includes(mainText)) {
+            handleSelectSuggestion(topResult);
+            toast.info('Google Mapsから店舗情報を自動取得しました。内容を確認してください。', {
+              position: 'top-center',
+              duration: 5000,
+              className: 'bg-gray-100',
+            });
+            return;
+          }
+
+          // 一致しない場合は候補を表示して警告
+          setSuggestions(predictions);
+          setShowSuggestions(true);
+          toast.warning('Google Mapsの候補から店舗を選択してください（Google Place IDが未設定です）', {
+            position: 'top-center',
+            duration: 8000,
+            className: 'bg-gray-100',
+          });
+        } else {
+          toast.warning('Google Mapsで一致する店舗が見つかりませんでした。店舗名を変更して候補を選択してください。', {
+            position: 'top-center',
+            duration: 8000,
+            className: 'bg-gray-100',
+          });
+        }
+      }
+    );
+  }, [applicationLoaded, mapsLoaded, name]);
 
   // 店舗名入力時の候補検索
   useEffect(() => {
@@ -1673,6 +1722,18 @@ function NewStorePage() {
             </Card>
 
             {/* ========== 送信ボタン ========== */}
+            {applicationId && !googlePlaceId && (
+              <div
+                className="p-3 rounded-xl text-sm font-medium"
+                style={{
+                  backgroundColor: 'rgba(217, 119, 6, 0.1)',
+                  border: '1px solid rgba(217, 119, 6, 0.3)',
+                  color: '#92400e',
+                }}
+              >
+                Google Place IDが未設定です。店舗名フィールドでGoogle Mapsの候補を選択してください。
+              </div>
+            )}
             <div className="flex gap-3 pt-2">
               <motion.div className="flex-1" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                 <Button
