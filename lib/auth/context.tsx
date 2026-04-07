@@ -30,6 +30,24 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Cookie helpers for middleware-based route protection
+const COOKIE_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
+
+function setAuthCookies(accountType: AccountType, storeId?: string) {
+  const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+  document.cookie = `account-type=${accountType}; Path=/; Max-Age=${COOKIE_MAX_AGE}; SameSite=Lax${secure}`;
+  if (storeId) {
+    document.cookie = `store-id=${storeId}; Path=/; Max-Age=${COOKIE_MAX_AGE}; SameSite=Lax${secure}`;
+  } else {
+    document.cookie = 'store-id=; Path=/; Max-Age=0';
+  }
+}
+
+function clearAuthCookies() {
+  document.cookie = 'account-type=; Path=/; Max-Age=0';
+  document.cookie = 'store-id=; Path=/; Max-Age=0';
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -56,6 +74,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setProfile(profileData);
           setAccountType('platform');
           setStore(null);
+          setAuthCookies('platform');
         } else {
           // profilesになければstoresテーブルをチェック（店舗アカウント）
           const { data: storeData } = await supabase
@@ -68,6 +87,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setStore(storeData);
             setAccountType('store');
             setProfile(null);
+            setAuthCookies('store', storeData.id);
           }
         }
       }
@@ -94,6 +114,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setProfile(profileData);
             setAccountType('platform');
             setStore(null);
+            setAuthCookies('platform');
           } else {
             // profilesになければstoresテーブルをチェック（店舗アカウント）
             const { data: storeData } = await supabase
@@ -106,12 +127,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               setStore(storeData);
               setAccountType('store');
               setProfile(null);
+              setAuthCookies('store', storeData.id);
             }
           }
         } else {
           setProfile(null);
           setStore(null);
           setAccountType(null);
+          clearAuthCookies();
         }
       })();
     });
@@ -217,6 +240,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signOut = async () => {
+    clearAuthCookies();
     await supabase.auth.signOut();
   };
 
