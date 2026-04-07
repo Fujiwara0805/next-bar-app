@@ -72,6 +72,7 @@ import {
   normalizePaymentMethods,
 } from '@/lib/types/store-application';
 import { useAppMode } from '@/lib/app-mode-context';
+import { checkIsOpenFromStructuredHours } from '@/lib/structured-business-hours';
 
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
@@ -841,6 +842,11 @@ function NewStorePage() {
       // おごり酒データをDB形式に変換
       const ogoriDbData = ogoriFormToDbData(ogoriValues);
 
+      // 営業時間から開店状態を判定
+      const isCurrentlyOpen = checkIsOpenFromStructuredHours(structuredBusinessHours);
+      const initialIsOpen = isCurrentlyOpen === true;
+      const initialVacancyStatus = initialIsOpen ? 'open' : 'closed';
+
       const { error: storeError } = await supabase
         .from('stores')
         .insert({
@@ -862,8 +868,10 @@ function NewStorePage() {
           payment_methods: paymentMethods,
           facilities: facilities,
           store_category: storeCategory,
-          is_open: false,
-          vacancy_status: 'vacant',
+          is_open: initialIsOpen,
+          vacancy_status: initialVacancyStatus,
+          male_ratio: 0,
+          female_ratio: 0,
           image_urls: imageUrls,
           google_place_id: googlePlaceId,
           google_rating: googleRating,

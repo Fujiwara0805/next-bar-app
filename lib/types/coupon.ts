@@ -282,7 +282,7 @@ export function getDefaultCouponFormValues(): CouponFormValues {
     originalPrice: '',
     discountedPrice: '',
     conditions: '',
-    startDate: getTodayString(), // デフォルトで今日の日付を設定
+    startDate: '',
     expiryDate: '',
     imageUrl: '',
     isActive: false,
