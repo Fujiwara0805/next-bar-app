@@ -10,15 +10,16 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { sendPushToNearbyUsers } from '@/lib/push/server';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-if (!supabaseUrl || !supabaseAnonKey) {
+if (!supabaseUrl || !supabaseServiceKey) {
   throw new Error('Missing Supabase environment variables');
 }
 
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 // 有効なvacancy_statusの値
 const VALID_VACANCY_STATUSES = ['vacant', 'open', 'full', 'closed'] as const;
@@ -35,12 +36,22 @@ type VacancyStatus = (typeof VALID_VACANCY_STATUSES)[number];
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const storeId = params.id;
+    const { id: storeId } = await params;
     const body = await request.json();
-    const { vacancy_status, status_message } = body;
+    const {
+      vacancy_status,
+      status_message,
+      is_open,
+      vacant_seats,
+      manual_closed,
+      closed_reason,
+      manual_closed_at,
+      last_is_open_check_at,
+      last_updated,
+    } = body;
 
     // vacancy_statusのバリデーション
     if (vacancy_status && !VALID_VACANCY_STATUSES.includes(vacancy_status)) {
@@ -53,7 +64,7 @@ export async function PATCH(
     // 店舗の現在の状態を取得
     const { data: store, error: fetchError } = await supabase
       .from('stores')
-      .select('id, is_open, vacancy_status')
+      .select('id, name, is_open, vacancy_status, latitude, longitude')
       .eq('id', storeId)
       .single();
 
@@ -64,35 +75,21 @@ export async function PATCH(
       );
     }
 
-    // is_openがfalseの場合、closedへの変更のみ許可
-    if (store.is_open === false && vacancy_status && vacancy_status !== 'closed') {
-      return NextResponse.json(
-        { 
-          error: '営業時間外のため、空席状況を変更できません。',
-          message: 'この店舗は現在営業時間外です。営業時間中に再度お試しください。',
-          is_open: false,
-          current_vacancy_status: 'closed'
-        },
-        { status: 400 }
-      );
-    }
-
-    // 更新データを構築
-    const updateData: {
-      vacancy_status?: VacancyStatus;
-      status_message?: string;
-      updated_at: string;
-    } = {
+    // 更新データを構築（update/page.tsxが送る全フィールドに対応）
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const updateData: Record<string, any> = {
       updated_at: new Date().toISOString(),
     };
 
-    if (vacancy_status) {
-      updateData.vacancy_status = vacancy_status;
-    }
-
-    if (status_message !== undefined) {
-      updateData.status_message = status_message;
-    }
+    if (vacancy_status !== undefined) updateData.vacancy_status = vacancy_status;
+    if (status_message !== undefined) updateData.status_message = status_message;
+    if (is_open !== undefined) updateData.is_open = is_open;
+    if (vacant_seats !== undefined) updateData.vacant_seats = vacant_seats;
+    if (manual_closed !== undefined) updateData.manual_closed = manual_closed;
+    if (closed_reason !== undefined) updateData.closed_reason = closed_reason;
+    if (manual_closed_at !== undefined) updateData.manual_closed_at = manual_closed_at;
+    if (last_is_open_check_at !== undefined) updateData.last_is_open_check_at = last_is_open_check_at;
+    if (last_updated !== undefined) updateData.last_updated = last_updated;
 
     // 更新実行
     const { data: updatedStore, error: updateError } = await supabase
@@ -107,6 +104,25 @@ export async function PATCH(
       return NextResponse.json(
         { error: 'Failed to update vacancy_status' },
         { status: 500 }
+      );
+    }
+
+    // 空席ありに変更された場合、1km圏内のユーザーにプッシュ通知（fire-and-forget）
+    if (
+      vacancy_status === 'vacant' &&
+      store.vacancy_status !== 'vacant' &&
+      store.latitude != null &&
+      store.longitude != null
+    ) {
+      sendPushToNearbyUsers(
+        store.latitude,
+        store.longitude,
+        {
+          title: '近くのお店に空席があります！',
+          body: `${store.name} に空席が出ました`,
+          url: `/store/${storeId}`,
+          tag: `vacancy-${storeId}`,
+        }
       );
     }
 

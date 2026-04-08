@@ -407,6 +407,39 @@ export type Database = {
         }
         Relationships: []
       }
+      user_push_subscriptions: {
+        Row: {
+          id: string
+          endpoint: string
+          p256dh: string
+          auth: string
+          latitude: number
+          longitude: number
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          endpoint: string
+          p256dh: string
+          auth: string
+          latitude: number
+          longitude: number
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          endpoint?: string
+          p256dh?: string
+          auth?: string
+          latitude?: number
+          longitude?: number
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       quick_reservations: {
         Row: {
           arrival_time: string

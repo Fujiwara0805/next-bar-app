@@ -366,22 +366,16 @@ export default function StoreUpdatePage() {
         updateData.last_is_open_check_at = null;
       }
 
-      let query = supabase
-        .from('stores')
-        // @ts-ignore - Supabaseの型推論の問題を回避
-        .update(updateData)
-        .eq('id', params.id as string);
+      const response = await fetch(`/api/stores/${params.id}/vacancy-status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updateData),
+      });
 
-      // セキュリティチェック（念のため）
-      if (accountType === 'platform') {
-        query = query.eq('owner_id', user.id);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Update failed');
       }
-      // 店舗アカウントの場合、emailでの追加チェックは行わない
-      // （すでにfetchStoreでアクセス権限を確認済み）
-
-      const { error } = await query;
-
-      if (error) throw error;
 
       // 成功メッセージ
       let successMessage = '更新が完了しました';
