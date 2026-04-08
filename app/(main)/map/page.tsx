@@ -46,6 +46,7 @@ import { StoreDetailPanel } from '@/components/map/StoreDetailPanel';
 import { checkIsOpenFromStructuredHours } from '@/lib/structured-business-hours';
 import type { BusinessHours } from '@/lib/supabase/types';
 import { SponsorMapIcon } from '@/components/sponsors/sponsor-map-icon';
+import { UserPushSubscription } from '@/components/user-push-subscription';
 
 type Store = Database['public']['Tables']['stores']['Row'];
 
@@ -1158,6 +1159,9 @@ function MapPageContent() {
 
       {/* スポンサー広告 */}
       <SponsorMapIcon />
+
+      {/* 空席通知購読 */}
+      <UserPushSubscription />
     </div>
   );
 }

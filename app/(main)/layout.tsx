@@ -1,5 +1,4 @@
 import { SponsorProvider } from '@/lib/sponsors/context';
-import { UserPushSubscription } from '@/components/user-push-subscription';
 
 export default function MainLayout({
   children,
@@ -9,7 +8,6 @@ export default function MainLayout({
   return (
     <SponsorProvider>
       {children}
-      <UserPushSubscription />
     </SponsorProvider>
   );
 }

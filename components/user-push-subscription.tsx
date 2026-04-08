@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, BellOff, Loader2, X, Share } from 'lucide-react';
 import { subscribeUserToPush } from '@/lib/push/client';
 
-const USER_PAGES = ['/map', '/store-list', '/store/'];
+// マップページでのみ表示（レイアウトではなくマップページから直接マウント）
 const STORAGE_KEY = 'nikenme_user_push_sub';
 const PWA_BANNER_DISMISSED_KEY = 'nikenme_pwa_banner_dismissed';
 
@@ -105,7 +105,6 @@ export function UserPushSubscription() {
   const autoUpdateDone = useRef(false);
   const collapseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const isUserPage = USER_PAGES.some((p) => pathname.startsWith(p)) && !pathname.startsWith('/store/manage');
   const isMapPage = pathname === '/map';
 
   const updateLocationIfMoved = useCallback(async (stored: StoredSubscription) => {
@@ -225,7 +224,7 @@ export function UserPushSubscription() {
     setShowPWABanner(false);
   }, []);
 
-  if (status === 'loading' || status === 'unsupported' || !isUserPage) return null;
+  if (status === 'loading' || status === 'unsupported' || !isMapPage) return null;
 
   // iOS ブラウザ: PWA インストールバナーのみ
   if (status === 'ios-browser') {
@@ -241,7 +240,7 @@ export function UserPushSubscription() {
 
   return (
     <div
-      className={`fixed left-4 z-50 ${isMapPage ? 'top-36' : 'bottom-8'}`}
+      className="fixed left-4 z-50 top-36"
     >
       <div className="flex items-center gap-0">
         {/* ベルアイコン（常時表示） */}
