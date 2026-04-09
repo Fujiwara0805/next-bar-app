@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, BellOff, Loader2, X, Share } from 'lucide-react';
 import { subscribeUserToPush } from '@/lib/push/client';
+import { useLanguage } from '@/lib/i18n/context';
 
 // マップページでのみ表示（レイアウトではなくマップページから直接マウント）
 const STORAGE_KEY = 'nikenme_user_push_sub';
@@ -53,7 +54,7 @@ function isIOSBrowser(): boolean {
  * iOS ブラウザ向け PWA インストール促進バナー
  * ダークネイビー + ゴールドのカラーパレット、画面上中央に表示
  */
-function PWAInstallBanner({ onDismiss }: { onDismiss: () => void }) {
+function PWAInstallBanner({ onDismiss, t }: { onDismiss: () => void; t: (key: string) => string }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: -40 }}
@@ -75,15 +76,17 @@ function PWAInstallBanner({ onDismiss }: { onDismiss: () => void }) {
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-bold text-[#FDFBF7]">
-            空席通知を受け取るには
+            {t('pushNotification.title')}
           </p>
           <p className="text-xs text-[#FDFBF7]/60 mt-1 leading-relaxed">
-            ホーム画面に追加すると、近くのお店の空席通知が届きます
+            {t('pushNotification.description_line1')}
+            <br />
+            {t('pushNotification.description_line2')}
           </p>
           <div className="flex items-center gap-1.5 mt-2.5 text-xs text-[#ffc62d] font-medium">
             <Share className="w-3.5 h-3.5" />
             <span>
-              共有ボタン →「ホーム画面に追加」
+              {t('pushNotification.share_instruction')}
             </span>
           </div>
         </div>
@@ -98,6 +101,7 @@ function PWAInstallBanner({ onDismiss }: { onDismiss: () => void }) {
  */
 export function UserPushSubscription() {
   const pathname = usePathname();
+  const { t } = useLanguage();
   const [status, setStatus] = useState<'loading' | 'idle' | 'subscribed' | 'denied' | 'unsupported' | 'ios-browser'>('loading');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -230,7 +234,7 @@ export function UserPushSubscription() {
   if (status === 'ios-browser') {
     return (
       <AnimatePresence>
-        {showPWABanner && <PWAInstallBanner onDismiss={dismissPWABanner} />}
+        {showPWABanner && <PWAInstallBanner onDismiss={dismissPWABanner} t={t} />}
       </AnimatePresence>
     );
   }
@@ -295,12 +299,12 @@ export function UserPushSubscription() {
               `}
             >
               {isProcessing
-                ? '設定中...'
+                ? t('pushNotification.setting')
                 : isOn
-                  ? '空席通知をOFFにする'
+                  ? t('pushNotification.turn_off')
                   : status === 'denied'
-                    ? '通知ブロック中'
-                    : '空席通知をONにする'}
+                    ? t('pushNotification.blocked')
+                    : t('pushNotification.turn_on')}
             </motion.button>
           )}
         </AnimatePresence>

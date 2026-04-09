@@ -1024,6 +1024,17 @@ export const translations = {
       reject_confirm: 'この申し込みを不承認にしますか？',
       admin_notes: '管理メモ',
     },
+    // 空席通知
+    pushNotification: {
+      title: '空席通知を受け取るには',
+      description_line1: 'ホーム画面に追加すると、',
+      description_line2: '近くのお店の空席通知が届きます',
+      share_instruction: '共有ボタン →「ホーム画面に追加」',
+      setting: '設定中...',
+      turn_off: '空席通知をOFFにする',
+      blocked: '通知ブロック中',
+      turn_on: '空席通知をONにする',
+    },
   },
   en: {
     // Header
@@ -2050,6 +2061,17 @@ export const translations = {
       reject_confirm: 'Reject this application?',
       admin_notes: 'Admin Notes',
     },
+    // Push Notification
+    pushNotification: {
+      title: 'To receive vacancy alerts',
+      description_line1: 'Add to your home screen',
+      description_line2: 'to get vacancy alerts for nearby bars',
+      share_instruction: 'Share button → "Add to Home Screen"',
+      setting: 'Setting up...',
+      turn_off: 'Turn OFF vacancy alerts',
+      blocked: 'Notifications blocked',
+      turn_on: 'Turn ON vacancy alerts',
+    },
   },
   ko: {
     // Header
@@ -3068,6 +3090,17 @@ export const translations = {
       reject_confirm: '이 신청을 미승인하시겠습니까?',
       admin_notes: '관리 메모',
     },
+    // 빈자리 알림
+    pushNotification: {
+      title: '빈자리 알림을 받으려면',
+      description_line1: '홈 화면에 추가하면',
+      description_line2: '근처 가게의 빈자리 알림을 받을 수 있습니다',
+      share_instruction: '공유 버튼 → "홈 화면에 추가"',
+      setting: '설정 중...',
+      turn_off: '빈자리 알림 OFF',
+      blocked: '알림 차단 중',
+      turn_on: '빈자리 알림 ON',
+    },
   },
   zh: {
     // Header
@@ -4083,6 +4116,17 @@ export const translations = {
       no_applications: '没有申请',
       reject_confirm: '拒绝此申请？',
       admin_notes: '管理备注',
+    },
+    // 空位通知
+    pushNotification: {
+      title: '接收空位通知',
+      description_line1: '添加到主屏幕后，',
+      description_line2: '即可收到附近店铺的空位通知',
+      share_instruction: '分享按钮 →「添加到主屏幕」',
+      setting: '设置中...',
+      turn_off: '关闭空位通知',
+      blocked: '通知已被屏蔽',
+      turn_on: '开启空位通知',
     },
   },
 };
