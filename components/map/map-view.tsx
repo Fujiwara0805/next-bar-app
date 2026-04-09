@@ -813,134 +813,6 @@ const luxuryMapStyles: google.maps.MapTypeStyle[] = [
 // カフェモード マップスタイル（ライトベージュ・ブラウン系）
 // ============================================================================
 
-const cafeMapStyles: google.maps.MapTypeStyle[] = [
-  // ベース背景: Latte White系
-  { elementType: 'geometry', stylers: [{ color: '#F7F3EE' }] },
-  { elementType: 'labels.icon', stylers: [{ visibility: 'off' }] },
-
-  // ラベル文字: Coffee Black系
-  { elementType: 'labels.text.fill', stylers: [{ color: '#2D2420' }] },
-  { elementType: 'labels.text.stroke', stylers: [{ color: '#F7F3EE' }, { weight: 2.5 }] },
-
-  // 行政区域
-  { featureType: 'administrative', elementType: 'geometry', stylers: [{ color: '#A07850' }] },
-  {
-    featureType: 'administrative.country',
-    elementType: 'labels.text.fill',
-    stylers: [{ color: '#2D2420' }],
-  },
-  {
-    featureType: 'administrative.locality',
-    elementType: 'labels.text.fill',
-    stylers: [{ color: '#2D2420' }],
-  },
-  {
-    featureType: 'administrative.neighborhood',
-    elementType: 'labels.text.fill',
-    stylers: [{ color: '#9A8A7A' }],
-  },
-
-  // POI
-  {
-    featureType: 'poi',
-    elementType: 'labels.text.fill',
-    stylers: [{ color: '#7A5C3C' }],
-  },
-  {
-    featureType: 'poi',
-    elementType: 'labels.text.stroke',
-    stylers: [{ color: '#F7F3EE' }, { weight: 2 }],
-  },
-  {
-    featureType: 'poi.business',
-    elementType: 'labels',
-    stylers: [{ visibility: 'off' }],
-  },
-  {
-    featureType: 'poi.attraction',
-    elementType: 'labels',
-    stylers: [{ visibility: 'on' }],
-  },
-  {
-    featureType: 'poi.park',
-    elementType: 'geometry',
-    stylers: [{ color: '#D4E8D0' }, { visibility: 'simplified' }],
-  },
-  { featureType: 'poi.park', elementType: 'labels', stylers: [{ visibility: 'off' }] },
-
-  // 道路: ホワイト系
-  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#FFFFFF' }] },
-  { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#E8DDD4' }] },
-  {
-    featureType: 'road',
-    elementType: 'labels.text.fill',
-    stylers: [{ color: '#9A8A7A' }],
-  },
-  {
-    featureType: 'road',
-    elementType: 'labels.text.stroke',
-    stylers: [{ color: '#F7F3EE' }, { weight: 3 }],
-  },
-
-  // 高速道路: Espresso Brownアクセント
-  {
-    featureType: 'road.highway',
-    elementType: 'geometry',
-    stylers: [{ color: '#EDE0D4' }],
-  },
-  {
-    featureType: 'road.highway',
-    elementType: 'geometry.stroke',
-    stylers: [{ color: '#A07850' }, { weight: 0.8 }],
-  },
-  {
-    featureType: 'road.highway',
-    elementType: 'labels.text.fill',
-    stylers: [{ color: '#2D2420' }],
-  },
-
-  // 幹線道路
-  {
-    featureType: 'road.arterial',
-    elementType: 'geometry',
-    stylers: [{ color: '#FFFFFF' }],
-  },
-  {
-    featureType: 'road.arterial',
-    elementType: 'labels.text.fill',
-    stylers: [{ color: '#9A8A7A' }],
-  },
-
-  // 地方道路
-  {
-    featureType: 'road.local',
-    elementType: 'geometry',
-    stylers: [{ color: '#FFFFFF' }],
-  },
-  {
-    featureType: 'road.local',
-    elementType: 'labels.text.fill',
-    stylers: [{ color: '#9A8A7A' }],
-  },
-
-  // 交通機関
-  { featureType: 'transit', elementType: 'geometry', stylers: [{ color: '#EDE0D4' }] },
-  { featureType: 'transit', elementType: 'labels', stylers: [{ visibility: 'off' }] },
-  {
-    featureType: 'transit.station',
-    elementType: 'labels.text.fill',
-    stylers: [{ color: '#2D2420' }],
-  },
-
-  // 水域: 淡いブルーグレー
-  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#C9D6DF' }] },
-  { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#7A8A9A' }] },
-
-  // 景観
-  { featureType: 'landscape.man_made', elementType: 'geometry', stylers: [{ color: '#F7F3EE' }] },
-  { featureType: 'landscape.natural', elementType: 'geometry', stylers: [{ color: '#EDE0D4' }] },
-];
-
 // ============================================================================
 // メインコンポーネント: MapView
 // ============================================================================
@@ -954,7 +826,7 @@ export function MapView({
   onBoundsChange,
   selectedStoreId,
 }: MapViewProps) {
-  const { colorsA: colors, isBar, isCafe } = useAppMode();
+  const { colorsA: colors } = useAppMode();
 
   // Refs
   const mapRef = useRef<HTMLDivElement>(null);
@@ -1091,8 +963,8 @@ export function MapView({
         rotateControl: false,
         gestureHandling: 'greedy',
         clickableIcons: false,
-        styles: !isCafe ? luxuryMapStyles : cafeMapStyles,
-        backgroundColor: !isCafe ? '#142A48' : '#F7F3EE',
+        styles: luxuryMapStyles,
+        backgroundColor: '#142A48',
       });
 
       mapInstanceRef.current = map;
@@ -1137,11 +1009,11 @@ export function MapView({
   useEffect(() => {
     if (mapInstanceRef.current && mapReady) {
       mapInstanceRef.current.setOptions({
-        styles: !isCafe ? luxuryMapStyles : cafeMapStyles,
-        backgroundColor: !isCafe ? '#142A48' : '#F7F3EE',
+        styles: luxuryMapStyles,
+        backgroundColor: '#142A48',
       });
     }
-  }, [isCafe, mapReady]);
+  }, [mapReady]);
 
   // ============================================================================
   // GPS取得後に初回のみカメラを移動

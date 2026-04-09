@@ -67,8 +67,8 @@ import {
 import { BusinessHoursModal } from '@/components/store/BusinessHoursModal';
 import type { BusinessHours } from '@/lib/supabase/types';
 import {
-  getFacilityCategoriesByStoreCategory,
-  getOtherFacilitiesByStoreCategory,
+  FACILITY_CATEGORIES,
+  OTHER_FACILITIES,
   normalizePaymentMethods,
 } from '@/lib/types/store-application';
 import { useAppMode } from '@/lib/app-mode-context';
@@ -185,7 +185,7 @@ function NewStorePage() {
   const [mapsLoaded, setMapsLoaded] = useState(false);
 
   // フォームステート - 基本情報
-  const [storeCategory, setStoreCategory] = useState<'bar' | 'cafe' | 'both'>('bar');
+  const storeCategory = 'bar' as const;
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [address, setAddress] = useState('');
@@ -946,7 +946,7 @@ function NewStorePage() {
 
   // 設備カテゴリ（店舗カテゴリに応じて動的に切り替え）
   const facilityCategories: Record<string, { title: string; items: readonly string[]; bgColor: string; borderColor: string }> = (() => {
-    const cats = getFacilityCategoriesByStoreCategory(storeCategory);
+    const cats = FACILITY_CATEGORIES;
     return Object.fromEntries(
       Object.entries(cats).map(([key, cat]) => [key, {
         ...cat,
@@ -960,7 +960,7 @@ function NewStorePage() {
     );
   })();
 
-  const otherFacilities: string[] = [...getOtherFacilitiesByStoreCategory(storeCategory)];
+  const otherFacilities: string[] = [...OTHER_FACILITIES];
 
   return (
     <div 
@@ -1069,30 +1069,6 @@ function NewStorePage() {
               </div>
 
               {/* 店舗カテゴリ */}
-              <div className="space-y-2 mb-5">
-                <Label className="text-sm font-bold flex items-center gap-2" style={{ color: COLORS.deepNavy }}>
-                  <StoreIcon className="w-4 h-4" style={{ color: COLORS.champagneGold }} />
-                  店舗カテゴリ <span style={{ color: COLORS.champagneGold }}>*</span>
-                </Label>
-                <div className="flex gap-3">
-                  {([['bar', '夜'], ['cafe', '昼'], ['both', '両方']] as const).map(([value, label]) => (
-                    <button
-                      key={value}
-                      type="button"
-                      onClick={() => { setStoreCategory(value); setFacilities([]); }}
-                      className="flex-1 py-2.5 px-3 rounded-xl text-sm font-medium transition-all duration-200 border-2"
-                      style={{
-                        borderColor: storeCategory === value ? COLORS.champagneGold : COLORS.platinum,
-                        backgroundColor: storeCategory === value ? `${COLORS.champagneGold}15` : 'white',
-                        color: storeCategory === value ? COLORS.deepNavy : COLORS.warmGray,
-                      }}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
               {/* 説明 */}
               <div className="space-y-2 mb-5">
                 <Label

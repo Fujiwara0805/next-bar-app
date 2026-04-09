@@ -37,8 +37,6 @@ import {
   FACILITY_CATEGORIES,
   OTHER_FACILITIES,
   APPLICATION_STEPS,
-  getFacilityCategoriesByStoreCategory,
-  getOtherFacilitiesByStoreCategory,
 } from '@/lib/types/store-application';
 import { useAppMode } from '@/lib/app-mode-context';
 
@@ -216,31 +214,6 @@ function Step1BasicInfo({
             onChange={(e) => onChange({ storeName: e.target.value })}
             className={inputClassName}
           />
-        </div>
-
-        <div>
-          <Label className="text-sm font-semibold mb-2 flex items-center" style={{ color: COLORS.charcoal }}>
-            <Store className="w-4 h-4 mr-1.5" style={{ color: COLORS.champagneGold }} />
-            店舗カテゴリ
-            <RequiredBadge />
-          </Label>
-          <div className="flex gap-3">
-            {([['bar', '夜'], ['cafe', '昼'], ['both', '両方']] as const).map(([value, label]) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => onChange({ storeCategory: value, facilities: [] })}
-                className="flex-1 py-2.5 px-3 rounded-xl text-sm font-medium transition-all duration-200 border-2"
-                style={{
-                  borderColor: values.storeCategory === value ? COLORS.champagneGold : COLORS.platinum,
-                  backgroundColor: values.storeCategory === value ? `${COLORS.champagneGold}15` : 'white',
-                  color: values.storeCategory === value ? COLORS.charcoal : COLORS.warmGray,
-                }}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
         </div>
 
         <div>
@@ -444,7 +417,7 @@ function Step3Facilities({
       />
 
       <div className="space-y-6">
-        {(Object.entries(getFacilityCategoriesByStoreCategory(values.storeCategory)) as [string, { title: string; items: readonly string[] }][]).map(([key, category]) => (
+        {(Object.entries(FACILITY_CATEGORIES) as [string, { title: string; items: readonly string[] }][]).map(([key, category]) => (
           <div key={key}>
             <h3
               className="text-sm font-bold mb-3 flex items-center gap-2"
@@ -492,7 +465,7 @@ function Step3Facilities({
             className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-64 overflow-y-auto p-3 rounded-xl"
             style={{ backgroundColor: 'rgba(0, 0, 0, 0.02)', border: '1px solid #e5e7eb' }}
           >
-            {getOtherFacilitiesByStoreCategory(values.storeCategory).map((facility) => (
+            {OTHER_FACILITIES.map((facility) => (
               <label
                 key={facility}
                 className="flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-all duration-150 hover:bg-white"
@@ -684,10 +657,6 @@ function Step5Confirm({
             <p>
               <span className="font-semibold">店舗名：</span>
               {values.storeName || '未入力'}
-            </p>
-            <p>
-              <span className="font-semibold">カテゴリ：</span>
-              {values.storeCategory === 'bar' ? '夜' : values.storeCategory === 'cafe' ? '昼' : '両方'}
             </p>
             <p>
               <span className="font-semibold">住所：</span>

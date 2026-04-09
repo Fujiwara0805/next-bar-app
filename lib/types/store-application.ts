@@ -7,8 +7,6 @@
  */
 
 import type { Database } from '@/lib/supabase/types';
-import type { AppMode } from '@/lib/app-mode';
-// カフェ・両方モード用設備はlib/app-mode.tsからexport済み
 
 // DB型
 export type StoreApplication = Database['public']['Tables']['store_applications']['Row'];
@@ -36,7 +34,7 @@ export interface ApplicationFormValues {
   description: string;
   address: string;
   phone: string;
-  storeCategory: 'bar' | 'cafe' | 'both';
+  storeCategory: 'bar';
 
   // Step 2: 営業情報
   businessHours: string;
@@ -140,41 +138,6 @@ export const FACILITY_CATEGORIES = {
   },
 } as const;
 
-// 設備カテゴリ（昼モード用）
-export const CAFE_FACILITY_CATEGORIES = {
-  atmosphere: {
-    title: '☕ 雰囲気',
-    items: ['静かで落ち着く', 'おしゃれな内装', '読書に最適', 'BGM心地よい'],
-  },
-  workspace: {
-    title: '💻 ワーク・スタディ',
-    items: ['Wi-Fi完備', '電源あり', '長居OK', '作業向き'],
-  },
-  women_family: {
-    title: '👩 女性・ファミリー向け',
-    items: ['女性一人でも安心', '子連れ歓迎', 'ベビーカー可', 'キッズメニューあり'],
-  },
-  pricing: {
-    title: '💰 料金・サービス',
-    items: ['リーズナブル', '学割あり', 'フリードリンクあり', '明朗会計'],
-  },
-} as const;
-
-// 設備カテゴリ（両方モード用）
-export const BOTH_FACILITY_CATEGORIES = {
-  newcomer: {
-    title: '✨ 新規・一人客向け',
-    items: ['一人客歓迎', 'おひとり様大歓迎', 'カウンター充実', '常連さんが優しい'],
-  },
-  women: {
-    title: '👩 女性向け',
-    items: ['女性客多め', '女性一人でも安心', '女性スタッフ在籍', '子連れ歓迎'],
-  },
-  pricing: {
-    title: '💰 料金関連',
-    items: ['明朗会計', '価格表示あり', '予算相談OK', 'チャージなし', '席料なし', 'リーズナブル'],
-  },
-} as const;
 
 // その他設備（夜モード用）
 export const OTHER_FACILITIES = [
@@ -187,63 +150,6 @@ export const OTHER_FACILITIES = [
   'スタイリッシュ', 'アットホーム', 'ママ・マスター人気', '美味しいお酒', 'こだわりの一杯',
 ] as const;
 
-// その他設備（昼モード用）
-export const CAFE_OTHER_FACILITIES_LIST = [
-  // 座席・空間
-  'カウンター席', 'ソファ席', 'テラス席', '個室', 'テーブル席あり', '半個室', '窓際席あり',
-  // ワーク・スタディ
-  'Wi-Fi', '電源あり', 'テレワーク向き', '勉強向き', '読書向き', 'Web会議OK', '個別デスクあり', 'プリンター利用可',
-  // メニュー
-  'スペシャルティコーヒー', '自家焙煎', 'ラテアート', 'スイーツ充実', 'ランチ', 'モーニング', 'ヴィーガン対応', 'テイクアウト可', 'ヘルシーメニュー',
-  // 喫煙
-  '禁煙', '分煙',
-  // ファミリー・ペット
-  'ペット可', 'ベビーカー可', '子連れ歓迎', '授乳室あり',
-  // アクセス・施設
-  '駐車場', '駅近',
-  // 国際対応
-  '英語対応可', '外国語メニューあり', '観光客歓迎',
-  // 雰囲気
-  '隠れ家的', 'アットホーム', 'スタイリッシュ', 'フォトジェニック', 'コーヒー豆販売',
-] as const;
-
-// その他設備（両方モード用）
-export const BOTH_OTHER_FACILITIES_LIST = [
-  // 座席・空間
-  'カウンター席', 'ソファ席', 'テラス席', '個室', 'テーブル席あり',
-  // インフラ
-  'Wi-Fi', '電源あり', '禁煙', '分煙', '喫煙可',
-  // ワーク・くつろぎ
-  '長居OK', '読書向き', '作業向き', 'テレワーク向き',
-  // ドリンク
-  'コーヒー充実', 'カクテル豊富', 'ワイン充実', 'クラフトビール',
-  // フード
-  'ランチ', 'フード充実', 'スイーツ充実', 'テイクアウト可', 'ヘルシーメニュー',
-  // エンタメ
-  'ボードゲーム', 'スポーツ観戦可',
-  // ファミリー・ペット
-  'ペット可', 'ベビーカー可', '子連れ歓迎',
-  // アクセス・施設
-  '駐車場', '駅近',
-  // 国際対応
-  '英語対応可', '外国語メニューあり', '観光客歓迎',
-  // 雰囲気
-  '隠れ家的', 'アットホーム', 'スタイリッシュ', 'カジュアル', '落ち着いた雰囲気', 'フォトジェニック', 'スタッフが親切',
-] as const;
-
-/** モードに応じた設備カテゴリを返す */
-export function getFacilityCategoriesByStoreCategory(storeCategory: 'bar' | 'cafe' | 'both') {
-  if (storeCategory === 'cafe') return CAFE_FACILITY_CATEGORIES;
-  if (storeCategory === 'both') return BOTH_FACILITY_CATEGORIES;
-  return FACILITY_CATEGORIES;
-}
-
-/** モードに応じたその他設備を返す */
-export function getOtherFacilitiesByStoreCategory(storeCategory: 'bar' | 'cafe' | 'both') {
-  if (storeCategory === 'cafe') return CAFE_OTHER_FACILITIES_LIST;
-  if (storeCategory === 'both') return BOTH_OTHER_FACILITIES_LIST;
-  return OTHER_FACILITIES;
-}
 
 // ステータスの表示情報
 export const APPLICATION_STATUS_MAP: Record<ApplicationStatus, {

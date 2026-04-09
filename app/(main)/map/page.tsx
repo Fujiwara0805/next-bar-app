@@ -235,7 +235,7 @@ interface UseStoresReturn {
 }
 
 function useStores(): UseStoresReturn {
-  const { mode } = useAppMode();
+  useAppMode(); // カラー提供用
   const [stores, setStores] = useState<Store[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -252,7 +252,7 @@ function useStores(): UseStoresReturn {
     async (forceRefresh: boolean = false, boundsKey?: string): Promise<void> => {
       // キャッシュチェック（強制リフレッシュでなければ）
       if (!forceRefresh) {
-        const cached = storesCache.get(boundsKey ? `${mode}:${boundsKey}` : mode);
+        const cached = storesCache.get(boundsKey || 'all');
         if (cached) {
           debugLog('Using cached stores', { count: cached.stores.length });
           setStores(cached.stores);
@@ -269,8 +269,6 @@ function useStores(): UseStoresReturn {
         const { data, error: fetchError } = await supabase
           .from('stores')
           .select(STORE_SELECT_COLUMNS)
-          // @ts-ignore – store_category は Phase 2 で型定義済み
-          .or(`store_category.eq.${mode},store_category.eq.both`)
           .order('created_at', { ascending: false });
 
         if (fetchError) {
@@ -284,7 +282,7 @@ function useStores(): UseStoresReturn {
         debugLog('Fetched stores', { count: storesData.length });
 
         setStores(storesData);
-        storesCache.set(storesData, boundsKey ? `${mode}:${boundsKey}` : mode);
+        storesCache.set(storesData, boundsKey || 'all');
         setRetryCount(0);
         setError(null);
       } catch (err) {
@@ -313,7 +311,7 @@ function useStores(): UseStoresReturn {
         }
       }
     },
-    [retryCount, mode]
+    [retryCount]
   );
 
   /**

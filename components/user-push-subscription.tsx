@@ -9,7 +9,6 @@ import { useLanguage } from '@/lib/i18n/context';
 
 // マップページでのみ表示（レイアウトではなくマップページから直接マウント）
 const STORAGE_KEY = 'nikenme_user_push_sub';
-const PWA_BANNER_DISMISSED_KEY = 'nikenme_pwa_banner_dismissed';
 
 interface StoredSubscription {
   latitude: number;
@@ -61,7 +60,7 @@ function PWAInstallBanner({ onDismiss, t }: { onDismiss: () => void; t: (key: st
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -40 }}
       transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-      className="fixed top-16 left-4 right-4 z-50 mx-auto max-w-sm rounded-2xl shadow-2xl p-4"
+      className="fixed top-16 left-4 right-4 z-50 mx-auto max-w-xs rounded-2xl shadow-2xl p-3"
       style={{ background: 'linear-gradient(135deg, #13294b 0%, #1a3560 100%)' }}
     >
       <button
@@ -71,8 +70,8 @@ function PWAInstallBanner({ onDismiss, t }: { onDismiss: () => void; t: (key: st
         <X className="w-4 h-4" />
       </button>
       <div className="flex items-start gap-3">
-        <div className="w-10 h-10 rounded-xl bg-[#ffc62d]/20 border border-[#ffc62d]/30 flex items-center justify-center flex-shrink-0">
-          <Bell className="w-5 h-5 text-[#ffc62d]" />
+        <div className="w-8 h-8 rounded-xl bg-[#ffc62d]/20 border border-[#ffc62d]/30 flex items-center justify-center flex-shrink-0">
+          <Bell className="w-4 h-4 text-[#ffc62d]" />
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-bold text-[#FDFBF7]">
@@ -136,10 +135,7 @@ export function UserPushSubscription() {
   useEffect(() => {
     // iOS ブラウザ（非PWA）の場合
     if (isIOSBrowser()) {
-      const dismissed = localStorage.getItem(PWA_BANNER_DISMISSED_KEY);
-      if (!dismissed) {
-        setShowPWABanner(true);
-      }
+      setShowPWABanner(true);
       setStatus('ios-browser');
       return;
     }
@@ -224,7 +220,6 @@ export function UserPushSubscription() {
   }, [status]);
 
   const dismissPWABanner = useCallback(() => {
-    localStorage.setItem(PWA_BANNER_DISMISSED_KEY, '1');
     setShowPWABanner(false);
   }, []);
 

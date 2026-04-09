@@ -107,7 +107,7 @@ function StoreListContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t } = useLanguage();
-  const { colorsB: COLORS, colorsA, mode, isBar, isCafe } = useAppMode();
+  const { colorsB: COLORS, colorsA } = useAppMode();
 
   // body背景色をページの背景色に同期（画面外の色漏れ防止）
   useEffect(() => {
@@ -507,8 +507,6 @@ function StoreListContent() {
       const { data, error } = await supabase
         .from('stores')
         .select('*')
-        // @ts-ignore – store_category は Phase 2 で型定義済み
-        .or(`store_category.eq.${mode},store_category.eq.both`)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -661,31 +659,29 @@ function StoreListContent() {
 
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: colorsA.background }}>
-      <header className="sticky top-0 z-30" style={{ backgroundColor: !isCafe ? '#FFFFFF' : colorsA.background, borderBottom: !isCafe ? '1px solid #e5e7eb' : `1px solid ${colorsA.borderSubtle}` }}>
+      <header className="sticky top-0 z-30" style={{ backgroundColor: '#FFFFFF', borderBottom: '1px solid #e5e7eb' }}>
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="mb-4">
             <h1 className="text-xl font-bold text-center" style={{ color: COLORS.deepNavy }}>{t('store_list.title')}</h1>
           </div>
           
-          {!isCafe && (
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setShowConcierge(true)}
-              className="w-full py-3 px-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all"
-              style={{
-                background: isConciergeActive
-                  ? `linear-gradient(135deg, ${COLORS.champagneGold} 0%, ${COLORS.antiqueGold} 100%)`
-                  : `linear-gradient(135deg, ${COLORS.deepNavy} 0%, ${COLORS.deepNavy} 100%)`,
-                color: isConciergeActive ? COLORS.deepNavy : COLORS.champagneGold,
-                border: `1px solid ${COLORS.champagneGold}66`,
-                boxShadow: `0 4px 15px ${COLORS.champagneGold}40`,
-              }}
-            >
-              <Sparkles className="w-5 h-5" />
-              <span>{isConciergeActive ? t('store_list.concierge_active') : t('store_list.concierge_button')}</span>
-            </motion.button>
-          )}
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => setShowConcierge(true)}
+            className="w-full py-3 px-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all"
+            style={{
+              background: isConciergeActive
+                ? `linear-gradient(135deg, ${COLORS.champagneGold} 0%, ${COLORS.antiqueGold} 100%)`
+                : `linear-gradient(135deg, ${COLORS.deepNavy} 0%, ${COLORS.deepNavy} 100%)`,
+              color: isConciergeActive ? COLORS.deepNavy : COLORS.champagneGold,
+              border: `1px solid ${COLORS.champagneGold}66`,
+              boxShadow: `0 4px 15px ${COLORS.champagneGold}40`,
+            }}
+          >
+            <Sparkles className="w-5 h-5" />
+            <span>{isConciergeActive ? t('store_list.concierge_active') : t('store_list.concierge_button')}</span>
+          </motion.button>
           
           {campaignNameFilter && (
             <motion.div
@@ -963,7 +959,7 @@ function StoreListContent() {
                   }}
                   className="flex flex-col items-center justify-center gap-1 px-3 py-2 touch-manipulation active:scale-95 rounded-lg relative"
                   style={{
-                    background: activeFilterCount > 0 ? COLORS.champagneGold : (!isCafe ? 'rgba(5,5,5,0.7)' : 'rgba(247,243,238,0.9)'),
+                    background: activeFilterCount > 0 ? COLORS.champagneGold : 'rgba(5,5,5,0.7)',
                     backdropFilter: 'blur(20px)',
                     border: activeFilterCount > 0 ? `1px solid ${COLORS.champagneGold}` : `1px solid ${COLORS.champagneGold}4D`,
                     boxShadow: `0 0 20px ${COLORS.champagneGold}33`,
@@ -972,8 +968,8 @@ function StoreListContent() {
                   }}
                   title={t('store_list.filter')}
                 >
-                  <Filter className="w-5 h-5" style={{ color: activeFilterCount > 0 ? COLORS.deepNavy : (!isCafe ? '#FFFFFF' : COLORS.deepNavy) }} />
-                  <span className="text-[10px] font-bold" style={{ color: activeFilterCount > 0 ? COLORS.deepNavy : (!isCafe ? '#FFFFFF' : COLORS.deepNavy) }}>{t('store_list.filter')}</span>
+                  <Filter className="w-5 h-5" style={{ color: activeFilterCount > 0 ? COLORS.deepNavy : '#FFFFFF' }} />
+                  <span className="text-[10px] font-bold" style={{ color: activeFilterCount > 0 ? COLORS.deepNavy : '#FFFFFF' }}>{t('store_list.filter')}</span>
                   {activeFilterCount > 0 && (
                     <span className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center text-xs font-bold text-white">
                       {activeFilterCount}
@@ -995,15 +991,15 @@ function StoreListContent() {
                   <div
                     className="rounded-xl overflow-hidden"
                     style={{
-                      background: !isCafe ? 'rgba(30, 30, 30, 0.95)' : 'rgba(247, 243, 238, 0.98)',
+                      background: 'rgba(30, 30, 30, 0.95)',
                       backdropFilter: 'blur(12px)',
-                      border: !isCafe ? '1px solid rgba(255,255,255,0.1)' : `1px solid ${COLORS.champagneGold}33`,
-                      boxShadow: !isCafe ? '0 10px 40px rgba(0,0,0,0.5)' : '0 10px 40px rgba(0,0,0,0.15)',
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
                     }}
                   >
                     <div className="p-2">
                       <div className="flex items-center justify-between px-3 py-2">
-                        <p className="text-xs font-bold" style={{ color: !isCafe ? '#9ca3af' : COLORS.warmGray }}>{t('store_list.filter_title')}</p>
+                        <p className="text-xs font-bold" style={{ color: '#9ca3af' }}>{t('store_list.filter_title')}</p>
                         <CloseCircleButton
                           type="button"
                           size="sm"
@@ -1015,7 +1011,7 @@ function StoreListContent() {
 
                       <button
                         onClick={() => setOpenNowOnly(!openNowOnly)}
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${openNowOnly ? 'bg-blue-500/20 text-blue-400' : (!isCafe ? 'hover:bg-white/10 text-white' : 'hover:bg-black/5 text-gray-800')}`}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${openNowOnly ? 'bg-blue-500/20 text-blue-400' : ('hover:bg-white/10 text-white')}`}
                       >
                         <img src="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1767848645/icons8-%E9%96%8B%E5%BA%97%E3%82%B5%E3%82%A4%E3%83%B3-94_a4tmzn.png" alt={t('store_list.open')} className="w-5 h-5" />
                         <span className="font-bold text-sm flex-1 text-left">{t('store_list.open')}</span>
@@ -1024,7 +1020,7 @@ function StoreListContent() {
 
                       <button
                         onClick={() => setVacantOnly(!vacantOnly)}
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${vacantOnly ? 'bg-green-500/20 text-green-400' : (!isCafe ? 'hover:bg-white/10 text-white' : 'hover:bg-black/5 text-gray-800')}`}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${vacantOnly ? 'bg-green-500/20 text-green-400' : ('hover:bg-white/10 text-white')}`}
                       >
                         <img src="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761311529/%E7%A9%BA%E5%B8%AD%E3%81%82%E3%82%8A_rzejgw.png" alt={t('store_list.vacant')} className="w-5 h-5" />
                         <span className="font-bold text-sm flex-1 text-left">{t('store_list.vacant')}</span>
@@ -1033,7 +1029,7 @@ function StoreListContent() {
 
                       <button
                         onClick={() => setCouponOnly(!couponOnly)}
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${couponOnly ? 'bg-orange-500/20 text-orange-400' : (!isCafe ? 'hover:bg-white/10 text-white' : 'hover:bg-black/5 text-gray-800')}`}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${couponOnly ? 'bg-orange-500/20 text-orange-400' : ('hover:bg-white/10 text-white')}`}
                       >
                         <Ticket className="w-5 h-5" style={{ color: couponOnly ? '#fb923c' : COLORS.champagneGold }} />
                         <span className="font-bold text-sm flex-1 text-left">{t('store_list.filter_has_coupon')}</span>
@@ -1042,14 +1038,14 @@ function StoreListContent() {
 
                       <button
                         onClick={() => setCampaignOnly(!campaignOnly)}
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${campaignOnly ? 'bg-pink-500/20 text-pink-400' : (!isCafe ? 'hover:bg-white/10 text-white' : 'hover:bg-black/5 text-gray-800')}`}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${campaignOnly ? 'bg-pink-500/20 text-pink-400' : ('hover:bg-white/10 text-white')}`}
                       >
                         <PartyPopper className="w-5 h-5" style={{ color: campaignOnly ? '#f472b6' : COLORS.champagneGold }} />
                         <span className="font-bold text-sm flex-1 text-left">{t('store_list.filter_campaign') || 'キャンペーン中'}</span>
                         {campaignOnly && <Check className="w-4 h-4 text-pink-400" />}
                       </button>
 
-                      <div className={`my-2 border-t ${!isCafe ? 'border-white/10' : 'border-black/10'}`} />
+                      <div className="my-2 border-t border-white/10" />
 
                       <button
                         onClick={() => {
@@ -1059,9 +1055,9 @@ function StoreListContent() {
                           setCampaignOnly(false);
                           setShowFilterMenu(false);
                         }}
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${!vacantOnly && !openNowOnly && !couponOnly && !campaignOnly ? 'bg-amber-500/20 text-amber-400' : (!isCafe ? 'hover:bg-white/10 text-white' : 'hover:bg-black/5 text-gray-800')}`}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${!vacantOnly && !openNowOnly && !couponOnly && !campaignOnly ? 'bg-amber-500/20 text-amber-400' : ('hover:bg-white/10 text-white')}`}
                       >
-                        <span className="w-5 h-5 flex items-center justify-center text-lg">{isCafe ? '☕' : '🍺'}</span>
+                        <span className="w-5 h-5 flex items-center justify-center text-lg">🍺</span>
                         <span className="font-bold text-sm flex-1 text-left">{t('store_list.filter_show_all')}</span>
                         {!vacantOnly && !openNowOnly && !couponOnly && !campaignOnly && <Check className="w-4 h-4 text-amber-400" />}
                       </button>
@@ -1078,7 +1074,7 @@ function StoreListContent() {
                 onClick={() => router.push('/map?refresh=true')}
                 className="flex flex-col items-center justify-center gap-1 px-3 py-2 touch-manipulation active:scale-95 rounded-lg"
                 style={{
-                  background: !isCafe ? 'rgba(5,5,5,0.7)' : 'rgba(247,243,238,0.9)',
+                  background: 'rgba(5,5,5,0.7)',
                   backdropFilter: 'blur(20px)',
                   border: `1px solid ${COLORS.champagneGold}4D`,
                   boxShadow: `0 0 20px ${COLORS.champagneGold}33`,
@@ -1087,8 +1083,8 @@ function StoreListContent() {
                 }}
                 title="Map"
               >
-                <MapIcon className="w-5 h-5" style={{ color: !isCafe ? '#FFFFFF' : COLORS.deepNavy }} />
-                <span className="text-[10px] font-bold" style={{ color: !isCafe ? '#FFFFFF' : COLORS.deepNavy }}>Map</span>
+                <MapIcon className="w-5 h-5" style={{ color: '#FFFFFF' }} />
+                <span className="text-[10px] font-bold" style={{ color: '#FFFFFF' }}>Map</span>
               </Button>
             </motion.div>
           </motion.div>

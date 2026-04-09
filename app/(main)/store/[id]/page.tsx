@@ -47,7 +47,7 @@ import { useAppMode } from '@/lib/app-mode-context';
 import { translations } from '@/lib/i18n/translations';
 import { InstantReservationButton } from '@/components/instant-reservation-button';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
-import { getFacilityCategoriesByStoreCategory } from '@/lib/types/store-application';
+import { FACILITY_CATEGORIES } from '@/lib/types/store-application';
 import { CouponDisplayModal } from '@/components/store/CouponDisplayModal';
 import { isCouponValid, type CouponData } from '@/lib/types/coupon';
 import { ImageLightbox } from '@/components/ui/ImageLightbox';
@@ -210,25 +210,15 @@ export default function StoreDetailPage() {
     return paymentMethodsMap?.[method] || method;
   };
 
-  /** 設備カテゴリ見出し（店舗カテゴリで bar / both の女性向け表記が異なる） */
-  const facilityCategoryTitle = (key: string, storeCategory: 'bar' | 'cafe' | 'both'): string => {
+  /** 設備カテゴリ見出し */
+  const facilityCategoryTitle = (key: string): string => {
     switch (key) {
       case 'newcomer':
         return t('store_detail.facility_heading_newcomer');
-      case 'atmosphere':
-        return t('store_detail.facility_heading_atmosphere');
-      case 'workspace':
-        return t('store_detail.facility_heading_workspace');
-      case 'women_family':
-        return t('store_detail.facility_heading_women_family');
       case 'women':
-        return storeCategory === 'both'
-          ? t('store_detail.facility_heading_women_both')
-          : t('store_detail.facility_heading_women_bar');
+        return t('store_detail.facility_heading_women_bar');
       case 'pricing':
-        return storeCategory === 'cafe'
-          ? t('store_detail.facility_heading_pricing_cafe')
-          : t('store_detail.facility_heading_pricing');
+        return t('store_detail.facility_heading_pricing');
       default:
         return key;
     }
@@ -1309,8 +1299,7 @@ export default function StoreDetailPage() {
                     
                     {/* カテゴリ別の設備表示（店舗カテゴリに応じて動的） */}
                     {(() => {
-                      const sc = ((store as any).store_category || 'bar') as 'bar' | 'cafe' | 'both';
-                      const cats = getFacilityCategoriesByStoreCategory(sc);
+                      const cats = FACILITY_CATEGORIES;
                       const categoryColors: Record<string, { bg: string; border: string; text: string; badgeBg: string; badgeBorder: string }> = {
                         newcomer: { bg: 'rgba(19, 41, 75, 0.06)', border: 'rgba(19, 41, 75, 0.14)', text: STORE_LINK_NAVY, badgeBg: 'rgba(19, 41, 75, 0.1)', badgeBorder: 'rgba(19, 41, 75, 0.2)' },
                         atmosphere: { bg: 'rgba(10, 22, 40, 0.05)', border: 'rgba(10, 22, 40, 0.1)', text: COLORS.royalNavy, badgeBg: 'rgba(31, 64, 104, 0.1)', badgeBorder: 'rgba(31, 64, 104, 0.2)' },
@@ -1334,7 +1323,7 @@ export default function StoreDetailPage() {
                             return (
                               <div key={key} className="mb-3 p-3 rounded-xl" style={{ backgroundColor: colors.bg, border: `1px solid ${colors.border}` }}>
                                 <p className="text-xs font-bold mb-2 flex items-center gap-1" style={{ color: colors.text }}>
-                                  {facilityCategoryTitle(key, sc)}
+                                  {facilityCategoryTitle(key)}
                                 </p>
                                 <div className="flex flex-wrap gap-1">
                                   {matched.map((facility) => (

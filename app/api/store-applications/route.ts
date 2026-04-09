@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
       .from('store_applications')
       .insert({
         store_name: store_name.trim(),
-        store_category: store_category || 'bar',
+        store_category: 'bar',
         description: description?.trim() || null,
         address: address.trim(),
         phone: phone?.trim() || null,
@@ -112,7 +112,7 @@ export async function POST(request: NextRequest) {
         timestamp: new Date().toISOString(),
         id: data.id,
         store_name: store_name.trim(),
-        store_category: store_category || 'bar',
+        store_category: 'bar',
         description: description?.trim() || '',
         address: address.trim(),
         phone: phone?.trim() || '',

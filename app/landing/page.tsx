@@ -25,8 +25,6 @@ import {
   Mail,
   ExternalLink,
   Scale,
-  Beer,
-  Coffee,
   LogIn,
   Loader2,
 } from 'lucide-react';
@@ -115,66 +113,57 @@ const GoldDivider = () => (
 export default function LandingPage() {
   const router = useRouter();
   const { t, language, setLanguage } = useLanguage();
-  const { colorsA: colors, mode, isCafe, toggleMode } = useAppMode();
+  const { colorsA: colors } = useAppMode();
 
-  /** Bar: ページ=ネイビー・カード=オフ白。カフェ: ページとテキストを反転（ページ=オフ白・カード=ネイビー） */
+  /** Bar: ページ=ネイビー・カード=オフ白 */
   const lpPage = {
-    bg: isCafe ? LP_CARD.bg : LP_NAVY,
-    text: isCafe ? LP_CARD.text : LP_ON_NAVY.text,
-    textMuted: isCafe ? LP_CARD.textMuted : LP_ON_NAVY.textMuted,
-    textSubtle: isCafe ? LP_CARD.textSubtle : LP_ON_NAVY.textSubtle,
-    border: isCafe ? LP_CARD.borderSubtle : LP_ON_NAVY.border,
+    bg: LP_NAVY,
+    text: LP_ON_NAVY.text,
+    textMuted: LP_ON_NAVY.textMuted,
+    textSubtle: LP_ON_NAVY.textSubtle,
+    border: LP_ON_NAVY.border,
   } as const;
   const lpElevated = {
-    bg: isCafe ? LP_NAVY : LP_CARD.bg,
-    text: isCafe ? LP_ON_NAVY.text : LP_CARD.text,
-    textMuted: isCafe ? LP_ON_NAVY.textMuted : LP_CARD.textMuted,
-    textSubtle: isCafe ? LP_ON_NAVY.textSubtle : LP_CARD.textSubtle,
-    border: isCafe ? LP_ON_NAVY.border : LP_CARD.borderSubtle,
+    bg: LP_CARD.bg,
+    text: LP_CARD.text,
+    textMuted: LP_CARD.textMuted,
+    textSubtle: LP_CARD.textSubtle,
+    border: LP_CARD.borderSubtle,
   } as const;
   const lpFab = {
-    bg: isCafe ? `rgba(19, 41, 75, 0.9)` : '#FFFFFFE6',
-    border: isCafe ? 'rgba(255, 198, 45, 0.35)' : LP_CARD.borderSubtle,
-    icon: isCafe ? LP_ON_NAVY.text : LP_CARD.text,
+    bg: '#FFFFFFE6',
+    border: LP_CARD.borderSubtle,
+    icon: LP_CARD.text,
   } as const;
-  const lpDotInactive = isCafe ? 'rgba(19, 41, 75, 0.22)' : 'rgba(255, 255, 255, 0.28)';
-  const lpLinkOnElevated = isCafe ? LP_YELLOW : LP_NAVY;
-  const lpSubtitleOnElevated = isCafe ? LP_ON_NAVY.textSubtle : colors.accentDark;
+  const lpDotInactive = 'rgba(255, 255, 255, 0.28)';
+  const lpLinkOnElevated = LP_NAVY;
+  const lpSubtitleOnElevated = colors.accentDark;
 
-  /** NEWS〜エリアガイド: オフ白ページ＋ネイビーカード（Bar/カフェ共通トークン。カフェは lpPage と同じ） */
-  const lpMid = isCafe
-    ? {
-        page: lpPage,
-        elevated: lpElevated,
-        fab: lpFab,
-        dotInactive: lpDotInactive,
-        linkOnElevated: lpLinkOnElevated,
-        subtitleOnElevated: lpSubtitleOnElevated,
-      }
-    : {
-        page: {
-          bg: LP_CARD.bg,
-          text: LP_CARD.text,
-          textMuted: LP_CARD.textMuted,
-          textSubtle: LP_CARD.textSubtle,
-          border: LP_CARD.borderSubtle,
-        },
-        elevated: {
-          bg: LP_NAVY,
-          text: LP_ON_NAVY.text,
-          textMuted: LP_ON_NAVY.textMuted,
-          textSubtle: LP_ON_NAVY.textSubtle,
-          border: LP_ON_NAVY.border,
-        },
-        fab: {
-          bg: `rgba(19, 41, 75, 0.9)`,
-          border: 'rgba(255, 198, 45, 0.35)',
-          icon: LP_ON_NAVY.text,
-        },
-        dotInactive: 'rgba(19, 41, 75, 0.22)',
-        linkOnElevated: LP_YELLOW,
-        subtitleOnElevated: LP_ON_NAVY.textSubtle,
-      };
+  /** NEWS〜エリアガイド: オフ白ページ＋ネイビーカード */
+  const lpMid = {
+    page: {
+      bg: LP_CARD.bg,
+      text: LP_CARD.text,
+      textMuted: LP_CARD.textMuted,
+      textSubtle: LP_CARD.textSubtle,
+      border: LP_CARD.borderSubtle,
+    },
+    elevated: {
+      bg: LP_NAVY,
+      text: LP_ON_NAVY.text,
+      textMuted: LP_ON_NAVY.textMuted,
+      textSubtle: LP_ON_NAVY.textSubtle,
+      border: LP_ON_NAVY.border,
+    },
+    fab: {
+      bg: `rgba(19, 41, 75, 0.9)`,
+      border: 'rgba(255, 198, 45, 0.35)',
+      icon: LP_ON_NAVY.text,
+    },
+    dotInactive: 'rgba(19, 41, 75, 0.22)',
+    linkOnElevated: LP_YELLOW,
+    subtitleOnElevated: LP_ON_NAVY.textSubtle,
+  };
 
   /** オフホワイト／白地ではアクセント文字をネイビーに（イエローは暗色面のみ） */
   const accentTextOnLightBg = (surfaceBg: string) =>
@@ -218,15 +207,7 @@ export default function LandingPage() {
     'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772501860/drew-beamer-bTN-zKFy9uA-unsplash_kmcnyo.jpg',
     'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772501854/kris-sevinc-NVX55qVyEkE-unsplash_pjwsez.jpg',
   ];
-  const dayHeroImages = [
-    'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1773409116/nathan-dumlao-2z3MOB3kfJU-unsplash_vnotg8.jpg',
-    'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1773409115/toa-heftiba-QnUywvDdI1o-unsplash_c5dsy7.jpg',
-    'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1773409115/shen-liu-2PUwRmJOdNo-unsplash_u3trvd.jpg',
-    'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1773409144/rodeo-project-management-software-PYqzYhTNjho-unsplash_oj05gw.jpg',
-    'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1773409116/petr-sevcovic-qE1jxYXiwOA-unsplash_amza7y.jpg',
-    'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1773409142/copernico--8DAN9_oi8g-unsplash_pzzdj2.jpg',
-  ];
-  const heroImages = isCafe ? dayHeroImages : nightHeroImages;
+  const heroImages = nightHeroImages;
 
   useEffect(() => {
     const root = document.documentElement;
@@ -234,7 +215,7 @@ export default function LandingPage() {
     const prevRoot = root.style.background;
     const prevBody = body.style.background;
     const prevBodyColor = body.style.backgroundColor;
-    const bg = isCafe ? LP_CARD.bg : LP_NAVY;
+    const bg = LP_NAVY;
     root.style.background = bg;
     body.style.background = bg;
     body.style.backgroundColor = '';
@@ -243,11 +224,11 @@ export default function LandingPage() {
       body.style.background = prevBody;
       body.style.backgroundColor = prevBodyColor;
     };
-  }, [isCafe]);
+  }, []);
 
   // 画像をプリロードして切り替え時の空白を防ぐ（夜モード・昼モード共通）
   useEffect(() => {
-    [...nightHeroImages, ...dayHeroImages].forEach((src) => {
+    nightHeroImages.forEach((src) => {
       const img = new Image();
       img.src = src;
     });
@@ -295,15 +276,13 @@ export default function LandingPage() {
       try {
         const { data, error } = await supabase.from('stores').select('id, name, image_urls, website_url, description, vacancy_status')
           .not('image_urls', 'is', null)
-          // @ts-ignore – store_category は Phase 2 で型定義済み、DBマイグレーション後に有効
-          .or(`store_category.eq.${mode},store_category.eq.both`)
           .limit(10);
         if (error) return;
         if (data) { setPartnerStores((data as PartnerStore[]).filter((store) => store.image_urls && store.image_urls.length > 0)); }
       } catch (error) { console.error('Error fetching partner stores:', error); }
     };
     fetchPartnerStores();
-  }, [mode]);
+  }, []);
 
   // キャンペーンマスタとキャンペーン実施中の店舗を取得
   useEffect(() => {
@@ -336,8 +315,6 @@ export default function LandingPage() {
           .select('id, name, has_campaign, campaign_name, campaign_start_date, campaign_end_date, image_urls')
           .eq('has_campaign', true)
           .or(`campaign_end_date.is.null,campaign_end_date.gte.${now}`)
-          // @ts-ignore – store_category は Phase 2 で型定義済み、DBマイグレーション後に有効
-          .or(`store_category.eq.${mode},store_category.eq.both`)
           .limit(10);
         
         if (storeError) {
@@ -362,9 +339,7 @@ export default function LandingPage() {
   useEffect(() => {
     const checkVacantStores = async () => {
       try {
-        const { data, error } = await supabase.from('stores').select('id, vacancy_status').eq('vacancy_status', 'vacant')
-          // @ts-ignore – store_category フィルタ
-          .or(`store_category.eq.${mode},store_category.eq.both`).limit(1);
+        const { data, error } = await supabase.from('stores').select('id, vacancy_status').eq('vacancy_status', 'vacant').limit(1);
         if (error) return;
         if (data && data.length > 0) { setShowToast(true); setTimeout(() => setShowToast(false), 3000); }
       } catch (error) { console.error('Error checking vacant stores:', error); }
@@ -473,14 +448,14 @@ export default function LandingPage() {
       {/* 背景装飾エフェクト */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <motion.div className="absolute w-[700px] h-[700px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(255, 198, 45, 0.12) 0%, transparent 60%)', top: '-250px', right: '-250px', filter: 'blur(80px)' }} animate={{ opacity: [0.3, 0.5, 0.3] }} transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }} />
-        <motion.div className="absolute w-[500px] h-[500px] rounded-full" style={{ background: isCafe ? 'radial-gradient(circle, rgba(19, 41, 75, 0.06) 0%, transparent 60%)' : 'radial-gradient(circle, rgba(255, 255, 255, 0.06) 0%, transparent 60%)', bottom: '10%', left: '-150px', filter: 'blur(60px)' }} animate={{ opacity: [0.2, 0.35, 0.2] }} transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 3 }} />
+        <motion.div className="absolute w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(255, 255, 255, 0.06) 0%, transparent 60%)', bottom: '10%', left: '-150px', filter: 'blur(60px)' }} animate={{ opacity: [0.2, 0.35, 0.2] }} transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 3 }} />
       </div>
 
       {/* Toast Notification */}
       <AnimatePresence>
         {showToast && (
           <motion.div initial={{ opacity: 0, y: -20, x: '-50%' }} animate={{ opacity: 1, y: 0, x: '-50%' }} exit={{ opacity: 0, y: -20, x: '-50%' }} className="fixed top-20 left-1/2 z-50">
-            <div className="flex items-center gap-3 px-5 py-3 rounded-full" style={{ background: isCafe ? 'rgba(19,41,75,0.06)' : 'rgba(255,255,255,0.1)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255, 198, 45, 0.35)', boxShadow: isCafe ? '0 8px 30px rgba(0,0,0,0.08)' : '0 8px 30px rgba(0,0,0,0.25)' }}>
+            <div className="flex items-center gap-3 px-5 py-3 rounded-full" style={{ background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255, 198, 45, 0.35)', boxShadow: '0 8px 30px rgba(0,0,0,0.25)' }}>
               <motion.div animate={{ scale: [1, 1.3, 1], opacity: [1, 0.7, 1] }} transition={{ duration: 1, repeat: Infinity }} className="w-2.5 h-2.5 rounded-full" style={{ background: '#4ADE80', boxShadow: '0 0 10px #4ADE80' }} />
               <span className="text-sm font-medium" style={{ color: lpPage.text }}>{t('landing.seats_available')}</span>
             </div>
@@ -508,45 +483,13 @@ export default function LandingPage() {
               />
               <span
                 className="hidden sm:inline-block text-[9px] px-2 py-1 rounded-full font-medium tracking-[0.1em] uppercase shrink-0"
-                style={
-                  lpPage.bg === LP_CARD.bg
-                    ? { background: 'rgba(19, 41, 75, 0.08)', border: '1px solid rgba(19, 41, 75, 0.22)', color: LP_NAVY }
-                    : { background: 'rgba(255, 198, 45, 0.15)', border: `1px solid rgba(255, 198, 45, 0.4)`, color: LP_YELLOW }
-                }
+                style={{ background: 'rgba(255, 198, 45, 0.15)', border: '1px solid rgba(255, 198, 45, 0.4)', color: LP_YELLOW }}
               >
-                {isCafe ? t('common.day_spot') : t('landing.night_spot')}
+                {t('landing.night_spot')}
               </span>
             </motion.button>
           </motion.div>
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* モード切替（バー / カフェ） */}
-            <div
-              className="flex items-center rounded-full p-0.5"
-              style={
-                lpPage.bg === LP_CARD.bg
-                  ? { background: 'rgba(19, 41, 75, 0.06)', border: '1px solid rgba(19, 41, 75, 0.18)' }
-                  : { background: 'rgba(255, 198, 45, 0.12)', border: '1px solid rgba(255, 198, 45, 0.35)' }
-              }
-            >
-              {([
-                { key: 'bar', icon: Beer, label: 'Bar' },
-                { key: 'cafe', icon: Coffee, label: 'Cafe' },
-              ] as const).map(({ key, icon: Icon, label }) => (
-                <button
-                  key={key}
-                  onClick={toggleMode}
-                  className="relative px-2 py-1.5 rounded-full transition-all duration-200 touch-manipulation active:scale-95 flex items-center gap-1"
-                  style={{
-                    background: mode === key ? LP_YELLOW : 'transparent',
-                    color: mode === key ? LP_NAVY : lpPage.textMuted,
-                  }}
-                  title={label}
-                >
-                  <Icon className="w-3.5 h-3.5" />
-                  <span className="text-[10px] font-medium hidden sm:inline">{label}</span>
-                </button>
-              ))}
-            </div>
             {/* 言語切替 */}
             <div className="relative language-menu-container">
               <Button
@@ -572,10 +515,10 @@ export default function LandingPage() {
                     <div
                       className="rounded-xl overflow-hidden"
                       style={{
-                        background: isCafe ? 'rgba(247, 243, 238, 0.98)' : 'rgba(30, 30, 30, 0.95)',
+                        background: 'rgba(30, 30, 30, 0.95)',
                         backdropFilter: 'blur(12px)',
-                        border: isCafe ? `1px solid rgba(255, 198, 45, 0.35)` : '1px solid rgba(255,255,255,0.1)',
-                        boxShadow: isCafe ? '0 10px 40px rgba(0,0,0,0.15)' : '0 10px 40px rgba(0,0,0,0.5)',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
                       }}
                     >
                       <div className="p-2">
@@ -588,17 +531,17 @@ export default function LandingPage() {
                             onClick={() => handleLanguageSelect(lang)}
                             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
                               language === lang
-                                ? (!isCafe ? 'bg-amber-500/20' : 'bg-amber-700/10')
-                                : (!isCafe ? 'hover:bg-white/10' : 'hover:bg-black/5')
+                                ? 'bg-amber-500/20'
+                                : 'hover:bg-white/10'
                             }`}
-                            style={{ color: language === lang ? (isCafe ? LP_NAVY : LP_YELLOW) : lpPage.text }}
+                            style={{ color: language === lang ? LP_YELLOW : lpPage.text }}
                           >
                             <span className="text-xl">{LANGUAGE_META[lang].flag}</span>
                             <span className="font-bold text-sm flex-1 text-left">
                               {LANGUAGE_META[lang].nativeName}
                             </span>
                             {language === lang && (
-                              <CheckCircle className="w-4 h-4" style={{ color: isCafe ? LP_NAVY : LP_YELLOW }} />
+                              <CheckCircle className="w-4 h-4" style={{ color: LP_YELLOW }} />
                             )}
                           </button>
                         ))}
@@ -618,7 +561,7 @@ export default function LandingPage() {
       <AnimatePresence>
         {showMenu && (
           <>
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-40" style={{ background: isCafe ? 'rgba(250, 248, 245, 0.88)' : 'rgba(10, 22, 40, 0.9)' }} onClick={() => setShowMenu(false)} />
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-40" style={{ background: 'rgba(10, 22, 40, 0.9)' }} onClick={() => setShowMenu(false)} />
             <motion.div initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'spring', damping: 25, stiffness: 200 }} className="fixed right-0 top-0 bottom-0 w-80 z-50 overflow-y-auto" style={{ background: lpPage.bg, borderLeft: `1px solid ${lpPage.border}` }}>
               <div className="p-6 pt-20">
                 <motion.div
@@ -628,15 +571,11 @@ export default function LandingPage() {
                   className="flex flex-col items-center mb-8 pb-6"
                   style={{ borderBottom: `1px solid ${lpPage.border}` }}
                 >
-                  {isCafe ? (
-                    <Coffee className="h-12 w-12" style={{ color: LP_NAVY }} />
-                  ) : (
-                    <img
-                      src="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761355092/%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png"
-                      alt="NIKENME+"
-                      className="h-12 w-auto max-w-[200px] object-contain object-center"
-                    />
-                  )}
+                  <img
+                    src="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761355092/%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png"
+                    alt="NIKENME+"
+                    className="h-12 w-auto max-w-[200px] object-contain object-center"
+                  />
                 </motion.div>
                 <div className="mb-8">
                   <h2 className="text-xl font-bold mb-1" style={{ color: lpPage.text }}>{t('menu.title')}</h2>
@@ -730,13 +669,13 @@ export default function LandingPage() {
                   whileHover={{ scale: 1.03, y: -2 }}
                   whileTap={{ scale: 0.98 }}
                   className="rounded-full relative overflow-hidden group inline-block"
-                  style={{ boxShadow: isCafe ? colors.shadowGold : '0 8px 28px rgba(255, 198, 45, 0.35)' }}
+                  style={{ boxShadow: '0 8px 28px rgba(255, 198, 45, 0.35)' }}
                 >
                   <Button
                     size="lg"
                     onClick={handleMapClick}
                     className="text-lg px-10 py-6 rounded-full font-semibold transition-all relative z-10"
-                  style={{ background: isCafe ? colors.goldGradient : LP_YELLOW, color: isCafe ? colors.background : LP_NAVY }}
+                  style={{ background: LP_YELLOW, color: LP_NAVY }}
                   >
                     <Store className="w-5 h-5 mr-2" />{t('landing.cta_button_primary')}
                   </Button>
@@ -756,7 +695,7 @@ export default function LandingPage() {
                 className="text-xs tracking-wider mt-5"
                 style={{ color: lpPage.textSubtle }}
               >
-                {isCafe ? t('landing.cafe_hero_subcopy') : t('landing.hero_subcopy')}
+                {t('landing.hero_subcopy')}
               </motion.p>
             </div>
           </motion.aside>
@@ -785,9 +724,7 @@ export default function LandingPage() {
               <div
                 className="absolute inset-0"
                 style={{
-                  background: isCafe
-                    ? 'linear-gradient(to bottom, rgba(0,0,0,0.12) 0%, rgba(0,0,0,0.06) 50%, rgba(0,0,0,0.20) 100%)'
-                    : 'linear-gradient(to bottom, rgba(19,41,75,0.45) 0%, rgba(19,41,75,0.25) 40%, rgba(19,41,75,0.72) 100%)',
+                  background: 'linear-gradient(to bottom, rgba(19,41,75,0.45) 0%, rgba(19,41,75,0.25) 40%, rgba(19,41,75,0.72) 100%)',
                 }}
               />
             </motion.div>
@@ -803,22 +740,20 @@ export default function LandingPage() {
             >
               <h1 className="text-lg sm:text-2xl md:text-3xl font-bold mb-6 leading-tight">
                 <span style={{ color: '#FFFFFF', textShadow: '0 2px 12px rgba(0,0,0,0.45)' }}>
-                  {isCafe
-                    ? renderWithLineBreaks(t('landing.cafe_hero_catchphrase'))
-                    : renderWithLineBreaks(t('landing.hero_catchphrase'))}
+                  {renderWithLineBreaks(t('landing.hero_catchphrase'))}
                 </span>
               </h1>
               <motion.div
                 whileHover={{ scale: 1.03, y: -2 }}
                 whileTap={{ scale: 0.98 }}
                 className="rounded-full relative overflow-hidden group inline-block mb-6"
-                style={{ boxShadow: isCafe ? colors.shadowGold : '0 8px 28px rgba(255, 198, 45, 0.35)' }}
+                style={{ boxShadow: '0 8px 28px rgba(255, 198, 45, 0.35)' }}
               >
                 <Button
                   size="lg"
                   onClick={handleMapClick}
                   className="text-lg px-10 py-6 rounded-full font-semibold transition-all relative z-10"
-                  style={{ background: isCafe ? 'linear-gradient(135deg, #5C3D2E 0%, #7A5C3C 50%, #4A2E1F 100%)' : LP_YELLOW, color: isCafe ? '#F7F3EE' : LP_NAVY }}
+                  style={{ background: LP_YELLOW, color: LP_NAVY }}
                 >
                   <Store className="w-5 h-5 mr-2" />{t('landing.cta_button_primary')}
                 </Button>
@@ -829,10 +764,8 @@ export default function LandingPage() {
                   transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 1 }}
                 />
               </motion.div>
-              <p className="text-xs sm:text-sm tracking-wider mb-3" style={{ color: isCafe ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.88)', textShadow: isCafe ? '0 1px 4px rgba(0,0,0,0.4)' : '0 1px 6px rgba(0,0,0,0.4)' }}>
-                {isCafe
-                  ? t('landing.cafe_hero_subcopy')
-                  : t('landing.hero_subcopy')}
+              <p className="text-xs sm:text-sm tracking-wider mb-3" style={{ color: 'rgba(255,255,255,0.88)', textShadow: '0 1px 6px rgba(0,0,0,0.4)' }}>
+                {t('landing.hero_subcopy')}
               </p>
               <span className="text-[10px] font-medium tracking-[0.3em] uppercase block mb-2" style={{ color: 'rgba(255,255,255,0.65)' }}>
                 SCROLL
@@ -1547,8 +1480,8 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* SEO エリアガイドセクション（カフェ版では非表示 - 後日カフェ版を作成予定） */}
-      {!isCafe && <section className="relative py-10 md:py-20 px-4 overflow-hidden" style={{ background: lpMid.page.bg }}>
+      {/* SEO エリアガイドセクション */}
+      <section className="relative py-10 md:py-20 px-4 overflow-hidden" style={{ background: lpMid.page.bg }}>
         <div className="container mx-auto max-w-4xl lg:max-w-7xl">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
             <GoldDivider />
@@ -1644,7 +1577,7 @@ export default function LandingPage() {
           })()}
         </div>
         <motion.div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${LP_YELLOW}40, transparent)` }} />
-      </section>}
+      </section>
 
       {/* Partner Stores Section - 流れるマーキー */}
       {partnerStores.length > 0 && (
@@ -1687,11 +1620,7 @@ export default function LandingPage() {
               <Button
                 onClick={() => router.push('/store-list')}
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-full font-medium transition-all hover:scale-105 min-h-[48px]"
-                style={
-                  lpPage.bg === LP_CARD.bg
-                    ? { background: 'rgba(19, 41, 75, 0.06)', border: '1px solid rgba(19, 41, 75, 0.22)', color: LP_NAVY }
-                    : { background: `${LP_YELLOW}15`, border: '1px solid rgba(255, 198, 45, 0.4)', color: LP_YELLOW }
-                }
+                style={{ background: `${LP_YELLOW}15`, border: '1px solid rgba(255, 198, 45, 0.4)', color: LP_YELLOW }}
               >
                 <Store className="w-5 h-5" />
                 {t('common.view_all_partners')}
@@ -1711,7 +1640,7 @@ export default function LandingPage() {
             <p className="text-base mb-8" style={{ color: lpPage.textMuted }}>{renderWithLineBreaks(t('landing.contact_subtitle'))}</p>
             <Link href="/contact">
               <motion.div whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.98 }} className="inline-block">
-                <Button size="lg" className="text-base px-8 py-6 rounded-full font-semibold" style={{ background: isCafe ? 'linear-gradient(135deg, #5C3D2E 0%, #7A5C3C 50%, #4A2E1F 100%)' : LP_YELLOW, color: isCafe ? '#F7F3EE' : LP_NAVY, boxShadow: isCafe ? colors.shadowGold : '0 8px 28px rgba(255, 198, 45, 0.35)' }}>
+                <Button size="lg" className="text-base px-8 py-6 rounded-full font-semibold" style={{ background: LP_YELLOW, color: LP_NAVY, boxShadow: '0 8px 28px rgba(255, 198, 45, 0.35)' }}>
                   <Mail className="w-5 h-5 mr-2" />{t('landing.contact_button')}
                 </Button>
               </motion.div>
@@ -1722,12 +1651,12 @@ export default function LandingPage() {
       </section>
 
       {/* Company Section */}
-      <section className="relative py-12 md:py-24 px-4 overflow-hidden" style={{ background: isCafe ? LP_NAVY : LP_CARD.bg }}>
+      <section className="relative py-12 md:py-24 px-4 overflow-hidden" style={{ background: LP_CARD.bg }}>
         <div className="container mx-auto max-w-3xl">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
             <GoldDivider />
-            <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4" style={{ color: isCafe ? LP_YELLOW : LP_NAVY }}>Company</span>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold" style={{ color: isCafe ? LP_ON_NAVY.text : LP_CARD.text }}>{t('landing.company_title')}</h2>
+            <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4" style={{ color: LP_NAVY }}>Company</span>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold" style={{ color: LP_CARD.text }}>{t('landing.company_title')}</h2>
           </motion.div>
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="rounded-2xl p-6 sm:p-8" style={{ background: '#FFFFFF', border: `1px solid ${LP_CARD.borderSubtle}`, boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
             <div className="space-y-4">
@@ -1756,9 +1685,7 @@ export default function LandingPage() {
       <footer className="py-12 px-4" style={{ background: lpPage.bg, borderTop: '1px solid rgba(255, 198, 45, 0.35)' }}>
         <div className="container mx-auto max-w-6xl">
           <div className="flex justify-center mb-8">
-            {isCafe
-              ? <Coffee className="h-12 w-12 opacity-70" style={{ color: LP_NAVY }} />
-              : <img src="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761355092/%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png" alt="NIKENME+" className="h-12 w-auto object-contain opacity-70" />}
+            <img src="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761355092/%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png" alt="NIKENME+" className="h-12 w-auto object-contain opacity-70" />
           </div>
           <nav className="grid grid-cols-2 gap-4 sm:gap-6 max-w-md mx-auto mb-8">
             {footerLinks.map((link, index) => {
@@ -1781,8 +1708,8 @@ export default function LandingPage() {
       {/* Location Permission Modal */}
       <AnimatePresence>
         {showLocationModal && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: isCafe ? 'rgba(45, 36, 32, 0.95)' : 'rgba(10, 22, 40, 0.95)' }} onClick={() => locationPermission !== 'loading' && setShowLocationModal(false)}>
-            <div className="absolute inset-0 backdrop-blur-md" style={{ backgroundColor: isCafe ? 'rgba(45, 36, 32, 0.5)' : 'rgba(10, 22, 40, 0.5)' }} />
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(10, 22, 40, 0.95)' }} onClick={() => locationPermission !== 'loading' && setShowLocationModal(false)}>
+            <div className="absolute inset-0 backdrop-blur-md" style={{ backgroundColor: 'rgba(10, 22, 40, 0.5)' }} />
             <motion.div className="absolute w-[500px] h-[500px] rounded-full pointer-events-none" style={{ background: `radial-gradient(circle, ${LP_YELLOW}15 0%, transparent 70%)`, top: '50%', left: '50%', transform: 'translate(-50%, -50%)', filter: 'blur(60px)' }} animate={{ opacity: [0.3, 0.6, 0.3], scale: [1, 1.1, 1] }} transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }} />
 
               <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} transition={{ duration: 0.3 }} className="relative z-10 w-full max-w-md rounded-3xl overflow-hidden" style={{ background: lpPage.bg, border: '1px solid rgba(255, 198, 45, 0.35)', boxShadow: `${colors.shadowDeep}, 0 0 60px rgba(255, 198, 45, 0.12)` }} onClick={(e) => e.stopPropagation()}>
@@ -1804,7 +1731,7 @@ export default function LandingPage() {
                     </motion.div>
                   )}
                   <div className="space-y-3">
-                    <motion.button whileHover={locationPermission !== 'loading' ? { scale: 1.02, y: -2 } : {}} whileTap={locationPermission !== 'loading' ? { scale: 0.98 } : {}} onClick={() => locationPermission !== 'loading' && handleLocationPermission(true)} className="w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all relative overflow-hidden group" style={{ background: isCafe ? 'linear-gradient(135deg, #5C3D2E 0%, #7A5C3C 50%, #4A2E1F 100%)' : LP_YELLOW, color: isCafe ? '#F7F3EE' : LP_NAVY, boxShadow: isCafe ? colors.shadowGold : '0 8px 28px rgba(255, 198, 45, 0.35)', opacity: locationPermission === 'loading' ? 0.8 : 1 }}>
+                    <motion.button whileHover={locationPermission !== 'loading' ? { scale: 1.02, y: -2 } : {}} whileTap={locationPermission !== 'loading' ? { scale: 0.98 } : {}} onClick={() => locationPermission !== 'loading' && handleLocationPermission(true)} className="w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all relative overflow-hidden group" style={{ background: LP_YELLOW, color: LP_NAVY, boxShadow: '0 8px 28px rgba(255, 198, 45, 0.35)', opacity: locationPermission === 'loading' ? 0.8 : 1 }}>
                       <motion.div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%)' }} animate={{ x: ['-100%', '200%'] }} transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 1 }} />
                       <span className="relative z-10 flex items-center justify-center gap-2">
                         {locationPermission === 'loading' ? (
@@ -1836,10 +1763,10 @@ export default function LandingPage() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex items-center justify-center p-4"
-            style={{ backgroundColor: isCafe ? 'rgba(45, 36, 32, 0.95)' : 'rgba(10, 22, 40, 0.95)' }}
+            style={{ backgroundColor: 'rgba(10, 22, 40, 0.95)' }}
             onClick={() => setShowStoreActionsModal(false)}
           >
-            <div className="absolute inset-0 backdrop-blur-md" style={{ backgroundColor: isCafe ? 'rgba(45, 36, 32, 0.5)' : 'rgba(10, 22, 40, 0.5)' }} />
+            <div className="absolute inset-0 backdrop-blur-md" style={{ backgroundColor: 'rgba(10, 22, 40, 0.5)' }} />
             <motion.div
               className="absolute w-[500px] h-[500px] rounded-full pointer-events-none"
               style={{
@@ -1889,11 +1816,7 @@ export default function LandingPage() {
                 >
                   <div
                     className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl"
-                    style={
-                      isCafe
-                        ? { background: 'rgba(19, 41, 75, 0.08)', border: '1px solid rgba(19, 41, 75, 0.22)' }
-                        : { background: `${LP_YELLOW}18`, border: `1px solid rgba(255, 198, 45, 0.35)` }
-                    }
+                    style={{ background: `${LP_YELLOW}18`, border: `1px solid rgba(255, 198, 45, 0.35)` }}
                   >
                     <motion.div
                       animate={{ scale: [1, 1.06, 1] }}
@@ -1917,9 +1840,9 @@ export default function LandingPage() {
                       onClick={() => setShowStoreActionsModal(false)}
                       className="relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-xl py-4 px-6 text-lg font-semibold transition-all group"
                       style={{
-                        background: isCafe ? 'linear-gradient(135deg, #5C3D2E 0%, #7A5C3C 50%, #4A2E1F 100%)' : LP_YELLOW,
-                        color: isCafe ? '#F7F3EE' : LP_NAVY,
-                        boxShadow: isCafe ? colors.shadowGold : '0 8px 28px rgba(255, 198, 45, 0.35)',
+                        background: LP_YELLOW,
+                        color: LP_NAVY,
+                        boxShadow: '0 8px 28px rgba(255, 198, 45, 0.35)',
                       }}
                     >
                       <motion.div
@@ -1940,8 +1863,8 @@ export default function LandingPage() {
                       onClick={() => setShowStoreActionsModal(false)}
                       className="flex w-full items-center justify-center gap-2 rounded-xl py-4 px-6 text-base font-medium transition-all"
                       style={{
-                        background: isCafe ? 'rgba(19,41,75,0.06)' : 'rgba(255,255,255,0.08)',
-                        border: isCafe ? '1px solid rgba(19, 41, 75, 0.2)' : '1px solid rgba(255, 198, 45, 0.35)',
+                        background: 'rgba(255,255,255,0.08)',
+                        border: '1px solid rgba(255, 198, 45, 0.35)',
                         color: lpPage.textMuted,
                       }}
                     >

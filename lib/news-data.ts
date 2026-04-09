@@ -21,9 +21,9 @@ export interface NewsItem {
 export const newsTranslations: Record<string, NewsItem[]> = {
   ja: [
     {
-      date: '2026.03.13',
-      title: 'ランチモード（β版）を導入しました',
-      body: 'NIKENME+にランチモードを試験的に導入しました。画面右上の切替ボタンからバーモードとランチモードを切り替えることができます。ランチモードでは大分市内のカフェ情報をご覧いただけます。β版のため、一部機能に制限がございます。',
+      date: '2026.04.09',
+      title: '空席通知（プッシュ通知）機能をリリースしました',
+      body: 'マップページから近くのバー・スナック・居酒屋の空席が出たときにプッシュ通知を受け取れる機能が追加されました。マップ左側のベルアイコンからON/OFFを切り替えてご利用ください。',
     },
     {
       date: '2026.03.03',
@@ -50,9 +50,9 @@ export const newsTranslations: Record<string, NewsItem[]> = {
   ],
   en: [
     {
-      date: '2026.03.13',
-      title: 'Lunch Mode (Beta) Now Available',
-      body: 'We have introduced Lunch Mode as a beta feature on NIKENME+. You can switch between Bar Mode and Lunch Mode using the toggle button at the top right of the screen. In Lunch Mode, you can browse cafe information in Oita city. Some features may be limited during the beta period.',
+      date: '2026.04.09',
+      title: 'Vacancy Notifications (Push Notifications) Now Available',
+      body: 'You can now receive push notifications when seats become available at nearby bars and restaurants on the map. Toggle the bell icon on the left side of the map to enable or disable notifications.',
     },
     {
       date: '2026.03.03',
@@ -79,9 +79,9 @@ export const newsTranslations: Record<string, NewsItem[]> = {
   ],
   ko: [
     {
-      date: '2026.03.13',
-      title: '런치 모드(베타) 도입',
-      body: 'NIKENME+에 런치 모드를 시험적으로 도입했습니다. 화면 오른쪽 상단의 전환 버튼으로 바 모드와 런치 모드를 전환할 수 있습니다. 런치 모드에서는 오이타 시내의 카페 정보를 확인하실 수 있습니다. 베타 기간 중 일부 기능이 제한될 수 있습니다.',
+      date: '2026.04.09',
+      title: '빈자리 알림(푸시 알림) 기능을 출시했습니다',
+      body: '지도 페이지에서 근처 바·스낵바·이자카야에 빈자리가 생겼을 때 푸시 알림을 받을 수 있는 기능이 추가되었습니다. 지도 왼쪽의 벨 아이콘에서 ON/OFF를 전환하여 이용해 주세요.',
     },
     {
       date: '2026.03.03',
@@ -108,9 +108,9 @@ export const newsTranslations: Record<string, NewsItem[]> = {
   ],
   zh: [
     {
-      date: '2026.03.13',
-      title: '午餐模式（测试版）上线',
-      body: 'NIKENME+已试验性地推出午餐模式。您可以通过屏幕右上角的切换按钮在酒吧模式和午餐模式之间切换。在午餐模式下，您可以浏览大分市内的咖啡馆信息。测试期间部分功能可能受限。',
+      date: '2026.04.09',
+      title: '空位通知（推送通知）功能正式上线',
+      body: '您现在可以在地图页面接收附近酒吧、居酒屋有空位时的推送通知。点击地图左侧的铃铛图标可以开启或关闭通知。',
     },
     {
       date: '2026.03.03',
