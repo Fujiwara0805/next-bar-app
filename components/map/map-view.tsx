@@ -105,6 +105,9 @@ const DEFAULT_LOCATION = {
   lng: 131.6126,
 };
 
+/** マップ初期ズーム・ズームボタン時のフォールバック（getZoom が無い場合） */
+const DEFAULT_MAP_ZOOM = 16;
+
 // 位置情報更新の閾値設定（API最適化）
 const LOCATION_UPDATE_THRESHOLD_METERS = 50;
 const LOCATION_UPDATE_INTERVAL_MS = 30000;
@@ -953,7 +956,7 @@ export function MapView({
 
       const map = new google.maps.Map(mapRef.current, {
         center: initialCenter,
-        zoom: 14,
+        zoom: DEFAULT_MAP_ZOOM,
         disableDefaultUI: true,
         zoomControl: false,
         mapTypeControl: false,
@@ -1280,14 +1283,14 @@ export function MapView({
   // ズームハンドラー
   const handleZoomIn = useCallback(() => {
     if (mapInstanceRef.current) {
-      const currentZoom = mapInstanceRef.current.getZoom() || 15;
+      const currentZoom = mapInstanceRef.current.getZoom() || DEFAULT_MAP_ZOOM;
       mapInstanceRef.current.setZoom(currentZoom + 1);
     }
   }, []);
 
   const handleZoomOut = useCallback(() => {
     if (mapInstanceRef.current) {
-      const currentZoom = mapInstanceRef.current.getZoom() || 15;
+      const currentZoom = mapInstanceRef.current.getZoom() || DEFAULT_MAP_ZOOM;
       mapInstanceRef.current.setZoom(currentZoom - 1);
     }
   }, []);
