@@ -165,7 +165,7 @@ export function Breadcrumbs({ className, storeName }: BreadcrumbsProps) {
                   <ChevronRight
                     className="w-4 h-4"
                     style={{
-                      color: '#C89B3C',
+                      color: '#13294b',
                       opacity: 0.6,
                     }}
                   />

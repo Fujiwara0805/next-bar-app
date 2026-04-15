@@ -1412,10 +1412,10 @@ const createDirectionalLocationIcon = (heading: number | null): google.maps.Icon
   
   const svgIcon = `<svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">
     <defs><filter id="shadow" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="0" dy="1" stdDeviation="2" flood-opacity="0.3"/></filter></defs>
-    <polygon points="${tipX},${tipY} ${base1X},${base1Y} ${base2X},${base2Y}" fill="#C89B3C" fill-opacity="0.4" filter="url(#shadow)"/>
-    <circle cx="${centerX}" cy="${centerY}" r="${innerRadius + 6}" fill="#C89B3C" fill-opacity="0.2"/>
+    <polygon points="${tipX},${tipY} ${base1X},${base1Y} ${base2X},${base2Y}" fill="#13294b" fill-opacity="0.4" filter="url(#shadow)"/>
+    <circle cx="${centerX}" cy="${centerY}" r="${innerRadius + 6}" fill="#13294b" fill-opacity="0.2"/>
     <circle cx="${centerX}" cy="${centerY}" r="${innerRadius}" fill="white" filter="url(#shadow)"/>
-    <circle cx="${centerX}" cy="${centerY}" r="${innerRadius - 3}" fill="#C89B3C"/>
+    <circle cx="${centerX}" cy="${centerY}" r="${innerRadius - 3}" fill="#13294b"/>
   </svg>`;
   
   return {
