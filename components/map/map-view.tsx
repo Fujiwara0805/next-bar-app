@@ -106,7 +106,7 @@ const DEFAULT_LOCATION = {
 };
 
 /** マップ初期ズーム・ズームボタン時のフォールバック（getZoom が無い場合） */
-const DEFAULT_MAP_ZOOM = 16;
+const DEFAULT_MAP_ZOOM = 15;
 
 // 位置情報更新の閾値設定（API最適化）
 const LOCATION_UPDATE_THRESHOLD_METERS = 50;

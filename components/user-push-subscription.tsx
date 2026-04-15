@@ -9,6 +9,24 @@ import { useLanguage } from '@/lib/i18n/context';
 
 // マップページでのみ表示（レイアウトではなくマップページから直接マウント）
 const STORAGE_KEY = 'nikenme_user_push_sub';
+const PWA_BANNER_DISMISSED_KEY = 'nikenme_pwa_banner_dismissed_at';
+const PWA_BANNER_COOLDOWN_MS = 60 * 60 * 1000; // 1時間
+
+function isPWABannerCoolingDown(): boolean {
+  try {
+    const val = localStorage.getItem(PWA_BANNER_DISMISSED_KEY);
+    if (!val) return false;
+    return Date.now() - Number(val) < PWA_BANNER_COOLDOWN_MS;
+  } catch {
+    return false;
+  }
+}
+
+function recordPWABannerDismissed(): void {
+  try {
+    localStorage.setItem(PWA_BANNER_DISMISSED_KEY, String(Date.now()));
+  } catch { /* ignore */ }
+}
 
 interface StoredSubscription {
   latitude: number;
@@ -135,8 +153,10 @@ export function UserPushSubscription() {
   useEffect(() => {
     // iOS ブラウザ（非PWA）の場合
     if (isIOSBrowser()) {
-      setShowPWABanner(true);
       setStatus('ios-browser');
+      if (!isPWABannerCoolingDown()) {
+        setShowPWABanner(true);
+      }
       return;
     }
 
@@ -221,6 +241,7 @@ export function UserPushSubscription() {
 
   const dismissPWABanner = useCallback(() => {
     setShowPWABanner(false);
+    recordPWABannerDismissed();
   }, []);
 
   if (status === 'loading' || status === 'unsupported' || !isMapPage) return null;
