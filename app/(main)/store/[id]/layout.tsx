@@ -11,6 +11,9 @@
 
 import type { Metadata } from 'next';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { translations } from '@/lib/i18n/translations';
+
+const seo = translations.ja.seo.store_detail;
 
 const BASE_URL = 'https://nikenme.jp';
 const DEFAULT_OGP_IMAGE =
@@ -38,12 +41,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   if (!store) {
     return {
-      title: '店舗が見つかりません | NIKENME+',
-      description: '指定された店舗は見つかりませんでした。',
+      title: seo.not_found_title,
+      description: seo.not_found_description,
     };
   }
 
-  const title = `${store.name} - 大分のおすすめバー・スナック | NIKENME+`;
+  const title = `${store.name} - ${seo.title_suffix}`;
 
   // description: 店舗説明 + 住所（160文字以内）
   const descParts: string[] = [];

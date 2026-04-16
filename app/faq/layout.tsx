@@ -1,14 +1,17 @@
 import type { Metadata } from 'next';
+import { translations } from '@/lib/i18n/translations';
+
+const seo = translations.ja.seo.faq;
 
 export const metadata: Metadata = {
-  title: 'よくある質問 | NIKENME+ 大分のおすすめバー・スナック・居酒屋検索',
-  description: 'NIKENME+のよくある質問。大分でおすすめのバー・スナック・居酒屋の探し方、使い方、空席情報の確認方法など。大分市都町・中央町エリアの夜のお店探しに。',
+  title: seo.title,
+  description: seo.description,
   alternates: {
     canonical: 'https://nikenme.jp/faq',
   },
   openGraph: {
-    title: 'よくある質問 | NIKENME+',
-    description: 'NIKENME+のよくある質問。大分でおすすめのバー・スナック・居酒屋の探し方をご案内。',
+    title: seo.og_title,
+    description: seo.og_description,
     url: 'https://nikenme.jp/faq',
   },
 };

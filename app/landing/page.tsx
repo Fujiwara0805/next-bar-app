@@ -771,47 +771,6 @@ export default function LandingPage() {
               <p className="text-xs sm:text-sm tracking-wider mb-3" style={{ color: 'rgba(255,255,255,0.88)', textShadow: '0 1px 6px rgba(0,0,0,0.4)' }}>
                 {t('landing.hero_subcopy')}
               </p>
-              <span className="text-[10px] font-medium tracking-[0.3em] uppercase block mb-2" style={{ color: 'rgba(255,255,255,0.65)' }}>
-                SCROLL
-              </span>
-              <motion.div
-                className="w-5 h-8 rounded-full flex items-start justify-center pt-1.5 mx-auto"
-                style={{ border: '1.5px solid rgba(255,255,255,0.45)' }}
-                animate={{ opacity: [0.5, 1, 0.5] }}
-                transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-              >
-                <motion.div
-                  className="w-1 h-1.5 rounded-full"
-                  style={{ background: 'rgba(255,255,255,0.85)' }}
-                  animate={{ y: [0, 8, 0] }}
-                  transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-                />
-              </motion.div>
-            </motion.div>
-
-            {/* PC: scroll indicator only */}
-            <motion.div
-              className="relative z-10 text-center pb-8 hidden lg:block"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
-            >
-              <span className="text-[10px] font-medium tracking-[0.3em] uppercase block mb-2" style={{ color: 'rgba(255,255,255,0.65)' }}>
-                SCROLL
-              </span>
-              <motion.div
-                className="w-5 h-8 rounded-full flex items-start justify-center pt-1.5 mx-auto"
-                style={{ border: '1.5px solid rgba(255,255,255,0.45)' }}
-                animate={{ opacity: [0.5, 1, 0.5] }}
-                transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-              >
-                <motion.div
-                  className="w-1 h-1.5 rounded-full"
-                  style={{ background: 'rgba(255,255,255,0.85)' }}
-                  animate={{ y: [0, 8, 0] }}
-                  transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-                />
-              </motion.div>
             </motion.div>
 
             <motion.div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${LP_YELLOW}60, transparent)` }} initial={{ scaleX: 0 }} whileInView={{ scaleX: 1 }} viewport={{ once: true }} transition={{ duration: 1.5, ease: 'easeOut' }} />
