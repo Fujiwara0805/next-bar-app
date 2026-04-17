@@ -1432,7 +1432,10 @@ export default function LandingPage() {
             <GoldDivider />
             <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4 lg:text-base" style={{ color: lpMid.page.text }}>{t('landing.customer_voices_label')}</span>
             <h2 className="text-2xl sm:text-3xl md:text-6xl font-bold mb-4" style={{ color: lpMid.page.text }}>{t('landing.customer_voices_title')}</h2>
-            <p className="text-base max-w-2xl mx-auto lg:text-xl" style={{ color: lpMid.page.textMuted }}>{t('landing.customer_voices_subtitle')}</p>
+            <p className="text-base max-w-2xl mx-auto lg:text-xl" style={{ color: lpMid.page.textMuted }}>
+              <span className="lg:hidden block">{renderWithLineBreaks(t('landing.customer_voices_subtitle_mobile'))}</span>
+              <span className="hidden lg:inline">{t('landing.customer_voices_subtitle')}</span>
+            </p>
           </motion.div>
           {(() => {
             const voices = [1, 2, 3] as const;
