@@ -979,8 +979,8 @@ function MapPageContent() {
         )}
       </AnimatePresence>
 
-      {/* ヘッダー */}
-      <header className="absolute top-0 left-0 right-0 z-10 pt-4 sm:pt-6 px-3 sm:px-4 safe-top pointer-events-none">
+      {/* ヘッダー（右：店舗一覧・更新 — 左のマップアイコン広告 SponsorMapIcon と top-20 で高さを揃える） */}
+      <header className="absolute top-20 left-0 right-0 z-10 px-3 sm:px-4 safe-top pointer-events-none">
         <motion.div
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
