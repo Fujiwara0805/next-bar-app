@@ -33,7 +33,7 @@ export default function SponsorDetailPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<TabId>('info');
 
-  const isAdmin = profile?.is_business && accountType === 'platform';
+  const isAdmin = profile?.role === 'admin' && accountType === 'platform';
 
   useEffect(() => {
     if (!isAdmin || !id) return;

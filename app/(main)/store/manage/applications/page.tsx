@@ -60,7 +60,7 @@ export default function ApplicationsManagePage() {
       router.push('/login');
       return;
     }
-    if (profile && (!profile.is_business || accountType !== 'platform')) {
+    if (profile && (profile.role !== 'admin' || accountType !== 'platform')) {
       router.push('/login');
       return;
     }

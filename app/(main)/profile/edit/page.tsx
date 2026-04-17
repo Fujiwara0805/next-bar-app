@@ -80,7 +80,7 @@ export default function ProfileEditPage() {
         });
       }
 
-      // profilesテーブルを更新（型安全）
+      // usersテーブルを更新（型安全）
       const payload: ProfileUpdate = {
         display_name: displayName.trim(),
         avatar_url: avatarUrl.trim() || null,
@@ -88,7 +88,7 @@ export default function ProfileEditPage() {
         updated_at: new Date().toISOString(),
       };
       const { error: profileError } = await supabase
-        .from('profiles')
+        .from('users')
         .update(payload as unknown as never)
         .eq('id', user.id);
 

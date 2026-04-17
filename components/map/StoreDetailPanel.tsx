@@ -178,7 +178,11 @@ export function StoreDetailPanel({
     return facilitiesMap?.[facility] || facility;
   };
 
-  const googleMapsDirectionUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(store.name)}&travelmode=walking`;
+  // Googleマップ登録がない店舗(google_place_id=null)は住所をフォールバック先に使う
+  const googleMapsDestination = store.google_place_id
+    ? store.name
+    : (store.address || store.name);
+  const googleMapsDirectionUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(googleMapsDestination)}&travelmode=walking`;
 
   // 展開時の高さ: 画面の82%
   const expandedHeight = typeof window !== 'undefined'

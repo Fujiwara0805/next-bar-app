@@ -230,7 +230,7 @@ export default function ManageLayout({
       return;
     }
 
-    if (!profile?.is_business || accountType !== 'platform') {
+    if (profile?.role !== 'admin' || accountType !== 'platform') {
       setChecked(false);
       router.push('/login?role=platform');
       return;

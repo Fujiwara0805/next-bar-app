@@ -260,7 +260,7 @@ export function UserPushSubscription() {
 
   return (
     <div
-      className="fixed left-4 z-50 top-36"
+      className="fixed left-4 z-20 top-36"
     >
       <div className="flex items-center gap-0">
         {/* ベルアイコン（常時表示） */}

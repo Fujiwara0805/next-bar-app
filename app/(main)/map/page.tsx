@@ -21,7 +21,7 @@
 import { useEffect, useState, Suspense, useRef, useCallback, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { List, RefreshCw, Home, AlertCircle } from 'lucide-react';
+import { List, RefreshCw, AlertCircle } from 'lucide-react';
 import { LoadingScreen } from '@/components/ui/loading-screen';
 import { MapView } from '@/components/map/map-view';
 import { Button } from '@/components/ui/button';
@@ -988,32 +988,6 @@ function MapPageContent() {
         >
           <div className="flex items-center justify-end">
             <div className="flex flex-col gap-3 pointer-events-auto">
-              {/* ホームボタン */}
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="flex flex-col items-center"
-              >
-                <Button
-                  onClick={() => router.push('/landing')}
-                  className="flex flex-col items-center justify-center gap-1 px-3 py-2 mt-12 touch-manipulation active:scale-95 rounded-xl"
-                  style={{
-                    background: colors.background,
-                    backdropFilter: 'blur(20px)',
-                    border: `1px solid ${colors.borderGold}`,
-                    boxShadow: `0 4px 20px rgba(0,0,0,0.4), 0 0 15px ${colors.accent}15`,
-                    minWidth: '56px',
-                    minHeight: '56px',
-                  }}
-                  title={t('map.home')}
-                >
-                  <Home className="w-5 h-5" style={{ color: colors.text }} />
-                  <span className="text-[10px] font-bold" style={{ color: colors.text }}>
-                    {t('map.home')}
-                  </span>
-                </Button>
-              </motion.div>
-
               {/* リストボタン */}
               <motion.div
                 whileHover={{ scale: 1.05 }}

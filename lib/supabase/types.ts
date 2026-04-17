@@ -14,51 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      bonus_clicks: {
-        Row: {
-          additional_bonus_text: string | null
-          click_type: string
-          clicked_at: string | null
-          coupon_usage_id: string | null
-          google_place_id: string | null
-          id: string
-          instagram_url: string | null
-          referrer: string | null
-          session_id: string | null
-          store_id: string
-          store_name: string | null
-          user_agent: string | null
-        }
-        Insert: {
-          additional_bonus_text?: string | null
-          click_type: string
-          clicked_at?: string | null
-          coupon_usage_id?: string | null
-          google_place_id?: string | null
-          id?: string
-          instagram_url?: string | null
-          referrer?: string | null
-          session_id?: string | null
-          store_id: string
-          store_name?: string | null
-          user_agent?: string | null
-        }
-        Update: {
-          additional_bonus_text?: string | null
-          click_type?: string
-          clicked_at?: string | null
-          coupon_usage_id?: string | null
-          google_place_id?: string | null
-          id?: string
-          instagram_url?: string | null
-          referrer?: string | null
-          session_id?: string | null
-          store_id?: string
-          store_name?: string | null
-          user_agent?: string | null
-        }
-        Relationships: []
-      }
       campaigns: {
         Row: {
           created_at: string | null
@@ -193,7 +148,7 @@ export type Database = {
             foreignKeyName: "coupon_usages_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -325,7 +280,7 @@ export type Database = {
             foreignKeyName: "ogori_tickets_purchaser_id_fkey"
             columns: ["purchaser_id"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
           {
@@ -339,12 +294,12 @@ export type Database = {
             foreignKeyName: "ogori_tickets_used_by_fkey"
             columns: ["used_by"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
       }
-      profiles: {
+      users: {
         Row: {
           avatar_url: string | null
           bio: string | null
@@ -352,8 +307,8 @@ export type Database = {
           display_name: string
           email: string
           id: string
-          is_business: boolean | null
           phone: string | null
+          role: 'admin' | 'customer'
           updated_at: string | null
         }
         Insert: {
@@ -363,8 +318,8 @@ export type Database = {
           display_name: string
           email: string
           id: string
-          is_business?: boolean | null
           phone?: string | null
+          role?: 'admin' | 'customer'
           updated_at?: string | null
         }
         Update: {
@@ -374,8 +329,8 @@ export type Database = {
           display_name?: string
           email?: string
           id?: string
-          is_business?: boolean | null
           phone?: string | null
+          role?: 'admin' | 'customer'
           updated_at?: string | null
         }
         Relationships: []
@@ -674,7 +629,7 @@ export type Database = {
             foreignKeyName: "sponsor_contracts_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
           {
@@ -874,7 +829,7 @@ export type Database = {
             foreignKeyName: "sponsors_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -1140,7 +1095,7 @@ export type Database = {
             foreignKeyName: "stores_owner_id_fkey"
             columns: ["owner_id"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]

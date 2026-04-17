@@ -48,7 +48,7 @@ function LoginPageInner() {
     !authLoading &&
     !!user &&
     ((loginRole === 'platform' && accountType === 'store') ||
-      (loginRole === 'store' && accountType === 'platform'));
+      (loginRole === 'store' && (accountType === 'platform' || accountType === 'customer')));
 
   useEffect(() => {
     const root = document.documentElement;
@@ -73,6 +73,8 @@ function LoginPageInner() {
     if (loginRole === 'platform') {
       if (accountType === 'platform') {
         router.replace('/store/manage');
+      } else if (accountType === 'customer') {
+        router.replace('/landing');
       }
       return;
     }
@@ -96,7 +98,7 @@ function LoginPageInner() {
         return;
       }
 
-      if (loginRole === 'platform' && result.accountType !== 'platform') {
+      if (loginRole === 'platform' && result.accountType === 'store') {
         await signOut();
         toast.error(t('auth.wrong_account_for_operator'), {
           description: t('auth.wrong_account_for_operator_desc'),
@@ -104,7 +106,7 @@ function LoginPageInner() {
         return;
       }
 
-      if (loginRole === 'store' && result.accountType === 'platform') {
+      if (loginRole === 'store' && result.accountType !== 'store') {
         await signOut();
         toast.error(t('auth.wrong_account_for_store'), {
           description: t('auth.wrong_account_for_store_desc'),
@@ -121,6 +123,8 @@ function LoginPageInner() {
         } else {
           toast.error(t('auth.store_info_error'));
         }
+      } else if (result.accountType === 'customer') {
+        router.push('/landing');
       } else {
         router.push('/map');
       }
@@ -480,13 +484,22 @@ function LoginPageInner() {
 
               <div className="mt-5 flex flex-col gap-2 text-center text-xs">
                 {loginRole === 'platform' ? (
-                  <Link
-                    href="/login?role=store"
-                    className="font-medium transition-colors hover:opacity-80"
-                    style={{ color: COLORS.champagneGold }}
-                  >
-                    {t('auth.login_switch_to_store')}
-                  </Link>
+                  <>
+                    <Link
+                      href="/register?role=customer"
+                      className="font-medium transition-colors hover:opacity-80"
+                      style={{ color: COLORS.champagneGold }}
+                    >
+                      {t('auth.customer_signup_cta')}
+                    </Link>
+                    <Link
+                      href="/login?role=store"
+                      className="font-medium transition-colors hover:opacity-80"
+                      style={{ color: COLORS.champagneGold }}
+                    >
+                      {t('auth.login_switch_to_store')}
+                    </Link>
+                  </>
                 ) : (
                   <Link
                     href="/login?role=platform"

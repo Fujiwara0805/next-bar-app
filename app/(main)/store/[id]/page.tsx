@@ -807,7 +807,7 @@ export default function StoreDetailPage() {
                   
                   <div className="flex items-center gap-3 ml-auto">
                     <a
-                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.name)}`}
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.google_place_id ? store.name : (store.address || store.name))}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 text-xs font-bold hover:underline"
@@ -966,7 +966,11 @@ export default function StoreDetailPage() {
                           store_id: store.id,
                           store_name: store.name,
                         });
-                        const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.name || '')}`;
+                        // Googleマップ未登録の店舗は店舗名ではなく住所でフォールバック
+                        const query = store.google_place_id
+                          ? (store.name || '')
+                          : (store.address || store.name || '');
+                        const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
                         window.open(mapsUrl, '_blank');
                       }}
                       className="flex items-center gap-1 text-sm font-bold hover:underline"

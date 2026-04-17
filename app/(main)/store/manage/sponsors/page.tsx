@@ -44,7 +44,7 @@ export default function SponsorsPage() {
   const [deleteTarget, setDeleteTarget] = useState<Sponsor | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  const isAdmin = profile?.is_business && accountType === 'platform';
+  const isAdmin = profile?.role === 'admin' && accountType === 'platform';
 
   const fetchSponsors = async () => {
     setLoading(true);

@@ -99,7 +99,7 @@ export default function CampaignsManagePage() {
 
   // 認証チェック
   useEffect(() => {
-    if (!profile?.is_business || accountType !== 'platform') {
+    if (profile?.role !== 'admin' || accountType !== 'platform') {
       router.push('/login');
       return;
     }

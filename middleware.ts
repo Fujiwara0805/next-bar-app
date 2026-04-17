@@ -23,6 +23,11 @@ export function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL('/login', request.url));
     }
 
+    if (accountType === 'customer') {
+      // 顧客アカウントは /store/manage にアクセス不可
+      return NextResponse.redirect(new URL('/landing', request.url));
+    }
+
     if (accountType === 'store') {
       // 店舗アカウント: /store/manage/{storeId}/(update|edit|change-password) のみ許可
       const match = pathname.match(/^\/store\/manage\/([^/]+)\/([^/]+)$/);
@@ -75,6 +80,9 @@ export function middleware(request: NextRequest) {
     }
     if (accountType === 'store' && storeId) {
       return NextResponse.redirect(new URL(`/store/manage/${storeId}/update`, request.url));
+    }
+    if (accountType === 'customer') {
+      return NextResponse.redirect(new URL('/landing', request.url));
     }
   }
 

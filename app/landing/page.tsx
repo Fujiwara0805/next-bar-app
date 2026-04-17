@@ -19,7 +19,6 @@ import {
   Building2,
   AlertCircle,
   Sparkles,
-  Gift,
   MessageCircle,
   Instagram,
   Mail,
@@ -180,7 +179,6 @@ export default function LandingPage() {
   const [campaignMasters, setCampaignMasters] = useState<CampaignMaster[]>([]);
   const [campaignSlide, setCampaignSlide] = useState(0);
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
-  const [howtoSlide, setHowtoSlide] = useState(0);
   const [areaGuideSlide, setAreaGuideSlide] = useState(0);
   const [concernsSlide, setConcernsSlide] = useState(0);
   const locationAttemptRef = useRef(false);
@@ -461,7 +459,7 @@ export default function LandingPage() {
           <motion.div initial={{ opacity: 0, y: -20, x: '-50%' }} animate={{ opacity: 1, y: 0, x: '-50%' }} exit={{ opacity: 0, y: -20, x: '-50%' }} className="fixed top-20 left-1/2 z-50">
             <div className="flex items-center gap-3 px-5 py-3 rounded-full" style={{ background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255, 198, 45, 0.35)', boxShadow: '0 8px 30px rgba(0,0,0,0.25)' }}>
               <motion.div animate={{ scale: [1, 1.3, 1], opacity: [1, 0.7, 1] }} transition={{ duration: 1, repeat: Infinity }} className="w-2.5 h-2.5 rounded-full" style={{ background: '#4ADE80', boxShadow: '0 0 10px #4ADE80' }} />
-              <span className="text-sm font-medium" style={{ color: lpPage.text }}>{t('landing.seats_available')}</span>
+              <span className="text-sm font-medium lg:text-lg" style={{ color: lpPage.text }}>{t('landing.seats_available')}</span>
             </div>
           </motion.div>
         )}
@@ -526,7 +524,7 @@ export default function LandingPage() {
                       }}
                     >
                       <div className="p-2">
-                        <p className="text-xs px-3 py-2 font-bold" style={{ color: lpPage.textMuted }}>
+                        <p className="text-xs px-3 py-2 font-bold lg:text-base" style={{ color: lpPage.textMuted }}>
                           {t('language_selector.title') || t('menu.language')}
                         </p>
                         {SUPPORTED_LANGUAGES.map((lang) => (
@@ -540,8 +538,8 @@ export default function LandingPage() {
                             }`}
                             style={{ color: language === lang ? LP_YELLOW : lpPage.text }}
                           >
-                            <span className="text-xl">{LANGUAGE_META[lang].flag}</span>
-                            <span className="font-bold text-sm flex-1 text-left">
+                            <span className="text-xl lg:text-3xl">{LANGUAGE_META[lang].flag}</span>
+                            <span className="font-bold text-sm flex-1 text-left lg:text-lg">
                               {LANGUAGE_META[lang].nativeName}
                             </span>
                             {language === lang && (
@@ -582,8 +580,8 @@ export default function LandingPage() {
                   />
                 </motion.div>
                 <div className="mb-8">
-                  <h2 className="text-xl font-bold mb-1" style={{ color: lpPage.text }}>{t('menu.title')}</h2>
-                  <p className="text-sm" style={{ color: lpPage.textSubtle }}>{t('menu.subtitle')}</p>
+                  <h2 className="text-xl font-bold mb-1 lg:text-3xl" style={{ color: lpPage.text }}>{t('menu.title')}</h2>
+                  <p className="text-sm lg:text-lg" style={{ color: lpPage.textSubtle }}>{t('menu.subtitle')}</p>
                 </div>
                 <nav className="space-y-1">
                   {menuItems.map((item, index) => {
@@ -599,7 +597,7 @@ export default function LandingPage() {
                 </nav>
                 {/* 店舗向けリンク */}
                 <div className="mt-8 pt-6" style={{ borderTop: `1px solid ${lpPage.border}` }}>
-                  <p className="text-sm font-medium mb-3" style={{ color: lpPage.textMuted }}>{t('menu.for_stores')}</p>
+                  <p className="text-sm font-medium mb-3 lg:text-lg" style={{ color: lpPage.textMuted }}>{t('menu.for_stores')}</p>
                   <Link href="/login?role=store" onClick={() => setShowMenu(false)} className="flex items-center gap-3 p-4 rounded-lg transition-colors group" style={{ color: lpPage.textMuted }}>
                     <LogIn className="w-5 h-5" style={{ color: accentTextOnLightBg(lpPage.bg) }} /><span className="group-hover:opacity-100 font-medium">{t('header.store_login')}</span><ChevronRight className="w-4 h-4 ml-auto opacity-30" />
                   </Link>
@@ -607,22 +605,22 @@ export default function LandingPage() {
                     <Building2 className="w-5 h-5" style={{ color: accentTextOnLightBg(lpPage.bg) }} /><span className="group-hover:opacity-100 font-medium">{t('landing.cta_button_recruitment')}</span><ChevronRight className="w-4 h-4 ml-auto opacity-30" />
                   </Link>
                 </div>
-                {/* 運営者向け */}
+                {/* ログイン */}
                 <div className="mt-8 pt-6" style={{ borderTop: `1px solid ${lpPage.border}` }}>
-                  <p className="text-sm font-medium mb-3" style={{ color: lpPage.textMuted }}>{t('menu.for_operators')}</p>
+                  <p className="text-sm font-medium mb-3 lg:text-lg" style={{ color: lpPage.textMuted }}>{t('menu.for_operators')}</p>
                   <Link href="/login?role=platform" onClick={() => setShowMenu(false)} className="flex items-center gap-3 p-4 rounded-lg transition-colors group" style={{ color: lpPage.textMuted }}>
-                    <Shield className="w-5 h-5" style={{ color: accentTextOnLightBg(lpPage.bg) }} /><span className="group-hover:opacity-100 font-medium">{t('header.operator_login')}</span><ChevronRight className="w-4 h-4 ml-auto opacity-30" />
+                    <LogIn className="w-5 h-5" style={{ color: accentTextOnLightBg(lpPage.bg) }} /><span className="group-hover:opacity-100 font-medium">{t('menu.normal_login')}</span><ChevronRight className="w-4 h-4 ml-auto opacity-30" />
                   </Link>
                 </div>
                 {/* Official Account */}
                 <div className="mt-8 pt-6" style={{ borderTop: `1px solid ${lpPage.border}` }}>
-                  <p className="text-sm font-medium mb-3" style={{ color: lpPage.textMuted }}>{t('menu.official_account')}</p>
+                  <p className="text-sm font-medium mb-3 lg:text-lg" style={{ color: lpPage.textMuted }}>{t('menu.official_account')}</p>
                   <a href="https://www.instagram.com/nikenme_nobody/" target="_blank" rel="noopener noreferrer" onClick={() => setShowMenu(false)} className="flex items-center gap-3 p-4 rounded-lg transition-colors group" style={{ color: lpPage.textMuted }}>
                     <Instagram className="w-5 h-5" style={{ color: accentTextOnLightBg(lpPage.bg) }} /><span className="group-hover:opacity-100 font-medium">Instagram</span><ChevronRight className="w-4 h-4 ml-auto opacity-30" />
                   </a>
                 </div>
                 <div className="mt-6 pt-6" style={{ borderTop: `1px solid ${lpPage.border}` }}>
-                  <p className="text-xs text-center" style={{ color: lpPage.textSubtle }}>© 2025 NIKENME+<br />{t('menu.version')}</p>
+                  <p className="text-xs text-center lg:text-base" style={{ color: lpPage.textSubtle }}>© 2025 NIKENME+<br />{t('menu.version')}</p>
                 </div>
               </div>
             </motion.div>
@@ -650,16 +648,20 @@ export default function LandingPage() {
                 <div className="flex items-center gap-2 mb-8">
                   <div className="h-[1px] w-8" style={{ background: accentTextOnLightBg(lpPage.bg) }} />
                   <span
-                    className="text-xs font-semibold uppercase tracking-[0.2em]"
+                    className="text-xs font-semibold uppercase tracking-[0.2em] lg:text-base"
                     style={{ color: accentTextOnLightBg(lpPage.bg) }}
                   >
                     {t('landing.hero_pc_badge')}
                   </span>
                 </div>
-                <h1 className="text-4xl xl:text-5xl leading-[1.15] font-bold mb-6" style={{ color: lpPage.text }}>
-                  {renderWithLineBreaks(t('landing.hero_pc_title'))}
+                <h1 className="text-xl xl:text-4xl leading-[1.2] font-bold mb-6 tracking-tight" style={{ color: lpPage.text }}>
+                  {t('landing.hero_pc_title').split('\n').map((line, i) => (
+                    <span key={i} className="block">
+                      {line}
+                    </span>
+                  ))}
                 </h1>
-                <p className="text-base xl:text-lg leading-relaxed mb-10" style={{ color: lpPage.textMuted }}>
+                <p className="text-base xl:text-2xl leading-relaxed mb-10" style={{ color: lpPage.textMuted }}>
                   {renderWithLineBreaks(t('landing.hero_pc_description'))}
                 </p>
               </motion.div>
@@ -678,7 +680,7 @@ export default function LandingPage() {
                   <Button
                     size="lg"
                     onClick={handleMapClick}
-                    className="text-lg px-10 py-6 rounded-full font-semibold transition-all relative z-10"
+                    className="text-lg px-10 py-6 rounded-full font-semibold transition-all relative z-10 lg:text-2xl"
                   style={{ background: LP_YELLOW, color: LP_NAVY }}
                   >
                     <Store className="w-5 h-5 mr-2" />{t('landing.cta_button_primary')}
@@ -696,7 +698,7 @@ export default function LandingPage() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.6 }}
-                className="text-xs tracking-wider mt-5"
+                className="text-xs tracking-wider mt-5 lg:text-base"
                 style={{ color: lpPage.textSubtle }}
               >
                 {t('landing.hero_subcopy')}
@@ -742,9 +744,13 @@ export default function LandingPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
-              <h1 className="text-lg sm:text-2xl md:text-3xl font-bold mb-6 leading-tight">
+              <h1 className="text-lg sm:text-xl md:text-4xl font-bold mb-6 leading-tight tracking-tight">
                 <span style={{ color: '#FFFFFF', textShadow: '0 2px 12px rgba(0,0,0,0.45)' }}>
-                  {renderWithLineBreaks(t('landing.hero_catchphrase'))}
+                  {t('landing.hero_catchphrase').split('\n').map((line, i) => (
+                    <span key={i} className="block">
+                      {line}
+                    </span>
+                  ))}
                 </span>
               </h1>
               <motion.div
@@ -756,7 +762,7 @@ export default function LandingPage() {
                 <Button
                   size="lg"
                   onClick={handleMapClick}
-                  className="text-lg px-10 py-6 rounded-full font-semibold transition-all relative z-10"
+                  className="text-lg px-10 py-6 rounded-full font-semibold transition-all relative z-10 lg:text-2xl"
                   style={{ background: LP_YELLOW, color: LP_NAVY }}
                 >
                   <Store className="w-5 h-5 mr-2" />{t('landing.cta_button_primary')}
@@ -768,7 +774,7 @@ export default function LandingPage() {
                   transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 1 }}
                 />
               </motion.div>
-              <p className="text-xs sm:text-sm tracking-wider mb-3" style={{ color: 'rgba(255,255,255,0.88)', textShadow: '0 1px 6px rgba(0,0,0,0.4)' }}>
+              <p className="text-xs sm:text-sm tracking-wider mb-3 lg:text-base" style={{ color: 'rgba(255,255,255,0.88)', textShadow: '0 1px 6px rgba(0,0,0,0.4)' }}>
                 {t('landing.hero_subcopy')}
               </p>
             </motion.div>
@@ -783,18 +789,18 @@ export default function LandingPage() {
         <div className="container mx-auto max-w-3xl">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-8">
             <GoldDivider />
-            <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-3" style={{ color: lpMid.page.text }}>News</span>
-            <h2 className="text-2xl sm:text-3xl font-bold" style={{ color: lpMid.page.text }}>{t('landing.news_title')}</h2>
+            <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-3 lg:text-base" style={{ color: lpMid.page.text }}>News</span>
+            <h2 className="text-2xl sm:text-3xl font-bold lg:text-4xl" style={{ color: lpMid.page.text }}>{t('landing.news_title')}</h2>
           </motion.div>
           <div className="space-y-3">
             {(newsTranslations[language] || newsTranslations.ja).slice(0, 3).map((item, index) => (
               <motion.div key={index} initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.05 }} className="flex items-start gap-4 p-4 rounded-xl" style={{ background: lpMid.elevated.bg, border: `1px solid ${lpMid.elevated.border}`, boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
-                <span className="text-xs font-medium flex-shrink-0 pt-0.5" style={{ color: LP_YELLOW }}>{item.date}</span>
+                <span className="text-xs font-medium flex-shrink-0 pt-0.5 lg:text-base" style={{ color: LP_YELLOW }}>{item.date}</span>
                 <div>
-                  <p className="text-sm font-bold mb-0.5" style={{ color: lpMid.elevated.text }}>{item.title}</p>
-                  <p className="text-xs" style={{ color: lpMid.elevated.textMuted }}>{item.body}</p>
+                  <p className="text-sm font-bold mb-0.5 lg:text-lg" style={{ color: lpMid.elevated.text }}>{item.title}</p>
+                  <p className="text-xs lg:text-base" style={{ color: lpMid.elevated.textMuted }}>{item.body}</p>
                   {item.link && (
-                    <a href={item.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 mt-1.5 text-xs font-medium transition-all hover:opacity-80" style={{ color: lpMid.linkOnElevated }}>
+                    <a href={item.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 mt-1.5 text-xs font-medium transition-all hover:opacity-80 lg:text-base" style={{ color: lpMid.linkOnElevated }}>
                       <ExternalLink className="w-3 h-3" />
                       {item.linkLabel || item.link}
                     </a>
@@ -804,7 +810,7 @@ export default function LandingPage() {
             ))}
           </div>
           <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="text-center mt-6">
-            <Link href="/news" className="text-sm font-medium inline-flex items-center gap-1 transition-all hover:scale-105" style={{ color: lpMid.page.text }}>
+            <Link href="/news" className="text-sm font-medium inline-flex items-center gap-1 transition-all hover:scale-105 lg:text-lg" style={{ color: lpMid.page.text }}>
               {t('landing.news_view_all')} <ChevronRight className="w-4 h-4" />
             </Link>
           </motion.div>
@@ -823,13 +829,13 @@ export default function LandingPage() {
               className="text-center mb-10"
             >
               <GoldDivider />
-              <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-3" style={{ color: lpMid.page.text }}>
+              <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-3 lg:text-base" style={{ color: lpMid.page.text }}>
                 Special Campaign
               </span>
-              <h2 className="text-2xl sm:text-3xl font-bold mb-2" style={{ color: lpMid.page.text }}>
+              <h2 className="text-2xl sm:text-3xl font-bold mb-2 lg:text-4xl" style={{ color: lpMid.page.text }}>
                 {t('campaign.section_title')}
               </h2>
-              <p className="text-base" style={{ color: lpMid.page.textMuted }}>
+              <p className="text-base lg:text-xl" style={{ color: lpMid.page.textMuted }}>
                 {t('campaign.dont_miss')}
               </p>
             </motion.div>
@@ -877,19 +883,19 @@ export default function LandingPage() {
                           {t('campaign.now_on')}
                         </span>
                       </div>
-                      <h3 className="text-xl font-bold mb-2 group-hover:translate-x-1 transition-transform" style={{ color: LP_ON_NAVY.text }}>
+                      <h3 className="text-xl font-bold mb-2 group-hover:translate-x-1 transition-transform lg:text-3xl" style={{ color: LP_ON_NAVY.text }}>
                         {campaignMasters[0].name} 🍺
                       </h3>
                       {campaignMasters[0].description && (
-                        <p className="text-sm mb-3 line-clamp-2" style={{ color: LP_ON_NAVY.textMuted }}>
+                        <p className="text-sm mb-3 line-clamp-2 lg:text-lg" style={{ color: LP_ON_NAVY.textMuted }}>
                           {campaignMasters[0].description}
                         </p>
                       )}
-                      <p className="text-xs mb-4" style={{ color: LP_YELLOW }}>
+                      <p className="text-xs mb-4 lg:text-base" style={{ color: LP_YELLOW }}>
                         {t('campaign.until').replace('{date}', new Date(campaignMasters[0].end_date + 'T00:00:00').toLocaleDateString(language === 'ja' ? 'ja-JP' : language === 'ko' ? 'ko-KR' : language === 'zh' ? 'zh-CN' : 'en-US', { month: 'short', day: 'numeric' }))}
                       </p>
                       <div className="flex items-center gap-1 group-hover:gap-2 transition-all" style={{ color: LP_YELLOW }}>
-                        <span className="text-sm font-medium">{t('campaign.view_details')}</span>
+                        <span className="text-sm font-medium lg:text-lg">{t('campaign.view_details')}</span>
                         <ChevronRight className="w-4 h-4" />
                       </div>
                     </div>
@@ -941,19 +947,19 @@ export default function LandingPage() {
                                 {t('campaign.now_on')}
                               </span>
                             </div>
-                            <h3 className="text-xl font-bold mb-2 group-hover:translate-x-1 transition-transform" style={{ color: LP_ON_NAVY.text }}>
+                            <h3 className="text-xl font-bold mb-2 group-hover:translate-x-1 transition-transform lg:text-3xl" style={{ color: LP_ON_NAVY.text }}>
                               {campaignMasters[campaignSlide].name} 🍺
                             </h3>
                             {campaignMasters[campaignSlide].description && (
-                              <p className="text-sm mb-3 line-clamp-2" style={{ color: LP_ON_NAVY.textMuted }}>
+                              <p className="text-sm mb-3 line-clamp-2 lg:text-lg" style={{ color: LP_ON_NAVY.textMuted }}>
                                 {campaignMasters[campaignSlide].description}
                               </p>
                             )}
-                            <p className="text-xs mb-4" style={{ color: LP_YELLOW }}>
+                            <p className="text-xs mb-4 lg:text-base" style={{ color: LP_YELLOW }}>
                               {t('campaign.until').replace('{date}', new Date(campaignMasters[campaignSlide].end_date + 'T00:00:00').toLocaleDateString(language === 'ja' ? 'ja-JP' : language === 'ko' ? 'ko-KR' : language === 'zh' ? 'zh-CN' : 'en-US', { month: 'short', day: 'numeric' }))}
                             </p>
                             <div className="flex items-center gap-1 group-hover:gap-2 transition-all" style={{ color: LP_YELLOW }}>
-                              <span className="text-sm font-medium">{t('campaign.view_details')}</span>
+                              <span className="text-sm font-medium lg:text-lg">{t('campaign.view_details')}</span>
                               <ChevronRight className="w-4 h-4" />
                             </div>
                           </div>
@@ -1044,19 +1050,19 @@ export default function LandingPage() {
                           {t('campaign.now_on')}
                         </span>
                       </div>
-                      <h3 className="text-xl font-bold mb-2 group-hover:translate-x-1 transition-transform" style={{ color: LP_ON_NAVY.text }}>
+                      <h3 className="text-xl font-bold mb-2 group-hover:translate-x-1 transition-transform lg:text-3xl" style={{ color: LP_ON_NAVY.text }}>
                         {campaignStores[0].campaign_name || t('campaign.default_name')} 🍺
                       </h3>
-                      <p className="text-sm mb-3" style={{ color: LP_ON_NAVY.textMuted }}>
+                      <p className="text-sm mb-3 lg:text-lg" style={{ color: LP_ON_NAVY.textMuted }}>
                         {campaignStores[0].name}
                       </p>
                       {campaignStores[0].campaign_end_date && (
-                        <p className="text-xs mb-4" style={{ color: LP_YELLOW }}>
+                        <p className="text-xs mb-4 lg:text-base" style={{ color: LP_YELLOW }}>
                           {t('campaign.until').replace('{date}', new Date(campaignStores[0].campaign_end_date).toLocaleDateString(language === 'ja' ? 'ja-JP' : language === 'ko' ? 'ko-KR' : language === 'zh' ? 'zh-CN' : 'en-US', { month: 'short', day: 'numeric' }))}
                         </p>
                       )}
                       <div className="flex items-center gap-1 group-hover:gap-2 transition-all" style={{ color: LP_YELLOW }}>
-                        <span className="text-sm font-medium">{t('campaign.view_details')}</span>
+                        <span className="text-sm font-medium lg:text-lg">{t('campaign.view_details')}</span>
                         <ChevronRight className="w-4 h-4" />
                       </div>
                     </div>
@@ -1112,19 +1118,19 @@ export default function LandingPage() {
                                 {t('campaign.now_on')}
                               </span>
                             </div>
-                            <h3 className="text-xl font-bold mb-2 group-hover:translate-x-1 transition-transform" style={{ color: LP_ON_NAVY.text }}>
+                            <h3 className="text-xl font-bold mb-2 group-hover:translate-x-1 transition-transform lg:text-3xl" style={{ color: LP_ON_NAVY.text }}>
                               {campaignStores[currentSlide].campaign_name || t('campaign.default_name')} 🍺
                             </h3>
-                            <p className="text-sm mb-3" style={{ color: LP_ON_NAVY.textMuted }}>
+                            <p className="text-sm mb-3 lg:text-lg" style={{ color: LP_ON_NAVY.textMuted }}>
                               {campaignStores[currentSlide].name}
                             </p>
                             {campaignStores[currentSlide].campaign_end_date && (
-                              <p className="text-xs mb-4" style={{ color: LP_YELLOW }}>
+                              <p className="text-xs mb-4 lg:text-base" style={{ color: LP_YELLOW }}>
                                 {t('campaign.until').replace('{date}', new Date(campaignStores[currentSlide].campaign_end_date).toLocaleDateString(language === 'ja' ? 'ja-JP' : language === 'ko' ? 'ko-KR' : language === 'zh' ? 'zh-CN' : 'en-US', { month: 'short', day: 'numeric' }))}
                               </p>
                             )}
                             <div className="flex items-center gap-1 group-hover:gap-2 transition-all" style={{ color: LP_YELLOW }}>
-                              <span className="text-sm font-medium">{t('campaign.view_details')}</span>
+                              <span className="text-sm font-medium lg:text-lg">{t('campaign.view_details')}</span>
                               <ChevronRight className="w-4 h-4" />
                             </div>
                           </div>
@@ -1201,8 +1207,8 @@ export default function LandingPage() {
         <div className="container mx-auto max-w-5xl">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
             <GoldDivider />
-            <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4" style={{ color: lpMid.page.text }}>{t('landing.problems_subtitle')}</span>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold" style={{ color: lpMid.page.text }}>{t('landing.problems_title')}</h2>
+            <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4 lg:text-base" style={{ color: lpMid.page.text }}>{t('landing.problems_subtitle')}</span>
+            <h2 className="text-2xl sm:text-3xl md:text-6xl font-bold" style={{ color: lpMid.page.text }}>{t('landing.problems_title')}</h2>
           </motion.div>
           {(() => {
             const concernsData = [
@@ -1238,7 +1244,7 @@ export default function LandingPage() {
                     />
                   </div>
                   <div className="p-5 sm:p-6 text-center">
-                    <p className="text-base sm:text-lg font-bold leading-relaxed" style={{ color: lpMid.elevated.text }}>
+                    <p className="text-base sm:text-lg font-bold leading-relaxed lg:text-xl" style={{ color: lpMid.elevated.text }}>
                       {renderWithLineBreaks(concern.text)}
                     </p>
                   </div>
@@ -1317,9 +1323,9 @@ export default function LandingPage() {
         <div className="container mx-auto max-w-5xl">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
             <GoldDivider />
-            <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4" style={{ color: lpMid.page.text }}>{t('landing.solution_subtitle')}</span>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4" style={{ color: lpMid.page.text }}>{t('landing.solution_title')}</h2>
-            <p className="text-lg max-w-xl mx-auto" style={{ color: lpMid.page.textMuted }}>{renderWithLineBreaks(t('landing.solution_body'))}</p>
+            <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4 lg:text-base" style={{ color: lpMid.page.text }}>{t('landing.solution_subtitle')}</span>
+            <h2 className="text-2xl sm:text-3xl md:text-6xl font-bold mb-4" style={{ color: lpMid.page.text }}>{t('landing.solution_title')}</h2>
+            <p className="text-lg max-w-xl mx-auto lg:text-2xl" style={{ color: lpMid.page.textMuted }}>{renderWithLineBreaks(t('landing.solution_body'))}</p>
           </motion.div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
@@ -1334,9 +1340,9 @@ export default function LandingPage() {
                       <motion.div className="w-16 h-16 rounded-xl flex items-center justify-center mb-6 mx-auto" style={{ background: `${LP_YELLOW}15`, border: `1px solid ${LP_YELLOW}25` }} whileHover={{ scale: 1.05 }}>
                         <Icon className="w-7 h-7" style={{ color: LP_YELLOW }} />
                       </motion.div>
-                      <h3 className="text-xl font-bold mb-2" style={{ color: lpMid.elevated.text }}>{t(`landing.solution_feature${num}_title`)}</h3>
-                      <p className="text-xs uppercase tracking-wider mb-4 font-medium" style={{ color: lpMid.subtitleOnElevated }}>{t(`landing.solution_feature${num}_title_en`)}</p>
-                      <p style={{ color: lpMid.elevated.textMuted }} className="leading-relaxed text-sm">{renderWithLineBreaks(t(`landing.solution_feature${num}_desc`))}</p>
+                      <h3 className="text-xl font-bold mb-2 lg:text-3xl" style={{ color: lpMid.elevated.text }}>{t(`landing.solution_feature${num}_title`)}</h3>
+                      <p className="text-xs uppercase tracking-wider mb-4 font-medium lg:text-base" style={{ color: lpMid.subtitleOnElevated }}>{t(`landing.solution_feature${num}_title_en`)}</p>
+                      <p style={{ color: lpMid.elevated.textMuted }} className="leading-relaxed text-sm lg:text-lg">{renderWithLineBreaks(t(`landing.solution_feature${num}_desc`))}</p>
                     </div>
                     <motion.div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ background: `linear-gradient(90deg, ${LP_YELLOW}, #E6B020)` }} initial={{ scaleX: 0 }} whileHover={{ scaleX: 1 }} transition={{ duration: 0.3 }} />
                   </Card>
@@ -1351,22 +1357,20 @@ export default function LandingPage() {
         <div className="container mx-auto max-w-6xl">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
             <GoldDivider />
-            <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4" style={{ color: lpMid.page.text }}>{t('landing.howto_subtitle')}</span>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold" style={{ color: lpMid.page.text }}>{t('landing.howto_title')}</h2>
+            <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4 lg:text-base" style={{ color: lpMid.page.text }}>{t('landing.howto_subtitle')}</span>
+            <h2 className="text-2xl sm:text-3xl md:text-6xl font-bold" style={{ color: lpMid.page.text }}>{t('landing.howto_title')}</h2>
           </motion.div>
           {(() => {
             const howtoSteps = [
               { step: '01', num: 1, highlight: false },
               { step: '02', num: 2, highlight: false },
               { step: '03', num: 3, highlight: true, badge: 'common.auto_voice' as const },
-              { step: '04', num: 4, highlight: true, badge: 'bonus' as const },
             ];
-            const stepIcons = [MapPin, Store, Phone, Gift];
+            const stepIcons = [MapPin, Store, Phone];
             const images = [
               'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772413015/Gemini_Generated_Image_kklaofkklaofkkla_faupob_c_pad_b_gen_fill_w_1024_h_1024_puu1hp.png',
               'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772413014/Gemini_Generated_Image_4et50r4et50r4et5_zo8vh4_c_pad_b_gen_fill_w_1024_h_1024_entmxs.png',
               'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772413152/Gemini_Generated_Image_3qcvnq3qcvnq3qcv_acv91j_c_pad_w_1024_h_1024_sr05n9.png',
-              'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772412891/Gemini_Generated_Image_4o9bjm4o9bjm4o9b_j6hwmu_c_pad_b_gen_fill_w_1024_h_1024_gmu92v.png',
             ];
             const renderStepCard = (index: number) => {
               const { step, num, highlight, badge } = howtoSteps[index];
@@ -1378,17 +1382,16 @@ export default function LandingPage() {
                   <div className="p-6 sm:p-8 relative z-10">
                     <div className="flex items-center justify-between mb-6">
                       <div className="flex items-center gap-3">
-                        <span className="text-4xl font-bold" style={{ color: highlight ? LP_YELLOW : LP_ON_NAVY.textMuted }}>{step}</span>
+                        <span className="text-4xl font-bold lg:text-6xl" style={{ color: highlight ? LP_YELLOW : LP_ON_NAVY.textMuted }}>{step}</span>
                         <motion.div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: `${LP_YELLOW}15`, border: `1px solid ${LP_YELLOW}25` }} animate={isStep4 ? { scale: [1, 1.1, 1] } : {}} transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}>
                           <Icon className="w-5 h-5" style={{ color: highlight ? LP_YELLOW : lpMid.elevated.textMuted }} />
                         </motion.div>
                       </div>
                       {badge === 'common.auto_voice' && (<span className="text-[10px] font-semibold px-3 py-1 rounded-full uppercase tracking-wider" style={{ background: LP_YELLOW, color: LP_NAVY, border: '1px solid rgba(255, 198, 45, 0.55)' }}>{t('common.auto_voice')}</span>)}
-                      {badge === 'bonus' && (<motion.span className="text-[10px] font-semibold px-3 py-1 rounded-full uppercase tracking-wider flex items-center gap-1" style={{ background: 'linear-gradient(135deg, #4ADE80 0%, #22C55E 100%)', color: '#fff', boxShadow: '0 0 12px rgba(74, 222, 128, 0.4)' }} animate={{ scale: [1, 1.05, 1] }} transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}><Sparkles className="w-3 h-3" />Bonus</motion.span>)}
                     </div>
-                    <h3 className="text-xl font-bold mb-1" style={{ color: lpMid.elevated.text }}>{stepTitle}</h3>
-                    <p className="text-xs uppercase tracking-wider mb-4 font-medium" style={{ color: lpMid.subtitleOnElevated }}>{t(`landing.howto_step${num}_title_en`)}</p>
-                    <p className="mb-6 leading-relaxed text-sm" style={{ color: lpMid.elevated.textMuted }}>{renderWithLineBreaks(t(`landing.howto_step${num}_desc`))}</p>
+                    <h3 className="text-xl font-bold mb-1 lg:text-3xl" style={{ color: lpMid.elevated.text }}>{stepTitle}</h3>
+                    <p className="text-xs uppercase tracking-wider mb-4 font-medium lg:text-base" style={{ color: lpMid.subtitleOnElevated }}>{t(`landing.howto_step${num}_title_en`)}</p>
+                    <p className="mb-6 leading-relaxed text-sm lg:text-lg" style={{ color: lpMid.elevated.textMuted }}>{renderWithLineBreaks(t(`landing.howto_step${num}_desc`))}</p>
                     <div className="rounded-xl overflow-hidden relative" style={{ border: `1px solid ${lpMid.elevated.border}` }}>
                       <img src={images[index]} alt={stepTitle} className="w-full h-auto object-cover" />
                       {isStep4 && (<motion.div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(45deg, transparent 0%, rgba(201, 168, 108, 0.15) 50%, transparent 100%)' }} animate={{ x: ['-100%', '200%'] }} transition={{ duration: 3, repeat: Infinity, repeatDelay: 2, ease: 'easeInOut' }} />)}
@@ -1400,40 +1403,72 @@ export default function LandingPage() {
             };
             return (
               <>
-                {/* モバイル: スライド */}
-                <div className="block lg:hidden relative">
-                  <div className="overflow-hidden rounded-2xl">
-                    <AnimatePresence mode="wait">
-                      <motion.div key={howtoSlide} initial={{ opacity: 0, x: 80 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -80 }} transition={{ duration: 0.35 }}>
-                        {renderStepCard(howtoSlide)}
-                      </motion.div>
-                    </AnimatePresence>
-                  </div>
-                  <button
-                    onClick={() => setHowtoSlide((prev) => (prev - 1 + howtoSteps.length) % howtoSteps.length)}
-                    className="absolute left-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 z-10"
-                    style={{ background: lpMid.fab.bg, border: `1px solid ${lpMid.fab.border}`, backdropFilter: 'blur(10px)' }}
-                  >
-                    <ChevronLeft className="w-5 h-5" style={{ color: lpMid.fab.icon }} />
-                  </button>
-                  <button
-                    onClick={() => setHowtoSlide((prev) => (prev + 1) % howtoSteps.length)}
-                    className="absolute right-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 z-10"
-                    style={{ background: lpMid.fab.bg, border: `1px solid ${lpMid.fab.border}`, backdropFilter: 'blur(10px)' }}
-                  >
-                    <ChevronRight className="w-5 h-5" style={{ color: lpMid.fab.icon }} />
-                  </button>
-                  <div className="flex justify-center gap-2 mt-6">
-                    {howtoSteps.map((_, index) => (
-                      <button key={index} onClick={() => setHowtoSlide(index)} className="h-2 rounded-full transition-all duration-300" style={{ width: howtoSlide === index ? '24px' : '8px', background: howtoSlide === index ? LP_YELLOW : lpMid.dotInactive, boxShadow: howtoSlide === index ? `0 0 10px ${LP_YELLOW}60` : 'none' }} />
-                    ))}
-                  </div>
+                {/* モバイル: 縦並び */}
+                <div className="flex flex-col gap-6 lg:hidden">
+                  {howtoSteps.map((_, index) => (
+                    <motion.div key={index} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.1 }}>
+                      {renderStepCard(index)}
+                    </motion.div>
+                  ))}
                 </div>
                 {/* PC: グリッド */}
-                <div className="hidden lg:grid lg:grid-cols-2 gap-8">
+                <div className="hidden lg:grid lg:grid-cols-3 gap-8">
                   {howtoSteps.map((_, index) => (
                     <motion.div key={index} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.15 }}>
                       {renderStepCard(index)}
+                    </motion.div>
+                  ))}
+                </div>
+              </>
+            );
+          })()}
+        </div>
+      </section>
+
+      {/* お客様の声セクション */}
+      <section className="relative py-12 md:py-24 px-4 overflow-hidden" style={{ background: lpMid.page.bg }}>
+        <div className="container mx-auto max-w-6xl">
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12 md:mb-16">
+            <GoldDivider />
+            <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4 lg:text-base" style={{ color: lpMid.page.text }}>{t('landing.customer_voices_label')}</span>
+            <h2 className="text-2xl sm:text-3xl md:text-6xl font-bold mb-4" style={{ color: lpMid.page.text }}>{t('landing.customer_voices_title')}</h2>
+            <p className="text-base max-w-2xl mx-auto lg:text-xl" style={{ color: lpMid.page.textMuted }}>{t('landing.customer_voices_subtitle')}</p>
+          </motion.div>
+          {(() => {
+            const voices = [1, 2, 3] as const;
+            const renderVoiceCard = (n: 1 | 2 | 3) => (
+              <Card className="h-full overflow-hidden relative" style={{ background: lpMid.elevated.bg, border: `1px solid ${lpMid.elevated.border}`, boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
+                <div className="p-6 sm:p-8 flex flex-col h-full">
+                  <div className="mb-5 flex items-center justify-center">
+                    <div className="w-32 h-32 md:w-36 md:h-36 rounded-2xl overflow-hidden flex items-center justify-center" style={{ background: '#FAF7F0', border: `1px solid ${LP_YELLOW}25` }}>
+                      <img src={t(`landing.voice${n}_illustration`)} alt={t(`landing.voice${n}_author`)} className="w-full h-full object-contain" loading="lazy" />
+                    </div>
+                  </div>
+                  <span className="text-5xl font-serif leading-none mb-1" style={{ color: LP_YELLOW }}>“</span>
+                  <p className="flex-1 leading-relaxed text-sm lg:text-lg mb-6" style={{ color: lpMid.elevated.textMuted }}>{t(`landing.voice${n}_text`)}</p>
+                  <div className="pt-4" style={{ borderTop: `1px solid ${lpMid.elevated.border}` }}>
+                    <p className="text-sm font-bold lg:text-lg" style={{ color: lpMid.elevated.text }}>{t(`landing.voice${n}_author`)}</p>
+                    <p className="text-xs uppercase tracking-wider mt-1 lg:text-sm" style={{ color: lpMid.subtitleOnElevated }}>{t(`landing.voice${n}_role`)}</p>
+                  </div>
+                </div>
+                <motion.div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ background: `linear-gradient(90deg, ${LP_YELLOW}, #E6B020)` }} initial={{ scaleX: 0 }} whileHover={{ scaleX: 1 }} transition={{ duration: 0.3 }} />
+              </Card>
+            );
+            return (
+              <>
+                {/* モバイル: 縦並び */}
+                <div className="flex flex-col gap-6 lg:hidden">
+                  {voices.map((n, index) => (
+                    <motion.div key={n} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.1 }}>
+                      {renderVoiceCard(n)}
+                    </motion.div>
+                  ))}
+                </div>
+                {/* PC: グリッド */}
+                <div className="hidden lg:grid lg:grid-cols-3 gap-8">
+                  {voices.map((n, index) => (
+                    <motion.div key={n} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.15 }}>
+                      {renderVoiceCard(n)}
                     </motion.div>
                   ))}
                 </div>
@@ -1448,9 +1483,9 @@ export default function LandingPage() {
         <div className="container mx-auto max-w-4xl lg:max-w-7xl">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
             <GoldDivider />
-            <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4" style={{ color: lpMid.page.text }}>{t('landing.area_guide_label')}</span>
-            <h2 className="text-2xl sm:text-3xl font-bold mb-4" style={{ color: lpMid.page.text }}>{renderWithLineBreaks(t('landing.area_guide_title'))}</h2>
-            <p className="text-base max-w-2xl mx-auto" style={{ color: lpMid.page.textMuted }}>{renderWithLineBreaks(t('landing.area_guide_subtitle'))}</p>
+            <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4 lg:text-base" style={{ color: lpMid.page.text }}>{t('landing.area_guide_label')}</span>
+            <h2 className="text-2xl sm:text-3xl font-bold mb-4 lg:text-4xl" style={{ color: lpMid.page.text }}>{renderWithLineBreaks(t('landing.area_guide_title'))}</h2>
+            <p className="text-base max-w-2xl mx-auto lg:text-xl" style={{ color: lpMid.page.textMuted }}>{renderWithLineBreaks(t('landing.area_guide_subtitle'))}</p>
           </motion.div>
 
           {(() => {
@@ -1477,14 +1512,14 @@ export default function LandingPage() {
             const renderAreaCard = (index: number) => {
               const guide = areaGuides[index];
               return (
-                <article className="rounded-2xl overflow-hidden" style={{ background: lpMid.elevated.bg, border: `1px solid ${lpMid.elevated.border}`, boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
-                  <div className="aspect-[16/9] w-full overflow-hidden">
+                <article className="rounded-2xl overflow-hidden h-full flex flex-col" style={{ background: lpMid.elevated.bg, border: `1px solid ${lpMid.elevated.border}`, boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
+                  <div className="aspect-[16/9] w-full overflow-hidden flex-shrink-0">
                     <img src={guide.image} alt={guide.title} className="w-full h-full object-cover" />
                   </div>
-                  <div className="p-6">
-                    <h3 className="text-xl font-bold mb-3" style={{ color: lpMid.elevated.text }}>{guide.title}</h3>
-                    <p className="text-sm leading-relaxed mb-3" style={{ color: lpMid.elevated.textMuted }}>{guide.desc1}</p>
-                    <p className="text-sm leading-relaxed" style={{ color: lpMid.elevated.textMuted }}>{guide.desc2}</p>
+                  <div className="p-6 flex flex-col flex-1">
+                    <h3 className="text-xl font-bold mb-3 lg:text-3xl" style={{ color: lpMid.elevated.text }}>{guide.title}</h3>
+                    <p className="text-sm leading-relaxed mb-3 lg:text-lg" style={{ color: lpMid.elevated.textMuted }}>{guide.desc1}</p>
+                    <p className="text-sm leading-relaxed lg:text-lg" style={{ color: lpMid.elevated.textMuted }}>{guide.desc2}</p>
                   </div>
                 </article>
               );
@@ -1493,12 +1528,23 @@ export default function LandingPage() {
               <>
                 {/* モバイル: スライド */}
                 <div className="block lg:hidden relative">
-                  <div className="overflow-hidden rounded-2xl">
-                    <AnimatePresence mode="wait">
-                      <motion.div key={areaGuideSlide} initial={{ opacity: 0, x: 80 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -80 }} transition={{ duration: 0.35 }}>
-                        {renderAreaCard(areaGuideSlide)}
-                      </motion.div>
-                    </AnimatePresence>
+                  <div className="overflow-hidden rounded-2xl grid">
+                    {areaGuides.map((_, index) => {
+                      const isActive = areaGuideSlide === index;
+                      return (
+                        <motion.div
+                          key={index}
+                          className="col-start-1 row-start-1 h-full"
+                          initial={false}
+                          animate={{ opacity: isActive ? 1 : 0 }}
+                          transition={{ duration: 0.35 }}
+                          style={{ pointerEvents: isActive ? 'auto' : 'none' }}
+                          aria-hidden={!isActive}
+                        >
+                          {renderAreaCard(index)}
+                        </motion.div>
+                      );
+                    })}
                   </div>
                   <button
                     onClick={() => setAreaGuideSlide((prev) => (prev - 1 + areaGuides.length) % areaGuides.length)}
@@ -1521,11 +1567,11 @@ export default function LandingPage() {
                   </div>
                 </div>
                 {/* PC: 最大3枚を横一列 */}
-                <div className="hidden lg:grid lg:grid-cols-3 gap-6 xl:gap-8">
+                <div className="hidden lg:grid lg:grid-cols-3 gap-6 xl:gap-8 items-stretch">
                   {areaGuides.map((_, index) => (
                     <motion.div
                       key={index}
-                      className="min-w-0"
+                      className="min-w-0 h-full"
                       initial={{ opacity: 0, y: 20 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
@@ -1548,9 +1594,9 @@ export default function LandingPage() {
           <div className="container mx-auto max-w-6xl relative z-10 px-4">
             <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
               <GoldDivider />
-              <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4" style={{ color: accentTextOnLightBg(lpPage.bg) }}>Partner Stores</span>
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4" style={{ color: lpPage.text }}>{t('common.partner_stores')}</h2>
-              <p className="text-lg max-w-xl mx-auto" style={{ color: lpPage.textMuted }}>{t('common.partner_stores_subtitle')}</p>
+              <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4 lg:text-base" style={{ color: accentTextOnLightBg(lpPage.bg) }}>Partner Stores</span>
+              <h2 className="text-2xl sm:text-3xl md:text-6xl font-bold mb-4" style={{ color: lpPage.text }}>{t('common.partner_stores')}</h2>
+              <p className="text-lg max-w-xl mx-auto lg:text-2xl" style={{ color: lpPage.textMuted }}>{t('common.partner_stores_subtitle')}</p>
             </motion.div>
           </div>
           <div className="relative w-full overflow-hidden">
@@ -1571,7 +1617,7 @@ export default function LandingPage() {
                     <img src={store.image_urls?.[0] || ''} alt={store.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                     <div className="absolute inset-0" style={{ background: `linear-gradient(to top, #13294b 0%, transparent 60%)` }} />
                     <div className="absolute bottom-3 left-3 right-3">
-                      <h3 className="text-sm font-bold truncate" style={{ color: '#FFFFFF', textShadow: '0 1px 6px rgba(0,0,0,0.8)' }}>{store.name}</h3>
+                      <h3 className="text-sm font-bold truncate lg:text-lg" style={{ color: '#FFFFFF', textShadow: '0 1px 6px rgba(0,0,0,0.8)' }}>{store.name}</h3>
                     </div>
                   </div>
                 </div>
@@ -1598,12 +1644,12 @@ export default function LandingPage() {
         <div className="container mx-auto max-w-3xl text-center">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
             <GoldDivider />
-            <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4" style={{ color: accentTextOnLightBg(lpPage.bg) }}>Contact</span>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4" style={{ color: lpPage.text }}>{t('landing.contact_title')}</h2>
-            <p className="text-base mb-8" style={{ color: lpPage.textMuted }}>{renderWithLineBreaks(t('landing.contact_subtitle'))}</p>
+            <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4 lg:text-base" style={{ color: accentTextOnLightBg(lpPage.bg) }}>Contact</span>
+            <h2 className="text-2xl sm:text-3xl md:text-6xl font-bold mb-4" style={{ color: lpPage.text }}>{t('landing.contact_title')}</h2>
+            <p className="text-base mb-8 lg:text-xl" style={{ color: lpPage.textMuted }}>{renderWithLineBreaks(t('landing.contact_subtitle'))}</p>
             <Link href="/contact">
               <motion.div whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.98 }} className="inline-block">
-                <Button size="lg" className="text-base px-8 py-6 rounded-full font-semibold" style={{ background: LP_YELLOW, color: LP_NAVY, boxShadow: '0 8px 28px rgba(255, 198, 45, 0.35)' }}>
+                <Button size="lg" className="text-base px-8 py-6 rounded-full font-semibold lg:text-xl" style={{ background: LP_YELLOW, color: LP_NAVY, boxShadow: '0 8px 28px rgba(255, 198, 45, 0.35)' }}>
                   <Mail className="w-5 h-5 mr-2" />{t('landing.contact_button')}
                 </Button>
               </motion.div>
@@ -1618,8 +1664,8 @@ export default function LandingPage() {
         <div className="container mx-auto max-w-3xl">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
             <GoldDivider />
-            <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4" style={{ color: LP_NAVY }}>Company</span>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold" style={{ color: LP_CARD.text }}>{t('landing.company_title')}</h2>
+            <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4 lg:text-base" style={{ color: LP_NAVY }}>Company</span>
+            <h2 className="text-2xl sm:text-3xl md:text-6xl font-bold" style={{ color: LP_CARD.text }}>{t('landing.company_title')}</h2>
           </motion.div>
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="rounded-2xl p-6 sm:p-8" style={{ background: '#FFFFFF', border: `1px solid ${LP_CARD.borderSubtle}`, boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
             <div className="space-y-4">
@@ -1630,13 +1676,13 @@ export default function LandingPage() {
                 { label: t('landing.company_business_label'), value: t('landing.company_business_value') },
               ].map((item, index) => (
                 <div key={index} className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-4 py-3" style={{ borderBottom: `1px solid ${LP_CARD.borderSubtle}` }}>
-                  <span className="text-xs font-bold uppercase tracking-wider flex-shrink-0 sm:w-32" style={{ color: LP_NAVY }}>{item.label}</span>
-                  <span className="text-sm" style={{ color: LP_CARD.textMuted }}>{renderWithLineBreaks(item.value)}</span>
+                  <span className="text-xs font-bold uppercase tracking-wider flex-shrink-0 sm:w-32 lg:text-base" style={{ color: LP_NAVY }}>{item.label}</span>
+                  <span className="text-sm lg:text-lg" style={{ color: LP_CARD.textMuted }}>{renderWithLineBreaks(item.value)}</span>
                 </div>
               ))}
             </div>
             <div className="mt-6 text-center">
-              <a href="https://www.nobody-inc.jp/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm font-medium transition-all hover:scale-105" style={{ color: LP_NAVY }}>
+              <a href="https://www.nobody-inc.jp/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm font-medium transition-all hover:scale-105 lg:text-lg" style={{ color: LP_NAVY }}>
                 {t('landing.company_website')} <ExternalLink className="w-4 h-4" />
               </a>
             </div>
@@ -1656,14 +1702,14 @@ export default function LandingPage() {
               return (
                 <Link key={index} href={link.href} className="flex items-center justify-center gap-2 px-4 py-4 rounded-xl transition-all hover:scale-105 active:scale-95 min-h-[56px] group" style={{ background: lpElevated.bg, border: `1px solid ${lpElevated.border}`, boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
                   <Icon className="w-5 h-5 transition-colors" style={{ color: LP_YELLOW }} />
-                  <span className="text-base font-medium transition-colors" style={{ color: lpElevated.text }}>{link.label}</span>
+                  <span className="text-base font-medium transition-colors lg:text-xl" style={{ color: lpElevated.text }}>{link.label}</span>
                 </Link>
               );
             })}
           </nav>
           <div className="text-center">
-            <p className="text-sm mb-2" style={{ color: lpPage.textSubtle }}>{t('landing.footer_copyright')}</p>
-            <p className="text-lg font-bold" style={{ color: accentTextOnLightBg(lpPage.bg) }}>{t('common.slogan')}</p>
+            <p className="text-sm mb-2 lg:text-lg" style={{ color: lpPage.textSubtle }}>{t('landing.footer_copyright')}</p>
+            <p className="text-lg font-bold lg:text-2xl" style={{ color: accentTextOnLightBg(lpPage.bg) }}>{t('common.slogan')}</p>
           </div>
         </div>
       </footer>
@@ -1680,21 +1726,21 @@ export default function LandingPage() {
                 <div className="h-1" style={{ background: `linear-gradient(90deg, transparent, ${LP_YELLOW}, transparent)` }} />
                 <div className="p-8">
                   <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="text-center mb-6">
-                    <h2 className="text-2xl font-bold mb-3" style={{ color: lpPage.text }}>{t('modal.location_title')}</h2>
-                    <p className="text-base leading-relaxed" style={{ color: lpPage.textMuted }}>{t('modal.location_desc')}</p>
+                    <h2 className="text-2xl font-bold mb-3 lg:text-4xl" style={{ color: lpPage.text }}>{t('modal.location_title')}</h2>
+                    <p className="text-base leading-relaxed lg:text-xl" style={{ color: lpPage.textMuted }}>{t('modal.location_desc')}</p>
                   </motion.div>
                   <GoldDivider />
                   {locationPermission === 'denied' && (
                     <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-6 p-4 rounded-xl" style={{ background: 'rgba(248, 113, 113, 0.1)', border: '1px solid rgba(248, 113, 113, 0.3)' }}>
                       <div className="flex items-start gap-3 mb-2">
                         <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: '#F87171' }} />
-                        <p className="text-sm font-semibold" style={{ color: '#F87171' }}>{t('modal.location_denied_title')}</p>
+                        <p className="text-sm font-semibold lg:text-lg" style={{ color: '#F87171' }}>{t('modal.location_denied_title')}</p>
                       </div>
-                      <p className="text-xs leading-relaxed ml-8 whitespace-pre-line" style={{ color: '#FCA5A5' }}>{t('modal.location_denied_desc')}</p>
+                      <p className="text-xs leading-relaxed ml-8 whitespace-pre-line lg:text-base" style={{ color: '#FCA5A5' }}>{t('modal.location_denied_desc')}</p>
                     </motion.div>
                   )}
                   <div className="space-y-3">
-                    <motion.button whileHover={locationPermission !== 'loading' ? { scale: 1.02, y: -2 } : {}} whileTap={locationPermission !== 'loading' ? { scale: 0.98 } : {}} onClick={() => locationPermission !== 'loading' && handleLocationPermission(true)} className="w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all relative overflow-hidden group" style={{ background: LP_YELLOW, color: LP_NAVY, boxShadow: '0 8px 28px rgba(255, 198, 45, 0.35)', opacity: locationPermission === 'loading' ? 0.8 : 1 }}>
+                    <motion.button whileHover={locationPermission !== 'loading' ? { scale: 1.02, y: -2 } : {}} whileTap={locationPermission !== 'loading' ? { scale: 0.98 } : {}} onClick={() => locationPermission !== 'loading' && handleLocationPermission(true)} className="w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all relative overflow-hidden group lg:text-2xl" style={{ background: LP_YELLOW, color: LP_NAVY, boxShadow: '0 8px 28px rgba(255, 198, 45, 0.35)', opacity: locationPermission === 'loading' ? 0.8 : 1 }}>
                       <motion.div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%)' }} animate={{ x: ['-100%', '200%'] }} transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 1 }} />
                       <span className="relative z-10 flex items-center justify-center gap-2">
                         {locationPermission === 'loading' ? (
@@ -1704,9 +1750,9 @@ export default function LandingPage() {
                         )}
                       </span>
                     </motion.button>
-                    <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => { setLocationPermission('prompt'); setShowLocationModal(false); }} className="w-full py-4 px-6 rounded-xl font-medium text-base transition-all" style={{ background: LP_CARD.bg, border: `1px solid ${LP_CARD.borderSubtle}`, color: LP_CARD.textMuted, boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }} disabled={locationPermission === 'loading'}>{t('modal.location_deny')}</motion.button>
+                    <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => { setLocationPermission('prompt'); setShowLocationModal(false); }} className="w-full py-4 px-6 rounded-xl font-medium text-base transition-all lg:text-xl" style={{ background: LP_CARD.bg, border: `1px solid ${LP_CARD.borderSubtle}`, color: LP_CARD.textMuted, boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }} disabled={locationPermission === 'loading'}>{t('modal.location_deny')}</motion.button>
                   </div>
-                  <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="text-center mt-6 text-xs" style={{ color: lpPage.textSubtle }}>{t('common.location_info_note')}</motion.p>
+                  <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="text-center mt-6 text-xs lg:text-base" style={{ color: lpPage.textSubtle }}>{t('common.location_info_note')}</motion.p>
                 </div>
               </motion.div>
           </motion.div>
@@ -1788,10 +1834,10 @@ export default function LandingPage() {
                       <Store className="h-7 w-7" style={{ color: accentTextOnLightBg(lpPage.bg) }} />
                     </motion.div>
                   </div>
-                  <h2 className="text-2xl font-bold mb-3" style={{ color: lpPage.text }}>
+                  <h2 className="text-2xl font-bold mb-3 lg:text-4xl" style={{ color: lpPage.text }}>
                     {t('menu.for_stores')}
                   </h2>
-                  <p className="text-base leading-relaxed px-1" style={{ color: lpPage.textMuted }}>
+                  <p className="text-base leading-relaxed px-1 lg:text-xl" style={{ color: lpPage.textMuted }}>
                     {t('auth.login_join_us')}
                   </p>
                 </motion.div>
@@ -1801,7 +1847,7 @@ export default function LandingPage() {
                     <Link
                       href="/partner/apply"
                       onClick={() => setShowStoreActionsModal(false)}
-                      className="relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-xl py-4 px-6 text-lg font-semibold transition-all group"
+                      className="relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-xl py-4 px-6 text-lg font-semibold transition-all group lg:text-2xl"
                       style={{
                         background: LP_YELLOW,
                         color: LP_NAVY,
@@ -1824,7 +1870,7 @@ export default function LandingPage() {
                     <Link
                       href="/login?role=store"
                       onClick={() => setShowStoreActionsModal(false)}
-                      className="flex w-full items-center justify-center gap-2 rounded-xl py-4 px-6 text-base font-medium transition-all"
+                      className="flex w-full items-center justify-center gap-2 rounded-xl py-4 px-6 text-base font-medium transition-all lg:text-xl"
                       style={{
                         background: 'rgba(255,255,255,0.08)',
                         border: '1px solid rgba(255, 198, 45, 0.35)',

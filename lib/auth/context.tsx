@@ -5,23 +5,22 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase/client';
 import type { Database } from '@/lib/supabase/types';
 
-type Profile = Database['public']['Tables']['profiles']['Row'];
+type UserRow = Database['public']['Tables']['users']['Row'];
 type Store = Database['public']['Tables']['stores']['Row'];
 
-type AccountType = 'platform' | 'store';
+type AccountType = 'platform' | 'store' | 'customer';
 
 interface AuthContextType {
   user: User | null;
-  profile: Profile | null;
+  profile: UserRow | null;
   store: Store | null;
   accountType: AccountType | null;
   session: Session | null;
   loading: boolean;
-  /** メール/パスワードでログイン */
   signIn: (email: string, password: string) => Promise<{
     error: Error | null;
     accountType?: AccountType;
-    profile?: Profile | null;
+    profile?: UserRow | null;
     store?: Store | null;
   }>;
   signUp: (email: string, password: string, displayName: string) => Promise<{ error: Error | null }>;
@@ -30,7 +29,6 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Cookie helpers for middleware-based route protection
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
 
 function setAuthCookies(accountType: AccountType, storeId?: string) {
@@ -48,48 +46,56 @@ function clearAuthCookies() {
   document.cookie = 'store-id=; Path=/; Max-Age=0';
 }
 
+function accountTypeForRole(role: UserRow['role']): AccountType {
+  return role === 'admin' ? 'platform' : 'customer';
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const [profile, setProfile] = useState<UserRow | null>(null);
   const [store, setStore] = useState<Store | null>(null);
   const [accountType, setAccountType] = useState<AccountType | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const resolveAccount = async (authUserId: string) => {
+      const { data: userRow } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', authUserId)
+        .maybeSingle();
+
+      if (userRow) {
+        const nextAccountType = accountTypeForRole(userRow.role);
+        setProfile(userRow);
+        setAccountType(nextAccountType);
+        setStore(null);
+        setAuthCookies(nextAccountType);
+        return;
+      }
+
+      const { data: storeData } = await supabase
+        .from('stores')
+        .select('*')
+        .eq('id', authUserId)
+        .maybeSingle();
+
+      if (storeData) {
+        setStore(storeData);
+        setAccountType('store');
+        setProfile(null);
+        setAuthCookies('store', storeData.id);
+      }
+    };
+
     const getSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       setSession(session);
       setUser(session?.user ?? null);
 
       if (session?.user) {
-        // まずprofilesテーブルをチェック（運営会社アカウント）
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .maybeSingle();
-
-        if (profileData) {
-          setProfile(profileData);
-          setAccountType('platform');
-          setStore(null);
-          setAuthCookies('platform');
-        } else {
-          // profilesになければstoresテーブルをチェック（店舗アカウント）
-          const { data: storeData } = await supabase
-            .from('stores')
-            .select('*')
-            .eq('id', session.user.id)
-            .maybeSingle();
-
-          if (storeData) {
-            setStore(storeData);
-            setAccountType('store');
-            setProfile(null);
-            setAuthCookies('store', storeData.id);
-          }
-        }
+        await resolveAccount(session.user.id);
       }
 
       setLoading(false);
@@ -103,33 +109,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(session?.user ?? null);
 
         if (session?.user) {
-          // まずprofilesテーブルをチェック（運営会社アカウント）
-          const { data: profileData } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .maybeSingle();
-
-          if (profileData) {
-            setProfile(profileData);
-            setAccountType('platform');
-            setStore(null);
-            setAuthCookies('platform');
-          } else {
-            // profilesになければstoresテーブルをチェック（店舗アカウント）
-            const { data: storeData } = await supabase
-              .from('stores')
-              .select('*')
-              .eq('id', session.user.id)
-              .maybeSingle();
-
-            if (storeData) {
-              setStore(storeData);
-              setAccountType('store');
-              setProfile(null);
-              setAuthCookies('store', storeData.id);
-            }
-          }
+          await resolveAccount(session.user.id);
         } else {
           setProfile(null);
           setStore(null);
@@ -153,20 +133,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (error) throw error;
 
-      // ログイン成功後、アカウントタイプを判定
       if (data.user) {
-        // まずprofilesテーブルをチェック（運営会社アカウント）
-        const { data: profileData } = await supabase
-          .from('profiles')
+        const { data: userRow } = await supabase
+          .from('users')
           .select('*')
           .eq('id', data.user.id)
           .maybeSingle();
 
-        if (profileData) {
-          return { error: null, accountType: 'platform' as AccountType, profile: profileData };
+        if (userRow) {
+          const nextAccountType = accountTypeForRole(userRow.role);
+          return { error: null, accountType: nextAccountType, profile: userRow };
         }
 
-        // profilesになければstoresテーブルをチェック（店舗アカウント）
         const { data: storeData } = await supabase
           .from('stores')
           .select('*')
@@ -177,7 +155,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return { error: null, accountType: 'store' as AccountType, store: storeData };
         }
 
-        // どちらにも存在しない場合
         throw new Error('アカウント情報が見つかりません');
       }
 
@@ -189,52 +166,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (email: string, password: string, displayName: string) => {
     try {
-      console.log('Starting platform account sign up process...');
-      
-      // Supabaseでユーザー作成（運営会社アカウント用）
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
             display_name: displayName,
-            account_type: 'platform',
-          }
-        }
+          },
+        },
       });
 
-      if (error) {
-        console.error('Auth sign up error:', error);
-        throw error;
-      }
-      
-      if (!data.user) {
-        console.error('No user returned from sign up');
-        throw new Error('ユーザー作成に失敗しました');
-      }
+      if (error) throw error;
+      if (!data.user) throw new Error('ユーザー作成に失敗しました');
 
-      console.log('User created:', data.user.id);
-
-      // 運営会社のプロフィールを作成
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          id: data.user.id,
-          email,
-          display_name: displayName,
-          is_business: true, // 運営会社は常にtrue
-        } as any);
-
-      if (profileError) {
-        console.error('Profile creation error:', profileError);
-        throw new Error(`プロフィール作成に失敗: ${profileError.message}`);
-      }
-
-      console.log('Profile created successfully');
-
+      // DB trigger `handle_new_user` inserts into public.users with role='customer' automatically.
       return { error: null };
     } catch (error) {
-      console.error('Sign up error:', error);
       return { error: error as Error };
     }
   };

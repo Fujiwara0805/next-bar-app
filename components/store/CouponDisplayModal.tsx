@@ -42,8 +42,6 @@ import {
   isSurveyComplete,
 } from '@/lib/types/coupon-usage';
 import { recordCouponUsage } from '@/lib/actions/coupon-usage';
-import { recordBonusClick } from '@/lib/actions/bonus-click';
-import { BonusClickType } from '@/lib/types/bonus-click';
 import { toast } from 'sonner';
 import { useLanguage } from '@/lib/i18n/context';
 import { useAuth } from '@/lib/auth/context';
@@ -258,7 +256,6 @@ interface ActionCardProps {
   href: string;
   gradientStyle: string;
   delay?: number;
-  onClickTrack?: () => void; // トラッキング用コールバック
   onExternalNavigate?: () => void; // 外部遷移検知用コールバック
 }
 
@@ -270,16 +267,10 @@ const ActionCard = ({
   href,
   gradientStyle,
   delay = 0,
-  onClickTrack,
   onExternalNavigate,
 }: ActionCardProps) => {
   const { colorsB: COLORS } = useAppMode();
   const handleClick = () => {
-    // トラッキングを非同期で実行（UXを損なわないよう外部遷移と並行処理）
-    if (onClickTrack) {
-      onClickTrack();
-    }
-    // 外部遷移を通知
     if (onExternalNavigate) {
       onExternalNavigate();
     }
@@ -563,30 +554,6 @@ export function CouponDisplayModal({
       setIsRecording(false);
     }
   };
-
-  // ============================================
-  // ボーナスクリックのトラッキング（KPI計測用）
-  // ============================================
-  const trackBonusClick = useCallback(async (clickType: BonusClickType) => {
-    try {
-      const sessionId = getOrCreateSessionId();
-      // 非同期で記録（UXを損なわないよう、エラーは無視）
-      await recordBonusClick({
-        storeId,
-        couponUsageId: couponUsageId || undefined,
-        clickType,
-        sessionId,
-        // 詳細データのスナップショット
-        storeName,
-        instagramUrl: clickType === 'instagram' ? (instagramUrl ?? null) : null,
-        googlePlaceId: clickType === 'google_review' ? (googlePlaceId ?? null) : null,
-        additionalBonusText: clickType === 'additional_bonus' ? (coupon.coupon_additional_bonus ?? null) : null,
-      });
-    } catch (error) {
-      // トラッキングエラーはログのみ、UXに影響を与えない
-      console.error('Failed to track bonus click:', error);
-    }
-  }, [storeId, couponUsageId, storeName, instagramUrl, googlePlaceId, coupon.coupon_additional_bonus]);
 
   // 外部リンクをクリックした時のハンドラー
   const handleExternalNavigate = useCallback(() => {
@@ -1783,7 +1750,6 @@ export function CouponDisplayModal({
                         href={instagramUrl}
                         gradientStyle={instagramGradient}
                         delay={0}
-                        onClickTrack={() => trackBonusClick('instagram')}
                         onExternalNavigate={handleExternalNavigate}
                       />
                     )}
@@ -1797,7 +1763,6 @@ export function CouponDisplayModal({
                       href={googlePlaceId ? generateGoogleReviewUrl(googlePlaceId) : `https://www.google.com/maps/search/${encodeURIComponent(storeName)}`}
                       gradientStyle={googleGradient}
                       delay={instagramUrl ? 0.1 : 0}
-                      onClickTrack={() => trackBonusClick('google_review')}
                       onExternalNavigate={handleExternalNavigate}
                     />
                   </div>
@@ -1832,7 +1797,6 @@ export function CouponDisplayModal({
                     whileTap={{ scale: bonusUnlocked ? 0.98 : 1 }}
                     onClick={() => {
                       if (!bonusUnlocked) return;
-                      trackBonusClick('additional_bonus');
                       setShowAdditionalBonus(true);
                     }}
                     disabled={!bonusUnlocked}

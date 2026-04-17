@@ -93,7 +93,7 @@ export default function ProfilePage() {
                     {user.email}
                   </p>
                   <div className="flex flex-wrap gap-1">
-                    {profile.is_business && (
+                    {profile.role === 'admin' && (
                       <Badge variant="secondary">
                         <Building className="w-3 h-3 mr-1" />
                         {t('profile.business_account')}
