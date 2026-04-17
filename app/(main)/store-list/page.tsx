@@ -749,7 +749,7 @@ function StoreListContent() {
                   <Sparkles className="w-5 h-5" style={{ color: COLORS.champagneGold }} />
                   <span className="text-lg font-light tracking-wide" style={{ color: COLORS.champagneGold }}>{t('store_list.concierge_selection')}</span>
                 </div>
-                <p className="text-sm font-medium" style={{ color: COLORS.warmGray }}>{t('store_list.concierge_intro').replace('{count}', String(filteredStores.length))}</p>
+                <p className="text-sm font-medium whitespace-pre-line" style={{ color: COLORS.warmGray }}>{t('store_list.concierge_intro').replace('{count}', String(filteredStores.length))}</p>
               </motion.div>
             )}
 
