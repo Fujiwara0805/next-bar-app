@@ -33,6 +33,9 @@ import {
   UserCheck,
   Sparkles,
   Store as StoreIcon,
+  QrCode,
+  Megaphone,
+  Building2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CloseCircleButton } from '@/components/ui/close-circle-button';
@@ -652,13 +655,35 @@ export default function StoreUpdatePage() {
               border: `1px solid rgba(201, 168, 108, 0.15)`,
             }}
           >
+            <div className="flex gap-4 mb-4">
+              {store.image_urls && store.image_urls.length > 0 ? (
+                <img
+                  src={store.image_urls[0]}
+                  alt={store.name}
+                  className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl object-cover flex-shrink-0"
+                  style={{ border: `1px solid rgba(201, 168, 108, 0.25)` }}
+                />
+              ) : (
+                <div
+                  className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl flex items-center justify-center flex-shrink-0"
+                  style={{
+                    background: 'rgba(201, 168, 108, 0.08)',
+                    border: `1px solid rgba(201, 168, 108, 0.2)`,
+                  }}
+                >
+                  <Building2 className="w-8 h-8" style={{ color: COLORS.warmGray }} />
+                </div>
+              )}
+              <div className="flex-1 min-w-0 flex items-center">
+                <h2
+                  className="text-xl sm:text-2xl font-bold leading-tight line-clamp-2"
+                  style={{ color: COLORS.deepNavy }}
+                >
+                  {store.name}
+                </h2>
+              </div>
+            </div>
             <div>
-              <h2
-                className="text-2xl font-bold mb-4"
-                style={{ color: COLORS.deepNavy }}
-              >
-                {store.name}
-              </h2>
               <div className="flex gap-2 flex-wrap">
                 <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
                   <Button
@@ -674,6 +699,38 @@ export default function StoreUpdatePage() {
                   >
                     <Edit className="w-4 h-4 mr-2 shrink-0" strokeWidth={2} />
                     編集
+                  </Button>
+                </motion.div>
+                <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => router.push(`/store/manage/${store.id}/qr`)}
+                    className="rounded-xl font-bold shadow-md border-0 hover:opacity-95 [&_svg]:stroke-[currentColor]"
+                    style={{
+                      background: COLORS.goldGradient,
+                      color: COLORS.charcoal,
+                    }}
+                  >
+                    <QrCode className="w-4 h-4 mr-2 shrink-0" strokeWidth={2} />
+                    QR
+                  </Button>
+                </motion.div>
+                <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => router.push(`/store/manage/${store.id}/broadcast`)}
+                    className="rounded-xl font-bold shadow-md border-0 hover:opacity-95 [&_svg]:stroke-[currentColor]"
+                    style={{
+                      background: COLORS.goldGradient,
+                      color: COLORS.charcoal,
+                    }}
+                  >
+                    <Megaphone className="w-4 h-4 mr-2 shrink-0" strokeWidth={2} />
+                    配信・分析
                   </Button>
                 </motion.div>
                 {accountType === 'store' && (
@@ -1043,10 +1100,9 @@ export default function StoreUpdatePage() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="absolute top-4 right-4 rounded-lg hover:bg-red-50"
+                              className="absolute top-4 right-4 rounded-lg hover:bg-destructive/10 text-destructive"
                               onClick={() => handleDeleteReservation(reservation.id)}
                               title="削除"
-                              style={{ color: '#dc2626' }}
                             >
                               <Trash2 className="w-4 h-4" />
                             </Button>

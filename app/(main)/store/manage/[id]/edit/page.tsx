@@ -147,18 +147,18 @@ const GoldDivider = () => {
 const inputStyles = {
   base: `
     w-full px-4 py-3 rounded-xl
-    bg-white border-2 
+    bg-popover text-popover-foreground border-2
     transition-all duration-200
     font-medium
-    placeholder:text-gray-400
+    placeholder:text-muted-foreground
     focus:outline-none
   `,
   focus: `
-    focus:border-[#C9A86C] 
-    focus:ring-2 
-    focus:ring-[#C9A86C]/20
+    focus:border-brass-500
+    focus:ring-2
+    focus:ring-brass-500/20
   `,
-  default: 'border-gray-200 hover:border-gray-300',
+  default: 'border-border hover:border-brass-500/40',
 };
 
 const getInputClassName = (disabled?: boolean) => 
@@ -1043,7 +1043,7 @@ export default function StoreEditPage() {
                         <button
                           key={idx}
                           type="button"
-                          className="w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors first:rounded-t-xl last:rounded-b-xl"
+                          className="w-full text-left px-4 py-3 hover:bg-muted transition-colors first:rounded-t-xl last:rounded-b-xl"
                           onMouseDown={(e) => {
                             e.preventDefault();
                             handleSelectSuggestion(pred);
@@ -1213,7 +1213,7 @@ export default function StoreEditPage() {
                   type="email"
                   value={email}
                   disabled
-                  className="w-full px-4 py-3 rounded-xl bg-gray-100 border-2 border-gray-200 font-medium cursor-not-allowed"
+                  className="w-full px-4 py-3 rounded-xl bg-muted border-2 border-border font-medium cursor-not-allowed"
                   style={{ fontSize: '16px', color: COLORS.warmGray }}
                 />
                 <p className="text-xs" style={{ color: COLORS.warmGray }}>

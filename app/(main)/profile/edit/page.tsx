@@ -120,7 +120,7 @@ export default function ProfileEditPage() {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#1C1E26' }}>
-      <header className="sticky top-0 z-10 bg-white border-b border-gray-200">
+      <header className="sticky top-0 z-10 bg-popover border-b border-border">
         <div className="flex items-center gap-3 p-4">
           <Button
             variant="ghost"
@@ -141,7 +141,7 @@ export default function ProfileEditPage() {
           onSubmit={handleSubmit}
           className="space-y-6"
         >
-          <Card className="p-6 bg-white">
+          <Card className="p-6 bg-popover">
             <div className="space-y-4">
               {/* 表示名 */}
               <div>
@@ -156,7 +156,7 @@ export default function ProfileEditPage() {
                   placeholder="例: 山田太郎"
                   required
                   disabled={loading}
-                  className="font-bold bg-white text-gray-700 border-2 border-gray-300"
+                  className="font-bold bg-popover text-foreground border-2 border-border"
                   style={{ fontSize: '16px' }}
                 />
               </div>
@@ -175,11 +175,11 @@ export default function ProfileEditPage() {
                   placeholder="example@email.com"
                   required
                   disabled={loading}
-                  className="font-bold bg-white text-gray-700 border-2 border-gray-300"
+                  className="font-bold bg-popover text-foreground border-2 border-border"
                   style={{ fontSize: '16px' }}
                 />
                 {email !== currentEmail && (
-                  <p className="text-xs text-amber-600 font-bold mt-2">
+                  <p className="text-xs text-warning font-bold mt-2">
                     ⚠️ メールアドレス変更には確認が必要です。新しいメールアドレスに確認リンクが送信されます。
                   </p>
                 )}
@@ -198,7 +198,7 @@ export default function ProfileEditPage() {
                   onChange={(e) => setAvatarUrl(e.target.value)}
                   placeholder="https://example.com/avatar.jpg"
                   disabled={loading}
-                  className="font-bold bg-white text-gray-700 border-2 border-gray-300"
+                  className="font-bold bg-popover text-foreground border-2 border-border"
                   style={{ fontSize: '16px' }}
                 />
               </div>
@@ -216,7 +216,7 @@ export default function ProfileEditPage() {
                   placeholder="自己紹介を入力してください"
                   rows={4}
                   disabled={loading}
-                  className="font-bold bg-white text-gray-700 border-2 border-gray-300"
+                  className="font-bold bg-popover text-foreground border-2 border-border"
                   style={{ fontSize: '16px' }}
                 />
               </div>

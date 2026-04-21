@@ -121,13 +121,13 @@ export function ArrivalToggleButton({ reservation, onUpdate }: ArrivalToggleButt
         relative flex items-center gap-2 px-4 py-2.5 rounded-lg
         font-bold text-sm transition-all duration-300
         border-2 shadow-sm
-        ${isDisabled 
-          ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed opacity-60'
+        ${isDisabled
+          ? 'bg-muted border-border text-muted-foreground cursor-not-allowed opacity-60'
           : isArrived
-            ? 'bg-gradient-to-r from-amber-50 to-yellow-50 border-amber-400 text-amber-800 hover:from-amber-100 hover:to-yellow-100 hover:border-amber-500'
-            : 'bg-gray-50 border-gray-300 text-gray-600 hover:bg-gray-100 hover:border-gray-400'
+            ? 'bg-brass-500/10 border-brass-500 text-brass-500 hover:bg-brass-500/20'
+            : 'bg-muted border-border text-muted-foreground hover:bg-muted/80'
         }
-        focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2
+        focus:outline-none focus:ring-2 focus:ring-brass-500 focus:ring-offset-2
         disabled:opacity-70 disabled:cursor-not-allowed
       `}
       whileTap={{ scale: isUpdating || isDisabled ? 1 : 0.95 }}
@@ -142,7 +142,7 @@ export function ArrivalToggleButton({ reservation, onUpdate }: ArrivalToggleButt
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
           >
-            <Loader2 className="w-4 h-4 animate-spin text-amber-600" />
+            <Loader2 className="w-4 h-4 animate-spin text-brass-500" />
           </motion.div>
         ) : isArrived ? (
           <motion.div
@@ -151,7 +151,7 @@ export function ArrivalToggleButton({ reservation, onUpdate }: ArrivalToggleButt
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
           >
-            <UserCheck className="w-4 h-4" style={{ color: '#D4AF37' }} />
+            <UserCheck className="w-4 h-4 text-brass-500" />
           </motion.div>
         ) : (
           <motion.div
@@ -175,10 +175,9 @@ export function ArrivalToggleButton({ reservation, onUpdate }: ArrivalToggleButt
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
-          className="absolute -top-1 -right-1 w-3 h-3 rounded-full"
-          style={{ backgroundColor: '#D4AF37' }}
+          className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-brass-500"
         >
-          <Check className="w-3 h-3 text-white p-0.5" />
+          <Check className="w-3 h-3 text-brewer-900 p-0.5" />
         </motion.div>
       )}
     </motion.button>
@@ -197,28 +196,28 @@ export function ArrivalStatusBadge({ arrivedAt, noShowAt }: ArrivalStatusBadgePr
   if (arrivedAt) {
     const arrivedDate = new Date(arrivedAt);
     return (
-      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-300">
-        <UserCheck className="w-3.5 h-3.5" style={{ color: '#D4AF37' }} />
-        <span className="text-xs font-bold text-amber-800">
+      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brass-500/10 border border-brass-500/40">
+        <UserCheck className="w-3.5 h-3.5 text-brass-500" />
+        <span className="text-xs font-bold text-brass-500">
           来店済 {arrivedDate.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })}
         </span>
       </div>
     );
   }
-  
+
   if (noShowAt) {
     return (
-      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-50 border border-red-200">
-        <UserX className="w-3.5 h-3.5 text-red-600" />
-        <span className="text-xs font-bold text-red-700">無断キャンセル</span>
+      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-destructive/10 border border-destructive/30">
+        <UserX className="w-3.5 h-3.5 text-destructive" />
+        <span className="text-xs font-bold text-destructive">無断キャンセル</span>
       </div>
     );
   }
-  
+
   return (
-    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-50 border border-gray-200">
-      <UserX className="w-3.5 h-3.5 text-gray-500" />
-      <span className="text-xs font-bold text-gray-600">未来店</span>
+    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted border border-border">
+      <UserX className="w-3.5 h-3.5 text-muted-foreground" />
+      <span className="text-xs font-bold text-muted-foreground">未来店</span>
     </div>
   );
 }

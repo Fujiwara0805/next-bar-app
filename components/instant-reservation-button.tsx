@@ -159,8 +159,7 @@ export function InstantReservationButton({
         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
           <Button
             onClick={() => setShowDialog(true)}
-            className="font-bold text-white hover:opacity-90 rounded-xl shadow-md"
-            style={{ backgroundColor: '#13294b' }}
+            className="font-bold bg-brewer-900 text-cream-50 hover:bg-brewer-800 rounded-xl shadow-md"
             size="default"
           >
             <Clock className="w-3 h-3 mr-2" />
@@ -183,12 +182,12 @@ export function InstantReservationButton({
         >
           {/* 来店までの時間選択 */}
           <div>
-            <Label className="text-sm font-bold flex items-center gap-2 mb-2" style={{ color: '#2c5c6e' }}>
+            <Label className="text-sm font-bold flex items-center gap-2 mb-2 text-primary">
               <Clock className="w-4 h-4" />
               {t('reservation.arrival_time')}
             </Label>
             <Select value={arrivalMinutes} onValueChange={setArrivalMinutes}>
-              <SelectTrigger className="bg-white border-[#C9A86C]/40 text-[#2D3436] font-bold">
+              <SelectTrigger className="bg-popover border-brass-500/40 text-popover-foreground font-bold">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-white">
@@ -203,12 +202,12 @@ export function InstantReservationButton({
 
           {/* 人数選択 */}
           <div>
-            <Label className="text-sm font-bold flex items-center gap-2 mb-2" style={{ color: '#2c5c6e' }}>
+            <Label className="text-sm font-bold flex items-center gap-2 mb-2 text-primary">
               <Users className="w-4 h-4" />
               {t('reservation.party_size')}
             </Label>
             <Select value={partySize} onValueChange={setPartySize}>
-              <SelectTrigger className="bg-white border-[#C9A86C]/40 text-[#2D3436] font-bold">
+              <SelectTrigger className="bg-popover border-brass-500/40 text-popover-foreground font-bold">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-white">
@@ -227,7 +226,7 @@ export function InstantReservationButton({
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.1 }}
           >
-            <Label className="text-sm font-bold flex items-center gap-2 mb-2" style={{ color: '#2c5c6e' }}>
+            <Label className="text-sm font-bold flex items-center gap-2 mb-2 text-primary">
               <User className="w-4 h-4" />
               {t('reservation.guest_name')}
             </Label>
@@ -237,8 +236,8 @@ export function InstantReservationButton({
               value={guestName}
               onChange={(e) => setGuestName(e.target.value)}
               disabled={requesting}
-              className="font-bold bg-white border-[#C9A86C]/40 placeholder:text-[#b0c4ce] placeholder:font-normal"
-              style={{ fontSize: '16px', color: '#2D3436' }}
+              className="font-bold bg-popover border-brass-500/40 text-popover-foreground placeholder:text-muted-foreground placeholder:font-normal"
+              style={{ fontSize: '16px' }}
             />
           </motion.div>
 
@@ -248,7 +247,7 @@ export function InstantReservationButton({
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.2 }}
           >
-            <Label className="text-sm font-bold flex items-center gap-2 mb-2" style={{ color: '#2c5c6e' }}>
+            <Label className="text-sm font-bold flex items-center gap-2 mb-2 text-primary">
               <Phone className="w-4 h-4" />
               {t('reservation.guest_phone')}
             </Label>
@@ -258,22 +257,22 @@ export function InstantReservationButton({
               value={guestPhone}
               onChange={(e) => setGuestPhone(e.target.value)}
               disabled={requesting}
-              className="font-bold bg-white border-[#C9A86C]/40 placeholder:text-[#b0c4ce] placeholder:font-normal"
-              style={{ fontSize: '16px', color: '#2D3436' }}
+              className="font-bold bg-popover border-brass-500/40 text-popover-foreground placeholder:text-muted-foreground placeholder:font-normal"
+              style={{ fontSize: '16px' }}
             />
           </motion.div>
 
           {/* 予約の流れ */}
-          <motion.div 
-            className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-2"
+          <motion.div
+            className="bg-info/10 border border-info/30 rounded-lg p-4 space-y-2"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.3 }}
           >
-            <div className="font-bold text-blue-900 text-sm">
+            <div className="font-bold text-info text-sm">
               📱 {t('reservation.flow_title')}
             </div>
-            <ol className="text-xs text-blue-800 space-y-1 list-decimal list-inside">
+            <ol className="text-xs text-info/80 space-y-1 list-decimal list-inside">
               <li>{t('reservation.flow_step1')}</li>
               <li>{t('reservation.flow_step2')}</li>
               <li>{t('reservation.flow_step3')}</li>
@@ -295,12 +294,7 @@ export function InstantReservationButton({
               variant="outline"
               onClick={handleCancel}
               disabled={requesting}
-              className="flex-1 rounded-xl"
-              style={{
-                backgroundColor: 'rgba(201, 168, 108, 0.15)',
-                borderColor: '#C9A86C',
-                color: '#0A1628',
-              }}
+              className="flex-1 rounded-xl bg-brass-500/15 border-brass-500 text-brewer-900 hover:bg-brass-500/25"
             >
               <X className="w-4 h-4 mr-2" />
               {t('reservation.cancel')}
@@ -308,8 +302,7 @@ export function InstantReservationButton({
             <Button
               onClick={handleRequest}
               disabled={requesting}
-              className="flex-1 font-bold text-white hover:opacity-90 rounded-xl"
-              style={{ backgroundColor: '#13294b' }}
+              className="flex-1 font-bold bg-brewer-900 text-cream-50 hover:bg-brewer-800 rounded-xl"
             >
               {requesting ? (
                 <>

@@ -154,7 +154,7 @@ export function BusinessHoursModal({
           return (
             <div
               key={key}
-              className="flex items-center gap-2 py-2 border-b border-gray-100 last:border-0"
+              className="flex items-center gap-2 py-2 border-b border-border last:border-0"
             >
               {/* 曜日ラベル */}
               <div className="w-16 shrink-0">
@@ -201,7 +201,7 @@ export function BusinessHoursModal({
                     value={day.open}
                     onChange={(e) => updateDay(key, 'open', e.target.value)}
                     disabled={disabled}
-                    className="flex-1 text-sm px-2 py-1.5 rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-amber-200"
+                    className="flex-1 text-sm px-2 py-1.5 rounded-lg border border-border bg-popover focus:outline-none focus:ring-2 focus:ring-brass-500/20"
                     style={{ fontSize: '14px' }}
                   >
                     {TIME_OPTIONS.map((t) => (
@@ -220,7 +220,7 @@ export function BusinessHoursModal({
                     value={day.close}
                     onChange={(e) => updateDay(key, 'close', e.target.value)}
                     disabled={disabled}
-                    className="flex-1 text-sm px-2 py-1.5 rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-amber-200"
+                    className="flex-1 text-sm px-2 py-1.5 rounded-lg border border-border bg-popover focus:outline-none focus:ring-2 focus:ring-brass-500/20"
                     style={{ fontSize: '14px' }}
                   >
                     {TIME_OPTIONS.map((t) => (

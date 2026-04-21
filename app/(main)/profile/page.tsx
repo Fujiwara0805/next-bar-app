@@ -37,6 +37,12 @@ export default function ProfilePage() {
       return;
     }
 
+    // 顧客アカウントはマイページへ
+    if (accountType === 'customer') {
+      router.push('/mypage');
+      return;
+    }
+
     // 運営会社アカウントのみこの画面にアクセス可能
     if (accountType !== 'platform') {
       router.push('/login?role=platform');

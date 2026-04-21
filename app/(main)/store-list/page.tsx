@@ -776,7 +776,7 @@ function StoreListContent() {
                       }}
                     >
                       <Card
-                        className={`p-4 hover:shadow-lg transition-shadow h-full bg-white relative overflow-hidden ${isConciergeActive ? 'ring-2 ring-amber-400/30' : ''}`}
+                        className={`p-4 hover:shadow-lg transition-shadow h-full bg-popover relative overflow-hidden ${isConciergeActive ? 'ring-2 ring-brass-500/30' : ''}`}
                       >
                         {navigatingTo === store.id && (
                           <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/60 backdrop-blur-[1px] rounded-xl">
@@ -821,7 +821,7 @@ function StoreListContent() {
                               <motion.div
                                 initial={{ scale: 0, opacity: 0 }}
                                 animate={{ scale: 1, opacity: 1 }}
-                                className="px-1.5 py-0.5 rounded-full text-[10px] font-bold flex items-center gap-0.5 bg-amber-500 text-white"
+                                className="px-1.5 py-0.5 rounded-full text-[10px] font-bold flex items-center gap-0.5 bg-brass-500 text-white"
                                 style={{ boxShadow: '0 2px 8px rgba(245, 158, 11, 0.3)' }}
                               >
                                 <Ticket className="w-2.5 h-2.5" />
@@ -851,7 +851,7 @@ function StoreListContent() {
                                 <div className="flex items-center gap-2 -mt-1 mb-1">
                                   <div className="flex items-center gap-0.5">
                                     {[1, 2, 3, 4, 5].map((star) => (
-                                      <Star key={star} className={`w-4 h-4 ${star <= Math.round(store.google_rating!) ? 'fill-yellow-400 text-yellow-400' : 'fill-gray-200 text-gray-200'}`} />
+                                      <Star key={star} className={`w-4 h-4 ${star <= Math.round(store.google_rating!) ? 'fill-brass-500 text-brass-500' : 'fill-muted text-muted'}`} />
                                     ))}
                                   </div>
                                   <span className="text-sm font-bold" style={{ color: COLORS.charcoal }}>{store.google_rating.toFixed(1)}</span>
@@ -971,7 +971,7 @@ function StoreListContent() {
                   <Filter className="w-5 h-5" style={{ color: activeFilterCount > 0 ? COLORS.deepNavy : '#FFFFFF' }} />
                   <span className="text-[10px] font-bold" style={{ color: activeFilterCount > 0 ? COLORS.deepNavy : '#FFFFFF' }}>{t('store_list.filter')}</span>
                   {activeFilterCount > 0 && (
-                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center text-xs font-bold text-white">
+                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-success rounded-full flex items-center justify-center text-xs font-bold text-white">
                       {activeFilterCount}
                     </span>
                   )}
@@ -1011,34 +1011,34 @@ function StoreListContent() {
 
                       <button
                         onClick={() => setOpenNowOnly(!openNowOnly)}
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${openNowOnly ? 'bg-blue-500/20 text-blue-400' : ('hover:bg-white/10 text-white')}`}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${openNowOnly ? 'bg-info/20 text-info' : ('hover:bg-cream-50/10 text-white')}`}
                       >
                         <img src="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1767848645/icons8-%E9%96%8B%E5%BA%97%E3%82%B5%E3%82%A4%E3%83%B3-94_a4tmzn.png" alt={t('store_list.open')} className="w-5 h-5" />
                         <span className="font-bold text-sm flex-1 text-left">{t('store_list.open')}</span>
-                        {openNowOnly && <Check className="w-4 h-4 text-blue-400" />}
+                        {openNowOnly && <Check className="w-4 h-4 text-info" />}
                       </button>
 
                       <button
                         onClick={() => setVacantOnly(!vacantOnly)}
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${vacantOnly ? 'bg-green-500/20 text-green-400' : ('hover:bg-white/10 text-white')}`}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${vacantOnly ? 'bg-success/20 text-success' : ('hover:bg-cream-50/10 text-white')}`}
                       >
                         <img src="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761311529/%E7%A9%BA%E5%B8%AD%E3%81%82%E3%82%8A_rzejgw.png" alt={t('store_list.vacant')} className="w-5 h-5" />
                         <span className="font-bold text-sm flex-1 text-left">{t('store_list.vacant')}</span>
-                        {vacantOnly && <Check className="w-4 h-4 text-green-400" />}
+                        {vacantOnly && <Check className="w-4 h-4 text-success" />}
                       </button>
 
                       <button
                         onClick={() => setCouponOnly(!couponOnly)}
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${couponOnly ? 'bg-orange-500/20 text-orange-400' : ('hover:bg-white/10 text-white')}`}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${couponOnly ? 'bg-copper-500/20 text-copper-500' : ('hover:bg-cream-50/10 text-white')}`}
                       >
-                        <Ticket className="w-5 h-5" style={{ color: couponOnly ? '#fb923c' : COLORS.champagneGold }} />
+                        <Ticket className="w-5 h-5" style={{ color: couponOnly ? 'hsl(var(--copper-500))' : COLORS.champagneGold }} />
                         <span className="font-bold text-sm flex-1 text-left">{t('store_list.filter_has_coupon')}</span>
-                        {couponOnly && <Check className="w-4 h-4 text-orange-400" />}
+                        {couponOnly && <Check className="w-4 h-4 text-copper-500" />}
                       </button>
 
                       <button
                         onClick={() => setCampaignOnly(!campaignOnly)}
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${campaignOnly ? 'bg-pink-500/20 text-pink-400' : ('hover:bg-white/10 text-white')}`}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${campaignOnly ? 'bg-pink-500/20 text-pink-400' : ('hover:bg-cream-50/10 text-white')}`}
                       >
                         <PartyPopper className="w-5 h-5" style={{ color: campaignOnly ? '#f472b6' : COLORS.champagneGold }} />
                         <span className="font-bold text-sm flex-1 text-left">{t('store_list.filter_campaign') || 'キャンペーン中'}</span>
@@ -1055,11 +1055,11 @@ function StoreListContent() {
                           setCampaignOnly(false);
                           setShowFilterMenu(false);
                         }}
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${!vacantOnly && !openNowOnly && !couponOnly && !campaignOnly ? 'bg-amber-500/20 text-amber-400' : ('hover:bg-white/10 text-white')}`}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${!vacantOnly && !openNowOnly && !couponOnly && !campaignOnly ? 'bg-brass-500/20 text-brass-500' : ('hover:bg-cream-50/10 text-white')}`}
                       >
                         <span className="w-5 h-5 flex items-center justify-center text-lg">🍺</span>
                         <span className="font-bold text-sm flex-1 text-left">{t('store_list.filter_show_all')}</span>
-                        {!vacantOnly && !openNowOnly && !couponOnly && !campaignOnly && <Check className="w-4 h-4 text-amber-400" />}
+                        {!vacantOnly && !openNowOnly && !couponOnly && !campaignOnly && <Check className="w-4 h-4 text-brass-500" />}
                       </button>
                     </div>
                   </div>

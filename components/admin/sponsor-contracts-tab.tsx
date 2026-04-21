@@ -214,7 +214,7 @@ export function SponsorContractsTab({ sponsorId }: Props) {
             <select
               value={planType}
               onChange={(e) => setPlanType(e.target.value as PlanType)}
-              className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-[#C9A86C]"
+              className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-brass-500"
             >
               {(Object.keys(PLAN_LABELS) as PlanType[]).map((k) => (
                 <option key={k} value={k}>{PLAN_LABELS[k]}</option>
@@ -228,7 +228,7 @@ export function SponsorContractsTab({ sponsorId }: Props) {
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-[#C9A86C]"
+                className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-brass-500"
               />
             </div>
             <div>
@@ -238,7 +238,7 @@ export function SponsorContractsTab({ sponsorId }: Props) {
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
                 disabled={planType !== 'custom'}
-                className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-[#C9A86C] disabled:opacity-60"
+                className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-brass-500 disabled:opacity-60"
               />
             </div>
           </div>
@@ -252,7 +252,7 @@ export function SponsorContractsTab({ sponsorId }: Props) {
                 const v = e.target.value.replace(/[^0-9]/g, '');
                 setAmount(v === '' ? 0 : Number(v));
               }}
-              className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-[#C9A86C]"
+              className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-brass-500"
             />
           </div>
           <div>
@@ -260,7 +260,7 @@ export function SponsorContractsTab({ sponsorId }: Props) {
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-[#C9A86C] resize-none"
+              className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-brass-500 resize-none"
               rows={2}
             />
           </div>
@@ -274,8 +274,7 @@ export function SponsorContractsTab({ sponsorId }: Props) {
             <button
               onClick={handleCreate}
               disabled={saving}
-              className="flex-1 py-2.5 rounded-lg text-sm font-semibold text-white disabled:opacity-50"
-              style={{ background: '#C9A86C' }}
+              className="flex-1 py-2.5 rounded-lg text-sm font-semibold text-white bg-brass-500 disabled:opacity-50"
             >
               {saving ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : '作成'}
             </button>
@@ -300,7 +299,7 @@ export function SponsorContractsTab({ sponsorId }: Props) {
           <button
             onClick={handleCancel}
             disabled={saving}
-            className="flex-1 py-2.5 rounded-lg text-sm font-semibold text-white bg-red-500 hover:bg-red-600 disabled:opacity-50"
+            className="flex-1 py-2.5 rounded-lg text-sm font-semibold text-destructive-foreground bg-destructive hover:bg-destructive/90 disabled:opacity-50"
           >
             {saving ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : 'キャンセルする'}
           </button>

@@ -468,11 +468,11 @@ export function SponsorAdSlotsTab({ sponsorId }: Props) {
                                   </span>
                                   {/* Active/Inactive badge */}
                                   <span
-                                    className="text-[10px] px-1.5 py-0.5 rounded-full shrink-0 cursor-pointer"
-                                    style={{
-                                      background: creative.is_active ? 'rgba(34,197,94,0.1)' : 'rgba(107,114,128,0.1)',
-                                      color: creative.is_active ? '#22c55e' : '#6b7280',
-                                    }}
+                                    className={`text-[10px] px-1.5 py-0.5 rounded-full shrink-0 cursor-pointer ${
+                                      creative.is_active
+                                        ? 'bg-success/10 text-success'
+                                        : 'bg-muted text-muted-foreground'
+                                    }`}
                                     onClick={(e) => { e.stopPropagation(); handleToggleCreativeActive(creative); }}
                                     title={creative.is_active ? 'クリックで無効化' : 'クリックで有効化'}
                                   >
@@ -516,7 +516,7 @@ export function SponsorAdSlotsTab({ sponsorId }: Props) {
             <select
               value={slotType}
               onChange={(e) => setSlotType(e.target.value as SlotType)}
-              className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-[#C9A86C]"
+              className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-brass-500"
             >
               {(Object.keys(SLOT_TYPE_LABELS) as SlotType[]).map((k) => (
                 <option key={k} value={k}>{SLOT_TYPE_LABELS[k]}</option>
@@ -533,14 +533,14 @@ export function SponsorAdSlotsTab({ sponsorId }: Props) {
                 const v = e.target.value.replace(/[^0-9]/g, '');
                 setSlotPriority(v === '' ? 1 : Math.min(100, Number(v)));
               }}
-              className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-[#C9A86C]"
+              className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-brass-500"
             />
           </div>
           <div className="flex gap-2 pt-2">
             <button onClick={() => setSlotFormOpen(false)} className="flex-1 py-2.5 rounded-lg text-sm font-medium border border-gray-200 text-gray-600 hover:bg-gray-50">
               キャンセル
             </button>
-            <button onClick={handleCreateSlot} disabled={saving} className="flex-1 py-2.5 rounded-lg text-sm font-semibold text-white disabled:opacity-50" style={{ background: '#C9A86C' }}>
+            <button onClick={handleCreateSlot} disabled={saving} className="flex-1 py-2.5 rounded-lg text-sm font-semibold text-white disabled:opacity-50 bg-brass-500">
               {saving ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : '作成'}
             </button>
           </div>
@@ -574,7 +574,7 @@ export function SponsorAdSlotsTab({ sponsorId }: Props) {
                   <button
                     onClick={handleImageDelete}
                     disabled={uploadingImage}
-                    className="absolute top-2 right-2 p-1.5 rounded-full bg-red-500 text-white hover:bg-red-600 disabled:opacity-50"
+                    className="absolute top-2 right-2 p-1.5 rounded-full bg-destructive text-white hover:bg-destructive/90 disabled:opacity-50"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
@@ -591,10 +591,10 @@ export function SponsorAdSlotsTab({ sponsorId }: Props) {
                   }}
                 >
                   {uploadingImage ? (
-                    <Loader2 className="w-8 h-8 animate-spin" style={{ color: '#C9A86C' }} />
+                    <Loader2 className="w-8 h-8 animate-spin text-brass-500" />
                   ) : (
                     <>
-                      <Upload className="w-8 h-8 mb-2" style={{ color: '#C9A86C' }} />
+                      <Upload className="w-8 h-8 mb-2 text-brass-500" />
                       <span className="text-xs font-bold text-gray-400">画像をアップロード</span>
                       <span className="text-xs text-gray-300 mt-1">JPEG, PNG, WebP（10MB以下）</span>
                     </>
@@ -620,7 +620,7 @@ export function SponsorAdSlotsTab({ sponsorId }: Props) {
               type="url"
               value={form.ctaUrl}
               onChange={(e) => setForm(prev => ({ ...prev, ctaUrl: e.target.value }))}
-              className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-[#C9A86C]"
+              className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-brass-500"
               placeholder="https://..."
             />
           </div>
@@ -630,7 +630,7 @@ export function SponsorAdSlotsTab({ sponsorId }: Props) {
             <>
               <div>
                 <label className="block text-xs font-semibold text-gray-600 mb-1">
-                  CTAテキスト {creativeSlotType === 'cta_button' && <span className="text-red-500">*</span>}
+                  CTAテキスト {creativeSlotType === 'cta_button' && <span className="text-destructive">*</span>}
                 </label>
                 <div className="relative">
                   <input
@@ -642,7 +642,7 @@ export function SponsorAdSlotsTab({ sponsorId }: Props) {
                       }
                     }}
                     maxLength={CTA_TEXT_MAX_LENGTH}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-[#C9A86C]"
+                    className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-brass-500"
                     placeholder="詳しくはこちら"
                   />
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">
@@ -655,14 +655,14 @@ export function SponsorAdSlotsTab({ sponsorId }: Props) {
                   <label className="block text-xs font-semibold text-gray-600 mb-1">ボタン背景色</label>
                   <div className="flex items-center gap-2">
                     <input type="color" value={form.ctaColor} onChange={(e) => setForm(prev => ({ ...prev, ctaColor: e.target.value }))} className="w-9 h-9 rounded-lg border border-gray-200 cursor-pointer" />
-                    <input type="text" value={form.ctaColor} onChange={(e) => setForm(prev => ({ ...prev, ctaColor: e.target.value }))} className="flex-1 px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-[#C9A86C]" />
+                    <input type="text" value={form.ctaColor} onChange={(e) => setForm(prev => ({ ...prev, ctaColor: e.target.value }))} className="flex-1 px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-brass-500" />
                   </div>
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 mb-1">テキスト色</label>
                   <div className="flex items-center gap-2">
                     <input type="color" value={form.ctaTextColor} onChange={(e) => setForm(prev => ({ ...prev, ctaTextColor: e.target.value }))} className="w-9 h-9 rounded-lg border border-gray-200 cursor-pointer" />
-                    <input type="text" value={form.ctaTextColor} onChange={(e) => setForm(prev => ({ ...prev, ctaTextColor: e.target.value }))} className="flex-1 px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-[#C9A86C]" />
+                    <input type="text" value={form.ctaTextColor} onChange={(e) => setForm(prev => ({ ...prev, ctaTextColor: e.target.value }))} className="flex-1 px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-brass-500" />
                   </div>
                 </div>
               </div>
@@ -680,7 +680,7 @@ export function SponsorAdSlotsTab({ sponsorId }: Props) {
                   <select
                     value={form.animation}
                     onChange={(e) => setForm(prev => ({ ...prev, animation: e.target.value as CreativeFormState['animation'] }))}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-[#C9A86C]"
+                    className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-brass-500"
                   >
                     {ANIMATION_OPTIONS.map((opt) => (
                       <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -695,7 +695,7 @@ export function SponsorAdSlotsTab({ sponsorId }: Props) {
                     max={10}
                     value={form.frequencyCapPerSession}
                     onChange={(e) => setForm(prev => ({ ...prev, frequencyCapPerSession: Math.max(1, Math.min(10, Number(e.target.value))) }))}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-[#C9A86C]"
+                    className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-brass-500"
                   />
                 </div>
               </div>
@@ -708,7 +708,7 @@ export function SponsorAdSlotsTab({ sponsorId }: Props) {
                     inputMode="numeric"
                     value={form.autoCloseSeconds}
                     onChange={(e) => setForm(prev => ({ ...prev, autoCloseSeconds: e.target.value.replace(/[^0-9]/g, '') }))}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-[#C9A86C]"
+                    className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-brass-500"
                     placeholder="空欄=自動閉じなし"
                   />
                 </div>
@@ -718,7 +718,7 @@ export function SponsorAdSlotsTab({ sponsorId }: Props) {
                       type="checkbox"
                       checked={form.showCloseButton}
                       onChange={(e) => setForm(prev => ({ ...prev, showCloseButton: e.target.checked }))}
-                      className="w-4 h-4 rounded border-gray-300 accent-[#C9A86C]"
+                      className="w-4 h-4 rounded border-border accent-brass-500"
                     />
                     <span className="text-xs font-semibold text-gray-600">閉じるボタン表示</span>
                   </label>
@@ -739,7 +739,7 @@ export function SponsorAdSlotsTab({ sponsorId }: Props) {
                     inputMode="numeric"
                     value={form.iconPositionTop}
                     onChange={(e) => setForm(prev => ({ ...prev, iconPositionTop: e.target.value.replace(/[^0-9]/g, '') }))}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-[#C9A86C]"
+                    className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-brass-500"
                   />
                 </div>
                 <div>
@@ -749,7 +749,7 @@ export function SponsorAdSlotsTab({ sponsorId }: Props) {
                     inputMode="numeric"
                     value={form.iconPositionLeft}
                     onChange={(e) => setForm(prev => ({ ...prev, iconPositionLeft: e.target.value.replace(/[^0-9]/g, '') }))}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-[#C9A86C]"
+                    className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-brass-500"
                   />
                 </div>
                 <div>
@@ -760,7 +760,7 @@ export function SponsorAdSlotsTab({ sponsorId }: Props) {
                     max={96}
                     value={form.iconSize}
                     onChange={(e) => setForm(prev => ({ ...prev, iconSize: Math.max(24, Math.min(96, Number(e.target.value))) }))}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-[#C9A86C]"
+                    className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-brass-500"
                   />
                 </div>
               </div>
@@ -788,7 +788,7 @@ export function SponsorAdSlotsTab({ sponsorId }: Props) {
                   exit={{ height: 0, opacity: 0 }}
                   className="overflow-hidden"
                 >
-                  <div className="rounded-xl p-4" style={{ background: '#0A1628', border: '1px solid rgba(201,168,108,0.2)' }}>
+                  <div className="rounded-xl p-4 bg-brewer-950" style={{ border: '1px solid rgba(201,168,108,0.2)' }}>
                     <p className="text-[10px] text-gray-500 mb-2 text-center">実際の表示イメージ</p>
                     <CreativePreview form={form} slotType={creativeSlotType} />
                   </div>
@@ -808,8 +808,7 @@ export function SponsorAdSlotsTab({ sponsorId }: Props) {
             <button
               onClick={handleSaveCreative}
               disabled={saving || uploadingImage}
-              className="flex-1 py-2.5 rounded-lg text-sm font-semibold text-white disabled:opacity-50"
-              style={{ background: '#C9A86C' }}
+              className="flex-1 py-2.5 rounded-lg text-sm font-semibold text-white disabled:opacity-50 bg-brass-500"
             >
               {saving ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : isEditing ? '更新' : '作成'}
             </button>
@@ -830,7 +829,7 @@ function CreativePreview({ form, slotType }: { form: CreativeFormState; slotType
         {form.imageUrl ? (
           <img src={form.imageUrl} alt="" className="w-full h-full object-cover absolute inset-0" />
         ) : (
-          <div className="absolute inset-0 bg-gradient-to-b from-[#1A2E4A] to-[#0A1628]" />
+          <div className="absolute inset-0 bg-gradient-to-b from-brewer-800 to-brewer-950" />
         )}
         <div className="absolute inset-0 bg-black/30" />
         <div className="relative z-10 p-5 flex flex-col items-center justify-center" style={{ minHeight: 200 }}>
@@ -864,7 +863,7 @@ function CreativePreview({ form, slotType }: { form: CreativeFormState; slotType
 
   if (slotType === 'map_icon') {
     return (
-      <div className="relative bg-[#1a2e4a] rounded-lg" style={{ height: 160 }}>
+      <div className="relative bg-brewer-800 rounded-lg" style={{ height: 160 }}>
         <p className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[10px] text-gray-500">マップ領域</p>
         <div
           className="absolute"
@@ -877,7 +876,7 @@ function CreativePreview({ form, slotType }: { form: CreativeFormState; slotType
               <Image className="w-4 h-4 text-gray-400" />
             </div>
           )}
-          <span className="absolute -top-1 -right-1 text-[7px] bg-yellow-500 text-white px-1 rounded">AD</span>
+          <span className="absolute -top-1 -right-1 text-[7px] bg-warning text-warning-foreground px-1 rounded">AD</span>
         </div>
       </div>
     );
@@ -889,7 +888,7 @@ function CreativePreview({ form, slotType }: { form: CreativeFormState; slotType
         {form.imageUrl ? (
           <img src={form.imageUrl} alt="" className="w-full h-full object-cover absolute inset-0" style={{ aspectRatio: '3/1' }} />
         ) : (
-          <div className="absolute inset-0 bg-gradient-to-r from-[#1A2E4A] to-[#0A1628]" />
+          <div className="absolute inset-0 bg-gradient-to-r from-brewer-800 to-brewer-950" />
         )}
         <div className="absolute inset-0 bg-black/20" />
         <div className="relative z-10 p-3 flex items-center justify-between">

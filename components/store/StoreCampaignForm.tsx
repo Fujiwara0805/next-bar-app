@@ -188,8 +188,8 @@ export function StoreCampaignForm({
             />
           </div>
           <div>
-            <h3 className="font-bold text-gray-800">{t('campaign.settings')}</h3>
-            <p className="text-xs text-gray-500">
+            <h3 className="font-bold text-foreground">{t('campaign.settings')}</h3>
+            <p className="text-xs text-muted-foreground">
               {values.hasCampaign 
                 ? values.campaignName 
                   ? `実施中: ${values.campaignName}` 
@@ -231,7 +231,7 @@ export function StoreCampaignForm({
                 </Label>
                 
                 {loadingCampaigns ? (
-                  <div className="flex items-center gap-2 py-3 text-gray-500">
+                  <div className="flex items-center gap-2 py-3 text-muted-foreground">
                     <Loader2 className="w-4 h-4 animate-spin" />
                     <span className="text-sm">キャンペーンを読み込み中...</span>
                   </div>
@@ -241,7 +241,7 @@ export function StoreCampaignForm({
                     onValueChange={handleCampaignSelect}
                     disabled={disabled}
                   >
-                    <SelectTrigger className="font-bold bg-white border-2 border-gray-300 h-12">
+                    <SelectTrigger className="font-bold bg-popover border-2 border-border h-12">
                       <SelectValue placeholder={campaigns.length === 0 ? 'キャンペーンがありません' : 'キャンペーンを選択してください'} />
                     </SelectTrigger>
                     <SelectContent>
@@ -273,7 +273,7 @@ export function StoreCampaignForm({
                     <Info className="w-4 h-4 mt-0.5 text-pink-500 flex-shrink-0" />
                     <div className="text-sm">
                       <p className="font-bold text-pink-600">{selectedCampaign.name}</p>
-                      <p className="text-gray-600">
+                      <p className="text-muted-foreground">
                         期間: {new Date(selectedCampaign.startDate).toLocaleDateString('ja-JP')} 〜{' '}
                         {new Date(selectedCampaign.endDate).toLocaleDateString('ja-JP')}
                       </p>
@@ -292,7 +292,7 @@ export function StoreCampaignForm({
                 className="p-3 rounded-lg"
                 style={{ backgroundColor: 'rgba(201, 168, 108, 0.1)' }}
               >
-                <p className="text-xs text-gray-600">
+                <p className="text-xs text-muted-foreground">
                   💡 地域のイベントやキャンペーンに参加すると、より多くのお客様に見つけてもらえます。
                   管理者が登録したキャンペーンから選択してください。
                 </p>

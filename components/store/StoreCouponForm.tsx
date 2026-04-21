@@ -89,51 +89,51 @@ export function StoreCouponForm({
     if (!values.title && !values.discountType) return null;
 
     return (
-      <div className="mt-4 p-4 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-lg">
+      <div className="mt-4 p-4 bg-gradient-to-r from-brass-500/10 to-copper-500/10 border border-brass-500/30 rounded-lg">
         <div className="flex items-center gap-2 mb-2">
-          <Sparkles className="w-4 h-4 text-amber-600" />
-          <span className="text-sm font-bold text-amber-800">クーポンプレビュー</span>
+          <Sparkles className="w-4 h-4 text-brass-500" />
+          <span className="text-sm font-bold text-brass-500">クーポンプレビュー</span>
         </div>
         <div className="space-y-1">
           {values.title && (
-            <p className="font-bold text-gray-800">{values.title}</p>
+            <p className="font-bold text-foreground">{values.title}</p>
           )}
           {/* 特別価格の場合 */}
           {values.discountType === 'special_price' && values.originalPrice && values.discountedPrice && (
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <span className="text-lg text-gray-400 line-through">
+                <span className="text-lg text-muted-foreground line-through">
                   ¥{parseInt(values.originalPrice).toLocaleString()}
                 </span>
-                <span className="text-2xl font-bold text-amber-600">
+                <span className="text-2xl font-bold text-brass-500">
                   → ¥{parseInt(values.discountedPrice).toLocaleString()}
                 </span>
               </div>
-              <p className="text-sm font-bold text-red-500">
+              <p className="text-sm font-bold text-destructive">
                 ¥{(parseInt(values.originalPrice) - parseInt(values.discountedPrice)).toLocaleString()} お得！
               </p>
             </div>
           )}
           {/* %割引の場合 */}
           {values.discountType === 'percentage' && values.discountValue && (
-            <p className="text-2xl font-bold text-amber-600">
+            <p className="text-2xl font-bold text-brass-500">
               {formatDiscountValue(values.discountType as CouponDiscountType, parseFloat(values.discountValue))}
             </p>
           )}
           {/* 定額割引の場合 */}
           {values.discountType === 'fixed' && values.discountValue && (
-            <p className="text-2xl font-bold text-amber-600">
+            <p className="text-2xl font-bold text-brass-500">
               ¥{parseInt(values.discountValue).toLocaleString()} OFF
             </p>
           )}
           {values.discountType === 'free_item' && (
-            <p className="text-2xl font-bold text-amber-600">無料サービス</p>
+            <p className="text-2xl font-bold text-brass-500">無料サービス</p>
           )}
           {values.conditions && (
-            <p className="text-sm text-gray-600">条件: {values.conditions}</p>
+            <p className="text-sm text-muted-foreground">条件: {values.conditions}</p>
           )}
           {values.expiryDate && (
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-muted-foreground">
               有効期限: {new Date(values.expiryDate).toLocaleDateString('ja-JP')}まで
             </p>
           )}
@@ -166,8 +166,8 @@ export function StoreCouponForm({
             />
           </div>
           <div className="text-left">
-            <h3 className="font-bold text-gray-800">クーポン設定</h3>
-            <p className="text-sm text-gray-500">
+            <h3 className="font-bold text-foreground">クーポン設定</h3>
+            <p className="text-sm text-muted-foreground">
               {values.isCampaign ? (
                 <span 
                   className="text-xs font-bold px-2 py-0.5 rounded-full"
@@ -206,7 +206,7 @@ export function StoreCouponForm({
               <div className="space-y-2">
                 <Label htmlFor="coupon-title" className="font-bold flex items-center gap-2">
                   <Ticket className="w-4 h-4" />
-                  クーポンタイトル<span className="text-red-500">*</span>
+                  クーポンタイトル<span className="text-destructive">*</span>
                 </Label>
                 <Input
                   id="coupon-title"
@@ -215,11 +215,11 @@ export function StoreCouponForm({
                   placeholder="例: 初回来店限定 20%OFF"
                   maxLength={100}
                   disabled={disabled}
-                  className="font-bold bg-white text-gray-700 border-2 border-gray-300 placeholder:text-gray-300"
+                  className="font-bold bg-white text-foreground border-2 border-border placeholder:text-muted-foreground"
                   style={{ fontSize: '16px' }}
                 />
                 {errors.title && (
-                  <p className="text-xs text-red-500 flex items-center gap-1">
+                  <p className="text-xs text-destructive flex items-center gap-1">
                     <AlertCircle className="w-3 h-3" />
                     {errors.title}
                   </p>
@@ -239,7 +239,7 @@ export function StoreCouponForm({
                   placeholder="クーポンの詳細な説明を入力"
                   rows={5}
                   disabled={disabled}
-                  className="font-bold bg-white text-gray-700 border-2 border-gray-300 placeholder:text-gray-300"
+                  className="font-bold bg-white text-foreground border-2 border-border placeholder:text-muted-foreground"
                   style={{ fontSize: '16px', minHeight: '120px' }}
                 />
               </div>
@@ -248,14 +248,14 @@ export function StoreCouponForm({
               <div className="space-y-2">
                 <Label className="font-bold flex items-center gap-2">
                   {getDiscountTypeIcon(values.discountType)}
-                  割引タイプ<span className="text-red-500">*</span>
+                  割引タイプ<span className="text-destructive">*</span>
                 </Label>
                 <Select
                   value={values.discountType}
                   onValueChange={(value) => handleChange('discountType', value as CouponFormValues['discountType'])}
                   disabled={disabled}
                 >
-                  <SelectTrigger className="font-bold bg-white border-2 border-gray-300 placeholder:text-gray-300">
+                  <SelectTrigger className="font-bold bg-white border-2 border-border placeholder:text-muted-foreground">
                     <SelectValue placeholder="選択してください" />
                   </SelectTrigger>
                   <SelectContent>
@@ -286,7 +286,7 @@ export function StoreCouponForm({
                   </SelectContent>
                 </Select>
                 {errors.discountType && (
-                  <p className="text-xs text-red-500 flex items-center gap-1">
+                  <p className="text-xs text-destructive flex items-center gap-1">
                     <AlertCircle className="w-3 h-3" />
                     {errors.discountType}
                   </p>
@@ -297,7 +297,7 @@ export function StoreCouponForm({
               {values.discountType === 'percentage' && (
                 <div className="space-y-2">
                   <Label htmlFor="coupon-discount-value" className="font-bold">
-                    割引率 (%)<span className="text-red-500">*</span>
+                    割引率 (%)<span className="text-destructive">*</span>
                   </Label>
                   <Input
                     id="coupon-discount-value"
@@ -309,11 +309,11 @@ export function StoreCouponForm({
                     onChange={(e) => handleChange('discountValue', e.target.value)}
                     placeholder="例: 10"
                     disabled={disabled}
-                    className="font-bold bg-white text-gray-700 border-2 border-gray-300 placeholder:text-gray-400"
+                    className="font-bold bg-white text-foreground border-2 border-border placeholder:text-muted-foreground"
                     style={{ fontSize: '16px' }}
                   />
                   {errors.discountValue && (
-                    <p className="text-xs text-red-500 flex items-center gap-1">
+                    <p className="text-xs text-destructive flex items-center gap-1">
                       <AlertCircle className="w-3 h-3" />
                       {errors.discountValue}
                     </p>
@@ -325,10 +325,10 @@ export function StoreCouponForm({
               {values.discountType === 'fixed' && (
                 <div className="space-y-2">
                   <Label htmlFor="coupon-discount-value-fixed" className="font-bold">
-                    割引額 (円)<span className="text-red-500">*</span>
+                    割引額 (円)<span className="text-destructive">*</span>
                   </Label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold">¥</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">¥</span>
                     <Input
                       id="coupon-discount-value-fixed"
                       type="number"
@@ -338,12 +338,12 @@ export function StoreCouponForm({
                       onChange={(e) => handleChange('discountValue', e.target.value)}
                       placeholder="例: 500"
                       disabled={disabled}
-                      className="font-bold bg-white text-gray-700 border-2 border-gray-300 placeholder:text-gray-400 pl-8"
+                      className="font-bold bg-white text-foreground border-2 border-border placeholder:text-muted-foreground pl-8"
                       style={{ fontSize: '16px' }}
                     />
                   </div>
                   {errors.discountValue && (
-                    <p className="text-xs text-red-500 flex items-center gap-1">
+                    <p className="text-xs text-destructive flex items-center gap-1">
                       <AlertCircle className="w-3 h-3" />
                       {errors.discountValue}
                     </p>
@@ -358,14 +358,14 @@ export function StoreCouponForm({
                     className="p-4 rounded-xl"
                     style={{ backgroundColor: 'rgba(245, 158, 11, 0.08)', border: '1px solid rgba(245, 158, 11, 0.2)' }}
                   >
-                    <p className="text-sm font-bold text-amber-700 mb-3 flex items-center gap-2">
+                    <p className="text-sm font-bold text-brass-500 mb-3 flex items-center gap-2">
                       <Sparkles className="w-4 h-4" />
                       特別価格設定
                     </p>
                     <div className="flex items-center gap-3">
                       <div className="flex-1 space-y-1">
-                        <Label htmlFor="original-price" className="text-xs font-medium text-gray-600">
-                          元の価格<span className="text-red-500">*</span>
+                        <Label htmlFor="original-price" className="text-xs font-medium text-muted-foreground">
+                          元の価格<span className="text-destructive">*</span>
                         </Label>
                         <Input
                           id="original-price"
@@ -376,14 +376,14 @@ export function StoreCouponForm({
                           onChange={(e) => handleChange('originalPrice', e.target.value)}
                           placeholder="3500"
                           disabled={disabled}
-                          className="font-bold bg-white text-gray-700 border-2 border-gray-300 placeholder:text-gray-400"
+                          className="font-bold bg-white text-foreground border-2 border-border placeholder:text-muted-foreground"
                           style={{ fontSize: '16px' }}
                         />
                       </div>
-                      <div className="flex-shrink-0 text-2xl font-bold text-amber-500 mt-5">→</div>
+                      <div className="flex-shrink-0 text-2xl font-bold text-brass-500 mt-5">→</div>
                       <div className="flex-1 space-y-1">
-                        <Label htmlFor="discounted-price" className="text-xs font-medium text-gray-600">
-                          特別価格<span className="text-red-500">*</span>
+                        <Label htmlFor="discounted-price" className="text-xs font-medium text-muted-foreground">
+                          特別価格<span className="text-destructive">*</span>
                         </Label>
                         <Input
                           id="discounted-price"
@@ -394,7 +394,7 @@ export function StoreCouponForm({
                           onChange={(e) => handleChange('discountedPrice', e.target.value)}
                           placeholder="2000"
                           disabled={disabled}
-                          className="font-bold bg-white text-amber-700 border-2 border-amber-400 placeholder:text-gray-400"
+                          className="font-bold bg-white text-brass-500 border-2 border-brass-500 placeholder:text-muted-foreground"
                           style={{ fontSize: '16px' }}
                         />
                       </div>
@@ -408,11 +408,11 @@ export function StoreCouponForm({
                         className="mt-3 p-2 rounded-lg text-center"
                         style={{ backgroundColor: 'rgba(245, 158, 11, 0.15)' }}
                       >
-                        <span className="text-sm font-bold text-amber-700">
+                        <span className="text-sm font-bold text-brass-500">
                           お得額: ¥{(parseInt(values.originalPrice) - parseInt(values.discountedPrice)).toLocaleString()} OFF
                         </span>
                         {parseInt(values.originalPrice) > 0 && (
-                          <span className="text-xs text-amber-600 ml-2">
+                          <span className="text-xs text-brass-500 ml-2">
                             ({Math.round(((parseInt(values.originalPrice) - parseInt(values.discountedPrice)) / parseInt(values.originalPrice)) * 100)}%割引)
                           </span>
                         )}
@@ -421,13 +421,13 @@ export function StoreCouponForm({
                   </div>
                   
                   {errors.originalPrice && (
-                    <p className="text-xs text-red-500 flex items-center gap-1">
+                    <p className="text-xs text-destructive flex items-center gap-1">
                       <AlertCircle className="w-3 h-3" />
                       {errors.originalPrice}
                     </p>
                   )}
                   {errors.discountedPrice && (
-                    <p className="text-xs text-red-500 flex items-center gap-1">
+                    <p className="text-xs text-destructive flex items-center gap-1">
                       <AlertCircle className="w-3 h-3" />
                       {errors.discountedPrice}
                     </p>
@@ -448,7 +448,7 @@ export function StoreCouponForm({
                   placeholder="例: 2名様以上でのご来店時に限る、他クーポンとの併用不可"
                   rows={2}
                   disabled={disabled}
-                  className="font-bold bg-white text-gray-700 border-2 border-gray-300 placeholder:text-gray-300"
+                  className="font-bold bg-white text-foreground border-2 border-border placeholder:text-muted-foreground"
                   style={{ fontSize: '16px' }}
                 />
               </div>
@@ -458,7 +458,7 @@ export function StoreCouponForm({
                 <div className="space-y-2">
                   <Label htmlFor="coupon-start-date" className="font-bold flex items-center gap-2">
                     <Calendar className="w-3 h-3" />
-                    配布開始日<span className="text-red-500">*</span>
+                    配布開始日<span className="text-destructive">*</span>
                   </Label>
                   <Input
                     id="coupon-start-date"
@@ -466,11 +466,11 @@ export function StoreCouponForm({
                     value={values.startDate}
                     onChange={(e) => handleChange('startDate', e.target.value)}
                     disabled={disabled}
-                    className="font-bold bg-white text-gray-700 border-2 border-gray-300 h-12 placeholder:text-gray-300 w-full max-w-full"
+                    className="font-bold bg-white text-foreground border-2 border-border h-12 placeholder:text-muted-foreground w-full max-w-full"
                     style={{ fontSize: '16px' }}
                   />
                   {errors.startDate && (
-                    <p className="text-xs text-red-500 flex items-center gap-1">
+                    <p className="text-xs text-destructive flex items-center gap-1">
                       <AlertCircle className="w-3 h-3" />
                       {errors.startDate}
                     </p>
@@ -480,7 +480,7 @@ export function StoreCouponForm({
                 <div className="space-y-2">
                   <Label htmlFor="coupon-expiry-date" className="font-bold flex items-center gap-2">
                     <Calendar className="w-3 h-3" />
-                    有効期限<span className="text-red-500">*</span>
+                    有効期限<span className="text-destructive">*</span>
                   </Label>
                   <Input
                     id="coupon-expiry-date"
@@ -488,11 +488,11 @@ export function StoreCouponForm({
                     value={values.expiryDate}
                     onChange={(e) => handleChange('expiryDate', e.target.value)}
                     disabled={disabled}
-                    className="font-bold bg-white text-gray-700 border-2 border-gray-300 h-12 placeholder:text-gray-300 w-full max-w-full"
+                    className="font-bold bg-white text-foreground border-2 border-border h-12 placeholder:text-muted-foreground w-full max-w-full"
                     style={{ fontSize: '16px' }}
                   />
                   {errors.expiryDate && (
-                    <p className="text-xs text-red-500 flex items-center gap-1">
+                    <p className="text-xs text-destructive flex items-center gap-1">
                       <AlertCircle className="w-3 h-3" />
                       {errors.expiryDate}
                     </p>
@@ -515,7 +515,7 @@ export function StoreCouponForm({
                   onChange={(e) => handleChange('maxUses', e.target.value)}
                   placeholder="無制限"
                   disabled={disabled}
-                  className="font-bold bg-white text-gray-700 border-2 border-gray-300 placeholder:text-gray-300"
+                  className="font-bold bg-white text-foreground border-2 border-border placeholder:text-muted-foreground"
                   style={{ fontSize: '16px' }}
                 />
                 <p className="text-xs text-muted-foreground font-bold">
@@ -536,7 +536,7 @@ export function StoreCouponForm({
                   placeholder="例：SNSフォローでドリンク1杯サービス"
                   rows={2}
                   disabled={disabled}
-                  className="font-bold bg-white text-gray-700 border-2 border-gray-300 placeholder:text-gray-300"
+                  className="font-bold bg-white text-foreground border-2 border-border placeholder:text-muted-foreground"
                   style={{ fontSize: '16px' }}
                 />
                 <p className="text-xs text-muted-foreground font-bold">

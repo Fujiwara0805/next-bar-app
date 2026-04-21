@@ -131,7 +131,7 @@ export default function ProfileChangePasswordPage() {
               <div className="space-y-2">
                 <Label htmlFor="currentPassword">
                   <Lock className="w-4 h-4 inline mr-2" />
-                  現在のパスワード <span className="text-red-500">*</span>
+                  現在のパスワード <span className="text-destructive">*</span>
                 </Label>
                 <PasswordInput
                   id="currentPassword"
@@ -150,7 +150,7 @@ export default function ProfileChangePasswordPage() {
                 {/* 新しいパスワード */}
                 <div className="space-y-2 mb-4">
                   <Label htmlFor="newPassword">
-                    新しいパスワード <span className="text-red-500">*</span>
+                    新しいパスワード <span className="text-destructive">*</span>
                   </Label>
                   <PasswordInput
                     id="newPassword"
@@ -170,7 +170,7 @@ export default function ProfileChangePasswordPage() {
                 {/* パスワード確認 */}
                 <div className="space-y-2">
                   <Label htmlFor="confirmPassword">
-                    新しいパスワード（確認） <span className="text-red-500">*</span>
+                    新しいパスワード（確認） <span className="text-destructive">*</span>
                   </Label>
                   <PasswordInput
                     id="confirmPassword"
@@ -183,12 +183,12 @@ export default function ProfileChangePasswordPage() {
                     autoComplete="new-password"
                   />
                   {newPassword && confirmPassword && newPassword !== confirmPassword && (
-                    <p className="text-xs text-red-500">
+                    <p className="text-xs text-destructive">
                       パスワードが一致しません
                     </p>
                   )}
                   {newPassword && confirmPassword && newPassword === confirmPassword && (
-                    <p className="text-xs text-green-600">
+                    <p className="text-xs text-success">
                       ✓ パスワードが一致しています
                     </p>
                   )}
@@ -196,11 +196,11 @@ export default function ProfileChangePasswordPage() {
               </div>
 
               {/* パスワード強度のヒント */}
-              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-sm font-medium text-blue-800 mb-2">
+              <div className="p-4 bg-info/10 border border-info/30 rounded-lg">
+                <p className="text-sm font-medium text-info mb-2">
                   💡 パスワードのヒント
                 </p>
-                <ul className="text-xs text-blue-700 space-y-1">
+                <ul className="text-xs text-info/80 space-y-1">
                   <li>• 最低6文字以上</li>
                   <li>• 大文字と小文字を組み合わせる</li>
                   <li>• 数字を含める</li>

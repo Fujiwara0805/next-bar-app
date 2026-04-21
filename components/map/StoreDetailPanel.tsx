@@ -207,7 +207,7 @@ export function StoreDetailPanel({
         className="flex flex-col overflow-hidden rounded-t-3xl"
         animate={{
           height: isExpanded ? expandedHeight : 'auto',
-          backgroundColor: isExpanded ? '#FFFFFF' : darkTheme.background,
+          backgroundColor: isExpanded ? '#F7F3E9' /* cream-50 */ : darkTheme.background,
         }}
         transition={{ type: 'spring', stiffness: 260, damping: 28 }}
         style={{
@@ -274,7 +274,7 @@ export function StoreDetailPanel({
               ) : (
                 <div
                   className="w-24 h-24 rounded-xl flex items-center justify-center flex-shrink-0"
-                  style={{ background: isExpanded ? '#F5F1EB' : darkTheme.background }}
+                  style={{ background: isExpanded ? '#EEE8DA' /* cream tint */ : darkTheme.background }}
                 >
                   <Building2 className="w-12 h-12" style={{ color: theme.textMuted }} />
                 </div>
@@ -305,8 +305,8 @@ export function StoreDetailPanel({
                           key={star}
                           className={`w-4 h-4 ${
                             star <= Math.round(store.google_rating!)
-                              ? 'fill-amber-400 text-amber-400'
-                              : 'text-gray-600'
+                              ? 'fill-brass-500 text-brass-500'
+                              : 'text-muted-foreground'
                           }`}
                           style={{
                             fill: star <= Math.round(store.google_rating!)
@@ -348,10 +348,7 @@ export function StoreDetailPanel({
                     {getVacancyLabel(effectiveStatus)}
                   </span>
                   {effectiveStatus === 'vacant' && store.vacant_seats != null && store.vacant_seats > 0 && (
-                    <span className="text-sm font-bold px-2 py-0.5 rounded-lg" style={{
-                      backgroundColor: 'rgba(34, 197, 94, 0.1)',
-                      color: '#16a34a',
-                    }}>
+                    <span className="text-sm font-bold px-2 py-0.5 rounded-lg bg-success/10 text-success">
                       {t('store_detail.vacant_seats').replace('{count}', String(store.vacant_seats))}
                     </span>
                   )}
@@ -359,10 +356,7 @@ export function StoreDetailPanel({
                     const sbh = store.structured_business_hours as BusinessHours | null;
                     if (isTodayClosedDay(sbh)) {
                       return (
-                        <span className="text-sm font-bold px-2 py-0.5 rounded-lg" style={{
-                          backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                          color: '#ef4444',
-                        }}>
+                        <span className="text-sm font-bold px-2 py-0.5 rounded-lg bg-destructive/10 text-destructive">
                           {t('map.regular_holiday')}
                         </span>
                       );
@@ -370,10 +364,7 @@ export function StoreDetailPanel({
                     const openTime = getTodayOpenTime(sbh);
                     if (!openTime) return null;
                     return (
-                      <span className="text-sm font-bold px-2 py-0.5 rounded-lg" style={{
-                        backgroundColor: 'rgba(34, 197, 94, 0.1)',
-                        color: '#16a34a',
-                      }}>
+                      <span className="text-sm font-bold px-2 py-0.5 rounded-lg bg-success/10 text-success">
                         {t('map.opens_at').replace('{time}', openTime)}
                       </span>
                     );
@@ -473,8 +464,7 @@ export function StoreDetailPanel({
                       </p>
                       <a
                         href={`tel:${store.phone}`}
-                        className="text-base font-bold hover:underline block"
-                        style={{ color: '#13294b' }}
+                        className="text-base font-bold hover:underline block text-brewer-900"
                       >
                         {store.phone}
                       </a>
@@ -583,7 +573,7 @@ export function StoreDetailPanel({
       <motion.div
         className="flex gap-2 px-4 py-3 flex-shrink-0"
         animate={{
-          backgroundColor: isExpanded ? '#FFFFFF' : darkTheme.background,
+          backgroundColor: isExpanded ? '#F7F3E9' /* cream-50 */ : darkTheme.background,
         }}
         transition={{ type: 'spring', stiffness: 260, damping: 28 }}
         style={{
@@ -633,7 +623,7 @@ export function StoreDetailPanel({
               disabled={isNavigating}
               className="flex-1 py-3.5 px-4 rounded-xl font-bold transition-all touch-manipulation flex items-center justify-center gap-2"
               style={{
-                background: isNavigating ? '#B8956E' : darkTheme.goldGradient,
+                background: isNavigating ? '#B87333' /* copper-500 */ : darkTheme.goldGradient,
                 color: darkTheme.background,
                 boxShadow: isNavigating ? 'none' : darkTheme.shadowGold,
                 opacity: isNavigating ? 0.8 : 1,
@@ -667,9 +657,9 @@ export function StoreDetailPanel({
           }}
           className="flex-1 py-3.5 px-4 rounded-xl font-bold transition-all touch-manipulation flex items-center justify-center gap-2"
           style={{
-            background: isExpanded ? 'rgba(201, 168, 108, 0.1)' : `${darkTheme.accent}15`,
-            color: darkTheme.accent,
-            border: `1px solid ${darkTheme.borderGold}`,
+            background: isExpanded ? 'rgba(31, 87, 164, 0.08)' : `${darkTheme.accent}15`,
+            color: isExpanded ? '#13294b' /* Brewers Dark Navy */ : darkTheme.accent,
+            border: `1px solid ${isExpanded ? 'rgba(19, 41, 75, 0.25)' : darkTheme.borderGold}`,
           }}
         >
           <Navigation className="w-4 h-4" />

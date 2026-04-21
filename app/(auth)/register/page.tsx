@@ -103,10 +103,10 @@ export default function RegisterPage() {
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3"
+              className="mb-6 p-4 bg-destructive/10 border border-destructive/30 rounded-lg flex items-start gap-3"
             >
-              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-              <p className="text-sm font-medium text-red-800">{errorMessage}</p>
+              <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
+              <p className="text-sm font-medium text-destructive">{errorMessage}</p>
             </motion.div>
           )}
 
@@ -177,7 +177,7 @@ export default function RegisterPage() {
           <div className="mt-6 text-center">
             <p className="text-sm text-muted-foreground">
               {t('auth.already_have_account')}{' '}
-              <Link href="/login?role=platform" className="text-primary font-medium hover:underline">
+              <Link href="/login?role=customer" className="text-primary font-medium hover:underline">
                 {t('auth.login')}
               </Link>
             </p>

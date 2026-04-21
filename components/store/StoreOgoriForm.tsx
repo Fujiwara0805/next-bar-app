@@ -216,7 +216,7 @@ export function StoreOgoriForm({
                       onChange={(e) => updateDrinkName(drink.id, e.target.value)}
                       placeholder={t('store_detail.ogori_drink_name_placeholder')}
                       disabled={disabled}
-                      className="font-bold bg-white text-gray-700 border-2 border-gray-300 placeholder:text-gray-300 flex-1"
+                      className="font-bold bg-popover text-foreground border-2 border-border placeholder:text-muted-foreground flex-1"
                       style={{ fontSize: '16px' }}
                     />
                     <Button
@@ -225,7 +225,7 @@ export function StoreOgoriForm({
                       size="icon"
                       onClick={() => removeDrink(drink.id)}
                       disabled={disabled}
-                      className="shrink-0 text-gray-400 hover:text-red-500"
+                      className="shrink-0 text-muted-foreground hover:text-destructive"
                     >
                       <X className="w-4 h-4" />
                     </Button>

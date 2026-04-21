@@ -533,8 +533,8 @@ export default function LandingPage() {
                             onClick={() => handleLanguageSelect(lang)}
                             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
                               language === lang
-                                ? 'bg-amber-500/20'
-                                : 'hover:bg-white/10'
+                                ? 'bg-brass-500/20'
+                                : 'hover:bg-cream-50/10'
                             }`}
                             style={{ color: language === lang ? LP_YELLOW : lpPage.text }}
                           >
@@ -605,7 +605,14 @@ export default function LandingPage() {
                     <Building2 className="w-5 h-5" style={{ color: accentTextOnLightBg(lpPage.bg) }} /><span className="group-hover:opacity-100 font-medium">{t('landing.cta_button_recruitment')}</span><ChevronRight className="w-4 h-4 ml-auto opacity-30" />
                   </Link>
                 </div>
-                {/* ログイン */}
+                {/* 顧客ログイン */}
+                <div className="mt-8 pt-6" style={{ borderTop: `1px solid ${lpPage.border}` }}>
+                  <p className="text-sm font-medium mb-3 lg:text-lg" style={{ color: lpPage.textMuted }}>{t('auth.login_switch_to_customer')}</p>
+                  <Link href="/login?role=customer" onClick={() => setShowMenu(false)} className="flex items-center gap-3 p-4 rounded-lg transition-colors group" style={{ color: lpPage.textMuted }}>
+                    <LogIn className="w-5 h-5" style={{ color: accentTextOnLightBg(lpPage.bg) }} /><span className="group-hover:opacity-100 font-medium">{t('menu.customer_login')}</span><ChevronRight className="w-4 h-4 ml-auto opacity-30" />
+                  </Link>
+                </div>
+                {/* 運営ログイン */}
                 <div className="mt-8 pt-6" style={{ borderTop: `1px solid ${lpPage.border}` }}>
                   <p className="text-sm font-medium mb-3 lg:text-lg" style={{ color: lpPage.textMuted }}>{t('menu.for_operators')}</p>
                   <Link href="/login?role=platform" onClick={() => setShowMenu(false)} className="flex items-center gap-3 p-4 rounded-lg transition-colors group" style={{ color: lpPage.textMuted }}>
@@ -1734,12 +1741,12 @@ export default function LandingPage() {
                   </motion.div>
                   <GoldDivider />
                   {locationPermission === 'denied' && (
-                    <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-6 p-4 rounded-xl" style={{ background: 'rgba(248, 113, 113, 0.1)', border: '1px solid rgba(248, 113, 113, 0.3)' }}>
+                    <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-6 p-4 rounded-xl bg-destructive/10 border border-destructive/30">
                       <div className="flex items-start gap-3 mb-2">
-                        <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: '#F87171' }} />
-                        <p className="text-sm font-semibold lg:text-lg" style={{ color: '#F87171' }}>{t('modal.location_denied_title')}</p>
+                        <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5 text-destructive" />
+                        <p className="text-sm font-semibold lg:text-lg text-destructive">{t('modal.location_denied_title')}</p>
                       </div>
-                      <p className="text-xs leading-relaxed ml-8 whitespace-pre-line lg:text-base" style={{ color: '#FCA5A5' }}>{t('modal.location_denied_desc')}</p>
+                      <p className="text-xs leading-relaxed ml-8 whitespace-pre-line lg:text-base text-destructive/70">{t('modal.location_denied_desc')}</p>
                     </motion.div>
                   )}
                   <div className="space-y-3">

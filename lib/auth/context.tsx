@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase/client';
 import type { Database } from '@/lib/supabase/types';
+import { getLineIdToken, lineLogin as liffLoginFn, getLiff } from '@/lib/line/liff';
 
 type UserRow = Database['public']['Tables']['users']['Row'];
 type Store = Database['public']['Tables']['stores']['Row'];
@@ -23,6 +24,7 @@ interface AuthContextType {
     profile?: UserRow | null;
     store?: Store | null;
   }>;
+  signInWithLine: () => Promise<{ error: Error | null; accountType?: AccountType }>;
   signUp: (email: string, password: string, displayName: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
 }
@@ -164,6 +166,62 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const signInWithLine = async (): Promise<{ error: Error | null; accountType?: AccountType }> => {
+    try {
+      const liff = await getLiff();
+      if (!liff) {
+        return { error: new Error('LIFF SDK is not available (LIFF_ID not configured or not in browser)') };
+      }
+
+      // 未ログインならLIFF経由でLINEログインを開始（ブラウザならリダイレクト）
+      if (!liff.isLoggedIn()) {
+        await liffLoginFn();
+        // リダイレクトが発生するため、以降の処理はこの関数スコープ外で再実行される想定
+        return { error: null };
+      }
+
+      const idToken = await getLineIdToken();
+      if (!idToken) {
+        return { error: new Error('Failed to obtain LINE id_token') };
+      }
+
+      // サーバーで検証 + Supabase認証 magiclink hashed_token 発行
+      const res = await fetch('/api/auth/line-exchange', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken }),
+      });
+
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        return {
+          error: new Error(errJson?.message || errJson?.error || 'LINE exchange failed'),
+        };
+      }
+
+      const { email, hashedToken } = (await res.json()) as {
+        email: string;
+        hashedToken: string;
+      };
+
+      // magiclinkトークンをOTPとして検証 → Supabaseセッション確立
+      const { error: verifyErr } = await supabase.auth.verifyOtp({
+        type: 'magiclink',
+        token_hash: hashedToken,
+      });
+
+      if (verifyErr) {
+        return { error: verifyErr };
+      }
+
+      // ここで onAuthStateChange が発火し、resolveAccount が走るため
+      // accountType は呼び出し側で状態を参照する
+      return { error: null, accountType: 'customer' };
+    } catch (error) {
+      return { error: error as Error };
+    }
+  };
+
   const signUp = async (email: string, password: string, displayName: string) => {
     try {
       const { data, error } = await supabase.auth.signUp({
@@ -201,6 +259,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         session,
         loading,
         signIn,
+        signInWithLine,
         signUp,
         signOut,
       }}

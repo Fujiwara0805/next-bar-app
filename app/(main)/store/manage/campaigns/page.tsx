@@ -503,7 +503,7 @@ export default function CampaignsManagePage() {
               style={getInputStyle()}
             />
             {formErrors.name && (
-              <p className="text-xs text-red-500 flex items-center gap-1">
+              <p className="text-xs text-destructive flex items-center gap-1">
                 <AlertCircle className="w-3 h-3" />
                 {formErrors.name}
               </p>
@@ -631,7 +631,7 @@ export default function CampaignsManagePage() {
                 style={getInputStyle()}
               />
               {formErrors.startDate && (
-                <p className="text-xs text-red-500">{formErrors.startDate}</p>
+                <p className="text-xs text-destructive">{formErrors.startDate}</p>
               )}
             </div>
 
@@ -654,7 +654,7 @@ export default function CampaignsManagePage() {
                 style={getInputStyle()}
               />
               {formErrors.endDate && (
-                <p className="text-xs text-red-500">{formErrors.endDate}</p>
+                <p className="text-xs text-destructive">{formErrors.endDate}</p>
               )}
             </div>
           </div>

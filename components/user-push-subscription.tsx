@@ -78,29 +78,28 @@ function PWAInstallBanner({ onDismiss, t }: { onDismiss: () => void; t: (key: st
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -40 }}
       transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-      className="fixed top-16 left-4 right-4 z-50 mx-auto max-w-xs rounded-2xl shadow-2xl p-3"
-      style={{ background: 'linear-gradient(135deg, #13294b 0%, #1a3560 100%)' }}
+      className="fixed top-16 left-4 right-4 z-50 mx-auto max-w-xs rounded-2xl shadow-2xl p-3 bg-gradient-to-br from-brewer-900 to-brewer-800"
     >
       <button
         onClick={onDismiss}
-        className="absolute top-3 right-3 text-[#FDFBF7]/50 hover:text-[#FDFBF7]"
+        className="absolute top-3 right-3 text-cream-50/50 hover:text-cream-50"
       >
         <X className="w-4 h-4" />
       </button>
       <div className="flex items-start gap-3">
-        <div className="w-8 h-8 rounded-xl bg-[#ffc62d]/20 border border-[#ffc62d]/30 flex items-center justify-center flex-shrink-0">
-          <Bell className="w-4 h-4 text-[#ffc62d]" />
+        <div className="w-8 h-8 rounded-xl bg-brass-500/20 border border-brass-500/30 flex items-center justify-center flex-shrink-0">
+          <Bell className="w-4 h-4 text-brass-500" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-bold text-[#FDFBF7]">
+          <p className="text-sm font-bold text-cream-50">
             {t('pushNotification.title')}
           </p>
-          <p className="text-xs text-[#FDFBF7]/60 mt-1 leading-relaxed">
+          <p className="text-xs text-cream-50/60 mt-1 leading-relaxed">
             {t('pushNotification.description_line1')}
             <br />
             {t('pushNotification.description_line2')}
           </p>
-          <div className="flex items-center gap-1.5 mt-2.5 text-xs text-[#ffc62d] font-medium">
+          <div className="flex items-center gap-1.5 mt-2.5 text-xs text-brass-500 font-medium">
             <Share className="w-3.5 h-3.5" />
             <span>
               {t('pushNotification.share_instruction')}
@@ -256,7 +255,7 @@ export function UserPushSubscription() {
   }
 
   const isOn = status === 'subscribed';
-  const iconColor = isOn ? 'bg-green-500' : 'bg-gray-400';
+  const iconColor = isOn ? 'bg-success' : 'bg-muted-foreground';
 
   return (
     <div
@@ -284,7 +283,7 @@ export function UserPushSubscription() {
           {/* ON時のリングアニメーション */}
           {isOn && (
             <motion.span
-              className="absolute inset-0 rounded-full border-2 border-green-400"
+              className="absolute inset-0 rounded-full border-2 border-success"
               initial={{ scale: 1, opacity: 0.6 }}
               animate={{ scale: 1.5, opacity: 0 }}
               transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 2 }}
@@ -307,10 +306,10 @@ export function UserPushSubscription() {
                 text-sm font-medium text-white whitespace-nowrap overflow-hidden
                 transition-colors duration-300
                 ${isOn
-                  ? 'bg-green-600 hover:bg-green-700'
+                  ? 'bg-success hover:bg-success/90'
                   : status === 'denied'
-                    ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-[#0A1628] hover:bg-[#1a2a42]'
+                    ? 'bg-muted-foreground cursor-not-allowed'
+                    : 'bg-brewer-900 hover:bg-brewer-800'
                 }
               `}
             >

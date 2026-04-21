@@ -11,6 +11,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { sendPushToNearbyUsers } from '@/lib/push/server';
+import { filterVacancyTargets, isMessagingConfigured, multicast } from '@/lib/line/messaging';
+
+const DEFAULT_LINE_VACANCY_RADIUS_KM = 1.0;
+const VACANCY_THROTTLE_HOURS = 1; // Phase 4: 1ユーザー1時間1通まで
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -124,6 +128,98 @@ export async function PATCH(
           tag: `vacancy-${storeId}`,
         }
       );
+
+      // LINE OA への配信（fire-and-forget）。未設定環境ではスキップ。
+      if (isMessagingConfigured()) {
+        const storeLat = store.latitude as number;
+        const storeLng = store.longitude as number;
+        (async () => {
+          try {
+            const { data: subscribers } = await supabase
+              .from('line_oa_subscribers')
+              .select(
+                'line_user_id, latest_latitude, latest_longitude, notify_center_latitude, notify_center_longitude, vacancy_notify_opt_in, vacancy_notify_radius_km, unfollowed_at, last_vacancy_sent_at'
+              )
+              .is('unfollowed_at', null)
+              .eq('vacancy_notify_opt_in', true);
+
+            const targets = filterVacancyTargets(
+              subscribers ?? [],
+              storeLat,
+              storeLng,
+              DEFAULT_LINE_VACANCY_RADIUS_KM,
+              VACANCY_THROTTLE_HOURS
+            );
+
+            // 先にメッセージをインサートしてIDを取得（クリック追跡URLに使う）
+            const { data: msgRow } = await supabase
+              .from('store_messages')
+              .insert({
+                store_id: storeId,
+                kind: 'auto_vacancy',
+                body: `${store.name} に空席が出ました`,
+                target_audience: 'nearby',
+                target_radius_km: DEFAULT_LINE_VACANCY_RADIUS_KM,
+                sent_count: 0,
+                failed_count: 0,
+                status: 'pending',
+              })
+              .select('id')
+              .maybeSingle();
+
+            if (targets.length === 0) {
+              if (msgRow?.id) {
+                await supabase
+                  .from('store_messages')
+                  .update({ status: 'sent' })
+                  .eq('id', msgRow.id);
+              }
+              return;
+            }
+
+            const origin =
+              process.env.NEXT_PUBLIC_SITE_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? '';
+            const trackUrl = msgRow?.id
+              ? `${origin}/api/line/track?mid=${msgRow.id}&u=${encodeURIComponent(`/store/${storeId}`)}`
+              : `${origin}/store/${storeId}`;
+
+            const result = await multicast(targets, [
+              {
+                type: 'text',
+                text: `🍶 ${store.name} に空席が出ました！\n今すぐ確認 → ${trackUrl}`,
+              },
+            ]);
+
+            // 送信成功したtargetsへ last_vacancy_sent_at を反映（Phase 4: 1hスロットル用）
+            if (result.delivered > 0 && targets.length > 0) {
+              const nowIso = new Date().toISOString();
+              await supabase
+                .from('line_oa_subscribers')
+                .update({ last_vacancy_sent_at: nowIso })
+                .in('line_user_id', targets);
+            }
+
+            if (msgRow?.id) {
+              await supabase
+                .from('store_messages')
+                .update({
+                  sent_count: result.delivered,
+                  failed_count: result.failed,
+                  status:
+                    result.failed === 0
+                      ? 'sent'
+                      : result.delivered === 0
+                      ? 'failed'
+                      : 'partial',
+                  error_message: result.errors.slice(0, 3).join('; ') || null,
+                })
+                .eq('id', msgRow.id);
+            }
+          } catch (err) {
+            console.error('[line vacancy push] error', err);
+          }
+        })();
+      }
     }
 
     return NextResponse.json({
@@ -144,7 +240,7 @@ export async function PATCH(
  * 店舗の現在の空席状況を取得
  */
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {

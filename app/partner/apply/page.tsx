@@ -44,9 +44,9 @@ import { useAppMode } from '@/lib/app-mode-context';
 // Input Styles
 // ============================================
 const inputStyles = {
-  base: 'w-full px-4 py-3 rounded-xl bg-white text-[#2D3436] border-2 transition-all duration-200 font-medium placeholder:text-gray-400 focus:outline-none',
-  focus: 'focus:border-[#C9A86C] focus:ring-2 focus:ring-[#C9A86C]/20',
-  default: 'border-gray-200 hover:border-gray-300',
+  base: 'w-full px-4 py-3 rounded-xl bg-popover text-popover-foreground border-2 transition-all duration-200 font-medium placeholder:text-muted-foreground focus:outline-none',
+  focus: 'focus:border-brass-500 focus:ring-2 focus:ring-brass-500/20',
+  default: 'border-border hover:border-brass-500/40',
 };
 
 const inputClassName = `${inputStyles.base} ${inputStyles.focus} ${inputStyles.default}`;
@@ -560,7 +560,7 @@ function Step4ImagesAccount({
                   <button
                     type="button"
                     onClick={() => removeImage(index)}
-                    className="absolute top-1 right-1 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="absolute top-1 right-1 w-6 h-6 rounded-full bg-destructive text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>

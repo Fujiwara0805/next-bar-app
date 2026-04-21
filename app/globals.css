@@ -6,37 +6,77 @@
 
 :root {
   --vh: 1vh;
-  /* 日本のバー・スナック文化のカラーテーマ */
-  --cool-teal: #2C5F6F;
-  --warm-gold: #D4A574;
-  --deep-navy: #1C1E26;
-  --soft-coral: #D98B8B;
-  --off-white: #F5F5F5;
+
+  /* ===== Brewer Navy パレット（生スケール） =====
+     HSL の 3 値のみを保持し、Tailwind 側で hsl() でラップして使用。
+     DESIGN.md §1 / §2 を参照。 */
+  --bn-950: 218 47% 8%;
+  --bn-900: 221 46% 12%;
+  --bn-800: 221 42% 18%;
+  --bn-700: 219 44% 22%;
+  --bn-600: 218 42% 29%;
+  --bn-500: 216 39% 38%;
+  --bn-300: 218 33% 66%;
+  --bn-100: 219 44% 93%;
+
+  --brass-500: 40 51% 57%;
+  --brass-300: 38 56% 74%;
+
+  --copper-500: 26 57% 46%;
+  --cream-50: 43 56% 94%;
+
+  /* 状態色（DESIGN.md §1） */
+  --success: 153 39% 40%;
+  --success-foreground: 0 0% 98%;
+  --warning: 42 58% 49%;
+  --warning-foreground: 221 46% 12%;
+  --info: 216 39% 38%;
+  --info-foreground: 0 0% 98%;
 }
 
 @layer base {
   :root {
-    /* メインカラー: クールティール (#2C5F6F) */
-    --background: 220 15% 13%;  /* ディープネイビー #1C1E26 */
-    --foreground: 0 0% 96%;  /* オフホワイト #F5F5F5 */
-    --card: 0 0% 98%;  /* カード背景（白色系） */
-    --card-foreground: 196 43% 30%;  /* カードテキスト: クールティール #2C5F6F */
-    --popover: 0 0% 98%;  /* ポップオーバー背景（白色系） */
-    --popover-foreground: 196 43% 30%;  /* ポップオーバーテキスト: クールティール #2C5F6F */
-    --primary: 196 43% 30%;  /* クールティール #2C5F6F */
-    --primary-foreground: 0 0% 96%;
-    --secondary: 33 46% 65%;  /* ウォームゴールド #D4A574 */
-    --secondary-foreground: 196 43% 30%;  /* セカンダリーテキスト: クールティール */
-    --muted: 0 0% 95%;  /* ミュート背景（明るいグレー） */
-    --muted-foreground: 196 43% 30%;  /* ミュートテキスト: クールティール */
-    --accent: 220 10% 93%;  /* ニュートラルグレー（ホバー用） */
-    --accent-foreground: 196 43% 30%;  /* アクセントテキスト: クールティール */
-    --destructive: 0 62% 58%;
+    /* ===== 意味トークン（ダーク基調: 顧客/マイページ/マップ等） ===== */
+    --background: var(--bn-900);
+    --foreground: var(--cream-50);
+
+    --card: var(--bn-800);
+    --card-foreground: var(--cream-50);
+
+    --popover: 0 0% 100%;
+    --popover-foreground: var(--bn-900);
+
+    --primary: var(--bn-700);
+    --primary-foreground: var(--cream-50);
+
+    --secondary: var(--brass-500);
+    --secondary-foreground: var(--bn-900);
+
+    --muted: 220 17% 95%;            /* Neutral 100 */
+    --muted-foreground: 221 14% 35%; /* Neutral 600 */
+
+    --accent: var(--copper-500);
+    --accent-foreground: var(--cream-50);
+
+    --destructive: 3 48% 47%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89%;  /* ボーダー（明るいグレー） */
-    --input: 0 0% 98%;  /* インプット背景（白色系） */
-    --ring: 196 43% 30%;
+
+    --border: 219 22% 89%;           /* Neutral 200 */
+    --input: 0 0% 100%;
+    --ring: var(--bn-500);
+
     --radius: 0.5rem;
+  }
+
+  /* ===== ライト基調オプション（運営ダッシュボード等） =====
+     <body class="theme-light"> を付けて適用。 */
+  .theme-light {
+    --background: 220 20% 98%;       /* Neutral 50 */
+    --foreground: var(--bn-900);
+    --card: 0 0% 100%;
+    --card-foreground: var(--bn-900);
+    --popover: 0 0% 100%;
+    --popover-foreground: var(--bn-900);
   }
 }
 

@@ -153,6 +153,115 @@ export type Database = {
           },
         ]
       }
+      line_oa_subscribers: {
+        Row: {
+          display_name: string | null
+          followed_at: string
+          language: string | null
+          last_vacancy_sent_at: string | null
+          latest_latitude: number | null
+          latest_location_at: string | null
+          latest_longitude: number | null
+          line_user_id: string
+          notify_area_label: string | null
+          notify_center_latitude: number | null
+          notify_center_longitude: number | null
+          notify_updated_at: string | null
+          picture_url: string | null
+          unfollowed_at: string | null
+          user_id: string | null
+          vacancy_notify_opt_in: boolean
+          vacancy_notify_radius_km: number | null
+          vacancy_sent_count: number
+        }
+        Insert: {
+          display_name?: string | null
+          followed_at?: string
+          language?: string | null
+          last_vacancy_sent_at?: string | null
+          latest_latitude?: number | null
+          latest_location_at?: string | null
+          latest_longitude?: number | null
+          line_user_id: string
+          notify_area_label?: string | null
+          notify_center_latitude?: number | null
+          notify_center_longitude?: number | null
+          notify_updated_at?: string | null
+          picture_url?: string | null
+          unfollowed_at?: string | null
+          user_id?: string | null
+          vacancy_notify_opt_in?: boolean
+          vacancy_notify_radius_km?: number | null
+          vacancy_sent_count?: number
+        }
+        Update: {
+          display_name?: string | null
+          followed_at?: string
+          language?: string | null
+          last_vacancy_sent_at?: string | null
+          latest_latitude?: number | null
+          latest_location_at?: string | null
+          latest_longitude?: number | null
+          line_user_id?: string
+          notify_area_label?: string | null
+          notify_center_latitude?: number | null
+          notify_center_longitude?: number | null
+          notify_updated_at?: string | null
+          picture_url?: string | null
+          unfollowed_at?: string | null
+          user_id?: string | null
+          vacancy_notify_opt_in?: boolean
+          vacancy_notify_radius_km?: number | null
+          vacancy_sent_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "line_oa_subscribers_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lottery_rounds: {
+        Row: {
+          executed_at: string | null
+          executed_by: string | null
+          gift_amount_jpy: number
+          gift_type: string
+          id: string
+          target_date: string
+          winner_count: number
+        }
+        Insert: {
+          executed_at?: string | null
+          executed_by?: string | null
+          gift_amount_jpy?: number
+          gift_type?: string
+          id?: string
+          target_date: string
+          winner_count?: number
+        }
+        Update: {
+          executed_at?: string | null
+          executed_by?: string | null
+          gift_amount_jpy?: number
+          gift_type?: string
+          id?: string
+          target_date?: string
+          winner_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lottery_rounds_executed_by_fkey"
+            columns: ["executed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ogori_drinks: {
         Row: {
           created_at: string | null
@@ -299,42 +408,6 @@ export type Database = {
           },
         ]
       }
-      users: {
-        Row: {
-          avatar_url: string | null
-          bio: string | null
-          created_at: string | null
-          display_name: string
-          email: string
-          id: string
-          phone: string | null
-          role: 'admin' | 'customer'
-          updated_at: string | null
-        }
-        Insert: {
-          avatar_url?: string | null
-          bio?: string | null
-          created_at?: string | null
-          display_name: string
-          email: string
-          id: string
-          phone?: string | null
-          role?: 'admin' | 'customer'
-          updated_at?: string | null
-        }
-        Update: {
-          avatar_url?: string | null
-          bio?: string | null
-          created_at?: string | null
-          display_name?: string
-          email?: string
-          id?: string
-          phone?: string | null
-          role?: 'admin' | 'customer'
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
       push_subscriptions: {
         Row: {
           auth: string
@@ -359,39 +432,6 @@ export type Database = {
           id?: string
           p256dh?: string
           store_id?: string
-        }
-        Relationships: []
-      }
-      user_push_subscriptions: {
-        Row: {
-          id: string
-          endpoint: string
-          p256dh: string
-          auth: string
-          latitude: number
-          longitude: number
-          created_at: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          id?: string
-          endpoint: string
-          p256dh: string
-          auth: string
-          latitude: number
-          longitude: number
-          created_at?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          id?: string
-          endpoint?: string
-          p256dh?: string
-          auth?: string
-          latitude?: number
-          longitude?: number
-          created_at?: string | null
-          updated_at?: string | null
         }
         Relationships: []
       }
@@ -834,6 +874,63 @@ export type Database = {
           },
         ]
       }
+      stamp_rally_entries: {
+        Row: {
+          created_at: string
+          email: string
+          entry_date: string
+          gift_memo: string | null
+          gift_sent_at: string | null
+          id: string
+          lottery_round_id: string | null
+          status: string
+          user_id: string
+          visited_store_ids: string[]
+          won_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          entry_date: string
+          gift_memo?: string | null
+          gift_sent_at?: string | null
+          id?: string
+          lottery_round_id?: string | null
+          status?: string
+          user_id: string
+          visited_store_ids: string[]
+          won_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          entry_date?: string
+          gift_memo?: string | null
+          gift_sent_at?: string | null
+          id?: string
+          lottery_round_id?: string | null
+          status?: string
+          user_id?: string
+          visited_store_ids?: string[]
+          won_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stamp_rally_entries_lottery_round_id_fkey"
+            columns: ["lottery_round_id"]
+            isOneToOne: false
+            referencedRelation: "lottery_rounds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stamp_rally_entries_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       store_applications: {
         Row: {
           address: string
@@ -914,6 +1011,111 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      store_check_ins: {
+        Row: {
+          checked_in_at: string
+          id: string
+          source: string
+          store_id: string
+          user_id: string
+          visit_date: string
+        }
+        Insert: {
+          checked_in_at?: string
+          id?: string
+          source?: string
+          store_id: string
+          user_id: string
+          visit_date?: string
+        }
+        Update: {
+          checked_in_at?: string
+          id?: string
+          source?: string
+          store_id?: string
+          user_id?: string
+          visit_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_check_ins_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_check_ins_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      store_messages: {
+        Row: {
+          body: string
+          click_count: number
+          created_at: string
+          error_message: string | null
+          failed_count: number
+          id: string
+          kind: string
+          sender_user_id: string | null
+          sent_count: number
+          status: string
+          store_id: string
+          target_audience: string
+          target_radius_km: number | null
+        }
+        Insert: {
+          body: string
+          click_count?: number
+          created_at?: string
+          error_message?: string | null
+          failed_count?: number
+          id?: string
+          kind: string
+          sender_user_id?: string | null
+          sent_count?: number
+          status?: string
+          store_id: string
+          target_audience: string
+          target_radius_km?: number | null
+        }
+        Update: {
+          body?: string
+          click_count?: number
+          created_at?: string
+          error_message?: string | null
+          failed_count?: number
+          id?: string
+          kind?: string
+          sender_user_id?: string | null
+          sent_count?: number
+          status?: string
+          store_id?: string
+          target_audience?: string
+          target_radius_km?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_messages_sender_user_id_fkey"
+            columns: ["sender_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_messages_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       stores: {
         Row: {
@@ -1099,6 +1301,87 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string | null
+          endpoint: string
+          id: string
+          latitude: number
+          longitude: number
+          p256dh: string
+          updated_at: string | null
+        }
+        Insert: {
+          auth: string
+          created_at?: string | null
+          endpoint: string
+          id?: string
+          latitude: number
+          longitude: number
+          p256dh: string
+          updated_at?: string | null
+        }
+        Update: {
+          auth?: string
+          created_at?: string | null
+          endpoint?: string
+          id?: string
+          latitude?: number
+          longitude?: number
+          p256dh?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      users: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string | null
+          display_name: string
+          email: string
+          id: string
+          line_display_name: string | null
+          line_linked_at: string | null
+          line_picture_url: string | null
+          line_user_id: string | null
+          phone: string | null
+          role: string
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string | null
+          display_name: string
+          email: string
+          id: string
+          line_display_name?: string | null
+          line_linked_at?: string | null
+          line_picture_url?: string | null
+          line_user_id?: string | null
+          phone?: string | null
+          role?: string
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string | null
+          display_name?: string
+          email?: string
+          id?: string
+          line_display_name?: string | null
+          line_linked_at?: string | null
+          line_picture_url?: string | null
+          line_user_id?: string | null
+          phone?: string | null
+          role?: string
+          updated_at?: string | null
+        }
+        Relationships: []
       }
     }
     Views: {
@@ -1311,71 +1594,6 @@ export const Constants = {
   },
 } as const
 
-// ============================================
-// 予約ステータス関連の型定義
-// ============================================
-
-/** 予約ステータス */
-export type ReservationStatus = 'pending' | 'confirmed' | 'rejected' | 'cancelled' | 'expired';
-
-/** 来店ステータス */
-export type ArrivalStatus = 'not_arrived' | 'arrived' | 'no_show';
-
-/**
- * 来店ステータスを取得するユーティリティ関数
- */
-export function getArrivalStatus(
-  arrivedAt: string | null,
-  noShowAt: string | null
-): ArrivalStatus {
-  if (arrivedAt) return 'arrived';
-  if (noShowAt) return 'no_show';
-  return 'not_arrived';
-}
-
-/**
- * 来店ステータスの表示情報
- */
-export interface ArrivalStatusDisplay {
-  label: string;
-  labelEn: string;
-  color: string;
-  bgColor: string;
-  borderColor: string;
-}
-
-/**
- * 来店ステータスの表示情報を取得
- */
-export function getArrivalStatusDisplay(status: ArrivalStatus): ArrivalStatusDisplay {
-  const statusMap: Record<ArrivalStatus, ArrivalStatusDisplay> = {
-    not_arrived: {
-      label: '未来店',
-      labelEn: 'Not Arrived',
-      color: 'text-gray-600',
-      bgColor: 'bg-gray-50',
-      borderColor: 'border-gray-200',
-    },
-    arrived: {
-      label: '来店済',
-      labelEn: 'Arrived',
-      color: 'text-amber-700',
-      bgColor: 'bg-amber-50',
-      borderColor: 'border-amber-300',
-    },
-    no_show: {
-      label: '無断キャンセル',
-      labelEn: 'No Show',
-      color: 'text-red-600',
-      bgColor: 'bg-red-50',
-      borderColor: 'border-red-200',
-    },
-  };
-
-  return statusMap[status];
-}
-
-// 営業時間の型定義
 export type BusinessHours = {
   [key in 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday']?: {
     open: string;
@@ -1383,105 +1601,3 @@ export type BusinessHours = {
     closed?: boolean;
   };
 };
-
-// ============================================
-// クーポン関連の型定義
-// ============================================
-
-/** クーポン割引タイプ */
-export type CouponDiscountType = 'percentage' | 'fixed' | 'free_item' | null;
-
-// ============================================
-// 臨時休業関連の型定義
-// ============================================
-
-/** 閉店理由の型 */
-export type ClosedReason = 'manual' | 'business_hours' | null;
-
-/** 表示用ステータスのタイプ */
-export type DisplayStatusType = 'open' | 'closed_manual' | 'closed_hours';
-
-/** フロントエンド表示用のステータス情報 */
-export interface DisplayStatus {
-  /** 日本語ラベル */
-  label: string;
-  /** 英語ラベル */
-  labelEn: string;
-  /** ステータスタイプ */
-  type: DisplayStatusType;
-  /** 表示色（Tailwind色またはHex） */
-  color: string;
-  /** アイコン名（lucide-react等） */
-  icon: string;
-}
-
-/** 臨時休業の詳細情報 */
-export interface ManualCloseDetails {
-  /** 臨時休業の理由 */
-  reason: string | null;
-  /** 臨時休業開始日時 */
-  closed_at: string | null;
-  /** 再開予定日時 */
-  estimated_reopen_at: string | null;
-}
-
-/**
- * 表示用ステータスを取得するユーティリティ関数
- */
-export function getDisplayStatus(
-  isOpen: boolean,
-  vacancyStatus: 'vacant' | 'open' | 'full' | 'closed',
-  manualClosed: boolean,
-  closedReason: ClosedReason
-): DisplayStatus {
-  // 臨時休業中
-  if (manualClosed || closedReason === 'manual') {
-    return {
-      label: '臨時休業',
-      labelEn: 'Temporarily Closed',
-      type: 'closed_manual',
-      color: '#ef4444', // red-500
-      icon: 'pause-circle',
-    };
-  }
-
-  // 営業時間外による閉店
-  if (!isOpen || vacancyStatus === 'closed') {
-    return {
-      label: '営業時間外',
-      labelEn: 'Closed',
-      type: 'closed_hours',
-      color: '#6b7280', // gray-500
-      icon: 'clock',
-    };
-  }
-
-  // 営業中のステータス
-  const statusMap: Record<string, Omit<DisplayStatus, 'type'>> = {
-    vacant: {
-      label: '空席あり',
-      labelEn: 'Available',
-      color: '#22c55e', // green-500
-      icon: 'check-circle',
-    },
-    full: {
-      label: '満席',
-      labelEn: 'Full',
-      color: '#ef4444', // red-500
-      icon: 'x-circle',
-    },
-    open: {
-      label: '営業中',
-      labelEn: 'Open',
-      color: '#f59e0b', // amber-500
-      icon: 'minus-circle',
-    },
-  };
-
-  const status = statusMap[vacancyStatus] || statusMap.vacant;
-
-  return {
-    ...status,
-    type: 'open',
-  };
-}

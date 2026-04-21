@@ -168,7 +168,7 @@ export default function ChangePasswordPage() {
               <div className="space-y-2">
                 <Label htmlFor="currentPassword" className="font-bold flex items-center gap-2">
                   <Lock className="w-4 h-4" />
-                  現在のパスワード <span className="text-red-500">*</span>
+                  現在のパスワード <span className="text-destructive">*</span>
                 </Label>
                 <PasswordInput
                   id="currentPassword"
@@ -178,7 +178,7 @@ export default function ChangePasswordPage() {
                   required
                   disabled={loading}
                   autoComplete="current-password"
-                  className="font-bold bg-white text-gray-700 border-2 border-gray-300"
+                  className="font-bold bg-popover text-foreground border-2 border-border"
                   style={{ fontSize: '16px' }}
                 />
               </div>
@@ -189,7 +189,7 @@ export default function ChangePasswordPage() {
                 {/* 新しいパスワード */}
                 <div className="space-y-2 mb-4">
                   <Label htmlFor="newPassword" className="font-bold">
-                    新しいパスワード <span className="text-red-500">*</span>
+                    新しいパスワード <span className="text-destructive">*</span>
                   </Label>
                   <PasswordInput
                     id="newPassword"
@@ -200,7 +200,7 @@ export default function ChangePasswordPage() {
                     minLength={6}
                     disabled={loading}
                     autoComplete="new-password"
-                    className="font-bold bg-white text-gray-700 border-2 border-gray-300"
+                    className="font-bold bg-popover text-foreground border-2 border-border"
                     style={{ fontSize: '16px' }}
                   />
                   <p className="text-xs text-muted-foreground font-bold">
@@ -211,7 +211,7 @@ export default function ChangePasswordPage() {
                 {/* パスワード確認 */}
                 <div className="space-y-2">
                   <Label htmlFor="confirmPassword" className="font-bold">
-                    新しいパスワード（確認） <span className="text-red-500">*</span>
+                    新しいパスワード（確認） <span className="text-destructive">*</span>
                   </Label>
                   <PasswordInput
                     id="confirmPassword"
@@ -222,16 +222,16 @@ export default function ChangePasswordPage() {
                     minLength={6}
                     disabled={loading}
                     autoComplete="new-password"
-                    className="font-bold bg-white text-gray-700 border-2 border-gray-300"
+                    className="font-bold bg-popover text-foreground border-2 border-border"
                     style={{ fontSize: '16px' }}
                   />
                   {newPassword && confirmPassword && newPassword !== confirmPassword && (
-                    <p className="text-xs text-red-500 font-bold">
+                    <p className="text-xs text-destructive font-bold">
                       パスワードが一致しません
                     </p>
                   )}
                   {newPassword && confirmPassword && newPassword === confirmPassword && (
-                    <p className="text-xs text-green-600 font-bold">
+                    <p className="text-xs text-success font-bold">
                       ✓ パスワードが一致しています
                     </p>
                   )}

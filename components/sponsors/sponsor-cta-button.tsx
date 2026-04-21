@@ -126,7 +126,7 @@ export function SponsorCtaButton() {
               }}
             >
               {/* PR badge */}
-              <span className="absolute -top-2 -left-1 text-[9px] font-medium bg-white/90 text-gray-600 px-1.5 py-0.5 rounded-full">
+              <span className="absolute -top-2 -left-1 text-[9px] font-medium bg-popover/90 text-muted-foreground px-1.5 py-0.5 rounded-full">
                 PR
               </span>
 

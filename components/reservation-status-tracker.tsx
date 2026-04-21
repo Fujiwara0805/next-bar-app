@@ -118,20 +118,20 @@ export function ReservationStatusTracker({
   }, [status?.expiresAt, status?.status]);
 
   const getStatusIcon = () => {
-    if (loading) return <Loader2 className="w-12 h-12 animate-spin text-blue-500" />;
-    
+    if (loading) return <Loader2 className="w-12 h-12 animate-spin text-info" />;
+
     switch (status?.status) {
       case 'confirmed':
-        return <CheckCircle className="w-12 h-12 text-green-500" />;
+        return <CheckCircle className="w-12 h-12 text-success" />;
       case 'rejected':
       case 'cancelled':
-        return <XCircle className="w-12 h-12 text-red-500" />;
+        return <XCircle className="w-12 h-12 text-destructive" />;
       case 'pending':
-        return <Phone className="w-12 h-12 text-blue-500 animate-pulse" />;
+        return <Phone className="w-12 h-12 text-info animate-pulse" />;
       case 'expired':
-        return <Clock className="w-12 h-12 text-orange-500" />;
+        return <Clock className="w-12 h-12 text-warning" />;
       default:
-        return <Clock className="w-12 h-12 text-gray-400" />;
+        return <Clock className="w-12 h-12 text-muted-foreground" />;
     }
   };
 
@@ -210,10 +210,10 @@ export function ReservationStatusTracker({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
         >
-          <h3 className="text-lg font-bold text-gray-900">
+          <h3 className="text-lg font-bold text-foreground">
             {getStatusText()}
           </h3>
-          <p className="text-sm text-gray-600 whitespace-pre-line">
+          <p className="text-sm text-muted-foreground whitespace-pre-line">
             {getStatusDescription()}
           </p>
         </motion.div>
@@ -222,12 +222,12 @@ export function ReservationStatusTracker({
         <AnimatePresence>
           {error && (
             <motion.div
-              className="bg-red-50 border border-red-200 rounded-lg p-4"
+              className="bg-destructive/10 border border-destructive/30 rounded-lg p-4"
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
             >
-              <p className="text-sm text-red-800">
+              <p className="text-sm text-destructive">
                 ⚠️ {error}
               </p>
             </motion.div>
@@ -238,7 +238,7 @@ export function ReservationStatusTracker({
         <AnimatePresence>
           {status?.status === 'pending' && (
             <motion.div
-              className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-2"
+              className="bg-info/10 border border-info/30 rounded-lg p-4 space-y-2"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 10 }}
@@ -247,22 +247,21 @@ export function ReservationStatusTracker({
               {/* カウントダウンタイマー */}
               {remainingSeconds !== null && (
                 <div className="flex items-center justify-center gap-2 mb-2">
-                  <div className="relative w-full bg-blue-200 rounded-full h-2 overflow-hidden">
+                  <div className="relative w-full bg-info/20 rounded-full h-2 overflow-hidden">
                     <motion.div
-                      className="absolute left-0 top-0 h-full rounded-full"
-                      style={{ backgroundColor: remainingSeconds <= 15 ? '#ef4444' : '#3b82f6' }}
+                      className={`absolute left-0 top-0 h-full rounded-full ${remainingSeconds <= 15 ? 'bg-destructive' : 'bg-info'}`}
                       initial={{ width: '100%' }}
                       animate={{ width: `${(remainingSeconds / 60) * 100}%` }}
                       transition={{ duration: 1, ease: 'linear' }}
                     />
                   </div>
-                  <span className={`text-sm font-bold tabular-nums min-w-[40px] text-right ${remainingSeconds <= 15 ? 'text-red-600' : 'text-blue-700'}`}>
+                  <span className={`text-sm font-bold tabular-nums min-w-[40px] text-right ${remainingSeconds <= 15 ? 'text-destructive' : 'text-info'}`}>
                     {remainingSeconds}秒
                   </span>
                 </div>
               )}
-              <div className="text-sm font-semibold text-blue-900">予約内容</div>
-              <div className="text-xs text-blue-800 space-y-1">
+              <div className="text-sm font-semibold text-info">予約内容</div>
+              <div className="text-xs text-info/80 space-y-1">
                 <div>👤 {status.callerName}様</div>
                 <div>👥 {status.partySize}名</div>
                 <div>🕐 {new Date(status.arrivalTime).toLocaleTimeString('ja-JP', {
@@ -283,7 +282,7 @@ export function ReservationStatusTracker({
         >
           <Button
             onClick={onClose}
-            className="w-full bg-gray-800 hover:bg-gray-700"
+            className="w-full bg-primary hover:bg-primary/90"
             disabled={loading}
           >
             閉じる

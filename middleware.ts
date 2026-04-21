@@ -10,7 +10,7 @@ import type { NextRequest } from 'next/server';
  */
 
 /** 店舗アカウントがアクセス可能なセグメント */
-const STORE_ALLOWED_SEGMENTS = /^(update|edit|change-password)$/;
+const STORE_ALLOWED_SEGMENTS = /^(update|edit|change-password|qr|broadcast|analytics)$/;
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -75,6 +75,9 @@ export function middleware(request: NextRequest) {
 
   // ── /login, /register: ログイン済みなら適切なダッシュボードへ ──
   if (pathname === '/login' || pathname === '/register') {
+    const role = request.nextUrl.searchParams.get('role');
+    const redirectParam = request.nextUrl.searchParams.get('redirect');
+
     if (accountType === 'platform') {
       return NextResponse.redirect(new URL('/store/manage', request.url));
     }
@@ -82,7 +85,15 @@ export function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL(`/store/manage/${storeId}/update`, request.url));
     }
     if (accountType === 'customer') {
-      return NextResponse.redirect(new URL('/landing', request.url));
+      // redirect パラメータが同一オリジン相対パスの場合、ログイン画面を通してクライアント側で復帰させる
+      if (redirectParam && redirectParam.startsWith('/') && !redirectParam.startsWith('//')) {
+        return NextResponse.next();
+      }
+      // 顧客ログイン画面を明示的に開く場合は、ログアウトして再ログインするためのアクセスを許可する
+      if (pathname === '/login' && role === 'customer') {
+        return NextResponse.next();
+      }
+      return NextResponse.redirect(new URL('/map', request.url));
     }
   }
 
