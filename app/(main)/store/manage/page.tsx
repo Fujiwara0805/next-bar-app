@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Plus, Store as StoreIcon, Edit, Trash2, Loader2, Mail,
-  Search, ChevronLeft, ChevronRight, Users, Ticket, Armchair,
+  Search, ChevronLeft, ChevronRight, Users, Armchair,
   LayoutDashboard, Megaphone, FileText, Handshake, BarChart3, RefreshCw,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -195,11 +195,6 @@ export default function StoreManagePage() {
     return counts;
   }, [stores]);
 
-  const couponStoreCount = useMemo(
-    () => stores.filter((s) => s.coupon_is_active).length,
-    [stores]
-  );
-
   const getVacancyBadge = (s: Store) => {
     if (s.is_open === false || s.vacancy_status === 'closed')
       return { label: '閉店', variant: 'neutral' as const };
@@ -345,9 +340,8 @@ export default function StoreManagePage() {
         <AdminKpiGrid>
           <AdminKpiCard icon={StoreIcon} label="店舗数" value={stores.length} subLabel="登録済み店舗" gradient={getKpiGradient('gold')} href="/store/manage" index={0} />
           <AdminKpiCard icon={Megaphone} label="キャンペーン" value={campaignCount} subLabel="アクティブキャンペーン" gradient={getKpiGradient('teal')} href="/store/manage/campaigns" index={1} />
-          <AdminKpiCard icon={Ticket} label="クーポン店舗" value={couponStoreCount} subLabel="クーポン有効" gradient={getKpiGradient('blue')} index={2} />
-          <AdminKpiCard icon={Handshake} label="スポンサー数" value={sponsorCount} subLabel="アクティブ契約" gradient={getKpiGradient('purple')} href="/store/manage/sponsors" index={3} />
-          <AdminKpiCard icon={FileText} label="申込" value={pendingApps} subLabel="未処理の申込" gradient={getKpiGradient('rose')} href="/store/manage/applications" index={4} badge={pendingApps > 0 ? 'NEW' : undefined} />
+          <AdminKpiCard icon={Handshake} label="スポンサー数" value={sponsorCount} subLabel="アクティブ契約" gradient={getKpiGradient('purple')} href="/store/manage/sponsors" index={2} />
+          <AdminKpiCard icon={FileText} label="申込" value={pendingApps} subLabel="未処理の申込" gradient={getKpiGradient('rose')} href="/store/manage/applications" index={3} badge={pendingApps > 0 ? 'NEW' : undefined} />
         </AdminKpiGrid>
 
         {/* Quick Actions */}

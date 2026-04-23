@@ -35,17 +35,6 @@ import { useAuth } from '@/lib/auth/context';
 import { toast } from 'sonner';
 import type { Database } from '@/lib/supabase/types';
 
-// クーポン関連のインポート
-import { StoreCouponForm } from '@/components/store/StoreCouponForm';
-import {
-  CouponFormValues,
-  CouponData,
-  getDefaultCouponFormValues,
-  couponFormToDbData,
-  dbDataToCouponForm,
-  couponFormSchema,
-} from '@/lib/types/coupon';
-
 // キャンペーン関連のインポート
 import {
   StoreCampaignForm,
@@ -54,15 +43,6 @@ import {
   campaignFormToDbData,
   dbDataToCampaignForm,
 } from '@/components/store/StoreCampaignForm';
-
-// おごり酒関連のインポート
-import { StoreOgoriForm } from '@/components/store/StoreOgoriForm';
-import {
-  OgoriFormValues,
-  getDefaultOgoriFormValues,
-  ogoriFormToDbData,
-  OGORI_FIXED_AMOUNT,
-} from '@/lib/types/ogori';
 
 // 構造化営業時間モーダル
 import { BusinessHoursModal } from '@/components/store/BusinessHoursModal';
@@ -75,9 +55,6 @@ import {
 import { useAppMode } from '@/lib/app-mode-context';
 
 type Store = Database['public']['Tables']['stores']['Row'];
-
-// Store型を拡張してクーポンフィールドを追加
-type StoreWithCoupon = Store & Partial<CouponData>;
 
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
@@ -223,32 +200,11 @@ export default function StoreEditPage() {
   const [searchingName, setSearchingName] = useState(false);
   const userEditedNameRef = useRef(false);
 
-  // クーポン関連のステート
-  const [couponValues, setCouponValues] = useState<CouponFormValues>(getDefaultCouponFormValues());
-  const [couponErrors, setCouponErrors] = useState<Record<string, string>>({});
-  const [couponCurrentUses, setCouponCurrentUses] = useState(0);
-
   // キャンペーン関連のステート
   const [campaignValues, setCampaignValues] = useState<CampaignFormValues>(getDefaultCampaignFormValues());
 
-  // おごり酒関連のステート
-  const [ogoriValues, setOgoriValues] = useState<OgoriFormValues>(getDefaultOgoriFormValues());
-
-  // キャンペーン値変更時にクーポンのisCampaignフラグと開始日・有効期限を連動させる
   const handleCampaignChange = (newCampaignValues: CampaignFormValues) => {
     setCampaignValues(newCampaignValues);
-    // キャンペーンがONの場合、クーポンをキャンペーン用に設定し、開始日・有効期限をキャンペーン日付で反映
-    // キャンペーンがOFFの場合、クーポンを通常に戻す
-    setCouponValues(prev => ({
-      ...prev,
-      isCampaign: newCampaignValues.hasCampaign,
-      ...(newCampaignValues.hasCampaign && newCampaignValues.campaignStartDate && newCampaignValues.campaignEndDate
-        ? {
-            startDate: newCampaignValues.campaignStartDate,
-            expiryDate: newCampaignValues.campaignEndDate,
-          }
-        : {}),
-    }));
   };
 
   const geocoderRef = useRef<google.maps.Geocoder | null>(null);
@@ -282,7 +238,7 @@ export default function StoreEditPage() {
       }
 
       if (data) {
-        const storeData = data as StoreWithCoupon;
+        const storeData = data as Store;
         
         // 店舗アカウントの場合、emailで認証ユーザーと店舗を紐づけ確認
         if (accountType === 'store') {
@@ -319,15 +275,8 @@ export default function StoreEditPage() {
         setGoogleRating((storeData as any).google_rating || null);
         setGoogleReviewsCount((storeData as any).google_reviews_count || null);
 
-        // クーポンデータの読み込み
-        setCouponValues(dbDataToCouponForm(storeData));
-        setCouponCurrentUses(storeData.coupon_current_uses || 0);
-
         // キャンペーンデータの読み込み
         setCampaignValues(dbDataToCampaignForm(storeData));
-
-        // おごり酒データの読み込み
-        setOgoriValues(prev => ({ ...prev, isEnabled: storeData.ogori_enabled ?? false }));
       }
     } catch (error) {
       console.error('Error fetching store:', error);
@@ -367,7 +316,7 @@ export default function StoreEditPage() {
     try {
       const cachedStore = sessionStorage.getItem(`store_${params.id}`);
       if (cachedStore) {
-        const storeData = JSON.parse(cachedStore) as StoreWithCoupon;
+        const storeData = JSON.parse(cachedStore) as Store;
         
         // 店舗アカウントの場合、emailチェック
         if (accountType === 'store' && storeData.email !== user?.email) {
@@ -396,15 +345,8 @@ export default function StoreEditPage() {
           setGoogleRating((storeData as any).google_rating || null);
           setGoogleReviewsCount((storeData as any).google_reviews_count || null);
 
-          // クーポンデータの読み込み
-          setCouponValues(dbDataToCouponForm(storeData));
-          setCouponCurrentUses(storeData.coupon_current_uses || 0);
-
           // キャンペーンデータの読み込み
           setCampaignValues(dbDataToCampaignForm(storeData));
-
-          // おごり酒データの読み込み
-          setOgoriValues(prev => ({ ...prev, isEnabled: storeData.ogori_enabled ?? false }));
 
           setFetchingStore(false);
         }
@@ -731,27 +673,6 @@ export default function StoreEditPage() {
     }
   };
 
-  // クーポンバリデーション（クーポン設定OFFの場合はスキップ）
-  const validateCoupon = (): boolean => {
-    if (!couponValues.isActive) {
-      setCouponErrors({});
-      return true;
-    }
-    const result = couponFormSchema.safeParse(couponValues);
-    if (!result.success) {
-      const errors: Record<string, string> = {};
-      result.error.errors.forEach((err) => {
-        if (err.path[0]) {
-          errors[err.path[0] as string] = err.message;
-        }
-      });
-      setCouponErrors(errors);
-      return false;
-    }
-    setCouponErrors({});
-    return true;
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -782,16 +703,6 @@ export default function StoreEditPage() {
       return;
     }
 
-    // クーポンバリデーション
-    if (!validateCoupon()) {
-      toast.error('クーポン設定に誤りがあります', { 
-        position: 'top-center',
-        duration: 3000,
-        className: 'bg-gray-100'
-      });
-      return;
-    }
-
     if (!latitude || !longitude) {
       const ok = await handleGeocodeAddress();
       if (!ok) {
@@ -807,14 +718,8 @@ export default function StoreEditPage() {
     setLoading(true);
 
     try {
-      // クーポンデータをDB形式に変換
-      const couponDbData = couponFormToDbData(couponValues);
-
       // キャンペーンデータをDB形式に変換
       const campaignDbData = campaignFormToDbData(campaignValues);
-
-      // おごり酒データをDB形式に変換
-      const ogoriDbData = ogoriFormToDbData(ogoriValues);
 
       let query = (supabase.from('stores') as any)
         .update({
@@ -838,12 +743,8 @@ export default function StoreEditPage() {
           latitude: parseFloat(latitude),
           longitude: parseFloat(longitude),
           updated_at: new Date().toISOString(),
-          // クーポン関連カラム
-          ...couponDbData,
           // キャンペーン関連カラム
           ...campaignDbData,
-          // おごり酒関連カラム
-          ...ogoriDbData,
         })
         .eq('id', params.id as string);
 
@@ -856,36 +757,6 @@ export default function StoreEditPage() {
       const { error } = await query;
 
       if (error) throw error;
-
-      // おごり酒ドリンクメニューを更新（既存を削除して再挿入）
-      const storeId = params.id as string;
-      if (ogoriValues.isEnabled) {
-        // 既存ドリンクを削除
-        await (supabase.from('ogori_drinks') as any)
-          .delete()
-          .eq('store_id', storeId);
-
-        // 新しいドリンクを挿入
-        if (ogoriValues.drinks.length > 0) {
-          const drinksToInsert = ogoriValues.drinks
-            .filter(d => d.name.trim())
-            .map((drink, index) => ({
-              store_id: storeId,
-              name: drink.name.trim(),
-              price: OGORI_FIXED_AMOUNT,
-              is_active: drink.isActive,
-              sort_order: index,
-            }));
-          if (drinksToInsert.length > 0) {
-            await supabase.from('ogori_drinks').insert(drinksToInsert as any);
-          }
-        }
-      } else {
-        // おごり酒が無効の場合、ドリンクを削除
-        await (supabase.from('ogori_drinks') as any)
-          .delete()
-          .eq('store_id', storeId);
-      }
 
       // 更新後のデータを取得してsessionStorageを更新
       const { data: updatedData } = await supabase
@@ -1620,7 +1491,7 @@ export default function StoreEditPage() {
               <SectionHeader
                 icon={Sparkles}
                 title="NIKENME+が提供するサービス"
-                description="キャンペーン・クーポンの設定ができます"
+                description="キャンペーンの設定ができます"
               />
 
               <div className="space-y-4">
@@ -1636,32 +1507,6 @@ export default function StoreEditPage() {
                   />
                 </Card>
 
-                {/* おごり酒設定 - 本格運用決定まで非表示（ロジックは保持） */}
-                {/* <Card
-                  className="rounded-xl overflow-hidden"
-                  style={{ border: `1px solid rgba(31, 64, 104, 0.2)` }}
-                >
-                  <StoreOgoriForm
-                    values={ogoriValues}
-                    onChange={setOgoriValues}
-                    storeId={params.id as string}
-                    disabled={loading}
-                  />
-                </Card> */}
-
-                {/* クーポン設定 */}
-                <Card
-                  className="rounded-xl overflow-hidden"
-                  style={{ border: `1px solid rgba(201, 168, 108, 0.15)` }}
-                >
-                  <StoreCouponForm
-                    values={couponValues}
-                    onChange={setCouponValues}
-                    disabled={loading}
-                    errors={couponErrors}
-                    currentUses={couponCurrentUses}
-                  />
-                </Card>
               </div>
             </Card>
 

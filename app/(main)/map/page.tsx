@@ -121,13 +121,6 @@ const STORE_SELECT_COLUMNS = `
   budget_max,
   payment_methods,
   facilities,
-  coupon_title,
-  coupon_discount_type,
-  coupon_discount_value,
-  coupon_start_date,
-  coupon_expiry_date,
-  coupon_is_active,
-  ogori_enabled,
   store_category
 `;
 

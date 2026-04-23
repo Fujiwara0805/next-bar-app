@@ -20,8 +20,6 @@ import { CloseCircleButton } from '@/components/ui/close-circle-button';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/lib/i18n/context';
 import { translations } from '@/lib/i18n/translations';
-import { OgoriTicketBadge } from '@/components/ogori/OgoriTicketBadge';
-import { OgoriSection } from '@/components/ogori/OgoriSection';
 import { InstantReservationButton } from '@/components/instant-reservation-button';
 import { getTodayOpenTime, isTodayClosedDay, checkIsOpenFromStructuredHours } from '@/lib/structured-business-hours';
 import { sendGAEvent } from '@/lib/analytics';
@@ -373,8 +371,6 @@ export function StoreDetailPanel({
               </div>
             </div>
 
-            <OgoriTicketBadge storeId={store.id} compact />
-
             {store.status_message && (
               <div style={{ borderTop: `1px solid ${theme.borderSubtle}` }} className="pt-2">
                 <p className="text-sm font-bold line-clamp-2" style={{ color: theme.textMuted }}>
@@ -471,12 +467,6 @@ export function StoreDetailPanel({
                     </div>
                   </div>
                 )}
-
-                <OgoriSection
-                  storeId={store.id}
-                  storeName={store.name}
-                  ogoriEnabled={store.ogori_enabled ?? false}
-                />
 
                 {store.website_url && (
                   <div className="flex items-start gap-3">

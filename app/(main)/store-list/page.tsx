@@ -29,8 +29,6 @@ import type { Database, BusinessHours } from '@/lib/supabase/types';
 import { useLanguage } from '@/lib/i18n/context';
 import { useAppMode } from '@/lib/app-mode-context';
 import { ConciergeModal } from '@/components/concierge-modal';
-import { OgoriTicketBadge } from '@/components/ogori/OgoriTicketBadge';
-import { isCouponValid, type CouponData } from '@/lib/types/coupon';
 import { getTodayOpenTime, isTodayClosedDay, checkIsOpenFromStructuredHours as checkIsOpenFromStructuredHoursClient } from '@/lib/structured-business-hours';
 import { useOptimizedLocation } from '@/lib/hooks/useOptimizedLocation';
 import { SponsorCampaignBanner } from '@/components/sponsors/sponsor-campaign-banner';
@@ -122,7 +120,6 @@ function StoreListContent() {
   const { location: userLocation } = useOptimizedLocation();
   const [vacantOnly, setVacantOnly] = useState(false);
   const [openNowOnly, setOpenNowOnly] = useState(false);
-  const [couponOnly, setCouponOnly] = useState(false);
   const [campaignOnly, setCampaignOnly] = useState(false);
   const [campaignNameFilter, setCampaignNameFilter] = useState<string | null>(null);
   const [showFilterMenu, setShowFilterMenu] = useState(false);
@@ -191,7 +188,7 @@ function StoreListContent() {
   const isOpenUpdatedRef = useRef(false);
   const isInitializedRef = useRef(false);
 
-  const activeFilterCount = [vacantOnly, openNowOnly, couponOnly, campaignOnly].filter(Boolean).length;
+  const activeFilterCount = [vacantOnly, openNowOnly, campaignOnly].filter(Boolean).length;
 
   const updateUrlParams = useCallback((params: Record<string, string | null>) => {
     if (typeof window === 'undefined') return;
@@ -214,14 +211,12 @@ function StoreListContent() {
     
     const vacant = searchParams.get('vacant') === 'true';
     const openNow = searchParams.get('open') === 'true';
-    const coupon = searchParams.get('coupon') === 'true';
     const campaign = searchParams.get('campaign') === 'true';
     const campaignName = searchParams.get('campaign_name');
     const concierge = searchParams.get('concierge');
-    
+
     setVacantOnly(vacant);
     setOpenNowOnly(openNow);
-    setCouponOnly(coupon);
     setCampaignOnly(campaign);
     
     if (campaignName && campaignName.trim() !== '') {
@@ -419,11 +414,6 @@ function StoreListContent() {
     };
   }, [userLocation]);
 
-  const hasCoupon = (store: Store): boolean => {
-    if (!store.coupon_title) return false;
-    return isCouponValid(store as Partial<CouponData>);
-  };
-
   const hasCampaign = (store: Store): boolean => {
     if (!store.has_campaign) return false;
     
@@ -456,10 +446,6 @@ function StoreListContent() {
       result = result.filter(store => isStoreCurrentlyOpen(store));
     }
 
-    if (couponOnly) {
-      result = result.filter(store => hasCoupon(store));
-    }
-
     if (campaignOnly) {
       result = result.filter(store => hasCampaign(store));
       if (campaignNameFilter) {
@@ -485,7 +471,7 @@ function StoreListContent() {
 
     setFilteredStores(result);
     resetDisplayCount();
-  }, [stores, vacantOnly, openNowOnly, couponOnly, campaignOnly, campaignNameFilter, conciergeFilters, isConciergeActive, resetDisplayCount]);
+  }, [stores, vacantOnly, openNowOnly, campaignOnly, campaignNameFilter, conciergeFilters, isConciergeActive, resetDisplayCount]);
 
   useEffect(() => {
     if (!isInitializedRef.current) return;
@@ -493,12 +479,11 @@ function StoreListContent() {
     updateUrlParams({
       vacant: vacantOnly ? 'true' : null,
       open: openNowOnly ? 'true' : null,
-      coupon: couponOnly ? 'true' : null,
       campaign: campaignOnly ? 'true' : null,
       campaign_name: campaignNameFilter,
       concierge: isConciergeActive && conciergeFilters.length > 0 ? conciergeFilters.join(',') : null,
     });
-  }, [vacantOnly, openNowOnly, couponOnly, campaignOnly, campaignNameFilter, isConciergeActive, conciergeFilters, updateUrlParams]);
+  }, [vacantOnly, openNowOnly, campaignOnly, campaignNameFilter, isConciergeActive, conciergeFilters, updateUrlParams]);
 
   const fetchStoresOnly = async () => {
     if (!userLocation) return;
@@ -613,7 +598,6 @@ function StoreListContent() {
   const clearAllFilters = useCallback(() => {
     setVacantOnly(false);
     setOpenNowOnly(false);
-    setCouponOnly(false);
     setCampaignOnly(false);
     setCampaignNameFilter(null);
     clearConciergeFilter();
@@ -621,7 +605,6 @@ function StoreListContent() {
       const url = new URL(window.location.href);
       url.searchParams.delete('vacant');
       url.searchParams.delete('open');
-      url.searchParams.delete('coupon');
       url.searchParams.delete('campaign');
       url.searchParams.delete('campaign_name');
       url.searchParams.delete('concierge');
@@ -645,7 +628,6 @@ function StoreListContent() {
     const statuses: string[] = [];
     if (vacantOnly) statuses.push(t('store_list.vacant'));
     if (openNowOnly) statuses.push(t('store_list.open'));
-    if (couponOnly) statuses.push(t('store_list.filter_has_coupon'));
     if (campaignOnly) {
       if (campaignNameFilter) {
         statuses.push(campaignNameFilter);
@@ -709,7 +691,7 @@ function StoreListContent() {
 
           <div className="flex items-center justify-between mt-3">
             <p className="text-sm font-bold" style={{ color: COLORS.warmGray }}>{filteredStores.length}{t('store_list.results_count')}</p>
-            {(vacantOnly || openNowOnly || couponOnly || campaignOnly || isConciergeActive) && (
+            {(vacantOnly || openNowOnly || campaignOnly || isConciergeActive) && (
               <button onClick={clearAllFilters} className="text-sm font-bold hover:underline flex items-center gap-1" style={{ color: COLORS.royalNavy }}>
                 <X className="w-3 h-3" />
                 {t('store_list.filter_clear')}
@@ -725,9 +707,9 @@ function StoreListContent() {
         ) : filteredStores.length === 0 ? (
           <div className="text-center py-12">
             <p className="font-bold" style={{ color: COLORS.warmGray }}>
-              {(isConciergeActive || vacantOnly || openNowOnly || couponOnly || campaignOnly) ? t('store_list.no_matching_stores') : t('store_list.no_stores')}
+              {(isConciergeActive || vacantOnly || openNowOnly || campaignOnly) ? t('store_list.no_matching_stores') : t('store_list.no_stores')}
             </p>
-            {(vacantOnly || openNowOnly || couponOnly || campaignOnly || isConciergeActive) && (
+            {(vacantOnly || openNowOnly || campaignOnly || isConciergeActive) && (
               <button onClick={clearAllFilters} className="mt-4 font-bold hover:underline" style={{ color: COLORS.champagneGold }}>
                 {t('store_list.show_all_stores')}
               </button>
@@ -800,34 +782,21 @@ function StoreListContent() {
                           </motion.div>
                         )}
 
-                        {!isConciergeActive && (hasCoupon(store) || hasCampaign(store)) && (
+                        {!isConciergeActive && hasCampaign(store) && (
                           <div className="absolute top-2 right-2 z-10 flex flex-col gap-1">
-                            {hasCampaign(store) && (
-                              <motion.div
-                                initial={{ scale: 0, opacity: 0 }}
-                                animate={{ scale: 1, opacity: 1 }}
-                                className="px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1"
-                                style={{
-                                  background: `linear-gradient(135deg, ${COLORS.champagneGold} 0%, ${COLORS.platinum} 50%, ${COLORS.antiqueGold} 100%)`,
-                                  color: COLORS.deepNavy,
-                                  boxShadow: `0 2px 8px ${COLORS.champagneGold}66`,
-                                }}
-                              >
-                                <PartyPopper className="w-3 h-3" />
-                                {store.campaign_name || t('store_list.filter_campaign') || 'キャンペーン'}
-                              </motion.div>
-                            )}
-                            {hasCoupon(store) && (
-                              <motion.div
-                                initial={{ scale: 0, opacity: 0 }}
-                                animate={{ scale: 1, opacity: 1 }}
-                                className="px-1.5 py-0.5 rounded-full text-[10px] font-bold flex items-center gap-0.5 bg-brass-500 text-white"
-                                style={{ boxShadow: '0 2px 8px rgba(245, 158, 11, 0.3)' }}
-                              >
-                                <Ticket className="w-2.5 h-2.5" />
-                                {t('store_list.filter_has_coupon')}
-                              </motion.div>
-                            )}
+                            <motion.div
+                              initial={{ scale: 0, opacity: 0 }}
+                              animate={{ scale: 1, opacity: 1 }}
+                              className="px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1"
+                              style={{
+                                background: `linear-gradient(135deg, ${COLORS.champagneGold} 0%, ${COLORS.platinum} 50%, ${COLORS.antiqueGold} 100%)`,
+                                color: COLORS.deepNavy,
+                                boxShadow: `0 2px 8px ${COLORS.champagneGold}66`,
+                              }}
+                            >
+                              <PartyPopper className="w-3 h-3" />
+                              {store.campaign_name || t('store_list.filter_campaign') || 'キャンペーン'}
+                            </motion.div>
                           </div>
                         )}
                         
@@ -843,7 +812,7 @@ function StoreListContent() {
                           
                           <div className="flex-1 min-w-0 flex flex-col">
                             <div className="flex-1">
-                              <h3 className={`text-lg font-bold truncate ${isConciergeActive || hasCoupon(store) || hasCampaign(store) ? 'pr-20' : ''}`} style={{ color: COLORS.deepNavy }}>
+                              <h3 className={`text-lg font-bold truncate ${isConciergeActive || hasCampaign(store) ? 'pr-20' : ''}`} style={{ color: COLORS.deepNavy }}>
                                 {store.name}
                               </h3>
                               
@@ -917,9 +886,6 @@ function StoreListContent() {
                                 );
                               })()}
                               
-                              {/* おごりチケット */}
-                              <OgoriTicketBadge storeId={store.id} compact />
-
                               {store.status_message && (
                                 <p className="text-sm font-bold line-clamp-2 pt-1" style={{ color: COLORS.deepNavy }}>{store.status_message}</p>
                               )}
@@ -1028,15 +994,6 @@ function StoreListContent() {
                       </button>
 
                       <button
-                        onClick={() => setCouponOnly(!couponOnly)}
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${couponOnly ? 'bg-copper-500/20 text-copper-500' : ('hover:bg-cream-50/10 text-white')}`}
-                      >
-                        <Ticket className="w-5 h-5" style={{ color: couponOnly ? 'hsl(var(--copper-500))' : COLORS.champagneGold }} />
-                        <span className="font-bold text-sm flex-1 text-left">{t('store_list.filter_has_coupon')}</span>
-                        {couponOnly && <Check className="w-4 h-4 text-copper-500" />}
-                      </button>
-
-                      <button
                         onClick={() => setCampaignOnly(!campaignOnly)}
                         className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${campaignOnly ? 'bg-pink-500/20 text-pink-400' : ('hover:bg-cream-50/10 text-white')}`}
                       >
@@ -1051,15 +1008,14 @@ function StoreListContent() {
                         onClick={() => {
                           setVacantOnly(false);
                           setOpenNowOnly(false);
-                          setCouponOnly(false);
                           setCampaignOnly(false);
                           setShowFilterMenu(false);
                         }}
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${!vacantOnly && !openNowOnly && !couponOnly && !campaignOnly ? 'bg-brass-500/20 text-brass-500' : ('hover:bg-cream-50/10 text-white')}`}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${!vacantOnly && !openNowOnly && !campaignOnly ? 'bg-brass-500/20 text-brass-500' : ('hover:bg-cream-50/10 text-white')}`}
                       >
                         <span className="w-5 h-5 flex items-center justify-center text-lg">🍺</span>
                         <span className="font-bold text-sm flex-1 text-left">{t('store_list.filter_show_all')}</span>
-                        {!vacantOnly && !openNowOnly && !couponOnly && !campaignOnly && <Check className="w-4 h-4 text-brass-500" />}
+                        {!vacantOnly && !openNowOnly && !campaignOnly && <Check className="w-4 h-4 text-brass-500" />}
                       </button>
                     </div>
                   </div>

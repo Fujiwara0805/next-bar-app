@@ -1,13 +1,14 @@
 import { createHmac, timingSafeEqual } from 'crypto';
 
 /**
- * 店舗QRコードのHMAC署名ユーティリティ
+ * QR署名ユーティリティ（Phase 11 以降: 顧客マイページQR方式）
  *
- * QR URL形式: `${SITE_URL}/check-in?s={store_id}&sig={hmac}`
- *   sig = base64url( HMAC_SHA256(secret, store_id).slice(0, 16) )
+ * QR URL形式: `${SITE_URL}/c?u={userId}&t={unixSec}&s={hmac16B_b64url}`
+ *   s = base64url( HMAC_SHA256(secret, `${userId}|${unixSec}`).slice(0, 16) )
  *
- * 静的URL（印刷して店舗に設置）+ 署名で改ざん耐性を持たせる。
- * secret は環境変数 QR_SIGNATURE_SECRET に格納。
+ * 顧客がマイページでQRを表示、店舗スタッフがスキャンする。
+ * `t` を含めてローテートすることでスクショ使い回しを抑止。
+ * secret は環境変数 QR_SIGNATURE_SECRET（32文字以上）に格納。
  */
 
 const SIG_BYTES = 16;
@@ -29,29 +30,83 @@ function fromBase64Url(s: string): Buffer {
   return Buffer.from(s.replace(/-/g, '+').replace(/_/g, '/') + pad, 'base64');
 }
 
-export function signStoreId(storeId: string): string {
-  const mac = createHmac('sha256', getSecret()).update(storeId).digest().subarray(0, SIG_BYTES);
+export type CustomerCheckInPayload = { u: string; t: number; s: string };
+
+function signCustomerPayload(userId: string, unixSec: number): string {
+  const mac = createHmac('sha256', getSecret())
+    .update(`${userId}|${unixSec}`)
+    .digest()
+    .subarray(0, SIG_BYTES);
   return toBase64Url(mac);
 }
 
-export function verifyStoreSignature(storeId: string, sig: string): boolean {
+export function buildCustomerCheckInToken(
+  userId: string,
+  nowMs: number = Date.now()
+): CustomerCheckInPayload {
+  const t = Math.floor(nowMs / 1000);
+  const s = signCustomerPayload(userId, t);
+  return { u: userId, t, s };
+}
+
+export function buildCustomerCheckInUrl(
+  baseUrl: string,
+  userId: string,
+  nowMs: number = Date.now()
+): string {
+  const { u, t, s } = buildCustomerCheckInToken(userId, nowMs);
+  const url = new URL('/c', baseUrl);
+  url.searchParams.set('u', u);
+  url.searchParams.set('t', String(t));
+  url.searchParams.set('s', s);
+  return url.toString();
+}
+
+export type VerifyCustomerResult =
+  | { ok: true }
+  | { ok: false; reason: 'invalid' | 'expired' };
+
+export function verifyCustomerCheckInToken(
+  payload: CustomerCheckInPayload,
+  maxAgeSec = 180,
+  nowMs: number = Date.now()
+): VerifyCustomerResult {
   try {
     const expected = createHmac('sha256', getSecret())
-      .update(storeId)
+      .update(`${payload.u}|${payload.t}`)
       .digest()
       .subarray(0, SIG_BYTES);
-    const given = fromBase64Url(sig);
-    if (given.length !== expected.length) return false;
-    return timingSafeEqual(expected, given);
+    const given = fromBase64Url(payload.s);
+    if (given.length !== expected.length) {
+      return { ok: false, reason: 'invalid' };
+    }
+    if (!timingSafeEqual(expected, given)) {
+      return { ok: false, reason: 'invalid' };
+    }
+    const nowSec = Math.floor(nowMs / 1000);
+    const age = nowSec - payload.t;
+    // 端末時計のずれを最大 30s まで許容、それ以上未来のトークンは不正扱い
+    if (age < -30) return { ok: false, reason: 'invalid' };
+    if (age > maxAgeSec) return { ok: false, reason: 'expired' };
+    return { ok: true };
   } catch {
-    return false;
+    return { ok: false, reason: 'invalid' };
   }
 }
 
-export function buildCheckInUrl(baseUrl: string, storeId: string): string {
-  const sig = signStoreId(storeId);
-  const url = new URL('/check-in', baseUrl);
-  url.searchParams.set('s', storeId);
-  url.searchParams.set('sig', sig);
-  return url.toString();
+export function parseCustomerCheckInPayload(
+  raw: unknown
+): CustomerCheckInPayload | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const r = raw as Record<string, unknown>;
+  const u = typeof r.u === 'string' ? r.u : null;
+  const s = typeof r.s === 'string' ? r.s : null;
+  const t =
+    typeof r.t === 'number'
+      ? r.t
+      : typeof r.t === 'string' && /^\d+$/.test(r.t)
+      ? Number(r.t)
+      : null;
+  if (!u || !s || t === null) return null;
+  return { u, t, s };
 }

@@ -88,7 +88,7 @@ export default function StampsPage() {
   useEffect(() => {
     if (authLoading) return;
     if (!user) {
-      router.replace('/login?role=customer&redirect=/profile/stamps');
+      router.replace('/login/customer?redirect=/profile/stamps');
       return;
     }
     if (accountType !== 'customer') {

@@ -37,23 +37,6 @@ import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/auth/context';
 import { toast } from 'sonner';
 
-// クーポン関連のインポート
-import { StoreCouponForm } from '@/components/store/StoreCouponForm';
-import {
-  CouponFormValues,
-  getDefaultCouponFormValues,
-  couponFormToDbData,
-  couponFormSchema,
-} from '@/lib/types/coupon';
-
-// おごり酒関連のインポート
-import { StoreOgoriForm } from '@/components/store/StoreOgoriForm';
-import {
-  OgoriFormValues,
-  getDefaultOgoriFormValues,
-  ogoriFormToDbData,
-  OGORI_FIXED_AMOUNT,
-} from '@/lib/types/ogori';
 
 // キャンペーン関連のインポート
 import {
@@ -212,31 +195,11 @@ function NewStorePage() {
   const [mainImageIndex, setMainImageIndex] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // おごり酒関連のステート
-  const [ogoriValues, setOgoriValues] = useState<OgoriFormValues>(getDefaultOgoriFormValues());
-
-  // クーポン関連のステート
-  const [couponValues, setCouponValues] = useState<CouponFormValues>(getDefaultCouponFormValues());
-  const [couponErrors, setCouponErrors] = useState<Record<string, string>>({});
-
   // キャンペーン関連のステート
   const [campaignValues, setCampaignValues] = useState<CampaignFormValues>(getDefaultCampaignFormValues());
 
-  // キャンペーン値変更時にクーポンのisCampaignフラグと開始日・有効期限を連動させる
   const handleCampaignChange = (newCampaignValues: CampaignFormValues) => {
     setCampaignValues(newCampaignValues);
-    // キャンペーンがONの場合、クーポンをキャンペーン用に設定し、開始日・有効期限をキャンペーン日付で反映
-    // キャンペーンがOFFの場合、クーポンを通常に戻す
-    setCouponValues(prev => ({
-      ...prev,
-      isCampaign: newCampaignValues.hasCampaign,
-      ...(newCampaignValues.hasCampaign && newCampaignValues.campaignStartDate && newCampaignValues.campaignEndDate
-        ? {
-            startDate: newCampaignValues.campaignStartDate,
-            expiryDate: newCampaignValues.campaignEndDate,
-          }
-        : {}),
-    }));
   };
 
   // 店舗名候補
@@ -699,27 +662,6 @@ function NewStorePage() {
     }
   };
 
-  // クーポンバリデーション（クーポン設定OFFの場合はスキップ）
-  const validateCoupon = (): boolean => {
-    if (!couponValues.isActive) {
-      setCouponErrors({});
-      return true;
-    }
-    const result = couponFormSchema.safeParse(couponValues);
-    if (!result.success) {
-      const errors: Record<string, string> = {};
-      result.error.errors.forEach((err) => {
-        if (err.path[0]) {
-          errors[err.path[0] as string] = err.message;
-        }
-      });
-      setCouponErrors(errors);
-      return false;
-    }
-    setCouponErrors({});
-    return true;
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -761,16 +703,6 @@ function NewStorePage() {
 
     if (!password || password.length < 6) {
       toast.error('パスワードは6文字以上で入力してください', { 
-        position: 'top-center',
-        duration: 3000,
-        className: 'bg-gray-100'
-      });
-      return;
-    }
-
-    // クーポンバリデーション
-    if (!validateCoupon()) {
-      toast.error('クーポン設定に誤りがあります', { 
         position: 'top-center',
         duration: 3000,
         className: 'bg-gray-100'
@@ -833,14 +765,8 @@ function NewStorePage() {
         });
       }
 
-      // クーポンデータをDB形式に変換
-      const couponDbData = couponFormToDbData(couponValues);
-      
       // キャンペーンデータをDB形式に変換
       const campaignDbData = campaignFormToDbData(campaignValues);
-
-      // おごり酒データをDB形式に変換
-      const ogoriDbData = ogoriFormToDbData(ogoriValues);
 
       // 営業時間から開店状態を判定
       const isCurrentlyOpen = checkIsOpenFromStructuredHours(structuredBusinessHours);
@@ -876,35 +802,13 @@ function NewStorePage() {
           google_place_id: googlePlaceId,
           google_rating: googleRating,
           google_reviews_count: googleReviewsCount,
-          // クーポン関連カラム
-          ...couponDbData,
           // キャンペーン関連カラム
           ...campaignDbData,
-          // おごり酒関連カラム
-          ...ogoriDbData,
         } as any);
 
       if (storeError) {
         console.error('Store error:', storeError);
         throw new Error(`店舗情報の登録に失敗: ${storeError.message}`);
-      }
-
-      // おごり酒のドリンクメニューを保存（金額は固定1,000円のため保存不要）
-      if (ogoriValues.isEnabled && newStoreUserId) {
-        if (ogoriValues.drinks.length > 0) {
-          const drinksToInsert = ogoriValues.drinks
-            .filter(d => d.name.trim())
-            .map((drink, index) => ({
-              store_id: newStoreUserId,
-              name: drink.name.trim(),
-              price: OGORI_FIXED_AMOUNT,
-              is_active: drink.isActive,
-              sort_order: index,
-            }));
-          if (drinksToInsert.length > 0) {
-            await supabase.from('ogori_drinks').insert(drinksToInsert as any);
-          }
-        }
       }
 
       // 申し込みステータスを承認済みに更新
@@ -1583,7 +1487,7 @@ function NewStorePage() {
               <SectionHeader
                 icon={Sparkles}
                 title="NIKENME+が提供するサービス"
-                description="キャンペーン・クーポンの設定ができます"
+                description="キャンペーンの設定ができます"
               />
 
               <div className="space-y-4">
@@ -1599,30 +1503,6 @@ function NewStorePage() {
                   />
                 </Card>
 
-                {/* おごり酒設定 - 本格運用決定まで非表示（ロジックは保持） */}
-                {/* <Card
-                  className="rounded-xl overflow-hidden"
-                  style={{ border: `1px solid rgba(31, 64, 104, 0.2)` }}
-                >
-                  <StoreOgoriForm
-                    values={ogoriValues}
-                    onChange={setOgoriValues}
-                    disabled={loading}
-                  />
-                </Card> */}
-
-                {/* クーポン設定 */}
-                <Card
-                  className="rounded-xl overflow-hidden"
-                  style={{ border: `1px solid rgba(201, 168, 108, 0.15)` }}
-                >
-                  <StoreCouponForm
-                    values={couponValues}
-                    onChange={setCouponValues}
-                    disabled={loading}
-                    errors={couponErrors}
-                  />
-                </Card>
               </div>
             </Card>
 

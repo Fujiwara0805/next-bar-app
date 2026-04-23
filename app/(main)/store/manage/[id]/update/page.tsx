@@ -36,6 +36,8 @@ import {
   QrCode,
   Megaphone,
   Building2,
+  Ticket,
+  ScanLine,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CloseCircleButton } from '@/components/ui/close-circle-button';
@@ -223,7 +225,7 @@ export default function StoreUpdatePage() {
               userEmail: user.email,
             });
             toast.error('アクセス権限がありません', { position: 'top-center' });
-            router.push('/login?role=store');
+            router.push('/login/operator');
             return;
           }
         }
@@ -258,7 +260,7 @@ export default function StoreUpdatePage() {
       if (accountType === 'platform') {
         router.push('/store/manage');
       } else {
-        router.push('/login?role=store');
+        router.push('/login/operator');
       }
     } finally {
       setFetchingStore(false);
@@ -304,7 +306,7 @@ export default function StoreUpdatePage() {
 
     // 未ログインまたは不正なアカウントタイプの場合はリダイレクト
     if (!accountType || (accountType !== 'platform' && accountType !== 'store')) {
-      router.push('/login?role=store');
+      router.push('/login/operator');
       return;
     }
   }, [accountType, router]);
@@ -578,7 +580,7 @@ export default function StoreUpdatePage() {
         duration: 1000,
         className: 'bg-gray-100'
       });
-      router.push('/login?role=store');
+      router.push('/login/operator');
     } catch (error) {
       toast.error('ログアウトに失敗しました', { 
         position: 'top-center',
@@ -706,7 +708,7 @@ export default function StoreUpdatePage() {
                     type="button"
                     size="sm"
                     variant="outline"
-                    onClick={() => router.push(`/store/manage/${store.id}/qr`)}
+                    onClick={() => router.push(`/store/manage/${store.id}/scan`)}
                     className="rounded-xl font-bold shadow-md border-0 hover:opacity-95 [&_svg]:stroke-[currentColor]"
                     style={{
                       background: COLORS.goldGradient,
@@ -714,7 +716,7 @@ export default function StoreUpdatePage() {
                     }}
                   >
                     <QrCode className="w-4 h-4 mr-2 shrink-0" strokeWidth={2} />
-                    QR
+                    スキャン
                   </Button>
                 </motion.div>
                 <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
@@ -731,6 +733,38 @@ export default function StoreUpdatePage() {
                   >
                     <Megaphone className="w-4 h-4 mr-2 shrink-0" strokeWidth={2} />
                     配信・分析
+                  </Button>
+                </motion.div>
+                <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => router.push(`/store/manage/${store.id}/coupons`)}
+                    className="rounded-xl font-bold shadow-md border-0 hover:opacity-95 [&_svg]:stroke-[currentColor]"
+                    style={{
+                      background: COLORS.goldGradient,
+                      color: COLORS.charcoal,
+                    }}
+                  >
+                    <Ticket className="w-4 h-4 mr-2 shrink-0" strokeWidth={2} />
+                    クーポン
+                  </Button>
+                </motion.div>
+                <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => router.push(`/store/manage/${store.id}/redeem`)}
+                    className="rounded-xl font-bold shadow-md border-0 hover:opacity-95 [&_svg]:stroke-[currentColor]"
+                    style={{
+                      background: COLORS.goldGradient,
+                      color: COLORS.charcoal,
+                    }}
+                  >
+                    <ScanLine className="w-4 h-4 mr-2 shrink-0" strokeWidth={2} />
+                    消込
                   </Button>
                 </motion.div>
                 {accountType === 'store' && (

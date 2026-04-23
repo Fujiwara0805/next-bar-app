@@ -10,7 +10,7 @@ import type { NextRequest } from 'next/server';
  */
 
 /** 店舗アカウントがアクセス可能なセグメント */
-const STORE_ALLOWED_SEGMENTS = /^(update|edit|change-password|qr|broadcast|analytics)$/;
+const STORE_ALLOWED_SEGMENTS = /^(update|edit|change-password|scan|broadcast|analytics|coupons|redeem)$/;
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -36,7 +36,7 @@ export function middleware(request: NextRequest) {
         if (storeId) {
           return NextResponse.redirect(new URL(`/store/manage/${storeId}/update`, request.url));
         }
-        return NextResponse.redirect(new URL('/login?role=store', request.url));
+        return NextResponse.redirect(new URL('/login/operator', request.url));
       }
 
       const [, pathStoreId, segment] = match;
@@ -45,7 +45,7 @@ export function middleware(request: NextRequest) {
         if (storeId) {
           return NextResponse.redirect(new URL(`/store/manage/${storeId}/update`, request.url));
         }
-        return NextResponse.redirect(new URL('/login?role=store', request.url));
+        return NextResponse.redirect(new URL('/login/operator', request.url));
       }
 
       if (storeId && pathStoreId !== storeId) {
@@ -68,14 +68,15 @@ export function middleware(request: NextRequest) {
       if (storeId) {
         return NextResponse.redirect(new URL(`/store/manage/${storeId}/update`, request.url));
       }
-      return NextResponse.redirect(new URL('/login?role=store', request.url));
+      return NextResponse.redirect(new URL('/login/operator', request.url));
     }
     return NextResponse.next();
   }
 
-  // ── /login, /register: ログイン済みなら適切なダッシュボードへ ──
-  if (pathname === '/login' || pathname === '/register') {
-    const role = request.nextUrl.searchParams.get('role');
+  // ── /login, /login/customer, /login/operator, /register: ログイン済みなら適切なダッシュボードへ ──
+  const isLoginPath =
+    pathname === '/login' || pathname === '/login/customer' || pathname === '/login/operator';
+  if (isLoginPath || pathname === '/register') {
     const redirectParam = request.nextUrl.searchParams.get('redirect');
 
     if (accountType === 'platform') {
@@ -90,7 +91,7 @@ export function middleware(request: NextRequest) {
         return NextResponse.next();
       }
       // 顧客ログイン画面を明示的に開く場合は、ログアウトして再ログインするためのアクセスを許可する
-      if (pathname === '/login' && role === 'customer') {
+      if (pathname === '/login/customer') {
         return NextResponse.next();
       }
       return NextResponse.redirect(new URL('/map', request.url));
@@ -105,6 +106,8 @@ export const config = {
     '/store/manage/:path*',
     '/profile/:path*',
     '/login',
+    '/login/customer',
+    '/login/operator',
     '/register',
   ],
 };

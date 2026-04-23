@@ -53,102 +53,141 @@ export type Database = {
         }
         Relationships: []
       }
-      coupon_usages: {
+      coupon_issues: {
         Row: {
-          age_group: string | null
-          campaign_id: string | null
-          campaign_name: string | null
-          coupon_additional_bonus: string | null
-          coupon_code: string | null
-          coupon_conditions: string | null
-          coupon_discount_type: string | null
-          coupon_discount_value: number | null
-          coupon_id: string | null
-          coupon_title: string | null
-          created_at: string
+          age_range: string | null
+          coupon_id: string
           gender: string | null
           id: string
-          ip_address: unknown
-          is_first_visit: boolean
-          is_local_resident: boolean
-          referrer: string | null
-          session_id: string | null
+          is_first_visit: boolean | null
+          issued_at: string
+          line_user_id: string | null
+          message_id: string | null
+          origin_prefecture: string | null
+          redeem_code: string
+          redeemed_at: string | null
+          redeemed_by_user_id: string | null
           store_id: string
-          store_name: string
-          used_at: string
-          user_agent: string | null
           user_id: string | null
         }
         Insert: {
-          age_group?: string | null
-          campaign_id?: string | null
-          campaign_name?: string | null
-          coupon_additional_bonus?: string | null
-          coupon_code?: string | null
-          coupon_conditions?: string | null
-          coupon_discount_type?: string | null
-          coupon_discount_value?: number | null
-          coupon_id?: string | null
-          coupon_title?: string | null
-          created_at?: string
+          age_range?: string | null
+          coupon_id: string
           gender?: string | null
           id?: string
-          ip_address?: unknown
-          is_first_visit: boolean
-          is_local_resident: boolean
-          referrer?: string | null
-          session_id?: string | null
+          is_first_visit?: boolean | null
+          issued_at?: string
+          line_user_id?: string | null
+          message_id?: string | null
+          origin_prefecture?: string | null
+          redeem_code: string
+          redeemed_at?: string | null
+          redeemed_by_user_id?: string | null
           store_id: string
-          store_name?: string
-          used_at?: string
-          user_agent?: string | null
           user_id?: string | null
         }
         Update: {
-          age_group?: string | null
-          campaign_id?: string | null
-          campaign_name?: string | null
-          coupon_additional_bonus?: string | null
-          coupon_code?: string | null
-          coupon_conditions?: string | null
-          coupon_discount_type?: string | null
-          coupon_discount_value?: number | null
-          coupon_id?: string | null
-          coupon_title?: string | null
-          created_at?: string
+          age_range?: string | null
+          coupon_id?: string
           gender?: string | null
           id?: string
-          ip_address?: unknown
-          is_first_visit?: boolean
-          is_local_resident?: boolean
-          referrer?: string | null
-          session_id?: string | null
+          is_first_visit?: boolean | null
+          issued_at?: string
+          line_user_id?: string | null
+          message_id?: string | null
+          origin_prefecture?: string | null
+          redeem_code?: string
+          redeemed_at?: string | null
+          redeemed_by_user_id?: string | null
           store_id?: string
-          store_name?: string
-          used_at?: string
-          user_agent?: string | null
           user_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "coupon_usages_campaign_id_fkey"
-            columns: ["campaign_id"]
+            foreignKeyName: "coupon_issues_coupon_id_fkey"
+            columns: ["coupon_id"]
             isOneToOne: false
-            referencedRelation: "campaigns"
+            referencedRelation: "store_coupons"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "coupon_usages_store_id_fkey"
+            foreignKeyName: "coupon_issues_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "store_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coupon_issues_redeemed_by_user_id_fkey"
+            columns: ["redeemed_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coupon_issues_store_id_fkey"
             columns: ["store_id"]
             isOneToOne: false
             referencedRelation: "stores"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "coupon_usages_user_id_fkey"
+            foreignKeyName: "coupon_issues_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coupon_redemptions: {
+        Row: {
+          amount_used: number | null
+          id: string
+          issue_id: string
+          notes: string | null
+          redeemed_at: string
+          redeemed_by_user_id: string | null
+          store_id: string
+        }
+        Insert: {
+          amount_used?: number | null
+          id?: string
+          issue_id: string
+          notes?: string | null
+          redeemed_at?: string
+          redeemed_by_user_id?: string | null
+          store_id: string
+        }
+        Update: {
+          amount_used?: number | null
+          id?: string
+          issue_id?: string
+          notes?: string | null
+          redeemed_at?: string
+          redeemed_by_user_id?: string | null
+          store_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coupon_redemptions_issue_id_fkey"
+            columns: ["issue_id"]
+            isOneToOne: true
+            referencedRelation: "coupon_issues"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coupon_redemptions_redeemed_by_user_id_fkey"
+            columns: ["redeemed_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coupon_redemptions_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
             referencedColumns: ["id"]
           },
         ]
@@ -256,152 +295,6 @@ export type Database = {
           {
             foreignKeyName: "lottery_rounds_executed_by_fkey"
             columns: ["executed_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      ogori_drinks: {
-        Row: {
-          created_at: string | null
-          id: string
-          image_url: string | null
-          is_active: boolean | null
-          name: string
-          price: number
-          sort_order: number | null
-          store_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          image_url?: string | null
-          is_active?: boolean | null
-          name: string
-          price: number
-          sort_order?: number | null
-          store_id: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          image_url?: string | null
-          is_active?: boolean | null
-          name?: string
-          price?: number
-          sort_order?: number | null
-          store_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "ogori_drinks_store_id_fkey"
-            columns: ["store_id"]
-            isOneToOne: false
-            referencedRelation: "stores"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      ogori_price_options: {
-        Row: {
-          amount: number
-          created_at: string | null
-          id: string
-          is_active: boolean | null
-          sort_order: number | null
-          store_id: string
-        }
-        Insert: {
-          amount: number
-          created_at?: string | null
-          id?: string
-          is_active?: boolean | null
-          sort_order?: number | null
-          store_id: string
-        }
-        Update: {
-          amount?: number
-          created_at?: string | null
-          id?: string
-          is_active?: boolean | null
-          sort_order?: number | null
-          store_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "ogori_price_options_store_id_fkey"
-            columns: ["store_id"]
-            isOneToOne: false
-            referencedRelation: "stores"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      ogori_tickets: {
-        Row: {
-          amount: number
-          created_at: string | null
-          drink_id: string | null
-          drink_name: string | null
-          id: string
-          purchaser_id: string | null
-          status: string | null
-          store_id: string
-          stripe_payment_id: string | null
-          used_at: string | null
-          used_by: string | null
-          used_drink_id: string | null
-          used_drink_name: string | null
-        }
-        Insert: {
-          amount: number
-          created_at?: string | null
-          drink_id?: string | null
-          drink_name?: string | null
-          id?: string
-          purchaser_id?: string | null
-          status?: string | null
-          store_id: string
-          stripe_payment_id?: string | null
-          used_at?: string | null
-          used_by?: string | null
-          used_drink_id?: string | null
-          used_drink_name?: string | null
-        }
-        Update: {
-          amount?: number
-          created_at?: string | null
-          drink_id?: string | null
-          drink_name?: string | null
-          id?: string
-          purchaser_id?: string | null
-          status?: string | null
-          store_id?: string
-          stripe_payment_id?: string | null
-          used_at?: string | null
-          used_by?: string | null
-          used_drink_id?: string | null
-          used_drink_name?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "ogori_tickets_purchaser_id_fkey"
-            columns: ["purchaser_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ogori_tickets_store_id_fkey"
-            columns: ["store_id"]
-            isOneToOne: false
-            referencedRelation: "stores"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ogori_tickets_used_by_fkey"
-            columns: ["used_by"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
@@ -1054,6 +947,68 @@ export type Database = {
           },
         ]
       }
+      store_coupons: {
+        Row: {
+          body: string | null
+          conditions: string | null
+          created_at: string
+          discount_type: string
+          discount_value: number | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          max_issues: number | null
+          max_per_user: number
+          store_id: string
+          title: string
+          updated_at: string
+          valid_from: string | null
+          valid_until: string
+        }
+        Insert: {
+          body?: string | null
+          conditions?: string | null
+          created_at?: string
+          discount_type: string
+          discount_value?: number | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          max_issues?: number | null
+          max_per_user?: number
+          store_id: string
+          title: string
+          updated_at?: string
+          valid_from?: string | null
+          valid_until: string
+        }
+        Update: {
+          body?: string | null
+          conditions?: string | null
+          created_at?: string
+          discount_type?: string
+          discount_value?: number | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          max_issues?: number | null
+          max_per_user?: number
+          store_id?: string
+          title?: string
+          updated_at?: string
+          valid_from?: string | null
+          valid_until?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_coupons_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       store_messages: {
         Row: {
           body: string
@@ -1128,21 +1083,6 @@ export type Database = {
           campaign_name: string | null
           campaign_start_date: string | null
           closed_reason: string | null
-          coupon_additional_bonus: string | null
-          coupon_barcode_url: string | null
-          coupon_code: string | null
-          coupon_conditions: string | null
-          coupon_current_uses: number | null
-          coupon_description: string | null
-          coupon_discount_type: string | null
-          coupon_discount_value: number | null
-          coupon_expiry_date: string | null
-          coupon_image_url: string | null
-          coupon_is_active: boolean | null
-          coupon_is_campaign: boolean | null
-          coupon_max_uses: number | null
-          coupon_start_date: string | null
-          coupon_title: string | null
           created_at: string | null
           description: string | null
           email: string
@@ -1163,7 +1103,6 @@ export type Database = {
           manual_closed: boolean | null
           manual_closed_at: string | null
           name: string
-          ogori_enabled: boolean | null
           owner_id: string
           payment_methods: string[] | null
           phone: string | null
@@ -1186,21 +1125,6 @@ export type Database = {
           campaign_name?: string | null
           campaign_start_date?: string | null
           closed_reason?: string | null
-          coupon_additional_bonus?: string | null
-          coupon_barcode_url?: string | null
-          coupon_code?: string | null
-          coupon_conditions?: string | null
-          coupon_current_uses?: number | null
-          coupon_description?: string | null
-          coupon_discount_type?: string | null
-          coupon_discount_value?: number | null
-          coupon_expiry_date?: string | null
-          coupon_image_url?: string | null
-          coupon_is_active?: boolean | null
-          coupon_is_campaign?: boolean | null
-          coupon_max_uses?: number | null
-          coupon_start_date?: string | null
-          coupon_title?: string | null
           created_at?: string | null
           description?: string | null
           email?: string
@@ -1221,7 +1145,6 @@ export type Database = {
           manual_closed?: boolean | null
           manual_closed_at?: string | null
           name: string
-          ogori_enabled?: boolean | null
           owner_id: string
           payment_methods?: string[] | null
           phone?: string | null
@@ -1244,21 +1167,6 @@ export type Database = {
           campaign_name?: string | null
           campaign_start_date?: string | null
           closed_reason?: string | null
-          coupon_additional_bonus?: string | null
-          coupon_barcode_url?: string | null
-          coupon_code?: string | null
-          coupon_conditions?: string | null
-          coupon_current_uses?: number | null
-          coupon_description?: string | null
-          coupon_discount_type?: string | null
-          coupon_discount_value?: number | null
-          coupon_expiry_date?: string | null
-          coupon_image_url?: string | null
-          coupon_is_active?: boolean | null
-          coupon_is_campaign?: boolean | null
-          coupon_max_uses?: number | null
-          coupon_start_date?: string | null
-          coupon_title?: string | null
           created_at?: string | null
           description?: string | null
           email?: string
@@ -1279,7 +1187,6 @@ export type Database = {
           manual_closed?: boolean | null
           manual_closed_at?: string | null
           name?: string
-          ogori_enabled?: boolean | null
           owner_id?: string
           payment_methods?: string[] | null
           phone?: string | null
@@ -1385,81 +1292,11 @@ export type Database = {
       }
     }
     Views: {
-      coupon_usage_daily_stats: {
-        Row: {
-          first_visit_count: number | null
-          local_resident_count: number | null
-          repeat_visit_count: number | null
-          store_id: string | null
-          total_usages: number | null
-          usage_date: string | null
-          visitor_count: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "coupon_usages_store_id_fkey"
-            columns: ["store_id"]
-            isOneToOne: false
-            referencedRelation: "stores"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      coupon_usage_monthly_stats: {
-        Row: {
-          first_visit_count: number | null
-          first_visit_percentage: number | null
-          local_resident_count: number | null
-          local_resident_percentage: number | null
-          repeat_visit_count: number | null
-          store_id: string | null
-          total_usages: number | null
-          usage_month: string | null
-          visitor_count: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "coupon_usages_store_id_fkey"
-            columns: ["store_id"]
-            isOneToOne: false
-            referencedRelation: "stores"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
+      [_ in never]: never
     }
     Functions: {
       aggregate_sponsor_daily_reports: { Args: never; Returns: undefined }
-      check_coupon_duplicate: {
-        Args: {
-          p_coupon_id: string
-          p_device_fingerprint: string
-          p_session_id: string
-          p_user_id: string
-        }
-        Returns: boolean
-      }
-      check_coupon_duplicate_usage: {
-        Args: {
-          p_minutes_threshold?: number
-          p_session_id: string
-          p_store_id: string
-        }
-        Returns: boolean
-      }
       is_platform_admin: { Args: never; Returns: boolean }
-      record_coupon_usage: {
-        Args: {
-          p_is_first_visit?: boolean
-          p_is_local_resident?: boolean
-          p_referrer?: string
-          p_session_id: string
-          p_store_id: string
-          p_user_agent?: string
-          p_user_id?: string
-        }
-        Returns: Json
-      }
       update_sponsor_contract_statuses: { Args: never; Returns: undefined }
     }
     Enums: {

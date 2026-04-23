@@ -12,6 +12,10 @@ import {
   BarChart3,
   MousePointerClick,
   Sparkles,
+  Ticket,
+  CheckCircle2,
+  UserRound,
+  MapPin,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -55,6 +59,24 @@ type AnalyticsPayload = {
     created_at: string;
     body: string;
   }>;
+  coupons?: {
+    totals: { issued: number; redeemed: number; cvr: number };
+    byCoupon: Array<{
+      id: string;
+      title: string;
+      issued: number;
+      redeemed: number;
+      cvr: number;
+    }>;
+    breakdown: {
+      age: Record<string, number>;
+      gender: Record<string, number>;
+      origin: Record<string, number>;
+      firstVisit: number;
+      repeat: number;
+      unknown: number;
+    };
+  };
 };
 
 const MAX_LEN = 400;
@@ -78,6 +100,66 @@ const SectionHeader = ({ icon: Icon, title }: { icon: React.ElementType; title: 
     </div>
   );
 };
+
+function BreakdownRow({
+  label,
+  bucket,
+  translate,
+}: {
+  label: string;
+  bucket: Record<string, number>;
+  translate: (key: string) => string;
+}) {
+  const { colorsB: COLORS } = useAppMode();
+  const entries = Object.entries(bucket).sort((a, b) => b[1] - a[1]);
+  const total = entries.reduce((acc, [, v]) => acc + v, 0);
+  if (total === 0) {
+    return (
+      <div>
+        <div className="text-xs font-bold mb-2" style={{ color: COLORS.deepNavy }}>
+          {label}
+        </div>
+        <p className="text-xs font-medium" style={{ color: COLORS.warmGray }}>
+          —
+        </p>
+      </div>
+    );
+  }
+  return (
+    <div>
+      <div className="text-xs font-bold mb-2" style={{ color: COLORS.deepNavy }}>
+        {label}
+      </div>
+      <div className="space-y-1.5">
+        {entries.map(([k, v]) => {
+          const pct = total > 0 ? (v / total) * 100 : 0;
+          return (
+            <div key={k}>
+              <div
+                className="flex items-center justify-between text-xs font-medium mb-0.5"
+                style={{ color: COLORS.warmGray }}
+              >
+                <span>{translate(k)}</span>
+                <span>
+                  <b style={{ color: COLORS.deepNavy }}>{v}</b> ({pct.toFixed(0)}%)
+                </span>
+              </div>
+              <div
+                className="h-1.5 rounded-full overflow-hidden"
+                style={{ background: 'rgba(201, 168, 108, 0.12)' }}
+              >
+                <div
+                  className="h-full rounded-full"
+                  style={{ width: `${pct}%`, background: COLORS.goldGradient }}
+                />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 function StoreBroadcastPageInner() {
   const params = useParams();
@@ -126,7 +208,7 @@ function StoreBroadcastPageInner() {
   useEffect(() => {
     if (authLoading) return;
     if (!user) {
-      router.replace('/login?role=store');
+      router.replace('/login/operator');
       return;
     }
     if (!isAuthorized) {
@@ -242,6 +324,11 @@ function StoreBroadcastPageInner() {
   const totals = analytics?.totals;
   const clickRatePct =
     totals && totals.sent > 0 ? ((totals.clicks / totals.sent) * 100).toFixed(1) : '0.0';
+  const couponTotals = analytics?.coupons?.totals;
+  const couponCvrPct =
+    couponTotals && couponTotals.issued > 0
+      ? ((couponTotals.redeemed / couponTotals.issued) * 100).toFixed(1)
+      : '0.0';
 
   return (
     <div className="min-h-[100dvh] pb-20" style={{ background: COLORS.cardGradient }}>
@@ -734,6 +821,223 @@ function StoreBroadcastPageInner() {
                       )}
                     </div>
                   </Card>
+
+                  {/* ===== クーポン集計 ===== */}
+                  {analytics.coupons && (
+                    <>
+                      <div
+                        className="mt-2 pt-2 text-xs font-bold tracking-widest"
+                        style={{ color: COLORS.champagneGold }}
+                      >
+                        {t('analytics.coupon_section') || 'COUPON'}
+                      </div>
+                      <div className="grid grid-cols-3 gap-3">
+                        <Card
+                          className="p-4 rounded-2xl shadow-md"
+                          style={{
+                            background: '#FFFFFF',
+                            border: `1px solid rgba(201, 168, 108, 0.15)`,
+                          }}
+                        >
+                          <div
+                            className="flex items-center gap-2 mb-1 text-xs font-medium"
+                            style={{ color: COLORS.warmGray }}
+                          >
+                            <Ticket
+                              className="w-3 h-3"
+                              style={{ color: COLORS.champagneGold }}
+                            />
+                            {t('analytics.coupon_issued') || '発行'}
+                          </div>
+                          <div
+                            className="text-2xl font-bold"
+                            style={{ color: COLORS.deepNavy }}
+                          >
+                            {couponTotals?.issued ?? 0}
+                          </div>
+                        </Card>
+                        <Card
+                          className="p-4 rounded-2xl shadow-md"
+                          style={{
+                            background: '#FFFFFF',
+                            border: `1px solid rgba(201, 168, 108, 0.15)`,
+                          }}
+                        >
+                          <div
+                            className="flex items-center gap-2 mb-1 text-xs font-medium"
+                            style={{ color: COLORS.warmGray }}
+                          >
+                            <CheckCircle2
+                              className="w-3 h-3"
+                              style={{ color: COLORS.champagneGold }}
+                            />
+                            {t('analytics.coupon_redeemed') || '消込'}
+                          </div>
+                          <div
+                            className="text-2xl font-bold"
+                            style={{ color: COLORS.deepNavy }}
+                          >
+                            {couponTotals?.redeemed ?? 0}
+                          </div>
+                        </Card>
+                        <Card
+                          className="p-4 rounded-2xl shadow-md"
+                          style={{
+                            background: '#FFFFFF',
+                            border: `1px solid rgba(201, 168, 108, 0.15)`,
+                          }}
+                        >
+                          <div
+                            className="text-xs font-medium mb-1"
+                            style={{ color: COLORS.warmGray }}
+                          >
+                            {t('analytics.coupon_cvr') || 'CVR'}
+                          </div>
+                          <div
+                            className="text-2xl font-bold"
+                            style={{ color: COLORS.deepNavy }}
+                          >
+                            {couponCvrPct}%
+                          </div>
+                        </Card>
+                      </div>
+
+                      <Card
+                        className="p-6 rounded-2xl shadow-lg"
+                        style={{
+                          background: '#FFFFFF',
+                          border: `1px solid rgba(201, 168, 108, 0.15)`,
+                        }}
+                      >
+                        <SectionHeader
+                          icon={Ticket}
+                          title={t('analytics.coupon_by_coupon') || 'クーポン別'}
+                        />
+                        {analytics.coupons.byCoupon.length === 0 ? (
+                          <p
+                            className="text-xs font-medium"
+                            style={{ color: COLORS.warmGray }}
+                          >
+                            {t('analytics.no_data')}
+                          </p>
+                        ) : (
+                          <ul className="space-y-3">
+                            {analytics.coupons.byCoupon.map((c) => (
+                              <li
+                                key={c.id}
+                                className="pb-3 last:pb-0"
+                                style={{
+                                  borderBottom: '1px solid rgba(201, 168, 108, 0.15)',
+                                }}
+                              >
+                                <div
+                                  className="text-sm font-bold mb-1 truncate"
+                                  style={{ color: COLORS.deepNavy }}
+                                >
+                                  {c.title}
+                                </div>
+                                <div
+                                  className="flex items-center gap-4 text-xs font-medium"
+                                  style={{ color: COLORS.warmGray }}
+                                >
+                                  <span>
+                                    <Ticket className="w-3 h-3 inline mr-1" />
+                                    {c.issued}
+                                  </span>
+                                  <span>
+                                    <CheckCircle2 className="w-3 h-3 inline mr-1" />
+                                    {c.redeemed}
+                                  </span>
+                                  <span className="ml-auto font-semibold">
+                                    CVR {(c.cvr * 100).toFixed(1)}%
+                                  </span>
+                                </div>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </Card>
+
+                      <Card
+                        className="p-6 rounded-2xl shadow-lg"
+                        style={{
+                          background: '#FFFFFF',
+                          border: `1px solid rgba(201, 168, 108, 0.15)`,
+                        }}
+                      >
+                        <SectionHeader
+                          icon={UserRound}
+                          title={t('analytics.coupon_breakdown') || '消込者属性'}
+                        />
+                        {couponTotals && couponTotals.redeemed === 0 ? (
+                          <p
+                            className="text-xs font-medium"
+                            style={{ color: COLORS.warmGray }}
+                          >
+                            {t('analytics.no_data')}
+                          </p>
+                        ) : (
+                          <div className="space-y-4">
+                            <BreakdownRow
+                              label={t('analytics.breakdown_age') || '年代'}
+                              bucket={analytics.coupons.breakdown.age}
+                              translate={(k) =>
+                                k === 'unknown' ? (t('analytics.unknown') || '未回答') : k
+                              }
+                            />
+                            <BreakdownRow
+                              label={t('analytics.breakdown_gender') || '性別'}
+                              bucket={analytics.coupons.breakdown.gender}
+                              translate={(k) =>
+                                t(`coupon.gender_${k}`) ||
+                                (k === 'unknown' ? (t('analytics.unknown') || '未回答') : k)
+                              }
+                            />
+                            <BreakdownRow
+                              label={t('analytics.breakdown_origin') || '出身'}
+                              bucket={analytics.coupons.breakdown.origin}
+                              translate={(k) =>
+                                t(`coupon.origin_${k}`) ||
+                                (k === 'unknown' ? (t('analytics.unknown') || '未回答') : k)
+                              }
+                            />
+                            <div>
+                              <div
+                                className="text-xs font-bold mb-2"
+                                style={{ color: COLORS.deepNavy }}
+                              >
+                                <MapPin className="w-3 h-3 inline mr-1" />
+                                {t('analytics.breakdown_visit') || '来店傾向'}
+                              </div>
+                              <div
+                                className="flex items-center gap-4 text-xs font-medium"
+                                style={{ color: COLORS.warmGray }}
+                              >
+                                <span>
+                                  {t('coupon.first_visit_yes') || '初来店'}:{' '}
+                                  <b style={{ color: COLORS.deepNavy }}>
+                                    {analytics.coupons.breakdown.firstVisit}
+                                  </b>
+                                </span>
+                                <span>
+                                  {t('coupon.first_visit_no') || 'リピート'}:{' '}
+                                  <b style={{ color: COLORS.deepNavy }}>
+                                    {analytics.coupons.breakdown.repeat}
+                                  </b>
+                                </span>
+                                <span>
+                                  {t('analytics.unknown') || '未回答'}:{' '}
+                                  <b style={{ color: COLORS.deepNavy }}>
+                                    {analytics.coupons.breakdown.unknown}
+                                  </b>
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </Card>
+                    </>
+                  )}
 
                   <Card
                     className="p-6 rounded-2xl shadow-lg"

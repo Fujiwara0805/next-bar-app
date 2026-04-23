@@ -202,7 +202,7 @@ export default function AdLandingPage() {
       num: '01',
       title: '「なんとなく」の経営から\n「データで勝つ」経営へ',
       titleEn: 'Data-Driven Growth',
-      desc: 'クーポン利用データで「新規 or リピーター」「県内 or 県外」を分析。勘や経験だけに頼らない、数字に基づく次の一手が見えてきます。',
+      desc: '来店・予約データで「新規 or リピーター」「県内 or 県外」を分析。勘や経験だけに頼らない、数字に基づく次の一手が見えてきます。',
     },
     {
       icon: TrendingUp,
@@ -246,9 +246,9 @@ export default function AdLandingPage() {
     {
       num: '04',
       image: ASSETS.howItWorks4,
-      title: 'クーポンが、最強の武器になる',
-      titleEn: 'Smart Coupon',
-      desc: '日常使いのクーポン券から、地域イベント限定の特別クーポンまで自由自在。誰がいつ使ったか、すべてデータ化。次の集客施策が自然と見えてきます。',
+      title: '顧客データが、最強の武器になる',
+      titleEn: 'Customer Insights',
+      desc: '来店・予約データをリアルタイムで蓄積。誰がいつ来たか、リピーターは誰か、どのエリアから来たか、すべてデータ化。次の集客施策が自然と見えてきます。',
     },
   ];
 
@@ -854,7 +854,6 @@ export default function AdLandingPage() {
                     {[
                       '店舗専用ページの作成・公開',
                       '空席状況のリアルタイム更新',
-                      'クーポン発行（無制限）',
                       '顧客データの取得・分析',
                       'Googleマップ自動同期',
                     ].map((feature, index) => (

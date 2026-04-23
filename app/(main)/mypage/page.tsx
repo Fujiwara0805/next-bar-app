@@ -47,7 +47,7 @@ export default function MyPage() {
   useEffect(() => {
     if (authLoading) return;
     if (!user) {
-      router.replace('/login?role=customer&redirect=/mypage');
+      router.replace('/login/customer?redirect=/mypage');
       return;
     }
     if (accountType === 'platform') {
@@ -112,7 +112,7 @@ export default function MyPage() {
     try {
       await signOut();
       toast.success(t('auth.logout_success'));
-      router.replace('/login?role=customer');
+      router.replace('/login/customer');
     } catch {
       toast.error(t('auth.logout_failed'));
     }
@@ -148,8 +148,8 @@ export default function MyPage() {
             </div>
           </Card>
 
-          {/* スキャナ誘導 */}
-          <Link href="/mypage/scan" className="block mb-4">
+          {/* チェックインQR表示誘導 */}
+          <Link href="/mypage/qr" className="block mb-4">
             <Card className="p-5 border-primary/40 bg-gradient-to-br from-primary/10 to-primary/5 hover:shadow-md transition-shadow">
               <div className="flex items-center gap-4">
                 <div className="w-14 h-14 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
@@ -157,10 +157,10 @@ export default function MyPage() {
                 </div>
                 <div className="flex-1">
                   <h2 className="font-bold text-base mb-0.5">
-                    {t('mypage.scan_cta_title')}
+                    {t('mypage.qr_cta_title')}
                   </h2>
                   <p className="text-xs text-muted-foreground">
-                    {t('mypage.scan_cta_desc')}
+                    {t('mypage.qr_cta_desc')}
                   </p>
                 </div>
                 <ChevronRight className="w-5 h-5 text-muted-foreground" />

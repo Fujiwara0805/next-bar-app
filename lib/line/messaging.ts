@@ -8,12 +8,13 @@
 //
 // Docs: https://developers.line.biz/ja/reference/messaging-api/
 
-import { messagingApi, Client, validateSignature } from '@line/bot-sdk';
+import { messagingApi, validateSignature } from '@line/bot-sdk';
 
 const { MessagingApiClient } = messagingApi;
 
-export type LineTextMessage = { type: 'text'; text: string };
-export type LineMessage = LineTextMessage;
+export type LineTextMessage = messagingApi.TextMessage;
+export type LineFlexMessage = messagingApi.FlexMessage;
+export type LineMessage = messagingApi.Message;
 
 type PushResult = {
   requested: number;

@@ -26,7 +26,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   const { colors: C } = useAdminTheme();
   const router = useRouter();
   const pathname = usePathname();
-  const { signOut, accountType } = useAuth();
+  const { signOut } = useAuth();
 
   const isActive = (item: typeof NAV_ITEMS[0]) => {
     if (item.exact) return pathname === item.href;
@@ -37,7 +37,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
     try {
       await signOut();
       toast.success('ログアウトしました', { position: 'top-center', duration: 1000 });
-      router.push(accountType === 'store' ? '/login?role=store' : '/login?role=platform');
+      router.push('/login/operator');
     } catch {
       toast.error('ログアウトに失敗しました', { position: 'top-center' });
     }
@@ -190,7 +190,7 @@ function ManageLayoutInner({ children }: { children: React.ReactNode }) {
 }
 
 /** 店舗アカウントがログイン後に使うパス（運営ダッシュボードとは別） */
-const STORE_SELF_MANAGE_SEGMENTS = /^(update|edit|change-password)$/;
+const STORE_SELF_MANAGE_SEGMENTS = /^(update|edit|change-password|scan|broadcast|analytics|coupons|redeem)$/;
 
 export default function ManageLayout({
   children,
@@ -209,7 +209,7 @@ export default function ManageLayout({
     if (accountType === 'store') {
       if (!store?.id) {
         setChecked(false);
-        router.push('/login?role=store');
+        router.push('/login/operator');
         return;
       }
       const m = pathname.match(/^\/store\/manage\/([^/]+)\/([^/]+)$/);
@@ -226,13 +226,13 @@ export default function ManageLayout({
         router.replace(`/store/manage/${store.id}/update`);
         return;
       }
-      router.push('/login?role=store');
+      router.push('/login/operator');
       return;
     }
 
     if (profile?.role !== 'admin' || accountType !== 'platform') {
       setChecked(false);
-      router.push('/login?role=platform');
+      router.push('/login/operator');
       return;
     }
 

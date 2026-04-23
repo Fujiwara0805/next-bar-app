@@ -48,11 +48,8 @@ import { translations } from '@/lib/i18n/translations';
 import { InstantReservationButton } from '@/components/instant-reservation-button';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { FACILITY_CATEGORIES } from '@/lib/types/store-application';
-import { CouponDisplayModal } from '@/components/store/CouponDisplayModal';
-import { isCouponValid, type CouponData } from '@/lib/types/coupon';
 import { ImageLightbox } from '@/components/ui/ImageLightbox';
 import { sendGAEvent } from '@/lib/analytics';
-import { OgoriSection } from '@/components/ogori/OgoriSection';
 import { SponsorCampaignBanner } from '@/components/sponsors/sponsor-campaign-banner';
 import { getTodayOpenTime, isTodayClosedDay, checkIsOpenFromStructuredHours } from '@/lib/structured-business-hours';
 import { useOptimizedLocation } from '@/lib/hooks/useOptimizedLocation';
@@ -234,8 +231,6 @@ export default function StoreDetailPage() {
   const [loadingPhotos, setLoadingPhotos] = useState(false);
   const [photosRequested, setPhotosRequested] = useState(false);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
-  const [showCouponModal, setShowCouponModal] = useState(false);
-
   // ライトボックス用の状態
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxImages, setLightboxImages] = useState<string[]>([]);
@@ -839,7 +834,7 @@ export default function StoreDetailPage() {
                 </div>
               )}
               
-              {/* 空席情報とクーポン */}
+              {/* 空席情報 */}
               <div className="flex gap-2 mb-3 items-center flex-wrap justify-between">
                 {(() => {
                   const effectiveStatus = getEffectiveVacancyStatus();
@@ -896,30 +891,6 @@ export default function StoreDetailPage() {
                   );
                 })()}
 
-                {/* 高級感のあるクーポンボタン */}
-                {isCouponValid(store as Partial<CouponData>) && store.coupon_title && (
-                  <motion.button
-                    whileHover={{ scale: 1.03, y: -2 }}
-                    whileTap={{ scale: 0.97 }}
-                    onClick={() => setShowCouponModal(true)}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg relative overflow-hidden group"
-                    style={{
-                      background: COLORS.goldGradient,
-                      color: COLORS.deepNavy,
-                      boxShadow: '0 8px 25px rgba(201, 168, 108, 0.35)',
-                    }}
-                  >
-                    {/* シマーエフェクト */}
-                    <div 
-                      className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                      style={{
-                        background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%)',
-                      }}
-                    />
-                    <Ticket className="w-4 h-4 relative z-10" />
-                    <span className="relative z-10">{t('store_detail.coupon_button')}</span>
-                  </motion.button>
-                )}
               </div>
             </div>
 
@@ -1064,13 +1035,6 @@ export default function StoreDetailPage() {
                   <InstantReservationButton storeId={store.id} storeName={store.name} />
                 </div>
               </div>
-
-              {/* おごり酒セクション */}
-              <OgoriSection
-                storeId={store.id}
-                storeName={store.name}
-                ogoriEnabled={store.ogori_enabled ?? false}
-              />
 
               {/* 写真セクション（遅延読み込み） */}
               {store.google_place_id && (
@@ -1360,22 +1324,6 @@ export default function StoreDetailPage() {
           </Card>
         </motion.div>
       </div>
-
-      {/* クーポンモーダル */}
-      {store && (
-        <CouponDisplayModal
-          isOpen={showCouponModal}
-          onClose={() => setShowCouponModal(false)}
-          coupon={store as Partial<CouponData>}
-          storeName={store.name}
-          storeId={store.id}
-          instagramUrl={(store.website_url?.includes('instagram.com') ? store.website_url : undefined) ?? undefined}
-          googlePlaceId={store.google_place_id ?? undefined}
-          onCouponUsed={() => fetchStore(store.id)}
-          campaignId={store.campaign_id}
-          campaignName={store.campaign_name}
-        />
-      )}
 
       {/* 画像ライトボックス */}
       <ImageLightbox
