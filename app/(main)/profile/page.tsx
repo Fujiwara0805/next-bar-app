@@ -45,20 +45,15 @@ export default function ProfilePage() {
 
     // 運営会社アカウントのみこの画面にアクセス可能
     if (accountType !== 'platform') {
-      router.push('/login/operator');
+      router.push('/login');
       return;
     }
   }, [accountType, userStore, router]);
 
   const handleSignOut = async () => {
     try {
+      // signOut() が /login へフルリロード遷移する
       await signOut();
-      toast.success(t('auth.logout_success'), {
-        position: 'top-center',
-        duration: 1000,
-        className: 'bg-gray-100'
-      });
-      router.push('/login/operator');
     } catch (error) {
       toast.error(t('auth.logout_failed'), {
         position: 'top-center',

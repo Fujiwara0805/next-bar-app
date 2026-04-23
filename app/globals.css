@@ -9,28 +9,28 @@
 
   /* ===== Brewer Navy パレット（生スケール） =====
      HSL の 3 値のみを保持し、Tailwind 側で hsl() でラップして使用。
-     DESIGN.md §1 / §2 を参照。 */
-  --bn-950: 218 47% 8%;
-  --bn-900: 221 46% 12%;
-  --bn-800: 221 42% 18%;
-  --bn-700: 219 44% 22%;
-  --bn-600: 218 42% 29%;
-  --bn-500: 216 39% 38%;
-  --bn-300: 218 33% 66%;
-  --bn-100: 219 44% 93%;
+     DESIGN.md §1 / §2 を参照。 Primary 700 = #13294b / Brass 500 = #ffc82c / Cream 50 = #F7F3E9 */
+  --bn-950: 216 60% 7%;
+  --bn-900: 216 60% 11%;
+  --bn-800: 216 55% 15%;
+  --bn-700: 216 60% 18%;    /* #13294b — primary */
+  --bn-600: 216 50% 25%;
+  --bn-500: 216 45% 35%;
+  --bn-300: 216 35% 65%;
+  --bn-100: 216 45% 92%;
 
-  --brass-500: 40 51% 57%;
-  --brass-300: 38 56% 74%;
+  --brass-500: 44 100% 59%;  /* #ffc82c — yellow */
+  --brass-300: 44 100% 75%;
 
   --copper-500: 26 57% 46%;
-  --cream-50: 43 56% 94%;
+  --cream-50: 43 56% 94%;    /* off-white */
 
   /* 状態色（DESIGN.md §1） */
   --success: 153 39% 40%;
   --success-foreground: 0 0% 98%;
   --warning: 42 58% 49%;
-  --warning-foreground: 221 46% 12%;
-  --info: 216 39% 38%;
+  --warning-foreground: 216 60% 11%;
+  --info: 216 45% 35%;
   --info-foreground: 0 0% 98%;
 }
 
@@ -78,6 +78,15 @@
     --popover: 0 0% 100%;
     --popover-foreground: var(--bn-900);
   }
+}
+
+/* placeholder 視認性: 明るい白背景では濃いめの neutral を既定値に。
+   Tailwind の placeholder:text-* utility クラスは具体度で上書きされるので、
+   ガラス系ダーク背景の placeholder:text-white/80 などは維持される。 */
+input::placeholder,
+textarea::placeholder {
+  color: hsl(221 14% 45%);
+  opacity: 1;
 }
 
 @layer base {

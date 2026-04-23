@@ -63,7 +63,7 @@ export const translations = {
       login_title: '店舗オーナー専用',
       login_subtitle: '加盟店ログイン',
       login_benefit1: '店舗を複数追加可能',
-      login_benefit2: 'キャンペーン配信',
+      login_benefit2: 'LINEクーポン配信',
       login_benefit3: '専用ダッシュボード',
       login_benefit4: '入店予約即時通知機能',
       login_join_us: '今すぐ加盟店として登録しませんか？',
@@ -271,6 +271,7 @@ export const translations = {
       home: 'ホーム',
       store_list: '店舗一覧',
       refresh: '更新',
+      my_page: 'マイページ',
       vacant: '空席あり',
       open: '営業中',
       full: '満席',
@@ -321,7 +322,6 @@ export const translations = {
       filter_title: '店舗を絞り込み',
       filter_clear: 'フィルター解除',
       filter_show_all: 'すべて表示',
-      filter_campaign: 'キャンペーン中',
     },
     // コンシェルジュモーダル
     concierge: {
@@ -584,26 +584,6 @@ export const translations = {
       '電子マネー': '電子マネー',
       'デビットカード': 'デビットカード',
     },
-    // キャンペーン関連
-    campaign: {
-      section_title: '開催中のキャンペーン',
-      section_subtitle: 'Special Campaign',
-      view_stores: '対象店舗を見る',
-      filter_label: 'キャンペーン中',
-      badge: 'キャンペーン中',
-      dont_miss: 'お得な特典をお見逃しなく',
-      now_on: '開催中',
-      default_name: 'キャンペーン',
-      until: '〜{date}まで',
-      view_details: '詳細を見る',
-      view_campaign_stores: 'キャンペーン中の店舗を見る',
-      settings: 'キャンペーン設定',
-      enable: 'キャンペーンを有効にする',
-      name: 'キャンペーン名',
-      name_placeholder: '例：オープン記念キャンペーン',
-      start_date: '開始日',
-      end_date: '終了日',
-    },
     // 言語セレクター
     language_selector: {
       title: '言語設定',
@@ -630,6 +610,7 @@ export const translations = {
     reservation: {
       title: '来店予約',
       description_format: '{storeName}に来店予約をリクエスト。',
+      description_short: '来店予約の内容をご確認ください。',
       arrival_time: '来店までの時間',
       minutes_later: '{minutes}分後',
       party_size: '人数',
@@ -843,9 +824,6 @@ export const translations = {
       cta_button_primary: 'お店を探す',
       cta_button_secondary: 'NIKENME+のビジョン',
       cta_button_recruitment: '加盟店登録',
-      // Campaign section
-      campaign_section_title: '開催中のキャンペーン',
-      campaign_section_subtitle: 'Special Campaign',
       // Area Guide section
       area_guide_label: 'Area Guide',
       area_guide_title: '大分のおすすめ\n夜の飲食店ガイド',
@@ -872,7 +850,7 @@ export const translations = {
       footer_copyright: '© 2025 NIKENME+ All rights reserved.',
       // News
       news_title: 'お知らせ',
-      news_item2: 'キャンペーン参加店舗が追加されました。',
+      news_item2: '新規加盟店が追加されました。',
       news_item3: 'NIKENME+ 正式リリースしました。',
       news_view_all: 'すべてのお知らせを見る',
       // FAQ
@@ -1288,7 +1266,7 @@ export const translations = {
       login_title: 'Store Owner Portal',
       login_subtitle: 'Partner Store Login',
       login_benefit1: 'Add multiple stores',
-      login_benefit2: 'Campaign broadcasts',
+      login_benefit2: 'LINE coupon distribution',
       login_benefit3: 'Dedicated dashboard',
       login_benefit4: 'Instant reservation notifications',
       login_join_us: 'Join us as a partner store today!',
@@ -1320,7 +1298,7 @@ export const translations = {
       store_aside_kicker: 'For partner stores',
       store_aside_subline: 'Vacancy, broadcasts & coupons',
       store_aside_blurb:
-        'Update vacancy status and manage visitor coupons and campaigns from this login.',
+        'Update vacancy status and manage visitor coupons from this login.',
       store_login_page_title: 'Store account login',
       use_store_login_entry: 'Use the store login page',
       use_store_login_entry_desc: 'Store accounts should sign in from the “Store login” screen.',
@@ -1499,6 +1477,7 @@ export const translations = {
       home: 'Home',
       store_list: 'Store List',
       refresh: 'Refresh',
+      my_page: 'My Page',
       vacant: 'Available',
       open: 'Open',
       full: 'Full',
@@ -1549,7 +1528,6 @@ export const translations = {
       filter_title: 'Filter stores',
       filter_clear: 'Clear filters',
       filter_show_all: 'Show all',
-      filter_campaign: 'Campaign',
     },
     // Concierge modal
     concierge: {
@@ -1811,26 +1789,6 @@ export const translations = {
       '電子マネー': 'E-Money',
       'デビットカード': 'Debit Card',
     },
-    // Campaign related
-    campaign: {
-      section_title: 'Current Campaigns',
-      section_subtitle: 'Special Campaign',
-      view_stores: 'View Participating Stores',
-      filter_label: 'Campaign',
-      badge: 'Campaign',
-      dont_miss: "Don't miss these special offers",
-      now_on: 'Now On',
-      default_name: 'Campaign',
-      until: 'Until {date}',
-      view_details: 'View Details',
-      view_campaign_stores: 'View Campaign Stores',
-      settings: 'Campaign Settings',
-      enable: 'Enable campaign',
-      name: 'Campaign Name',
-      name_placeholder: 'e.g., Grand Opening Campaign',
-      start_date: 'Start Date',
-      end_date: 'End Date',
-    },
     // Language selector
     language_selector: {
       title: 'Language Settings',
@@ -1857,6 +1815,7 @@ export const translations = {
     reservation: {
       title: 'Make a Reservation',
       description_format: 'Request a reservation at {storeName}.',
+      description_short: 'Please confirm your reservation details.',
       arrival_time: 'Arrival Time',
       minutes_later: 'In {minutes} minutes',
       party_size: 'Party Size',
@@ -2070,9 +2029,6 @@ export const translations = {
       cta_button_primary: 'View Map',
       cta_button_secondary: 'Our Vision',
       cta_button_recruitment: 'Partner With Us',
-      // Campaign section
-      campaign_section_title: 'Current Campaigns',
-      campaign_section_subtitle: 'Special Campaign',
       // Area Guide section
       area_guide_label: 'Area Guide',
       area_guide_title: "Oita's Recommended\nNightlife Dining Guide",
@@ -2099,7 +2055,7 @@ export const translations = {
       footer_copyright: '© 2025 NIKENME+ All rights reserved.',
       // News
       news_title: 'News',
-      news_item2: 'New campaign partner stores added.',
+      news_item2: 'New partner stores have joined.',
       news_item3: 'NIKENME+ officially launched.',
       news_view_all: 'View all news',
       // FAQ
@@ -2691,6 +2647,7 @@ export const translations = {
       home: '홈',
       store_list: '매장 목록',
       refresh: '새로고침',
+      my_page: '마이페이지',
       vacant: '빈자리 있음',
       open: '영업 중',
       full: '만석',
@@ -2739,7 +2696,6 @@ export const translations = {
       filter_title: '매장 필터',
       filter_clear: '필터 해제',
       filter_show_all: '전체 보기',
-      filter_campaign: '캠페인 중',
     },
     // Concierge modal
     concierge: {
@@ -2995,26 +2951,6 @@ export const translations = {
       '電子マネー': '전자화폐',
       'デビットカード': '직불카드',
     },
-    // Campaign related
-    campaign: {
-      section_title: '진행 중인 캠페인',
-      section_subtitle: 'Special Campaign',
-      view_stores: '대상 매장 보기',
-      filter_label: '캠페인',
-      badge: '캠페인 중',
-      dont_miss: '특별 혜택을 놓치지 마세요',
-      now_on: '진행 중',
-      default_name: '캠페인',
-      until: '{date}까지',
-      view_details: '상세 보기',
-      view_campaign_stores: '캠페인 중인 매장 보기',
-      settings: '캠페인 설정',
-      enable: '캠페인 활성화',
-      name: '캠페인 이름',
-      name_placeholder: '예: 오픈 기념 캠페인',
-      start_date: '시작일',
-      end_date: '종료일',
-    },
     // Language selector
     language_selector: {
       title: '언어 설정',
@@ -3040,6 +2976,7 @@ export const translations = {
     // 예약
     reservation: {
       title: '방문 예약',
+      description_short: '예약 내용을 확인해 주세요.',
       description_format: '{storeName}에 방문 예약을 요청합니다.',
       arrival_time: '도착 예정 시간',
       minutes_later: '{minutes}분 후',
@@ -3254,9 +3191,6 @@ export const translations = {
       cta_button_primary: '가게 찾기',
       cta_button_secondary: 'NIKENME+의 비전',
       cta_button_recruitment: '파트너 매장 모집 중',
-      // Campaign section
-      campaign_section_title: '진행 중인 캠페인',
-      campaign_section_subtitle: 'Special Campaign',
       // Area Guide section
       area_guide_label: 'Area Guide',
       area_guide_title: '오이타 추천\n야간 음식점 가이드',
@@ -3872,6 +3806,7 @@ export const translations = {
       home: '首页',
       store_list: '店铺列表',
       refresh: '刷新',
+      my_page: '我的页面',
       vacant: '有空位',
       open: '营业中',
       full: '满座',
@@ -3920,7 +3855,6 @@ export const translations = {
       filter_title: '筛选店铺',
       filter_clear: '清除筛选',
       filter_show_all: '显示全部',
-      filter_campaign: '活动中',
     },
     // Concierge modal
     concierge: {
@@ -4176,26 +4110,6 @@ export const translations = {
       '電子マネー': '电子货币',
       'デビットカード': '借记卡',
     },
-    // Campaign related
-    campaign: {
-      section_title: '正在进行的活动',
-      section_subtitle: 'Special Campaign',
-      view_stores: '查看参与店铺',
-      filter_label: '活动',
-      badge: '活动中',
-      dont_miss: '不要错过特别优惠',
-      now_on: '进行中',
-      default_name: '活动',
-      until: '至{date}',
-      view_details: '查看详情',
-      view_campaign_stores: '查看活动中的店铺',
-      settings: '活动设置',
-      enable: '启用活动',
-      name: '活动名称',
-      name_placeholder: '例：开业纪念活动',
-      start_date: '开始日期',
-      end_date: '结束日期',
-    },
     // Language selector
     language_selector: {
       title: '语言设置',
@@ -4221,6 +4135,7 @@ export const translations = {
     // 预约
     reservation: {
       title: '到店预约',
+      description_short: '请确认预约内容。',
       description_format: '向{storeName}请求预约。',
       arrival_time: '预计到达时间',
       minutes_later: '{minutes}分钟后',
@@ -4435,9 +4350,6 @@ export const translations = {
       cta_button_primary: '寻找店铺',
       cta_button_secondary: 'NIKENME+的愿景',
       cta_button_recruitment: '招募合作店铺',
-      // Campaign section
-      campaign_section_title: '进行中的活动',
-      campaign_section_subtitle: 'Special Campaign',
       // Area Guide section
       area_guide_label: 'Area Guide',
       area_guide_title: '大分推荐\n夜间餐饮指南',

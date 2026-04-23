@@ -38,14 +38,6 @@ import { useAuth } from '@/lib/auth/context';
 import { toast } from 'sonner';
 
 
-// キャンペーン関連のインポート
-import {
-  StoreCampaignForm,
-  CampaignFormValues,
-  getDefaultCampaignFormValues,
-  campaignFormToDbData,
-} from '@/components/store/StoreCampaignForm';
-
 // 構造化営業時間モーダル
 import { BusinessHoursModal } from '@/components/store/BusinessHoursModal';
 import type { BusinessHours } from '@/lib/supabase/types';
@@ -194,13 +186,6 @@ function NewStorePage() {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [mainImageIndex, setMainImageIndex] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // キャンペーン関連のステート
-  const [campaignValues, setCampaignValues] = useState<CampaignFormValues>(getDefaultCampaignFormValues());
-
-  const handleCampaignChange = (newCampaignValues: CampaignFormValues) => {
-    setCampaignValues(newCampaignValues);
-  };
 
   // 店舗名候補
   const [suggestions, setSuggestions] = useState<google.maps.places.AutocompletePrediction[]>([]);
@@ -765,9 +750,6 @@ function NewStorePage() {
         });
       }
 
-      // キャンペーンデータをDB形式に変換
-      const campaignDbData = campaignFormToDbData(campaignValues);
-
       // 営業時間から開店状態を判定
       const isCurrentlyOpen = checkIsOpenFromStructuredHours(structuredBusinessHours);
       const initialIsOpen = isCurrentlyOpen === true;
@@ -802,8 +784,6 @@ function NewStorePage() {
           google_place_id: googlePlaceId,
           google_rating: googleRating,
           google_reviews_count: googleReviewsCount,
-          // キャンペーン関連カラム
-          ...campaignDbData,
         } as any);
 
       if (storeError) {
@@ -1476,35 +1456,6 @@ function NewStorePage() {
               )}
             </Card>
 
-            {/* ========== NIKENME+が提供するサービス セクション ========== */}
-            <Card
-              className="p-6 rounded-2xl shadow-lg"
-              style={{
-                background: '#FFFFFF',
-                border: `1px solid rgba(201, 168, 108, 0.15)`,
-              }}
-            >
-              <SectionHeader
-                icon={Sparkles}
-                title="NIKENME+が提供するサービス"
-                description="キャンペーンの設定ができます"
-              />
-
-              <div className="space-y-4">
-                {/* キャンペーン設定 */}
-                <Card
-                  className="rounded-xl overflow-hidden"
-                  style={{ border: `1px solid rgba(201, 168, 108, 0.15)` }}
-                >
-                  <StoreCampaignForm
-                    values={campaignValues}
-                    onChange={handleCampaignChange}
-                    disabled={loading}
-                  />
-                </Card>
-
-              </div>
-            </Card>
 
             {/* ========== ログイン情報セクション ========== */}
             <Card 
@@ -1555,7 +1506,7 @@ function NewStorePage() {
                   required
                   disabled={loading}
                   placeholder="store@example.com"
-                  className="w-full px-4 py-3 rounded-xl bg-white/10 border-2 border-white/20 text-white placeholder:text-white/40 focus:border-[#C9A86C] focus:ring-2 focus:ring-[#C9A86C]/20 transition-all duration-200"
+                  className="w-full px-4 py-3 rounded-xl bg-white/10 border-2 border-white/20 text-white placeholder:text-white/80 focus:border-[#C9A86C] focus:ring-2 focus:ring-[#C9A86C]/20 transition-all duration-200"
                   style={{ fontSize: '16px' }}
                 />
                 <p className="text-xs" style={{ color: COLORS.platinum }}>
@@ -1580,7 +1531,7 @@ function NewStorePage() {
                   required
                   minLength={6}
                   disabled={loading}
-                  className="w-full px-4 py-3 rounded-xl bg-white/10 border-2 border-white/20 text-white placeholder:text-white/40 focus:border-[#C9A86C] focus:ring-2 focus:ring-[#C9A86C]/20 transition-all duration-200"
+                  className="w-full px-4 py-3 rounded-xl bg-white/10 border-2 border-white/20 text-white placeholder:text-white/80 focus:border-[#C9A86C] focus:ring-2 focus:ring-[#C9A86C]/20 transition-all duration-200"
                   style={{ fontSize: '16px' }}
                 />
                 <p className="text-xs" style={{ color: COLORS.platinum }}>

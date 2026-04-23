@@ -21,7 +21,7 @@
 import { useEffect, useState, Suspense, useRef, useCallback, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { List, RefreshCw, AlertCircle } from 'lucide-react';
+import { List, RefreshCw, AlertCircle, User } from 'lucide-react';
 import { LoadingScreen } from '@/components/ui/loading-screen';
 import { MapView } from '@/components/map/map-view';
 import { Button } from '@/components/ui/button';
@@ -29,6 +29,7 @@ import { supabase } from '@/lib/supabase/client';
 import type { Database } from '@/lib/supabase/types';
 import { useLanguage } from '@/lib/i18n/context';
 import { useAppMode } from '@/lib/app-mode-context';
+import { useAuth } from '@/lib/auth/context';
 
 // ============================================================================
 // 共通モジュールのインポート
@@ -111,10 +112,6 @@ const STORE_SELECT_COLUMNS = `
   business_hours,
   created_at,
   updated_at,
-  has_campaign,
-  campaign_name,
-  campaign_start_date,
-  campaign_end_date,
   structured_business_hours,
   regular_holiday,
   budget_min,
@@ -470,6 +467,7 @@ function MapPageContent() {
   const searchParams = useSearchParams();
   const { t, language } = useLanguage();
   const { colorsA: colors } = useAppMode();
+  const { user, accountType, store: authStore } = useAuth();
 
   // body背景色をページの背景色に同期（画面外の色漏れ防止）
   useEffect(() => {
@@ -981,6 +979,46 @@ function MapPageContent() {
         >
           <div className="flex items-center justify-end">
             <div className="flex flex-col gap-3 pointer-events-auto">
+              {/* プロフィールボタン（ログイン済みならそれぞれのマイページ、未ログインは /login） */}
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="flex flex-col items-center"
+              >
+                <Button
+                  onClick={() => {
+                    if (!user || !accountType) {
+                      router.push('/login?redirect=/map');
+                      return;
+                    }
+                    if (accountType === 'customer') {
+                      router.push('/mypage');
+                    } else if (accountType === 'platform') {
+                      router.push('/store/manage');
+                    } else if (accountType === 'store' && authStore?.id) {
+                      router.push(`/store/manage/${authStore.id}/update`);
+                    } else {
+                      router.push('/login?redirect=/map');
+                    }
+                  }}
+                  className="flex flex-col items-center justify-center gap-1 px-3 py-2 touch-manipulation active:scale-95 rounded-xl"
+                  style={{
+                    background: colors.background,
+                    backdropFilter: 'blur(20px)',
+                    border: `1px solid ${colors.borderGold}`,
+                    boxShadow: `0 4px 20px rgba(0,0,0,0.4), 0 0 15px ${colors.accent}15`,
+                    minWidth: '56px',
+                    minHeight: '56px',
+                  }}
+                  title={user ? t('map.my_page') || 'マイページ' : t('auth.login') || 'ログイン'}
+                >
+                  <User className="w-5 h-5" style={{ color: colors.text }} />
+                  <span className="text-[8px] font-bold leading-tight" style={{ color: colors.text }}>
+                    {user ? (t('map.my_page') || 'マイページ') : (t('auth.login') || 'ログイン')}
+                  </span>
+                </Button>
+              </motion.div>
+
               {/* リストボタン */}
               <motion.div
                 whileHover={{ scale: 1.05 }}

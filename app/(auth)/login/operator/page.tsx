@@ -1,12 +1,10 @@
-'use client';
+import { redirect } from 'next/navigation';
 
-import { Suspense } from 'react';
-import { LoginForm, LoginFormFallback } from '../_components/login-form';
-
-export default function OperatorLoginPage() {
-  return (
-    <Suspense fallback={<LoginFormFallback />}>
-      <LoginForm mode="operator" />
-    </Suspense>
-  );
+export default function OperatorLoginRedirect({
+  searchParams,
+}: {
+  searchParams: { redirect?: string };
+}) {
+  const q = searchParams.redirect ? `?redirect=${encodeURIComponent(searchParams.redirect)}` : '';
+  redirect(`/login${q}`);
 }

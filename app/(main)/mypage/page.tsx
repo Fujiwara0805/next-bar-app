@@ -47,7 +47,7 @@ export default function MyPage() {
   useEffect(() => {
     if (authLoading) return;
     if (!user) {
-      router.replace('/login/customer?redirect=/mypage');
+      router.replace('/login?redirect=/mypage');
       return;
     }
     if (accountType === 'platform') {
@@ -110,9 +110,8 @@ export default function MyPage() {
 
   const handleSignOut = async () => {
     try {
+      // signOut() が /login へフルリロード遷移を行う
       await signOut();
-      toast.success(t('auth.logout_success'));
-      router.replace('/login/customer');
     } catch {
       toast.error(t('auth.logout_failed'));
     }

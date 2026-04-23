@@ -17,15 +17,17 @@ export interface AdminKpiCardProps {
   badge?: string;
 }
 
+// Brewer Navy + Yellow ブランドカラー基調（DESIGN.md 準拠）
+// 白文字が読みやすいようにネイビー系を優先、アクセントは黄色い光沢で表現
 const KPI_GRADIENTS = {
-  gold: 'linear-gradient(135deg, #C9A86C 0%, #B8956E 100%)',
-  teal: 'linear-gradient(135deg, #0d9488 0%, #14b8a6 100%)',
-  blue: 'linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%)',
-  purple: 'linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%)',
-  amber: 'linear-gradient(135deg, #d97706 0%, #f59e0b 100%)',
-  rose: 'linear-gradient(135deg, #e11d48 0%, #fb7185 100%)',
+  gold: 'linear-gradient(135deg, #20385F 0%, #13294b 100%)',     // Navy 600→700
+  teal: 'linear-gradient(135deg, #13294b 0%, #335280 100%)',     // Navy 700→500
+  blue: 'linear-gradient(135deg, #335280 0%, #20385F 100%)',     // Navy 500→600
+  purple: 'linear-gradient(135deg, #13294b 0%, #0B1930 100%)',   // Navy 700→900
+  amber: 'linear-gradient(135deg, #20385F 0%, #B87333 100%)',    // Navy → Copper
+  rose: 'linear-gradient(135deg, #13294b 0%, #B87333 100%)',     // Navy → Copper
   green: 'linear-gradient(135deg, #16a34a 0%, #4ade80 100%)',
-  slate: 'linear-gradient(135deg, #475569 0%, #64748b 100%)',
+  slate: 'linear-gradient(135deg, #4D5567 0%, #8D95A6 100%)',
 } as const;
 
 export type KpiGradientKey = keyof typeof KPI_GRADIENTS;

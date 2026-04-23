@@ -14,45 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      campaigns: {
-        Row: {
-          created_at: string | null
-          created_by: string | null
-          description: string | null
-          end_date: string
-          id: string
-          image_url: string | null
-          is_active: boolean | null
-          name: string
-          start_date: string
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          created_by?: string | null
-          description?: string | null
-          end_date: string
-          id?: string
-          image_url?: string | null
-          is_active?: boolean | null
-          name: string
-          start_date: string
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          created_by?: string | null
-          description?: string | null
-          end_date?: string
-          id?: string
-          image_url?: string | null
-          is_active?: boolean | null
-          name?: string
-          start_date?: string
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
       coupon_issues: {
         Row: {
           age_range: string | null
@@ -1078,10 +1039,6 @@ export type Database = {
           budget_max: number | null
           budget_min: number | null
           business_hours: Json | null
-          campaign_end_date: string | null
-          campaign_id: string | null
-          campaign_name: string | null
-          campaign_start_date: string | null
           closed_reason: string | null
           created_at: string | null
           description: string | null
@@ -1091,7 +1048,6 @@ export type Database = {
           google_place_id: string | null
           google_rating: number | null
           google_reviews_count: number | null
-          has_campaign: boolean | null
           id: string
           image_urls: string[] | null
           is_open: boolean | null
@@ -1120,10 +1076,6 @@ export type Database = {
           budget_max?: number | null
           budget_min?: number | null
           business_hours?: Json | null
-          campaign_end_date?: string | null
-          campaign_id?: string | null
-          campaign_name?: string | null
-          campaign_start_date?: string | null
           closed_reason?: string | null
           created_at?: string | null
           description?: string | null
@@ -1133,7 +1085,6 @@ export type Database = {
           google_place_id?: string | null
           google_rating?: number | null
           google_reviews_count?: number | null
-          has_campaign?: boolean | null
           id?: string
           image_urls?: string[] | null
           is_open?: boolean | null
@@ -1162,10 +1113,6 @@ export type Database = {
           budget_max?: number | null
           budget_min?: number | null
           business_hours?: Json | null
-          campaign_end_date?: string | null
-          campaign_id?: string | null
-          campaign_name?: string | null
-          campaign_start_date?: string | null
           closed_reason?: string | null
           created_at?: string | null
           description?: string | null
@@ -1175,7 +1122,6 @@ export type Database = {
           google_place_id?: string | null
           google_rating?: number | null
           google_reviews_count?: number | null
-          has_campaign?: boolean | null
           id?: string
           image_urls?: string[] | null
           is_open?: boolean | null

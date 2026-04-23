@@ -38,23 +38,25 @@ export interface AdminThemeColors {
   infoBg: string;
 }
 
+// Brewer Navy + Yellow ブランドカラーに統一 (DESIGN.md 準拠)
+// Navy: #13294b / Yellow: #ffc82c / Off-white: #F7F3E9
 export const ADMIN_DARK_COLORS: AdminThemeColors = {
-  bg: '#0f172a',
-  bgCard: 'rgba(255,255,255,0.02)',
-  bgCardHover: 'rgba(255,255,255,0.04)',
+  bg: '#0B1930',
+  bgCard: 'rgba(255,255,255,0.03)',
+  bgCardHover: 'rgba(255,200,44,0.05)',
   bgInput: 'rgba(255,255,255,0.04)',
   bgElevated: 'rgba(255,255,255,0.06)',
 
-  text: '#f8fafc',
-  textMuted: '#94a3b8',
-  textSubtle: '#64748b',
+  text: '#F7F3E9',
+  textMuted: '#90A4C1',
+  textSubtle: '#607692',
 
-  accent: '#C9A86C',
-  accentLight: '#E8D5B7',
-  accentBg: 'rgba(201,168,108,0.06)',
+  accent: '#ffc82c',
+  accentLight: '#ffdf85',
+  accentBg: 'rgba(255,200,44,0.10)',
 
-  border: 'rgba(255,255,255,0.08)',
-  borderSubtle: 'rgba(255,255,255,0.04)',
+  border: 'rgba(255,200,44,0.12)',
+  borderSubtle: 'rgba(255,255,255,0.05)',
 
   success: '#22c55e',
   successBg: 'rgba(34,197,94,0.08)',
@@ -62,27 +64,27 @@ export const ADMIN_DARK_COLORS: AdminThemeColors = {
   warningBg: 'rgba(245,158,11,0.08)',
   danger: '#ef4444',
   dangerBg: 'rgba(239,68,68,0.08)',
-  info: '#3b82f6',
-  infoBg: 'rgba(59,130,246,0.08)',
+  info: '#3B5A87',
+  infoBg: 'rgba(59,90,135,0.12)',
 };
 
 export const ADMIN_LIGHT_COLORS: AdminThemeColors = {
-  bg: '#f8fafc',
+  bg: '#F7F8FA',
   bgCard: '#ffffff',
-  bgCardHover: '#f1f5f9',
-  bgInput: '#f1f5f9',
+  bgCardHover: '#EEF0F4',
+  bgInput: '#EEF0F4',
   bgElevated: '#ffffff',
 
-  text: '#0f172a',
-  textMuted: '#475569',
-  textSubtle: '#94a3b8',
+  text: '#13294b',
+  textMuted: '#4D5567',
+  textSubtle: '#8DA2C4',
 
-  accent: '#C9A86C',
-  accentLight: '#B8956E',
-  accentBg: 'rgba(201,168,108,0.08)',
+  accent: '#ffc82c',
+  accentLight: '#ffdf85',
+  accentBg: 'rgba(255,200,44,0.12)',
 
-  border: '#e2e8f0',
-  borderSubtle: '#f1f5f9',
+  border: '#DCE1EB',
+  borderSubtle: '#EEF0F4',
 
   success: '#16a34a',
   successBg: 'rgba(22,163,74,0.08)',
@@ -90,8 +92,8 @@ export const ADMIN_LIGHT_COLORS: AdminThemeColors = {
   warningBg: 'rgba(217,119,6,0.08)',
   danger: '#dc2626',
   dangerBg: 'rgba(220,38,38,0.08)',
-  info: '#2563eb',
-  infoBg: 'rgba(37,99,235,0.08)',
+  info: '#13294b',
+  infoBg: 'rgba(19,41,75,0.08)',
 };
 
 const STORAGE_KEY = 'nikenme-admin-theme';

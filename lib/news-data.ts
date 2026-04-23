@@ -53,11 +53,6 @@ export const newsTranslations: Record<string, NewsItem[]> = {
       linkLabel: 'PR TIMESの記事を読む',
     },
     {
-      date: '2026.02.15',
-      title: 'キャンペーン参加店舗が追加されました',
-      body: '新たにキャンペーンに参加する店舗が追加されました。お得な特典をお見逃しなく。',
-    },
-    {
       date: '2026.02.01',
       title: 'NIKENME+ 正式リリース',
       body: 'NIKENME+が正式にリリースされました。大分の夜を楽しむための新しいサービスをぜひお試しください。',
@@ -95,11 +90,6 @@ export const newsTranslations: Record<string, NewsItem[]> = {
       body: '"Where to next?" — A single question that changes the future of the city. An article about NIKENME+, the real-time vacancy map for Oita\'s nightlife, has been published on PR TIMES.',
       link: 'https://prtimes.jp/main/html/rd/p/000000003.000177933.html',
       linkLabel: 'Read the PR TIMES article',
-    },
-    {
-      date: '2026.02.15',
-      title: 'New Campaign Partner Stores Added',
-      body: 'New stores have joined the campaign. Don\'t miss out on exclusive offers.',
     },
     {
       date: '2026.02.01',
@@ -141,11 +131,6 @@ export const newsTranslations: Record<string, NewsItem[]> = {
       linkLabel: 'PR TIMES 기사 읽기',
     },
     {
-      date: '2026.02.15',
-      title: '캠페인 참여 매장이 추가되었습니다',
-      body: '새로운 매장이 캠페인에 참여했습니다. 특별 혜택을 놓치지 마세요.',
-    },
-    {
       date: '2026.02.01',
       title: 'NIKENME+ 정식 출시',
       body: 'NIKENME+가 정식으로 출시되었습니다. 오이타의 밤을 즐기기 위한 새로운 서비스를 이용해 보세요.',
@@ -183,11 +168,6 @@ export const newsTranslations: Record<string, NewsItem[]> = {
       body: '「再去一家吧」— 这句话将改变城市的未来。关于大分夜生活实时空位地图「NIKENME+」的文章已发布在PR TIMES上。',
       link: 'https://prtimes.jp/main/html/rd/p/000000003.000177933.html',
       linkLabel: '阅读PR TIMES文章',
-    },
-    {
-      date: '2026.02.15',
-      title: '新增活动参与店铺',
-      body: '新的店铺加入了活动。请不要错过独家优惠。',
     },
     {
       date: '2026.02.01',

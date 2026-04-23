@@ -246,7 +246,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     clearAuthCookies();
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+    } catch (e) {
+      console.error('signOut error:', e);
+    }
+    // SPA の state レースを避けて、確実に /login へフルリロード遷移させる
+    if (typeof window !== 'undefined') {
+      window.location.assign('/login');
+    }
   };
 
   return (

@@ -58,7 +58,7 @@ export function CustomModal({
                 <div className="mb-4">
                   {title && <h2 className="text-2xl font-bold mb-2 text-card-foreground">{title}</h2>}
                   {description && (
-                    <p className="text-card-foreground/80 text-sm font-bold">{description}</p>
+                    <p className="text-card-foreground text-sm font-bold">{description}</p>
                   )}
                 </div>
               )}

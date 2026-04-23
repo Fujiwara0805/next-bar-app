@@ -171,8 +171,8 @@ export function InstantReservationButton({
       <CustomModal
         isOpen={showDialog}
         onClose={handleCancel}
-        title=""
-        description={t('reservation.description_format').replace('{storeName}', storeName)}
+        title={storeName}
+        description={t('reservation.description_short')}
       >
         <motion.div 
           className="space-y-4"

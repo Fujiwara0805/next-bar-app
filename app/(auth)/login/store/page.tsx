@@ -1,12 +1,10 @@
-'use client';
+import { redirect } from 'next/navigation';
 
-import { Suspense } from 'react';
-import { LoginForm, LoginFormFallback } from '../_components/login-form';
-
-export default function StoreLoginPage() {
-  return (
-    <Suspense fallback={<LoginFormFallback />}>
-      <LoginForm mode="store" />
-    </Suspense>
-  );
+export default function StoreLoginRedirect({
+  searchParams,
+}: {
+  searchParams: { redirect?: string };
+}) {
+  const q = searchParams.redirect ? `?redirect=${encodeURIComponent(searchParams.redirect)}` : '';
+  redirect(`/login${q}`);
 }

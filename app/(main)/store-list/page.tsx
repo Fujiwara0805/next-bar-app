@@ -19,7 +19,7 @@
 import { Suspense, useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapIcon, Star, Filter, Check, Sparkles, X, Ticket, PartyPopper, Loader2 } from 'lucide-react';
+import { MapIcon, Star, Filter, Check, Sparkles, X, Ticket, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CloseCircleButton } from '@/components/ui/close-circle-button';
 import { Card } from '@/components/ui/card';
@@ -120,8 +120,6 @@ function StoreListContent() {
   const { location: userLocation } = useOptimizedLocation();
   const [vacantOnly, setVacantOnly] = useState(false);
   const [openNowOnly, setOpenNowOnly] = useState(false);
-  const [campaignOnly, setCampaignOnly] = useState(false);
-  const [campaignNameFilter, setCampaignNameFilter] = useState<string | null>(null);
   const [showFilterMenu, setShowFilterMenu] = useState(false);
   
   const [showConcierge, setShowConcierge] = useState(false);
@@ -188,7 +186,7 @@ function StoreListContent() {
   const isOpenUpdatedRef = useRef(false);
   const isInitializedRef = useRef(false);
 
-  const activeFilterCount = [vacantOnly, openNowOnly, campaignOnly].filter(Boolean).length;
+  const activeFilterCount = [vacantOnly, openNowOnly].filter(Boolean).length;
 
   const updateUrlParams = useCallback((params: Record<string, string | null>) => {
     if (typeof window === 'undefined') return;
@@ -211,18 +209,11 @@ function StoreListContent() {
     
     const vacant = searchParams.get('vacant') === 'true';
     const openNow = searchParams.get('open') === 'true';
-    const campaign = searchParams.get('campaign') === 'true';
-    const campaignName = searchParams.get('campaign_name');
     const concierge = searchParams.get('concierge');
 
     setVacantOnly(vacant);
     setOpenNowOnly(openNow);
-    setCampaignOnly(campaign);
-    
-    if (campaignName && campaignName.trim() !== '') {
-      setCampaignNameFilter(campaignName);
-    }
-    
+
     if (concierge) {
       try {
         const filters = concierge.split(',').filter(f => f.trim() !== '');
@@ -414,27 +405,6 @@ function StoreListContent() {
     };
   }, [userLocation]);
 
-  const hasCampaign = (store: Store): boolean => {
-    if (!store.has_campaign) return false;
-    
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    
-    if (store.campaign_start_date) {
-      const startDate = new Date(store.campaign_start_date);
-      const startDateOnly = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
-      if (startDateOnly > today) return false;
-    }
-    
-    if (store.campaign_end_date) {
-      const endDate = new Date(store.campaign_end_date);
-      const endDateOnly = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
-      if (endDateOnly < today) return false;
-    }
-    
-    return true;
-  };
-
   useEffect(() => {
     let result = [...stores];
 
@@ -444,13 +414,6 @@ function StoreListContent() {
 
     if (openNowOnly) {
       result = result.filter(store => isStoreCurrentlyOpen(store));
-    }
-
-    if (campaignOnly) {
-      result = result.filter(store => hasCampaign(store));
-      if (campaignNameFilter) {
-        result = result.filter(store => store.campaign_name === campaignNameFilter);
-      }
     }
 
     if (isConciergeActive && conciergeFilters.length > 0) {
@@ -471,19 +434,17 @@ function StoreListContent() {
 
     setFilteredStores(result);
     resetDisplayCount();
-  }, [stores, vacantOnly, openNowOnly, campaignOnly, campaignNameFilter, conciergeFilters, isConciergeActive, resetDisplayCount]);
+  }, [stores, vacantOnly, openNowOnly, conciergeFilters, isConciergeActive, resetDisplayCount]);
 
   useEffect(() => {
     if (!isInitializedRef.current) return;
-    
+
     updateUrlParams({
       vacant: vacantOnly ? 'true' : null,
       open: openNowOnly ? 'true' : null,
-      campaign: campaignOnly ? 'true' : null,
-      campaign_name: campaignNameFilter,
       concierge: isConciergeActive && conciergeFilters.length > 0 ? conciergeFilters.join(',') : null,
     });
-  }, [vacantOnly, openNowOnly, campaignOnly, campaignNameFilter, isConciergeActive, conciergeFilters, updateUrlParams]);
+  }, [vacantOnly, openNowOnly, isConciergeActive, conciergeFilters, updateUrlParams]);
 
   const fetchStoresOnly = async () => {
     if (!userLocation) return;
@@ -598,15 +559,11 @@ function StoreListContent() {
   const clearAllFilters = useCallback(() => {
     setVacantOnly(false);
     setOpenNowOnly(false);
-    setCampaignOnly(false);
-    setCampaignNameFilter(null);
     clearConciergeFilter();
     if (typeof window !== 'undefined') {
       const url = new URL(window.location.href);
       url.searchParams.delete('vacant');
       url.searchParams.delete('open');
-      url.searchParams.delete('campaign');
-      url.searchParams.delete('campaign_name');
       url.searchParams.delete('concierge');
       window.history.replaceState({}, '', url.toString());
     }
@@ -628,13 +585,6 @@ function StoreListContent() {
     const statuses: string[] = [];
     if (vacantOnly) statuses.push(t('store_list.vacant'));
     if (openNowOnly) statuses.push(t('store_list.open'));
-    if (campaignOnly) {
-      if (campaignNameFilter) {
-        statuses.push(campaignNameFilter);
-      } else {
-        statuses.push(t('store_list.filter_campaign') || 'キャンペーン中');
-      }
-    }
     if (isConciergeActive) statuses.push(t('store_list.concierge_active'));
     return statuses.length > 0 ? `（${statuses.join('・')}）` : '';
   };
@@ -665,33 +615,9 @@ function StoreListContent() {
             <span>{isConciergeActive ? t('store_list.concierge_active') : t('store_list.concierge_button')}</span>
           </motion.button>
           
-          {campaignNameFilter && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mt-3 p-3 rounded-xl flex items-center justify-between"
-              style={{
-                background: `linear-gradient(135deg, ${COLORS.champagneGold}26 0%, ${COLORS.antiqueGold}1A 100%)`,
-                border: `1px solid ${COLORS.champagneGold}4D`,
-              }}
-            >
-              <div className="flex items-center gap-2">
-                <PartyPopper className="w-5 h-5" style={{ color: COLORS.champagneGold }} />
-                <span className="font-bold text-sm" style={{ color: COLORS.champagneGold }}>{campaignNameFilter}</span>
-              </div>
-              <CloseCircleButton
-                type="button"
-                size="sm"
-                onClick={() => setCampaignNameFilter(null)}
-                className="shrink-0"
-                aria-label={t('common.close')}
-              />
-            </motion.div>
-          )}
-
           <div className="flex items-center justify-between mt-3">
             <p className="text-sm font-bold" style={{ color: COLORS.warmGray }}>{filteredStores.length}{t('store_list.results_count')}</p>
-            {(vacantOnly || openNowOnly || campaignOnly || isConciergeActive) && (
+            {(vacantOnly || openNowOnly || isConciergeActive) && (
               <button onClick={clearAllFilters} className="text-sm font-bold hover:underline flex items-center gap-1" style={{ color: COLORS.royalNavy }}>
                 <X className="w-3 h-3" />
                 {t('store_list.filter_clear')}
@@ -707,9 +633,9 @@ function StoreListContent() {
         ) : filteredStores.length === 0 ? (
           <div className="text-center py-12">
             <p className="font-bold" style={{ color: COLORS.warmGray }}>
-              {(isConciergeActive || vacantOnly || openNowOnly || campaignOnly) ? t('store_list.no_matching_stores') : t('store_list.no_stores')}
+              {(isConciergeActive || vacantOnly || openNowOnly) ? t('store_list.no_matching_stores') : t('store_list.no_stores')}
             </p>
-            {(vacantOnly || openNowOnly || campaignOnly || isConciergeActive) && (
+            {(vacantOnly || openNowOnly || isConciergeActive) && (
               <button onClick={clearAllFilters} className="mt-4 font-bold hover:underline" style={{ color: COLORS.champagneGold }}>
                 {t('store_list.show_all_stores')}
               </button>
@@ -782,24 +708,6 @@ function StoreListContent() {
                           </motion.div>
                         )}
 
-                        {!isConciergeActive && hasCampaign(store) && (
-                          <div className="absolute top-2 right-2 z-10 flex flex-col gap-1">
-                            <motion.div
-                              initial={{ scale: 0, opacity: 0 }}
-                              animate={{ scale: 1, opacity: 1 }}
-                              className="px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1"
-                              style={{
-                                background: `linear-gradient(135deg, ${COLORS.champagneGold} 0%, ${COLORS.platinum} 50%, ${COLORS.antiqueGold} 100%)`,
-                                color: COLORS.deepNavy,
-                                boxShadow: `0 2px 8px ${COLORS.champagneGold}66`,
-                              }}
-                            >
-                              <PartyPopper className="w-3 h-3" />
-                              {store.campaign_name || t('store_list.filter_campaign') || 'キャンペーン'}
-                            </motion.div>
-                          </div>
-                        )}
-                        
                         <div className="flex gap-3 h-full">
                           {store.image_urls && store.image_urls.length > 0 && (
                             <motion.img
@@ -812,7 +720,7 @@ function StoreListContent() {
                           
                           <div className="flex-1 min-w-0 flex flex-col">
                             <div className="flex-1">
-                              <h3 className={`text-lg font-bold truncate ${isConciergeActive || hasCampaign(store) ? 'pr-20' : ''}`} style={{ color: COLORS.deepNavy }}>
+                              <h3 className={`text-lg font-bold truncate ${isConciergeActive ? 'pr-20' : ''}`} style={{ color: COLORS.deepNavy }}>
                                 {store.name}
                               </h3>
                               
@@ -993,29 +901,19 @@ function StoreListContent() {
                         {vacantOnly && <Check className="w-4 h-4 text-success" />}
                       </button>
 
-                      <button
-                        onClick={() => setCampaignOnly(!campaignOnly)}
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${campaignOnly ? 'bg-pink-500/20 text-pink-400' : ('hover:bg-cream-50/10 text-white')}`}
-                      >
-                        <PartyPopper className="w-5 h-5" style={{ color: campaignOnly ? '#f472b6' : COLORS.champagneGold }} />
-                        <span className="font-bold text-sm flex-1 text-left">{t('store_list.filter_campaign') || 'キャンペーン中'}</span>
-                        {campaignOnly && <Check className="w-4 h-4 text-pink-400" />}
-                      </button>
-
                       <div className="my-2 border-t border-white/10" />
 
                       <button
                         onClick={() => {
                           setVacantOnly(false);
                           setOpenNowOnly(false);
-                          setCampaignOnly(false);
                           setShowFilterMenu(false);
                         }}
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${!vacantOnly && !openNowOnly && !campaignOnly ? 'bg-brass-500/20 text-brass-500' : ('hover:bg-cream-50/10 text-white')}`}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${!vacantOnly && !openNowOnly ? 'bg-brass-500/20 text-brass-500' : ('hover:bg-cream-50/10 text-white')}`}
                       >
                         <span className="w-5 h-5 flex items-center justify-center text-lg">🍺</span>
                         <span className="font-bold text-sm flex-1 text-left">{t('store_list.filter_show_all')}</span>
-                        {!vacantOnly && !openNowOnly && !campaignOnly && <Check className="w-4 h-4 text-brass-500" />}
+                        {!vacantOnly && !openNowOnly && <Check className="w-4 h-4 text-brass-500" />}
                       </button>
                     </div>
                   </div>

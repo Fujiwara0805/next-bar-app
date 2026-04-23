@@ -35,15 +35,6 @@ import { useAuth } from '@/lib/auth/context';
 import { toast } from 'sonner';
 import type { Database } from '@/lib/supabase/types';
 
-// キャンペーン関連のインポート
-import {
-  StoreCampaignForm,
-  CampaignFormValues,
-  getDefaultCampaignFormValues,
-  campaignFormToDbData,
-  dbDataToCampaignForm,
-} from '@/components/store/StoreCampaignForm';
-
 // 構造化営業時間モーダル
 import { BusinessHoursModal } from '@/components/store/BusinessHoursModal';
 import type { BusinessHours } from '@/lib/supabase/types';
@@ -200,13 +191,6 @@ export default function StoreEditPage() {
   const [searchingName, setSearchingName] = useState(false);
   const userEditedNameRef = useRef(false);
 
-  // キャンペーン関連のステート
-  const [campaignValues, setCampaignValues] = useState<CampaignFormValues>(getDefaultCampaignFormValues());
-
-  const handleCampaignChange = (newCampaignValues: CampaignFormValues) => {
-    setCampaignValues(newCampaignValues);
-  };
-
   const geocoderRef = useRef<google.maps.Geocoder | null>(null);
   const autocompleteServiceRef = useRef<google.maps.places.AutocompleteService | null>(null);
   const placesServiceRef = useRef<google.maps.places.PlacesService | null>(null);
@@ -274,9 +258,6 @@ export default function StoreEditPage() {
         setGooglePlaceId((storeData as any).google_place_id || null);
         setGoogleRating((storeData as any).google_rating || null);
         setGoogleReviewsCount((storeData as any).google_reviews_count || null);
-
-        // キャンペーンデータの読み込み
-        setCampaignValues(dbDataToCampaignForm(storeData));
       }
     } catch (error) {
       console.error('Error fetching store:', error);
@@ -344,9 +325,6 @@ export default function StoreEditPage() {
           setGooglePlaceId((storeData as any).google_place_id || null);
           setGoogleRating((storeData as any).google_rating || null);
           setGoogleReviewsCount((storeData as any).google_reviews_count || null);
-
-          // キャンペーンデータの読み込み
-          setCampaignValues(dbDataToCampaignForm(storeData));
 
           setFetchingStore(false);
         }
@@ -718,9 +696,6 @@ export default function StoreEditPage() {
     setLoading(true);
 
     try {
-      // キャンペーンデータをDB形式に変換
-      const campaignDbData = campaignFormToDbData(campaignValues);
-
       let query = (supabase.from('stores') as any)
         .update({
           store_category: storeCategory,
@@ -743,8 +718,6 @@ export default function StoreEditPage() {
           latitude: parseFloat(latitude),
           longitude: parseFloat(longitude),
           updated_at: new Date().toISOString(),
-          // キャンペーン関連カラム
-          ...campaignDbData,
         })
         .eq('id', params.id as string);
 
@@ -1480,35 +1453,6 @@ export default function StoreEditPage() {
               )}
             </Card>
 
-            {/* ========== NIKENME+が提供するサービス セクション ========== */}
-            <Card
-              className="p-6 rounded-2xl shadow-lg"
-              style={{
-                background: '#FFFFFF',
-                border: `1px solid rgba(201, 168, 108, 0.15)`,
-              }}
-            >
-              <SectionHeader
-                icon={Sparkles}
-                title="NIKENME+が提供するサービス"
-                description="キャンペーンの設定ができます"
-              />
-
-              <div className="space-y-4">
-                {/* キャンペーン設定 */}
-                <Card
-                  className="rounded-xl overflow-hidden"
-                  style={{ border: `1px solid rgba(201, 168, 108, 0.15)` }}
-                >
-                  <StoreCampaignForm
-                    values={campaignValues}
-                    onChange={handleCampaignChange}
-                    disabled={loading}
-                  />
-                </Card>
-
-              </div>
-            </Card>
 
             {/* ========== 送信ボタン ========== */}
             <div className="flex gap-3 pt-2">

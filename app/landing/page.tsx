@@ -56,27 +56,6 @@ interface PartnerStore {
   vacancy_status: 'vacant' | 'open' | 'full' | 'closed';
 }
 
-interface CampaignStore {
-  id: string;
-  name: string;
-  has_campaign: boolean;
-  campaign_name: string | null;
-  campaign_start_date: string | null;
-  campaign_end_date: string | null;
-  image_urls: string[] | null;
-}
-
-// キャンペーンマスタの型定義（campaignsテーブル）
-interface CampaignMaster {
-  id: string;
-  name: string;
-  description: string | null;
-  start_date: string;
-  end_date: string;
-  is_active: boolean;
-  image_url: string | null; // キャンペーン画像
-}
-
 const DEFAULT_LOCATION = {
   lat: 33.2382,
   lng: 131.6126,
@@ -175,9 +154,6 @@ export default function LandingPage() {
   const [showToast, setShowToast] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [partnerStores, setPartnerStores] = useState<PartnerStore[]>([]);
-  const [campaignStores, setCampaignStores] = useState<CampaignStore[]>([]);
-  const [campaignMasters, setCampaignMasters] = useState<CampaignMaster[]>([]);
-  const [campaignSlide, setCampaignSlide] = useState(0);
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
   const [areaGuideSlide, setAreaGuideSlide] = useState(0);
   const [concernsSlide, setConcernsSlide] = useState(0);
@@ -284,58 +260,6 @@ export default function LandingPage() {
       } catch (error) { console.error('Error fetching partner stores:', error); }
     };
     fetchPartnerStores();
-  }, []);
-
-  // キャンペーンマスタとキャンペーン実施中の店舗を取得
-  useEffect(() => {
-    const fetchCampaigns = async () => {
-      try {
-        // 今日の日付（YYYY-MM-DD形式）
-        const today = new Date().toISOString().split('T')[0];
-        
-        // 1. キャンペーンマスタから有効なキャンペーンを取得
-        // start_dateとend_dateはYYYY-MM-DD形式なので、同じ形式で比較
-        const { data: campaigns, error: campaignError } = await supabase
-          .from('campaigns')
-          .select('id, name, description, start_date, end_date, is_active, image_url')
-          .eq('is_active', true)
-          .lte('start_date', today)
-          .gte('end_date', today)
-          .order('end_date', { ascending: true })
-          .limit(5);
-        
-        if (campaignError) {
-          console.error('Error fetching campaigns:', campaignError);
-        } else {
-          console.log('Fetched campaigns:', campaigns);
-        }
-        
-        // 2. キャンペーン参加店舗を取得（既存のロジック）
-        const now = new Date().toISOString();
-        const { data: stores, error: storeError } = await supabase
-          .from('stores')
-          .select('id, name, has_campaign, campaign_name, campaign_start_date, campaign_end_date, image_urls')
-          .eq('has_campaign', true)
-          .or(`campaign_end_date.is.null,campaign_end_date.gte.${now}`)
-          .limit(10);
-        
-        if (storeError) {
-          console.error('Error fetching campaign stores:', storeError);
-        }
-        
-        if (stores) {
-          setCampaignStores(stores as CampaignStore[]);
-        }
-        
-        // キャンペーンマスタを設定
-        if (campaigns && campaigns.length > 0) {
-          setCampaignMasters(campaigns as CampaignMaster[]);
-        }
-      } catch (error) {
-        console.error('Error fetching campaigns:', error);
-      }
-    };
-    fetchCampaigns();
   }, []);
 
   useEffect(() => {
@@ -598,7 +522,7 @@ export default function LandingPage() {
                 {/* 店舗向けリンク */}
                 <div className="mt-8 pt-6" style={{ borderTop: `1px solid ${lpPage.border}` }}>
                   <p className="text-sm font-medium mb-3 lg:text-lg" style={{ color: lpPage.textMuted }}>{t('menu.for_stores')}</p>
-                  <Link href="/login/store" onClick={() => setShowMenu(false)} className="flex items-center gap-3 p-4 rounded-lg transition-colors group" style={{ color: lpPage.textMuted }}>
+                  <Link href="/login" onClick={() => setShowMenu(false)} className="flex items-center gap-3 p-4 rounded-lg transition-colors group" style={{ color: lpPage.textMuted }}>
                     <LogIn className="w-5 h-5" style={{ color: accentTextOnLightBg(lpPage.bg) }} /><span className="group-hover:opacity-100 font-medium">{t('header.store_login')}</span><ChevronRight className="w-4 h-4 ml-auto opacity-30" />
                   </Link>
                   <Link href="/partner/apply" onClick={() => setShowMenu(false)} className="flex items-center gap-3 p-4 rounded-lg transition-colors group" style={{ color: lpPage.textMuted }}>
@@ -608,14 +532,14 @@ export default function LandingPage() {
                 {/* 顧客ログイン */}
                 <div className="mt-8 pt-6" style={{ borderTop: `1px solid ${lpPage.border}` }}>
                   <p className="text-sm font-medium mb-3 lg:text-lg" style={{ color: lpPage.textMuted }}>{t('auth.login_switch_to_customer')}</p>
-                  <Link href="/login/customer" onClick={() => setShowMenu(false)} className="flex items-center gap-3 p-4 rounded-lg transition-colors group" style={{ color: lpPage.textMuted }}>
+                  <Link href="/login" onClick={() => setShowMenu(false)} className="flex items-center gap-3 p-4 rounded-lg transition-colors group" style={{ color: lpPage.textMuted }}>
                     <LogIn className="w-5 h-5" style={{ color: accentTextOnLightBg(lpPage.bg) }} /><span className="group-hover:opacity-100 font-medium">{t('menu.customer_login')}</span><ChevronRight className="w-4 h-4 ml-auto opacity-30" />
                   </Link>
                 </div>
                 {/* 運営ログイン */}
                 <div className="mt-8 pt-6" style={{ borderTop: `1px solid ${lpPage.border}` }}>
                   <p className="text-sm font-medium mb-3 lg:text-lg" style={{ color: lpPage.textMuted }}>{t('menu.for_operators')}</p>
-                  <Link href="/login/operator" onClick={() => setShowMenu(false)} className="flex items-center gap-3 p-4 rounded-lg transition-colors group" style={{ color: lpPage.textMuted }}>
+                  <Link href="/login" onClick={() => setShowMenu(false)} className="flex items-center gap-3 p-4 rounded-lg transition-colors group" style={{ color: lpPage.textMuted }}>
                     <LogIn className="w-5 h-5" style={{ color: accentTextOnLightBg(lpPage.bg) }} /><span className="group-hover:opacity-100 font-medium">{t('menu.normal_login')}</span><ChevronRight className="w-4 h-4 ml-auto opacity-30" />
                   </Link>
                 </div>
@@ -825,389 +749,6 @@ export default function LandingPage() {
         <motion.div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${LP_YELLOW}40, transparent)` }} />
       </section>
 
-      {/* キャンペーンセクション（campaignsテーブルからの動的データ） */}
-      {(campaignMasters.length > 0 || campaignStores.length > 0) && (
-        <section className="relative py-8 md:py-16 px-4 overflow-hidden" style={{ background: lpMid.page.bg }}>
-          <div className="container mx-auto max-w-5xl">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="text-center mb-10"
-            >
-              <GoldDivider />
-              <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-3 lg:text-base" style={{ color: lpMid.page.text }}>
-                Special Campaign
-              </span>
-              <h2 className="text-2xl sm:text-3xl font-bold mb-2 lg:text-4xl" style={{ color: lpMid.page.text }}>
-                {t('campaign.section_title')}
-              </h2>
-              <p className="text-base lg:text-xl" style={{ color: lpMid.page.textMuted }}>
-                {t('campaign.dont_miss')}
-              </p>
-            </motion.div>
-
-            {/* キャンペーンマスタからの表示（優先） */}
-            {campaignMasters.length > 0 ? (
-              campaignMasters.length === 1 ? (
-                // 1件のみの場合はカード表示
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  className="max-w-md mx-auto"
-                >
-                  <Card
-                    className="relative overflow-hidden cursor-pointer group"
-                    style={{
-                      background: `rgba(19, 41, 75, 0.9)`,
-                      border: `2px solid ${LP_YELLOW}`,
-                      boxShadow: colors.shadowGold,
-                    }}
-                    onClick={() => {
-                      router.push(`/store-list?campaign=true&campaign_name=${encodeURIComponent(campaignMasters[0].name)}`);
-                    }}
-                  >
-                    {campaignMasters[0].image_url && (
-                      <div className="absolute inset-0">
-                        <img
-                          src={campaignMasters[0].image_url}
-                          alt=""
-                          className="w-full h-full object-cover opacity-30 group-hover:opacity-40 transition-opacity duration-300"
-                        />
-                        <div className="absolute inset-0" style={{ background: `linear-gradient(to top, #13294b 0%, transparent 100%)` }} />
-                      </div>
-                    )}
-                    <div className="relative z-10 p-6">
-                      <div className="flex items-center gap-2 mb-3">
-                        <motion.div
-                          animate={{ scale: [1, 1.2, 1] }}
-                          transition={{ duration: 2, repeat: Infinity }}
-                          className="w-2 h-2 rounded-full"
-                          style={{ background: '#4ADE80', boxShadow: '0 0 8px #4ADE80' }}
-                        />
-                        <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: '#4ADE80' }}>
-                          {t('campaign.now_on')}
-                        </span>
-                      </div>
-                      <h3 className="text-xl font-bold mb-2 group-hover:translate-x-1 transition-transform lg:text-3xl" style={{ color: LP_ON_NAVY.text }}>
-                        {campaignMasters[0].name} 🍺
-                      </h3>
-                      {campaignMasters[0].description && (
-                        <p className="text-sm mb-3 line-clamp-2 lg:text-lg" style={{ color: LP_ON_NAVY.textMuted }}>
-                          {campaignMasters[0].description}
-                        </p>
-                      )}
-                      <p className="text-xs mb-4 lg:text-base" style={{ color: LP_YELLOW }}>
-                        {t('campaign.until').replace('{date}', new Date(campaignMasters[0].end_date + 'T00:00:00').toLocaleDateString(language === 'ja' ? 'ja-JP' : language === 'ko' ? 'ko-KR' : language === 'zh' ? 'zh-CN' : 'en-US', { month: 'short', day: 'numeric' }))}
-                      </p>
-                      <div className="flex items-center gap-1 group-hover:gap-2 transition-all" style={{ color: LP_YELLOW }}>
-                        <span className="text-sm font-medium lg:text-lg">{t('campaign.view_details')}</span>
-                        <ChevronRight className="w-4 h-4" />
-                      </div>
-                    </div>
-                  </Card>
-                </motion.div>
-              ) : (
-                // 複数キャンペーンの場合はカルーセル表示
-                <div className="relative">
-                  <div className="overflow-hidden rounded-2xl" style={{ touchAction: 'pan-x pan-y' }}>
-                    <AnimatePresence mode="wait">
-                      <motion.div
-                        key={campaignSlide}
-                        initial={{ opacity: 0, x: 100 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -100 }}
-                        transition={{ duration: 0.4 }}
-                        className="w-full"
-                      >
-                        <Card
-                          className="relative overflow-hidden cursor-pointer group mx-auto max-w-lg"
-                          style={{
-                            background: `rgba(19, 41, 75, 0.9)`,
-                            border: `2px solid ${LP_YELLOW}`,
-                            boxShadow: colors.shadowGold,
-                          }}
-                          onClick={() => {
-                            router.push(`/store-list?campaign=true&campaign_name=${encodeURIComponent(campaignMasters[campaignSlide].name)}`);
-                          }}
-                        >
-                          {campaignMasters[campaignSlide].image_url && (
-                            <div className="absolute inset-0">
-                              <img
-                                src={campaignMasters[campaignSlide].image_url}
-                                alt=""
-                                className="w-full h-full object-cover opacity-30 group-hover:opacity-40 transition-opacity duration-300"
-                              />
-                              <div className="absolute inset-0" style={{ background: `linear-gradient(to top, #13294b 0%, transparent 100%)` }} />
-                            </div>
-                          )}
-                          <div className="relative z-10 p-6">
-                            <div className="flex items-center gap-2 mb-3">
-                              <motion.div
-                                animate={{ scale: [1, 1.2, 1] }}
-                                transition={{ duration: 2, repeat: Infinity }}
-                                className="w-2 h-2 rounded-full"
-                                style={{ background: '#4ADE80', boxShadow: '0 0 8px #4ADE80' }}
-                              />
-                              <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: '#4ADE80' }}>
-                                {t('campaign.now_on')}
-                              </span>
-                            </div>
-                            <h3 className="text-xl font-bold mb-2 group-hover:translate-x-1 transition-transform lg:text-3xl" style={{ color: LP_ON_NAVY.text }}>
-                              {campaignMasters[campaignSlide].name} 🍺
-                            </h3>
-                            {campaignMasters[campaignSlide].description && (
-                              <p className="text-sm mb-3 line-clamp-2 lg:text-lg" style={{ color: LP_ON_NAVY.textMuted }}>
-                                {campaignMasters[campaignSlide].description}
-                              </p>
-                            )}
-                            <p className="text-xs mb-4 lg:text-base" style={{ color: LP_YELLOW }}>
-                              {t('campaign.until').replace('{date}', new Date(campaignMasters[campaignSlide].end_date + 'T00:00:00').toLocaleDateString(language === 'ja' ? 'ja-JP' : language === 'ko' ? 'ko-KR' : language === 'zh' ? 'zh-CN' : 'en-US', { month: 'short', day: 'numeric' }))}
-                            </p>
-                            <div className="flex items-center gap-1 group-hover:gap-2 transition-all" style={{ color: LP_YELLOW }}>
-                              <span className="text-sm font-medium lg:text-lg">{t('campaign.view_details')}</span>
-                              <ChevronRight className="w-4 h-4" />
-                            </div>
-                          </div>
-                        </Card>
-                      </motion.div>
-                    </AnimatePresence>
-                  </div>
-
-                  {/* カルーセルナビゲーション */}
-                  <button
-                    onClick={(e) => { e.stopPropagation(); setCampaignSlide((prev) => (prev - 1 + campaignMasters.length) % campaignMasters.length); }}
-                    className="absolute left-0 sm:left-4 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 z-10"
-                    style={{ background: `rgba(19, 41, 75, 0.9)`, border: `1px solid rgba(255, 198, 45, 0.35)`, backdropFilter: 'blur(10px)' }}
-                    aria-label="Previous campaign"
-                  >
-                    <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: LP_ON_NAVY.text }} />
-                  </button>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); setCampaignSlide((prev) => (prev + 1) % campaignMasters.length); }}
-                    className="absolute right-0 sm:right-4 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 z-10"
-                    style={{ background: `rgba(19, 41, 75, 0.9)`, border: `1px solid rgba(255, 198, 45, 0.35)`, backdropFilter: 'blur(10px)' }}
-                    aria-label="Next campaign"
-                  >
-                    <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: LP_ON_NAVY.text }} />
-                  </button>
-
-                  {/* ドットインジケーター */}
-                  <div className="flex justify-center gap-2 mt-6">
-                    {campaignMasters.map((_, index) => (
-                      <button
-                        key={index}
-                        onClick={() => setCampaignSlide(index)}
-                        className="h-2 rounded-full transition-all duration-300"
-                        style={{
-                          width: campaignSlide === index ? '24px' : '8px',
-                          background: campaignSlide === index ? LP_YELLOW : lpMid.dotInactive,
-                          boxShadow: campaignSlide === index ? `0 0 10px ${LP_YELLOW}60` : 'none',
-                        }}
-                        aria-label={`Go to campaign ${index + 1}`}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )
-            ) : (
-              // キャンペーンマスタがない場合は店舗ベースの表示（フォールバック）
-              campaignStores.length === 1 ? (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  className="max-w-md mx-auto"
-                >
-                  <Card
-                    className="relative overflow-hidden cursor-pointer group"
-                    style={{
-                      background: `rgba(19, 41, 75, 0.9)`,
-                      border: `2px solid ${LP_YELLOW}`,
-                      boxShadow: colors.shadowGold,
-                    }}
-                    onClick={() => {
-                      const campaignName = campaignStores[0].campaign_name;
-                      const url = campaignName 
-                        ? `/store-list?campaign=true&campaign_name=${encodeURIComponent(campaignName)}`
-                        : '/store-list?campaign=true';
-                      router.push(url);
-                    }}
-                  >
-                    {campaignStores[0].image_urls && campaignStores[0].image_urls.length > 0 && (
-                      <div className="absolute inset-0">
-                        <img
-                          src={campaignStores[0].image_urls[0]}
-                          alt=""
-                          className="w-full h-full object-cover opacity-20 group-hover:opacity-30 transition-opacity duration-300"
-                        />
-                        <div className="absolute inset-0" style={{ background: `linear-gradient(to top, #13294b 0%, transparent 100%)` }} />
-                      </div>
-                    )}
-                    <div className="relative z-10 p-6">
-                      <div className="flex items-center gap-2 mb-3">
-                        <motion.div
-                          animate={{ scale: [1, 1.2, 1] }}
-                          transition={{ duration: 2, repeat: Infinity }}
-                          className="w-2 h-2 rounded-full"
-                          style={{ background: '#4ADE80', boxShadow: '0 0 8px #4ADE80' }}
-                        />
-                        <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: '#4ADE80' }}>
-                          {t('campaign.now_on')}
-                        </span>
-                      </div>
-                      <h3 className="text-xl font-bold mb-2 group-hover:translate-x-1 transition-transform lg:text-3xl" style={{ color: LP_ON_NAVY.text }}>
-                        {campaignStores[0].campaign_name || t('campaign.default_name')} 🍺
-                      </h3>
-                      <p className="text-sm mb-3 lg:text-lg" style={{ color: LP_ON_NAVY.textMuted }}>
-                        {campaignStores[0].name}
-                      </p>
-                      {campaignStores[0].campaign_end_date && (
-                        <p className="text-xs mb-4 lg:text-base" style={{ color: LP_YELLOW }}>
-                          {t('campaign.until').replace('{date}', new Date(campaignStores[0].campaign_end_date).toLocaleDateString(language === 'ja' ? 'ja-JP' : language === 'ko' ? 'ko-KR' : language === 'zh' ? 'zh-CN' : 'en-US', { month: 'short', day: 'numeric' }))}
-                        </p>
-                      )}
-                      <div className="flex items-center gap-1 group-hover:gap-2 transition-all" style={{ color: LP_YELLOW }}>
-                        <span className="text-sm font-medium lg:text-lg">{t('campaign.view_details')}</span>
-                        <ChevronRight className="w-4 h-4" />
-                      </div>
-                    </div>
-                  </Card>
-                </motion.div>
-              ) : (
-                // 複数の店舗キャンペーン
-                <div className="relative">
-                  <div className="overflow-hidden rounded-2xl" style={{ touchAction: 'pan-x pan-y' }}>
-                    <AnimatePresence mode="wait">
-                      <motion.div
-                        key={currentSlide}
-                        initial={{ opacity: 0, x: 100 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -100 }}
-                        transition={{ duration: 0.4 }}
-                        className="w-full"
-                      >
-                        <Card
-                          className="relative overflow-hidden cursor-pointer group mx-auto max-w-lg"
-                          style={{
-                            background: `rgba(19, 41, 75, 0.9)`,
-                            border: `2px solid ${LP_YELLOW}`,
-                            boxShadow: colors.shadowGold,
-                          }}
-                          onClick={() => {
-                            const campaignName = campaignStores[currentSlide].campaign_name;
-                            const url = campaignName 
-                              ? `/store-list?campaign=true&campaign_name=${encodeURIComponent(campaignName)}`
-                              : '/store-list?campaign=true';
-                            router.push(url);
-                          }}
-                        >
-                          {campaignStores[currentSlide].image_urls && campaignStores[currentSlide].image_urls.length > 0 && (
-                            <div className="absolute inset-0">
-                              <img
-                                src={campaignStores[currentSlide].image_urls[0]}
-                                alt=""
-                                className="w-full h-full object-cover opacity-20 group-hover:opacity-30 transition-opacity duration-300"
-                              />
-                              <div className="absolute inset-0" style={{ background: `linear-gradient(to top, #13294b 0%, transparent 100%)` }} />
-                            </div>
-                          )}
-                          <div className="relative z-10 p-6">
-                            <div className="flex items-center gap-2 mb-3">
-                              <motion.div
-                                animate={{ scale: [1, 1.2, 1] }}
-                                transition={{ duration: 2, repeat: Infinity }}
-                                className="w-2 h-2 rounded-full"
-                                style={{ background: '#4ADE80', boxShadow: '0 0 8px #4ADE80' }}
-                              />
-                              <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: '#4ADE80' }}>
-                                {t('campaign.now_on')}
-                              </span>
-                            </div>
-                            <h3 className="text-xl font-bold mb-2 group-hover:translate-x-1 transition-transform lg:text-3xl" style={{ color: LP_ON_NAVY.text }}>
-                              {campaignStores[currentSlide].campaign_name || t('campaign.default_name')} 🍺
-                            </h3>
-                            <p className="text-sm mb-3 lg:text-lg" style={{ color: LP_ON_NAVY.textMuted }}>
-                              {campaignStores[currentSlide].name}
-                            </p>
-                            {campaignStores[currentSlide].campaign_end_date && (
-                              <p className="text-xs mb-4 lg:text-base" style={{ color: LP_YELLOW }}>
-                                {t('campaign.until').replace('{date}', new Date(campaignStores[currentSlide].campaign_end_date).toLocaleDateString(language === 'ja' ? 'ja-JP' : language === 'ko' ? 'ko-KR' : language === 'zh' ? 'zh-CN' : 'en-US', { month: 'short', day: 'numeric' }))}
-                              </p>
-                            )}
-                            <div className="flex items-center gap-1 group-hover:gap-2 transition-all" style={{ color: LP_YELLOW }}>
-                              <span className="text-sm font-medium lg:text-lg">{t('campaign.view_details')}</span>
-                              <ChevronRight className="w-4 h-4" />
-                            </div>
-                          </div>
-                        </Card>
-                      </motion.div>
-                    </AnimatePresence>
-                  </div>
-
-                  {/* カルーセルナビゲーション */}
-                  <button
-                    onClick={(e) => { e.stopPropagation(); setCurrentSlide((prev) => (prev - 1 + campaignStores.length) % campaignStores.length); }}
-                    className="absolute left-0 sm:left-4 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 z-10"
-                    style={{ background: `rgba(19, 41, 75, 0.9)`, border: `1px solid rgba(255, 198, 45, 0.35)`, backdropFilter: 'blur(10px)' }}
-                    aria-label="Previous campaign"
-                  >
-                    <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: LP_ON_NAVY.text }} />
-                  </button>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); setCurrentSlide((prev) => (prev + 1) % campaignStores.length); }}
-                    className="absolute right-0 sm:right-4 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 z-10"
-                    style={{ background: `rgba(19, 41, 75, 0.9)`, border: `1px solid rgba(255, 198, 45, 0.35)`, backdropFilter: 'blur(10px)' }}
-                    aria-label="Next campaign"
-                  >
-                    <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: LP_ON_NAVY.text }} />
-                  </button>
-
-                  {/* ドットインジケーター */}
-                  <div className="flex justify-center gap-2 mt-6">
-                    {campaignStores.map((_, index) => (
-                      <button
-                        key={index}
-                        onClick={() => setCurrentSlide(index)}
-                        className="h-2 rounded-full transition-all duration-300"
-                        style={{
-                          width: currentSlide === index ? '24px' : '8px',
-                          background: currentSlide === index ? LP_YELLOW : lpMid.dotInactive,
-                          boxShadow: currentSlide === index ? `0 0 10px ${LP_YELLOW}60` : 'none',
-                        }}
-                        aria-label={`Go to campaign ${index + 1}`}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )
-            )}
-
-            {/* すべてのキャンペーン店舗を見るボタン */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="text-center mt-8"
-            >
-              <Button
-                onClick={() => router.push('/store-list?campaign=true')}
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-full font-medium transition-all hover:scale-105"
-                style={{
-                  background: 'rgba(19, 41, 75, 0.06)',
-                  border: '1px solid rgba(19, 41, 75, 0.2)',
-                  color: LP_NAVY,
-                }}
-              >
-                <Sparkles className="w-5 h-5" />
-                {t('campaign.view_campaign_stores')}
-              </Button>
-            </motion.div>
-          </div>
-          <motion.div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${LP_YELLOW}40, transparent)` }} />
-        </section>
-      )}
 
       {/* 課題提起セクション */}
       <section className="relative py-12 md:py-24 px-4 overflow-hidden" style={{ background: lpMid.page.bg }}>
@@ -1878,7 +1419,7 @@ export default function LandingPage() {
                   </motion.div>
                   <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                     <Link
-                      href="/login/store"
+                      href="/login"
                       onClick={() => setShowStoreActionsModal(false)}
                       className="flex w-full items-center justify-center gap-2 rounded-xl py-4 px-6 text-base font-medium transition-all lg:text-xl"
                       style={{

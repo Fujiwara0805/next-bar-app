@@ -28,7 +28,7 @@ export default function MyPageQrPage() {
   useEffect(() => {
     if (authLoading) return;
     if (!user) {
-      router.replace('/login/customer?redirect=/mypage/qr');
+      router.replace('/login?redirect=/mypage/qr');
       return;
     }
     if (accountType !== 'customer') {

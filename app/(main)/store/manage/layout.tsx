@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  LayoutDashboard, PartyPopper, ClipboardList, Megaphone,
+  LayoutDashboard, Users, ClipboardList, Megaphone,
   LogOut, Menu, X,
 } from 'lucide-react';
 import { AdminThemeProvider, useAdminTheme } from '@/lib/admin-theme-context';
@@ -17,7 +17,7 @@ const LOGO_URL = 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_aut
 
 const NAV_ITEMS = [
   { href: '/store/manage', icon: LayoutDashboard, label: 'Dashboard', exact: true },
-  { href: '/store/manage/campaigns', icon: PartyPopper, label: 'キャンペーン' },
+  { href: '/store/manage/customers', icon: Users, label: '顧客管理' },
   { href: '/store/manage/applications', icon: ClipboardList, label: '申し込み管理' },
   { href: '/store/manage/sponsors', icon: Megaphone, label: 'スポンサー' },
 ];
@@ -35,9 +35,8 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
 
   const handleSignOut = async () => {
     try {
+      // signOut() 内で /login へフルリロード遷移する
       await signOut();
-      toast.success('ログアウトしました', { position: 'top-center', duration: 1000 });
-      router.push('/login/operator');
     } catch {
       toast.error('ログアウトに失敗しました', { position: 'top-center' });
     }
@@ -190,7 +189,7 @@ function ManageLayoutInner({ children }: { children: React.ReactNode }) {
 }
 
 /** 店舗アカウントがログイン後に使うパス（運営ダッシュボードとは別） */
-const STORE_SELF_MANAGE_SEGMENTS = /^(update|edit|change-password|scan|broadcast|analytics|coupons|redeem)$/;
+const STORE_SELF_MANAGE_SEGMENTS = /^(update|edit|change-password|scan|broadcast|analytics|coupons|redeem|engagement)$/;
 
 export default function ManageLayout({
   children,
@@ -205,11 +204,18 @@ export default function ManageLayout({
   useEffect(() => {
     if (loading) return;
 
-    // 店舗アカウント: 自分の store id の update / edit / change-password のみ通過（それ以外は運営エリア扱いで弾く）
+    // 未ログイン → /login
+    if (!accountType) {
+      setChecked(false);
+      router.replace('/login');
+      return;
+    }
+
+    // 店舗アカウント: 自分の store id の update / edit / change-password / engagement 等のみ通過
     if (accountType === 'store') {
       if (!store?.id) {
         setChecked(false);
-        router.push('/login/store');
+        router.replace('/login');
         return;
       }
       const m = pathname.match(/^\/store\/manage\/([^/]+)\/([^/]+)$/);
@@ -226,13 +232,13 @@ export default function ManageLayout({
         router.replace(`/store/manage/${store.id}/update`);
         return;
       }
-      router.push('/login/store');
+      router.replace(`/store/manage/${store.id}/update`);
       return;
     }
 
     if (profile?.role !== 'admin' || accountType !== 'platform') {
       setChecked(false);
-      router.push('/login/operator');
+      router.replace('/login');
       return;
     }
 

@@ -1,18 +1,12 @@
-import { redirect } from 'next/navigation';
+'use client';
 
-export default function LoginPage({
-  searchParams,
-}: {
-  searchParams: { role?: string; redirect?: string };
-}) {
-  const redirectQuery = searchParams.redirect
-    ? `?redirect=${encodeURIComponent(searchParams.redirect)}`
-    : '';
-  if (searchParams.role === 'customer') {
-    redirect(`/login/customer${redirectQuery}`);
-  }
-  if (searchParams.role === 'store') {
-    redirect(`/login/store${redirectQuery}`);
-  }
-  redirect(`/login/operator${redirectQuery}`);
+import { Suspense } from 'react';
+import { LoginForm, LoginFormFallback } from './_components/login-form';
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<LoginFormFallback />}>
+      <LoginForm />
+    </Suspense>
+  );
 }

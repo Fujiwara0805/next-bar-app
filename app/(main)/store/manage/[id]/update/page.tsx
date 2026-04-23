@@ -33,11 +33,8 @@ import {
   UserCheck,
   Sparkles,
   Store as StoreIcon,
-  QrCode,
-  Megaphone,
   Building2,
-  Ticket,
-  ScanLine,
+  Megaphone,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CloseCircleButton } from '@/components/ui/close-circle-button';
@@ -225,7 +222,7 @@ export default function StoreUpdatePage() {
               userEmail: user.email,
             });
             toast.error('アクセス権限がありません', { position: 'top-center' });
-            router.push('/login/store');
+            router.push('/login');
             return;
           }
         }
@@ -260,7 +257,7 @@ export default function StoreUpdatePage() {
       if (accountType === 'platform') {
         router.push('/store/manage');
       } else {
-        router.push('/login/store');
+        router.push('/login');
       }
     } finally {
       setFetchingStore(false);
@@ -306,7 +303,7 @@ export default function StoreUpdatePage() {
 
     // 未ログインまたは不正なアカウントタイプの場合はリダイレクト
     if (!accountType || (accountType !== 'platform' && accountType !== 'store')) {
-      router.push('/login/store');
+      router.push('/login');
       return;
     }
   }, [accountType, router]);
@@ -574,15 +571,10 @@ export default function StoreUpdatePage() {
 
   const handleSignOut = async () => {
     try {
+      // signOut() が /login へフルリロード遷移する
       await signOut();
-      toast.success('ログアウトしました', { 
-        position: 'top-center',
-        duration: 1000,
-        className: 'bg-gray-100'
-      });
-      router.push('/login/store');
     } catch (error) {
-      toast.error('ログアウトに失敗しました', { 
+      toast.error('ログアウトに失敗しました', {
         position: 'top-center',
         duration: 3000,
         className: 'bg-gray-100'
@@ -700,7 +692,7 @@ export default function StoreUpdatePage() {
                     }}
                   >
                     <Edit className="w-4 h-4 mr-2 shrink-0" strokeWidth={2} />
-                    編集
+                    編集変更
                   </Button>
                 </motion.div>
                 <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
@@ -708,15 +700,15 @@ export default function StoreUpdatePage() {
                     type="button"
                     size="sm"
                     variant="outline"
-                    onClick={() => router.push(`/store/manage/${store.id}/scan`)}
+                    onClick={() => router.push(`/store/manage/${store.id}/change-password`)}
                     className="rounded-xl font-bold shadow-md border-0 hover:opacity-95 [&_svg]:stroke-[currentColor]"
                     style={{
                       background: COLORS.goldGradient,
                       color: COLORS.charcoal,
                     }}
                   >
-                    <QrCode className="w-4 h-4 mr-2 shrink-0" strokeWidth={2} />
-                    スキャン
+                    <Key className="w-4 h-4 mr-2 shrink-0" strokeWidth={2} />
+                    パスワード変更
                   </Button>
                 </motion.div>
                 <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
@@ -724,7 +716,7 @@ export default function StoreUpdatePage() {
                     type="button"
                     size="sm"
                     variant="outline"
-                    onClick={() => router.push(`/store/manage/${store.id}/broadcast`)}
+                    onClick={() => router.push(`/store/manage/${store.id}/engagement`)}
                     className="rounded-xl font-bold shadow-md border-0 hover:opacity-95 [&_svg]:stroke-[currentColor]"
                     style={{
                       background: COLORS.goldGradient,
@@ -732,58 +724,9 @@ export default function StoreUpdatePage() {
                     }}
                   >
                     <Megaphone className="w-4 h-4 mr-2 shrink-0" strokeWidth={2} />
-                    配信・分析
+                    集客設定
                   </Button>
                 </motion.div>
-                <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    onClick={() => router.push(`/store/manage/${store.id}/coupons`)}
-                    className="rounded-xl font-bold shadow-md border-0 hover:opacity-95 [&_svg]:stroke-[currentColor]"
-                    style={{
-                      background: COLORS.goldGradient,
-                      color: COLORS.charcoal,
-                    }}
-                  >
-                    <Ticket className="w-4 h-4 mr-2 shrink-0" strokeWidth={2} />
-                    クーポン
-                  </Button>
-                </motion.div>
-                <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    onClick={() => router.push(`/store/manage/${store.id}/redeem`)}
-                    className="rounded-xl font-bold shadow-md border-0 hover:opacity-95 [&_svg]:stroke-[currentColor]"
-                    style={{
-                      background: COLORS.goldGradient,
-                      color: COLORS.charcoal,
-                    }}
-                  >
-                    <ScanLine className="w-4 h-4 mr-2 shrink-0" strokeWidth={2} />
-                    消込
-                  </Button>
-                </motion.div>
-                {accountType === 'store' && (
-                  <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-                    <Button
-                      type="button"
-                      size="sm"
-                      onClick={() => router.push(`/store/manage/${store.id}/change-password`)}
-                      className="rounded-xl font-bold"
-                      style={{
-                        background: COLORS.goldGradient,
-                        color: COLORS.deepNavy,
-                      }}
-                    >
-                      <Key className="w-4 h-4 mr-2" />
-                      変更
-                    </Button>
-                  </motion.div>
-                )}
               </div>
             </div>
           </Card>
