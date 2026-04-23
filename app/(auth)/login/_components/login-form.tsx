@@ -12,7 +12,9 @@ import {
   MapPin,
   Clock,
   Shield,
+  Building2,
 } from 'lucide-react';
+import { LineAppIcon } from '@/components/icons/line-app-icon';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,7 +31,7 @@ const LOGO_URL =
 
 const LINE_BRAND = '#06C755';
 
-export type LoginMode = 'customer' | 'operator';
+export type LoginMode = 'customer' | 'operator' | 'store';
 
 export function LoginForm({ mode }: { mode: LoginMode }) {
   const { colorsB: COLORS } = useAppMode();
@@ -50,17 +52,46 @@ export function LoginForm({ mode }: { mode: LoginMode }) {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [lineLoading, setLineLoading] = useState(false);
+  const [lineInClient, setLineInClient] = useState<boolean | null>(null);
 
   const liffAvailable = Boolean(process.env.NEXT_PUBLIC_LIFF_ID);
 
   const isOperator = mode === 'operator';
+  const isStore = mode === 'store';
   const isCustomer = mode === 'customer';
 
   const sessionMismatch =
     !authLoading &&
     !!user &&
     ((isOperator && accountType === 'customer') ||
+      (isStore && accountType === 'customer') ||
       (isCustomer && (accountType === 'platform' || accountType === 'store')));
+
+  useEffect(() => {
+    if (authLoading || !user) return;
+    if (isOperator && accountType === 'store' && store?.id) {
+      router.replace(`/store/manage/${store.id}/update`);
+      return;
+    }
+    if (isStore && accountType === 'platform') {
+      router.replace('/store/manage');
+    }
+  }, [authLoading, user, isOperator, isStore, accountType, store, router]);
+
+  useEffect(() => {
+    let cancel = false;
+    (async () => {
+      if (!liffAvailable || !isCustomer) {
+        if (!cancel) setLineInClient(null);
+        return;
+      }
+      const liff = await (await import('@/lib/line/liff')).getLiff();
+      if (!cancel) setLineInClient(!!liff?.isInClient());
+    })();
+    return () => {
+      cancel = true;
+    };
+  }, [liffAvailable, isCustomer]);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -85,7 +116,12 @@ export function LoginForm({ mode }: { mode: LoginMode }) {
     if (isOperator) {
       if (accountType === 'platform') {
         router.replace('/store/manage');
-      } else if (accountType === 'store' && store?.id) {
+      }
+      return;
+    }
+
+    if (isStore) {
+      if (accountType === 'store' && store?.id) {
         router.replace(`/store/manage/${store.id}/update`);
       }
       return;
@@ -94,7 +130,7 @@ export function LoginForm({ mode }: { mode: LoginMode }) {
     if (isCustomer && accountType === 'customer') {
       router.replace(redirectTo ?? '/map');
     }
-  }, [user, accountType, store, authLoading, router, isOperator, isCustomer, redirectTo, sessionMismatch]);
+  }, [user, accountType, store, authLoading, router, isOperator, isStore, isCustomer, redirectTo, sessionMismatch]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,12 +146,38 @@ export function LoginForm({ mode }: { mode: LoginMode }) {
         return;
       }
 
-      if (isOperator && result.accountType === 'customer') {
-        await signOut();
-        toast.error(t('auth.wrong_account_for_operator'), {
-          description: t('auth.wrong_account_for_operator_desc'),
-        });
-        return;
+      if (isOperator) {
+        if (result.accountType === 'customer') {
+          await signOut();
+          toast.error(t('auth.wrong_account_for_operator'), {
+            description: t('auth.wrong_account_for_operator_desc'),
+          });
+          return;
+        }
+        if (result.accountType === 'store') {
+          await signOut();
+          toast.error(t('auth.use_store_login_entry'), {
+            description: t('auth.use_store_login_entry_desc'),
+          });
+          return;
+        }
+      }
+
+      if (isStore) {
+        if (result.accountType === 'platform' || result.accountType === 'customer') {
+          await signOut();
+          toast.error(t('auth.use_operator_or_customer_entry'), {
+            description:
+              result.accountType === 'platform'
+                ? t('auth.use_operator_entry_desc')
+                : t('auth.wrong_account_for_store_desc'),
+          });
+          return;
+        }
+        if (result.accountType === 'store' && !result.store?.id) {
+          toast.error(t('auth.store_info_error'));
+          return;
+        }
       }
 
       if (isCustomer && result.accountType !== 'customer') {
@@ -153,10 +215,26 @@ export function LoginForm({ mode }: { mode: LoginMode }) {
     { icon: Clock, title: t('auth.benefit_one_tap'), desc: t('auth.benefit_one_tap_desc') },
   ];
 
-  const asideBadge = isOperator ? 'Operator Console' : 'NIKENME+';
-  const loginSubtitle = isOperator ? t('auth.login_to_operator') : t('auth.customer_login_subtitle');
-  const roleHint = isOperator ? t('auth.login_role_platform_hint') : t('auth.customer_login_role_hint');
-  const titleText = isOperator ? t('header.operator_login') : t('auth.customer_login_title');
+  const asideBadge = isOperator
+    ? t('auth.aside_eyebrow_operator')
+    : isStore
+      ? t('auth.aside_eyebrow_store')
+      : t('auth.aside_eyebrow_customer');
+  const loginSubtitle = isOperator
+    ? t('auth.login_to_operator')
+    : isStore
+      ? t('auth.login_to_store')
+      : t('auth.customer_login_subtitle');
+  const roleHint = isOperator
+    ? t('auth.login_role_platform_hint')
+    : isStore
+      ? t('auth.login_role_store_hint')
+      : t('auth.customer_login_role_hint');
+  const titleText = isOperator
+    ? t('header.operator_login')
+    : isStore
+      ? t('auth.store_login_page_title')
+      : t('auth.customer_login_title');
 
   const handleLineLogin = async () => {
     if (!liffAvailable) {
@@ -228,7 +306,15 @@ export function LoginForm({ mode }: { mode: LoginMode }) {
                     <span style={{ color: COLORS.champagneGold }}>{t('header.operator_login')}</span>
                     <br />
                     <span className="text-2xl font-semibold mt-2 block" style={{ color: COLORS.platinum }}>
-                      Dashboard
+                      {t('auth.aside_operator_subline')}
+                    </span>
+                  </>
+                ) : isStore ? (
+                  <>
+                    <span style={{ color: COLORS.champagneGold }}>{t('auth.store_aside_kicker')}</span>
+                    <br />
+                    <span className="text-2xl font-semibold mt-2 block" style={{ color: COLORS.platinum }}>
+                      {t('auth.store_aside_subline')}
                     </span>
                   </>
                 ) : (
@@ -240,7 +326,7 @@ export function LoginForm({ mode }: { mode: LoginMode }) {
                 )}
               </h1>
               <p className="text-base leading-relaxed" style={{ color: COLORS.platinum }}>
-                {isOperator ? roleHint : t('auth.vacancy_map_desc')}
+                {isOperator || isStore ? roleHint : t('auth.vacancy_map_desc')}
               </p>
             </motion.div>
 
@@ -321,6 +407,27 @@ export function LoginForm({ mode }: { mode: LoginMode }) {
               </motion.div>
             )}
 
+            {isStore && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.45 }}
+                className="mt-10 flex items-start gap-4 p-4 rounded-xl"
+                style={{
+                  background: 'rgba(34, 197, 94, 0.06)',
+                  border: '1px solid rgba(34, 197, 94, 0.12)',
+                }}
+              >
+                <div
+                  className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
+                  style={{ background: 'rgba(34, 197, 94, 0.12)' }}
+                >
+                  <Building2 className="w-4 h-4" style={{ color: '#4ade80' }} />
+                </div>
+                <p className="text-sm leading-relaxed" style={{ color: COLORS.platinum }}>{t('auth.store_aside_blurb')}</p>
+              </motion.div>
+            )}
+
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -350,6 +457,8 @@ export function LoginForm({ mode }: { mode: LoginMode }) {
               >
                 {isOperator ? (
                   <Shield className="w-4 h-4" style={{ color: COLORS.champagneGold }} />
+                ) : isStore ? (
+                  <Building2 className="w-4 h-4" style={{ color: '#4ade80' }} />
                 ) : (
                   <Sparkles className="w-4 h-4" style={{ color: COLORS.champagneGold }} />
                 )}
@@ -396,7 +505,9 @@ export function LoginForm({ mode }: { mode: LoginMode }) {
                   <p>
                     {isOperator
                       ? t('auth.session_mismatch_operator')
-                      : t('auth.session_mismatch_store')}
+                      : isStore
+                        ? t('auth.session_mismatch_on_store_login')
+                        : t('auth.session_mismatch_store')}
                   </p>
                   <Button
                     type="button"
@@ -549,15 +660,7 @@ export function LoginForm({ mode }: { mode: LoginMode }) {
                       </>
                     ) : (
                       <span className="flex items-center justify-center gap-2">
-                        <svg
-                          width="18"
-                          height="18"
-                          viewBox="0 0 24 24"
-                          fill="currentColor"
-                          aria-hidden="true"
-                        >
-                          <path d="M19.365 9.89c.50 0 .906.41.906.91 0 .5-.406.91-.906.91h-2.524v1.617h2.524c.5 0 .906.41.906.91 0 .5-.406.91-.906.91h-3.433a.91.91 0 0 1-.906-.91V7.615c0-.5.406-.91.906-.91h3.433c.5 0 .906.41.906.91 0 .5-.406.91-.906.91h-2.524V9.89h2.524Zm-5.62 4.347a.91.91 0 0 1-.907.91.903.903 0 0 1-.735-.375L8.588 9.982v3.355c0 .5-.41.91-.914.91-.5 0-.91-.41-.91-.91V7.615c0-.39.254-.739.63-.86a.898.898 0 0 1 1.019.33l3.55 4.8V7.615c0-.5.41-.91.91-.91.508 0 .918.41.918.91v6.622Zm-7.864 0c0 .5-.41.91-.914.91a.916.916 0 0 1-.914-.91V7.615c0-.5.41-.91.914-.91.504 0 .914.41.914.91v6.622Zm-2.739-3.26C3.141 5.56 7.902 1.5 12 1.5c4.098 0 8.858 4.06 8.858 9.476 0 5.416-4.76 9.477-8.858 9.477-.84 0-1.655-.13-2.422-.377a.3.3 0 0 0-.3.07l-2.39 2.186c-.2.183-.5.044-.5-.23v-2.56c0-.12-.06-.23-.17-.3C3.33 18.26 1.5 15.69 1.5 12.66c0-.572.07-1.14.203-1.683Z" />
-                        </svg>
+                        <LineAppIcon className="w-[1.15rem] h-[1.15rem] shrink-0" />
                         {t('auth.login_with_line')}
                       </span>
                     )}
@@ -565,6 +668,11 @@ export function LoginForm({ mode }: { mode: LoginMode }) {
                   {!liffAvailable && (
                     <p className="mt-2 text-[11px] text-center text-muted-foreground">
                       {t('auth.line_login_unavailable')}
+                    </p>
+                  )}
+                  {liffAvailable && lineInClient === false && (
+                    <p className="mt-2 text-[11px] text-center text-muted-foreground leading-relaxed">
+                      {t('auth.line_login_browser_note')}
                     </p>
                   )}
                 </motion.div>
@@ -581,6 +689,13 @@ export function LoginForm({ mode }: { mode: LoginMode }) {
                       {t('auth.customer_signup_cta')}
                     </Link>
                     <Link
+                      href="/login/store"
+                      className="font-medium transition-colors hover:opacity-80"
+                      style={{ color: COLORS.champagneGold }}
+                    >
+                      {t('auth.login_switch_to_store')}
+                    </Link>
+                    <Link
                       href="/login/operator"
                       className="font-medium transition-colors hover:opacity-80"
                       style={{ color: COLORS.champagneGold }}
@@ -590,13 +705,40 @@ export function LoginForm({ mode }: { mode: LoginMode }) {
                   </>
                 )}
                 {isOperator && (
-                  <Link
-                    href="/login/customer"
-                    className="font-medium transition-colors hover:opacity-80"
-                    style={{ color: COLORS.champagneGold }}
-                  >
-                    {t('auth.login_switch_to_customer')}
-                  </Link>
+                  <>
+                    <Link
+                      href="/login/store"
+                      className="font-medium transition-colors hover:opacity-80"
+                      style={{ color: COLORS.champagneGold }}
+                    >
+                      {t('auth.login_switch_to_store')}
+                    </Link>
+                    <Link
+                      href="/login/customer"
+                      className="font-medium transition-colors hover:opacity-80"
+                      style={{ color: COLORS.champagneGold }}
+                    >
+                      {t('auth.login_switch_to_customer')}
+                    </Link>
+                  </>
+                )}
+                {isStore && (
+                  <>
+                    <Link
+                      href="/login/operator"
+                      className="font-medium transition-colors hover:opacity-80"
+                      style={{ color: COLORS.champagneGold }}
+                    >
+                      {t('auth.login_switch_to_operator')}
+                    </Link>
+                    <Link
+                      href="/login/customer"
+                      className="font-medium transition-colors hover:opacity-80"
+                      style={{ color: COLORS.champagneGold }}
+                    >
+                      {t('auth.login_switch_to_customer')}
+                    </Link>
+                  </>
                 )}
               </div>
 

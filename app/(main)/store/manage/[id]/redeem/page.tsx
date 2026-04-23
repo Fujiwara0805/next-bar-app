@@ -115,7 +115,7 @@ function StoreRedeemPageInner() {
   useEffect(() => {
     if (authLoading) return;
     if (!user) {
-      router.replace('/login/operator');
+      router.replace('/login/store');
       return;
     }
     if (!isAuthorized) {

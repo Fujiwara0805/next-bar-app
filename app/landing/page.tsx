@@ -598,7 +598,7 @@ export default function LandingPage() {
                 {/* 店舗向けリンク */}
                 <div className="mt-8 pt-6" style={{ borderTop: `1px solid ${lpPage.border}` }}>
                   <p className="text-sm font-medium mb-3 lg:text-lg" style={{ color: lpPage.textMuted }}>{t('menu.for_stores')}</p>
-                  <Link href="/login/operator" onClick={() => setShowMenu(false)} className="flex items-center gap-3 p-4 rounded-lg transition-colors group" style={{ color: lpPage.textMuted }}>
+                  <Link href="/login/store" onClick={() => setShowMenu(false)} className="flex items-center gap-3 p-4 rounded-lg transition-colors group" style={{ color: lpPage.textMuted }}>
                     <LogIn className="w-5 h-5" style={{ color: accentTextOnLightBg(lpPage.bg) }} /><span className="group-hover:opacity-100 font-medium">{t('header.store_login')}</span><ChevronRight className="w-4 h-4 ml-auto opacity-30" />
                   </Link>
                   <Link href="/partner/apply" onClick={() => setShowMenu(false)} className="flex items-center gap-3 p-4 rounded-lg transition-colors group" style={{ color: lpPage.textMuted }}>
@@ -1878,7 +1878,7 @@ export default function LandingPage() {
                   </motion.div>
                   <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                     <Link
-                      href="/login/operator"
+                      href="/login/store"
                       onClick={() => setShowStoreActionsModal(false)}
                       className="flex w-full items-center justify-center gap-2 rounded-xl py-4 px-6 text-base font-medium transition-all lg:text-xl"
                       style={{

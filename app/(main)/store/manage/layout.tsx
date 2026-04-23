@@ -209,7 +209,7 @@ export default function ManageLayout({
     if (accountType === 'store') {
       if (!store?.id) {
         setChecked(false);
-        router.push('/login/operator');
+        router.push('/login/store');
         return;
       }
       const m = pathname.match(/^\/store\/manage\/([^/]+)\/([^/]+)$/);
@@ -226,7 +226,7 @@ export default function ManageLayout({
         router.replace(`/store/manage/${store.id}/update`);
         return;
       }
-      router.push('/login/operator');
+      router.push('/login/store');
       return;
     }
 

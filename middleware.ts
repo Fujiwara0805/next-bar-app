@@ -12,6 +12,16 @@ import type { NextRequest } from 'next/server';
 /** 店舗アカウントがアクセス可能なセグメント */
 const STORE_ALLOWED_SEGMENTS = /^(update|edit|change-password|scan|broadcast|analytics|coupons|redeem)$/;
 
+/** 未認証のとき: 店舗用URL想定なら /login/store へ、運営ダッシュボード等は /login/operator へ */
+function loginUrlForUnauthenticatedStorePath(pathname: string, requestUrl: string) {
+  const base = new URL(requestUrl);
+  const parts = pathname.split('/').filter(Boolean);
+  if (parts.length >= 4 && parts[0] === 'store' && parts[1] === 'manage') {
+    return new URL('/login/store', base);
+  }
+  return new URL('/login/operator', base);
+}
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const accountType = request.cookies.get('account-type')?.value;
@@ -20,7 +30,7 @@ export function middleware(request: NextRequest) {
   // ── /store/manage/* の保護 ──
   if (pathname.startsWith('/store/manage')) {
     if (!accountType) {
-      return NextResponse.redirect(new URL('/login', request.url));
+      return NextResponse.redirect(loginUrlForUnauthenticatedStorePath(pathname, request.url));
     }
 
     if (accountType === 'customer') {
@@ -36,7 +46,7 @@ export function middleware(request: NextRequest) {
         if (storeId) {
           return NextResponse.redirect(new URL(`/store/manage/${storeId}/update`, request.url));
         }
-        return NextResponse.redirect(new URL('/login/operator', request.url));
+        return NextResponse.redirect(new URL('/login/store', request.url));
       }
 
       const [, pathStoreId, segment] = match;
@@ -45,7 +55,7 @@ export function middleware(request: NextRequest) {
         if (storeId) {
           return NextResponse.redirect(new URL(`/store/manage/${storeId}/update`, request.url));
         }
-        return NextResponse.redirect(new URL('/login/operator', request.url));
+        return NextResponse.redirect(new URL('/login/store', request.url));
       }
 
       if (storeId && pathStoreId !== storeId) {
@@ -68,14 +78,17 @@ export function middleware(request: NextRequest) {
       if (storeId) {
         return NextResponse.redirect(new URL(`/store/manage/${storeId}/update`, request.url));
       }
-      return NextResponse.redirect(new URL('/login/operator', request.url));
+      return NextResponse.redirect(new URL('/login/store', request.url));
     }
     return NextResponse.next();
   }
 
-  // ── /login, /login/customer, /login/operator, /register: ログイン済みなら適切なダッシュボードへ ──
+  // ── /login, /login/customer, /login/operator, /login/store, /register: ログイン済みなら適切なダッシュボードへ ──
   const isLoginPath =
-    pathname === '/login' || pathname === '/login/customer' || pathname === '/login/operator';
+    pathname === '/login' ||
+    pathname === '/login/customer' ||
+    pathname === '/login/operator' ||
+    pathname === '/login/store';
   if (isLoginPath || pathname === '/register') {
     const redirectParam = request.nextUrl.searchParams.get('redirect');
 
@@ -108,6 +121,7 @@ export const config = {
     '/login',
     '/login/customer',
     '/login/operator',
+    '/login/store',
     '/register',
   ],
 };

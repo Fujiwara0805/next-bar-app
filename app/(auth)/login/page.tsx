@@ -11,5 +11,8 @@ export default function LoginPage({
   if (searchParams.role === 'customer') {
     redirect(`/login/customer${redirectQuery}`);
   }
+  if (searchParams.role === 'store') {
+    redirect(`/login/store${redirectQuery}`);
+  }
   redirect(`/login/operator${redirectQuery}`);
 }

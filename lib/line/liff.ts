@@ -104,8 +104,13 @@ export async function getLineIdToken(): Promise<string | null> {
 
 /**
  * LINEログインを実行
- * - LINE内: 自動的にログイン済み
- * - ブラウザ: LINEログイン画面にリダイレクト
+ * - LINEアプリ内ブラウザ: 多くの場合セッションがありスムーズ
+ * - 通常ブラウザ: LINE の OAuth 画面へ飛ばす。未ログインだと **LINE 側** の
+ *   サインイン（メール/パスワード等）が出る。これはアプリの認証ではなく
+ *   LINE 株式会社の画面であり、**完全に省略することは原則できない**。
+ *   スムーズにしたい場合はリッチメニュー等から LINE 内で LIFF を開く運用を検討する。
+ *
+ * @see https://developers.line.biz/ja/docs/liff/
  */
 export async function lineLogin(): Promise<void> {
   const liff = await getLiff();

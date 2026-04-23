@@ -248,7 +248,7 @@ export default function StoreEditPage() {
               userEmail: user.email,
             });
             toast.error('アクセス権限がありません', { position: 'top-center' });
-            router.push('/login');
+            router.push('/login?role=store');
             return;
           }
         }
@@ -284,7 +284,7 @@ export default function StoreEditPage() {
       if (accountType === 'platform') {
         router.push('/store/manage');
       } else {
-        router.push('/login');
+        router.push('/login?role=store');
       }
     } finally {
       setFetchingStore(false);
@@ -303,7 +303,7 @@ export default function StoreEditPage() {
 
     // 未ログインまたは不正なアカウントタイプの場合はリダイレクト
     if (!accountType || (accountType !== 'platform' && accountType !== 'store')) {
-      router.push('/login');
+      router.push('/login?role=store');
       return;
     }
   }, [accountType, router]);
