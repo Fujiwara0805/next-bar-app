@@ -14,7 +14,6 @@ import {
   Shield,
   Building2,
 } from 'lucide-react';
-import { LineAppIcon } from '@/components/icons/line-app-icon';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,6 +27,10 @@ import { useAppMode } from '@/lib/app-mode-context';
 
 const LOGO_URL =
   'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761355092/%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png';
+
+/** LINE 公式ブランドアイコン（Cloudinary: 形式・品質の自動最適化） */
+const LINE_BRAND_ICON_URL =
+  'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1776852523/LINE_Brand_icon_zfypmz.png';
 
 const LINE_BRAND = '#06C755';
 
@@ -660,7 +663,15 @@ export function LoginForm({ mode }: { mode: LoginMode }) {
                       </>
                     ) : (
                       <span className="flex items-center justify-center gap-2">
-                        <LineAppIcon className="w-[1.15rem] h-[1.15rem] shrink-0" />
+                        <img
+                          src={LINE_BRAND_ICON_URL}
+                          alt=""
+                          width={22}
+                          height={22}
+                          className="w-[1.15rem] h-[1.15rem] shrink-0 object-contain"
+                          loading="eager"
+                          fetchPriority="high"
+                        />
                         {t('auth.login_with_line')}
                       </span>
                     )}
