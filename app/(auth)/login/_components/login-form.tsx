@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Mail, Lock, Loader2, Home, Sparkles } from 'lucide-react';
+import { Mail, Lock, Loader2, Home, Sparkles, MapPin } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -165,15 +165,67 @@ export function LoginForm() {
         />
       </div>
 
-      <div className="relative mx-auto flex w-full max-w-lg px-4 sm:px-6 min-h-[100dvh] items-center justify-center">
+      <div className="relative mx-auto grid w-full min-h-[100dvh] grid-cols-1 lg:grid-cols-2 lg:max-w-6xl lg:gap-12 lg:px-10 xl:px-16">
+        {/* PC only: Brand hero column */}
+        <motion.aside
+          initial={{ opacity: 0, x: -16 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6 }}
+          className="hidden lg:flex flex-col justify-center relative"
+        >
+          <div
+            className="absolute inset-y-8 -left-2 right-4 rounded-[2rem] pointer-events-none"
+            style={{
+              background: `linear-gradient(135deg, ${COLORS.royalNavy}80 0%, ${COLORS.deepNavy}40 100%)`,
+              border: `1px solid ${COLORS.champagneGold}22`,
+              boxShadow: '0 30px 80px rgba(0,0,0,0.35)',
+            }}
+          />
+          <div className="relative px-10 xl:px-14 py-14">
+            <div className="flex items-center gap-3 mb-10">
+              <img src={LOGO_URL} alt="NIKENME+" className="w-10 h-10 object-contain" />
+              <span
+                className="text-xs tracking-[0.2em] uppercase font-semibold"
+                style={{ color: COLORS.champagneGold }}
+              >
+                {t('auth.login_hero_kicker') || 'NIKENME+'}
+              </span>
+            </div>
+            <h1
+              className="text-4xl xl:text-[2.6rem] font-bold leading-[1.25] tracking-tight mb-6"
+              style={{ color: COLORS.ivory }}
+            >
+              {t('auth.login_hero_copy') || '一次会後のお店探しはNIKENME+で決まり。'}
+            </h1>
+            <p
+              className="text-sm xl:text-base leading-relaxed max-w-md mb-10"
+              style={{ color: COLORS.warmGray }}
+            >
+              {t('auth.login_tagline')}
+            </p>
+            <div
+              className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-medium"
+              style={{
+                background: `${COLORS.champagneGold}14`,
+                border: `1px solid ${COLORS.champagneGold}33`,
+                color: COLORS.champagneGold,
+              }}
+            >
+              <MapPin className="w-3.5 h-3.5" />
+              <span>大分・福岡ほか全国対応</span>
+            </div>
+          </div>
+        </motion.aside>
+
+        {/* Form column (both PC and mobile) */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="w-full"
+          className="flex items-center justify-center w-full px-4 sm:px-6 py-10 lg:py-16"
         >
           <div className="w-full max-w-[440px] mx-auto">
-            <div className="flex flex-col items-center mb-6">
+            <div className="flex flex-col items-center mb-6 lg:hidden">
               <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -184,7 +236,7 @@ export function LoginForm() {
                   className="text-xs tracking-[0.15em] uppercase font-medium"
                   style={{ color: COLORS.champagneGold + '90' }}
                 >
-                  {t('auth.unified_badge') || 'NIKENME+ Login'}
+                  {t('auth.login_hero_kicker') || 'NIKENME+ Login'}
                 </span>
               </motion.div>
             </div>
@@ -203,10 +255,10 @@ export function LoginForm() {
                   transition={{ delay: 0.2 }}
                 >
                   <h2 className="text-2xl font-bold tracking-tight" style={{ color: COLORS.deepNavy }}>
-                    {t('auth.unified_login_title') || 'ログイン'}
+                    {t('auth.login_heading')}
                   </h2>
                   <p className="text-sm mt-2 text-muted-foreground">
-                    {t('auth.unified_login_subtitle') || '顧客・店舗・運営すべて共通のログイン画面です'}
+                    {t('auth.login_tagline')}
                   </p>
                 </motion.div>
               </div>
@@ -370,8 +422,7 @@ export function LoginForm() {
 
               <div className="mt-5 flex flex-col gap-2 text-center text-xs">
                 <p className="text-muted-foreground leading-relaxed">
-                  {t('auth.unified_login_note') ||
-                    '顧客アカウント・店舗アカウント・運営アカウントはログイン後に自動判定されます。'}
+                  {t('auth.login_hint')}
                 </p>
                 <Link
                   href="/register?role=customer"
