@@ -80,7 +80,7 @@ export async function PATCH(
     }
 
     // 更新データを構築（update/page.tsxが送る全フィールドに対応）
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  
     const updateData: Record<string, any> = {
       updated_at: new Date().toISOString(),
     };

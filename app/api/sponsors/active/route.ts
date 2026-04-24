@@ -10,16 +10,19 @@ interface NestedSlotRow {
   contract_id: string;
   slot_type: SlotType;
   display_priority: number;
+  is_enabled: boolean;
   schedule_config: ScheduleConfig | null;
   sponsor_contracts: {
     id: string;
     sponsor_id: string;
     start_date: string;
     end_date: string;
+    status: string;
     sponsors: {
       id: string;
       company_name: string;
       company_logo_url: string | null;
+      is_active: boolean;
     };
   };
 }
@@ -66,7 +69,9 @@ export async function GET(request: Request) {
       debugInfo.update2Error = upd2.error ? { message: upd2.error.message, code: upd2.error.code } : null;
     }
 
-    // active契約 → enabled枠 → activeクリエイティブをJOINで取得
+    // クリエイティブを JOIN で取得（トップレベル条件のみ指定し、ネスト条件は JS 側でフィルタ）
+    // 理由: PostgREST の3段ネスト embedded filter は環境によって挙動が不安定なため、
+    //       クライアント側でフィルタしたほうが確実。データ件数は数十件程度なので性能問題なし。
     const { data, error } = await supabase
       .from('sponsor_ad_creatives')
       .select(`
@@ -105,16 +110,11 @@ export async function GET(request: Request) {
           )
         )
       `)
-      .eq('is_active', true)
-      .eq('sponsor_ad_slots.is_enabled', true)
-      .eq('sponsor_ad_slots.sponsor_contracts.status', 'active')
-      .lte('sponsor_ad_slots.sponsor_contracts.start_date', todayStr)
-      .gte('sponsor_ad_slots.sponsor_contracts.end_date', todayStr)
-      .eq('sponsor_ad_slots.sponsor_contracts.sponsors.is_active', true);
+      .eq('is_active', true);
 
     if (debug) {
       debugInfo.queryError = error ? { message: error.message, code: error.code, details: error.details, hint: error.hint } : null;
-      debugInfo.rowCount = Array.isArray(data) ? data.length : null;
+      debugInfo.rawRowCount = Array.isArray(data) ? data.length : null;
     }
 
     if (error) {
@@ -128,10 +128,49 @@ export async function GET(request: Request) {
       return NextResponse.json(payload, { headers: cacheHeaders() });
     }
 
+    // JS 側で「枠 is_enabled / 契約 active / 期間内 / スポンサー is_active」で絞り込み
+    const filtered = data.filter((row) => {
+      const slot = row.sponsor_ad_slots as unknown as NestedSlotRow | null;
+      if (!slot) return false;
+      if (!slot.is_enabled) return false;
+      const contract = slot.sponsor_contracts;
+      if (!contract) return false;
+      if (contract.status !== 'active') return false;
+      if (contract.start_date > todayStr) return false;
+      if (contract.end_date < todayStr) return false;
+      const sponsor = contract.sponsors;
+      if (!sponsor) return false;
+      if (!sponsor.is_active) return false;
+      return true;
+    });
+
+    if (debug) {
+      debugInfo.filteredRowCount = filtered.length;
+      debugInfo.rawSample = data.slice(0, 3).map((row) => {
+        const slot = row.sponsor_ad_slots as unknown as NestedSlotRow | null;
+        const contract = slot?.sponsor_contracts;
+        const sponsor = contract?.sponsors;
+        return {
+          creative_id: row.id,
+          slot_type: slot?.slot_type,
+          is_enabled: slot?.is_enabled,
+          contract_status: contract?.status,
+          start_date: contract?.start_date,
+          end_date: contract?.end_date,
+          sponsor_active: sponsor?.is_active,
+        };
+      });
+    }
+
+    if (filtered.length === 0) {
+      const payload = debug ? { ...emptyResponse(), _debug: debugInfo } : emptyResponse();
+      return NextResponse.json(payload, { headers: cacheHeaders() });
+    }
+
     // フラット化してActiveAdCreative型にマッピング
     const creatives: (ActiveAdCreative & { display_priority: number; start_date: string })[] = [];
 
-    for (const row of data) {
+    for (const row of filtered) {
       const slot = row.sponsor_ad_slots as unknown as NestedSlotRow;
 
       const contract = slot.sponsor_contracts;
