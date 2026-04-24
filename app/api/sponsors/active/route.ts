@@ -24,30 +24,47 @@ interface NestedSlotRow {
   };
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  const url = new URL(request.url);
+  const debug = url.searchParams.get('debug') === '1';
+  const debugInfo: Record<string, unknown> = {};
+
   try {
     const supabase = createServerSupabaseClient();
+
+    if (debug) {
+      debugInfo.supabaseUrlSuffix = (process.env.NEXT_PUBLIC_SUPABASE_URL || '').slice(-20);
+      debugInfo.hasServiceRole = Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY);
+      debugInfo.hasAnon = Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+      debugInfo.serverTimeUTC = new Date().toISOString();
+    }
 
     // 現在のJST日付を取得
     const nowJST = new Date(
       new Date().toLocaleString('en-US', { timeZone: 'Asia/Tokyo' })
     );
     const todayStr = nowJST.toISOString().split('T')[0];
+    if (debug) debugInfo.todayStr = todayStr;
 
     // 契約ステータスをon-demand更新（pg_cronの代替）
     // scheduled → active: 開始日が今日以前
-    await supabase
+    const upd1 = await supabase
       .from('sponsor_contracts')
       .update({ status: 'active', updated_at: new Date().toISOString() })
       .eq('status', 'scheduled')
       .lte('start_date', todayStr);
 
     // active → expired: 終了日が今日より前
-    await supabase
+    const upd2 = await supabase
       .from('sponsor_contracts')
       .update({ status: 'expired', updated_at: new Date().toISOString() })
       .eq('status', 'active')
       .lt('end_date', todayStr);
+
+    if (debug) {
+      debugInfo.update1Error = upd1.error ? { message: upd1.error.message, code: upd1.error.code } : null;
+      debugInfo.update2Error = upd2.error ? { message: upd2.error.message, code: upd2.error.code } : null;
+    }
 
     // active契約 → enabled枠 → activeクリエイティブをJOINで取得
     const { data, error } = await supabase
@@ -95,13 +112,20 @@ export async function GET() {
       .gte('sponsor_ad_slots.sponsor_contracts.end_date', todayStr)
       .eq('sponsor_ad_slots.sponsor_contracts.sponsors.is_active', true);
 
+    if (debug) {
+      debugInfo.queryError = error ? { message: error.message, code: error.code, details: error.details, hint: error.hint } : null;
+      debugInfo.rowCount = Array.isArray(data) ? data.length : null;
+    }
+
     if (error) {
       console.error('[sponsors/active] Query error:', error);
-      return NextResponse.json(emptyResponse(), { headers: cacheHeaders() });
+      const payload = debug ? { ...emptyResponse(), _debug: debugInfo } : emptyResponse();
+      return NextResponse.json(payload, { headers: cacheHeaders() });
     }
 
     if (!data || data.length === 0) {
-      return NextResponse.json(emptyResponse(), { headers: cacheHeaders() });
+      const payload = debug ? { ...emptyResponse(), _debug: debugInfo } : emptyResponse();
+      return NextResponse.json(payload, { headers: cacheHeaders() });
     }
 
     // フラット化してActiveAdCreative型にマッピング
@@ -158,10 +182,13 @@ export async function GET() {
       campaign_banner: creatives.find((c) => c.slot_type === 'campaign_banner') || null,
     };
 
-    return NextResponse.json(response, { headers: cacheHeaders() });
+    const payload = debug ? { ...response, _debug: debugInfo } : response;
+    return NextResponse.json(payload, { headers: cacheHeaders() });
   } catch (err) {
     console.error('[sponsors/active] Unexpected error:', err);
-    return NextResponse.json(emptyResponse(), { headers: cacheHeaders() });
+    const message = err instanceof Error ? err.message : String(err);
+    const payload = debug ? { ...emptyResponse(), _debug: { ...debugInfo, caughtError: message } } : emptyResponse();
+    return NextResponse.json(payload, { headers: cacheHeaders() });
   }
 }
 
