@@ -13,6 +13,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 
+export const dynamic = 'force-dynamic';
+
 const GOOGLE_SHEETS_APPLICATION_WEBHOOK_URL =
   process.env.GOOGLE_SHEETS_APPLICATION_WEBHOOK_URL;
 
