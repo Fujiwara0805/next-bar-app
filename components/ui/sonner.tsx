@@ -15,12 +15,21 @@ const Toaster = ({ ...props }: ToasterProps) => {
       toastOptions={{
         classNames: {
           toast:
-            'group toast group-[.toaster]:bg-background group-[.toaster]:text-foreground group-[.toaster]:border-border group-[.toaster]:shadow-lg',
-          description: 'group-[.toast]:text-muted-foreground',
+            'group toast group-[.toaster]:bg-cream-50 group-[.toaster]:text-brewer-900 group-[.toaster]:border group-[.toaster]:border-brass-500/40 group-[.toaster]:shadow-[0_12px_32px_rgba(19,41,75,0.18)] group-[.toaster]:rounded-xl',
+          title: 'group-[.toast]:text-brewer-900 group-[.toast]:font-semibold',
+          description: 'group-[.toast]:text-brewer-700/80',
           actionButton:
-            'group-[.toast]:bg-primary group-[.toast]:text-primary-foreground',
+            'group-[.toast]:bg-brass-500 group-[.toast]:text-brewer-900 group-[.toast]:hover:bg-brass-500/90 group-[.toast]:font-semibold',
           cancelButton:
-            'group-[.toast]:bg-muted group-[.toast]:text-muted-foreground',
+            'group-[.toast]:bg-brewer-100 group-[.toast]:text-brewer-700',
+          success:
+            'group-[.toaster]:bg-cream-50 group-[.toaster]:text-brewer-900 group-[.toaster]:border-brass-500/50',
+          error:
+            'group-[.toaster]:bg-brewer-900 group-[.toaster]:text-cream-50 group-[.toaster]:border-brass-500/60',
+          warning:
+            'group-[.toaster]:bg-brass-300/90 group-[.toaster]:text-brewer-900 group-[.toaster]:border-brass-500/70',
+          info:
+            'group-[.toaster]:bg-brewer-700 group-[.toaster]:text-cream-50 group-[.toaster]:border-brass-500/40',
         },
       }}
       {...props}

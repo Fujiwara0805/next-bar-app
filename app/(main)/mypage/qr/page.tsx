@@ -9,10 +9,16 @@ import { useAuth } from '@/lib/auth/context';
 import { useLanguage } from '@/lib/i18n/context';
 import { supabase } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { LoadingScreen } from '@/components/ui/loading-screen';
 
 const REFRESH_INTERVAL_SEC = 90;
+
+const BG_OFFWHITE = '#F7F3E9';
+const NAVY = '#13294b';
+const BRASS = '#ffc62d';
+const COPPER = '#B87333';
+const GOLD_GRADIENT = 'linear-gradient(135deg, #ffc62d 0%, #FFD966 50%, #C9A86C 100%)';
+const NAVY_GRADIENT = 'linear-gradient(165deg, #13294b 0%, #1A3562 50%, #1F57A4 100%)';
 
 export default function MyPageQrPage() {
   const router = useRouter();
@@ -24,6 +30,19 @@ export default function MyPageQrPage() {
   const [secondsLeft, setSecondsLeft] = useState(REFRESH_INTERVAL_SEC);
   const [error, setError] = useState<string | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const body = document.body;
+    const prevRoot = root.style.background;
+    const prevBody = body.style.background;
+    root.style.background = BG_OFFWHITE;
+    body.style.background = BG_OFFWHITE;
+    return () => {
+      root.style.background = prevRoot;
+      body.style.background = prevBody;
+    };
+  }, []);
 
   useEffect(() => {
     if (authLoading) return;
@@ -112,37 +131,69 @@ export default function MyPageQrPage() {
     profile?.display_name ?? user.email?.split('@')[0] ?? 'ゲスト';
 
   return (
-    <div className="min-h-screen bg-background pb-16 safe-top">
-      <div className="max-w-md mx-auto px-4 py-6">
-        <button
-          onClick={() => router.back()}
-          className="flex items-center gap-1 text-sm text-muted-foreground mb-4"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          {t('common.back')}
-        </button>
+    <div className="min-h-screen pb-16" style={{ background: BG_OFFWHITE }}>
+      <header
+        className="sticky top-0 z-20 safe-top"
+        style={{ background: NAVY_GRADIENT, borderBottom: `1px solid ${BRASS}33` }}
+      >
+        <div className="flex items-center justify-between p-4 max-w-md mx-auto">
+          <button
+            onClick={() => router.back()}
+            className="flex items-center gap-1.5 text-sm font-medium transition-opacity hover:opacity-80"
+            style={{ color: '#FDFBF7' }}
+          >
+            <ArrowLeft className="w-4 h-4" />
+            {t('common.back')}
+          </button>
+          <h1 className="text-lg font-light tracking-[0.2em]" style={{ color: '#FDFBF7' }}>
+            チェックインQR
+          </h1>
+          <div className="w-12" />
+        </div>
+      </header>
 
+      <div className="max-w-md mx-auto px-4 py-6">
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
           <div className="mb-6 text-center">
             <div className="inline-flex items-center gap-2 mb-2">
-              <div className="h-px w-6 bg-brass-500" />
-              <span className="text-xs font-semibold uppercase tracking-[0.2em] text-brass-500">
+              <div className="h-px w-6" style={{ background: BRASS }} />
+              <span
+                className="text-xs font-semibold uppercase tracking-[0.2em]"
+                style={{ color: COPPER }}
+              >
                 {t('mypageQr.badge')}
               </span>
-              <div className="h-px w-6 bg-brass-500" />
+              <div className="h-px w-6" style={{ background: BRASS }} />
             </div>
-            <h1 className="text-xl font-bold mb-1">{t('mypageQr.title')}</h1>
-            <p className="text-sm text-muted-foreground">
+            <h2 className="text-xl font-bold mb-1" style={{ color: NAVY }}>
+              {t('mypageQr.title')}
+            </h2>
+            <p className="text-sm" style={{ color: 'rgba(19, 41, 75, 0.65)' }}>
               {t('mypageQr.subtitle')}
             </p>
           </div>
 
-          <Card className="p-6 mb-4">
+          <div
+            className="rounded-2xl p-6 mb-4 relative overflow-hidden"
+            style={{
+              background: 'white',
+              border: `1px solid ${BRASS}33`,
+              boxShadow: '0 12px 32px rgba(19, 41, 75, 0.10)',
+            }}
+          >
+            <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ background: GOLD_GRADIENT }} />
             <div className="flex flex-col items-center">
-              <div className="p-4 rounded-2xl bg-cream-50 border border-brass-500/30 shadow-md">
+              <div
+                className="p-4 rounded-2xl"
+                style={{
+                  background: BG_OFFWHITE,
+                  border: `1px solid ${BRASS}50`,
+                  boxShadow: `0 4px 14px ${BRASS}22`,
+                }}
+              >
                 {generating && !qrDataUrl ? (
                   <div className="w-[280px] h-[280px] flex items-center justify-center">
-                    <Loader2 className="w-8 h-8 animate-spin text-brass-500" />
+                    <Loader2 className="w-8 h-8 animate-spin" style={{ color: COPPER }} />
                   </div>
                 ) : qrDataUrl ? (
                   <img
@@ -153,27 +204,30 @@ export default function MyPageQrPage() {
                     }`}
                   />
                 ) : (
-                  <div className="w-[280px] h-[280px] flex items-center justify-center text-sm text-muted-foreground">
+                  <div
+                    className="w-[280px] h-[280px] flex items-center justify-center text-sm"
+                    style={{ color: 'rgba(19, 41, 75, 0.6)' }}
+                  >
                     {t('mypageQr.generate_failed')}
                   </div>
                 )}
               </div>
 
-              <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
-                <QrCode className="w-4 h-4" />
-                <span className="font-medium text-foreground">{displayName}</span>
+              <div className="mt-4 flex items-center gap-2 text-sm" style={{ color: NAVY }}>
+                <QrCode className="w-4 h-4" style={{ color: COPPER }} />
+                <span className="font-semibold">{displayName}</span>
               </div>
 
               <div className="mt-4 flex items-center gap-3">
-                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <div
+                  className="flex items-center gap-1.5 text-xs"
+                  style={{ color: 'rgba(19, 41, 75, 0.6)' }}
+                >
                   <RefreshCw className="w-3.5 h-3.5" />
                   <span>
                     {generating
                       ? t('mypageQr.refreshing')
-                      : t('mypageQr.refresh_in').replace(
-                          '{n}',
-                          String(secondsLeft)
-                        )}
+                      : t('mypageQr.refresh_in').replace('{n}', String(secondsLeft))}
                   </span>
                 </div>
                 <Button
@@ -181,35 +235,45 @@ export default function MyPageQrPage() {
                   variant="outline"
                   onClick={() => regenerate()}
                   disabled={generating}
+                  style={{
+                    background: 'white',
+                    color: NAVY,
+                    border: `1.5px solid ${BRASS}60`,
+                  }}
                 >
                   {t('mypageQr.tap_to_refresh')}
                 </Button>
               </div>
 
-              {error && (
-                <p className="mt-3 text-xs text-destructive">{error}</p>
-              )}
+              {error && <p className="mt-3 text-xs text-destructive">{error}</p>}
             </div>
-          </Card>
+          </div>
 
-          <Card className="p-5">
+          <div
+            className="rounded-2xl p-5 relative overflow-hidden"
+            style={{
+              background: 'white',
+              border: `1px solid ${BRASS}33`,
+              boxShadow: '0 12px 32px rgba(19, 41, 75, 0.08)',
+            }}
+          >
             <div className="flex items-center gap-2 mb-3">
-              <Info className="w-4 h-4 text-brass-500" />
-              <h2 className="font-semibold text-sm">
+              <Info className="w-4 h-4" style={{ color: COPPER }} />
+              <h3 className="font-semibold text-sm" style={{ color: NAVY }}>
                 {t('mypageQr.how_to_use_title')}
-              </h2>
+              </h3>
             </div>
-            <ol className="text-sm space-y-2 list-decimal ml-5 text-muted-foreground">
+            <ol
+              className="text-sm space-y-2 list-decimal ml-5"
+              style={{ color: 'rgba(19, 41, 75, 0.75)' }}
+            >
               <li>{t('mypageQr.how_to_use_1')}</li>
               <li>{t('mypageQr.how_to_use_2')}</li>
               <li>
-                {t('mypageQr.how_to_use_3').replace(
-                  '{sec}',
-                  String(REFRESH_INTERVAL_SEC)
-                )}
+                {t('mypageQr.how_to_use_3').replace('{sec}', String(REFRESH_INTERVAL_SEC))}
               </li>
             </ol>
-          </Card>
+          </div>
         </motion.div>
       </div>
     </div>

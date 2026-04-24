@@ -35,6 +35,10 @@ import {
   Store as StoreIcon,
   Building2,
   Megaphone,
+  QrCode,
+  ExternalLink,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CloseCircleButton } from '@/components/ui/close-circle-button';
@@ -184,6 +188,7 @@ export default function StoreUpdatePage() {
   
   // 臨時休業中かどうかを表示するためのstate
   const [isManualClosed, setIsManualClosed] = useState(false);
+  const [closedNoteOpen, setClosedNoteOpen] = useState(false);
 
   const fetchStore = useCallback(async () => {
     // 認証情報が揃っていない場合は早期リターン
@@ -668,31 +673,41 @@ export default function StoreUpdatePage() {
                   <Building2 className="w-8 h-8" style={{ color: COLORS.warmGray }} />
                 </div>
               )}
-              <div className="flex-1 min-w-0 flex items-center">
+              <div className="flex-1 min-w-0 flex flex-col justify-center">
                 <h2
                   className="text-xl sm:text-2xl font-bold leading-tight line-clamp-2"
                   style={{ color: COLORS.deepNavy }}
                 >
                   {store.name}
                 </h2>
+                <button
+                  type="button"
+                  onClick={() => router.push(`/store/manage/${store.id}/scan`)}
+                  className="inline-flex items-center gap-1.5 mt-2 text-xs font-semibold w-fit transition-opacity hover:opacity-80"
+                  style={{ color: COLORS.champagneGold }}
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  <QrCode className="w-3.5 h-3.5" />
+                  QRコードをスキャン
+                </button>
               </div>
             </div>
             <div>
-              <div className="flex gap-2 flex-wrap">
+              <div className="grid grid-cols-3 gap-2">
                 <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
                   <Button
                     type="button"
                     size="sm"
                     variant="outline"
                     onClick={() => router.push(`/store/manage/${store.id}/edit`)}
-                    className="rounded-xl font-bold shadow-md border-0 hover:opacity-95 [&_svg]:stroke-[currentColor]"
+                    className="w-full rounded-xl font-bold shadow-md border-0 hover:opacity-95 [&_svg]:stroke-[currentColor]"
                     style={{
                       background: COLORS.goldGradient,
                       color: COLORS.charcoal,
                     }}
                   >
-                    <Edit className="w-4 h-4 mr-2 shrink-0" strokeWidth={2} />
-                    編集変更
+                    <Edit className="w-4 h-4 mr-1.5 shrink-0" strokeWidth={2} />
+                    編集
                   </Button>
                 </motion.div>
                 <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
@@ -701,14 +716,14 @@ export default function StoreUpdatePage() {
                     size="sm"
                     variant="outline"
                     onClick={() => router.push(`/store/manage/${store.id}/change-password`)}
-                    className="rounded-xl font-bold shadow-md border-0 hover:opacity-95 [&_svg]:stroke-[currentColor]"
+                    className="w-full rounded-xl font-bold shadow-md border-0 hover:opacity-95 [&_svg]:stroke-[currentColor]"
                     style={{
                       background: COLORS.goldGradient,
                       color: COLORS.charcoal,
                     }}
                   >
-                    <Key className="w-4 h-4 mr-2 shrink-0" strokeWidth={2} />
-                    パスワード変更
+                    <Key className="w-4 h-4 mr-1.5 shrink-0" strokeWidth={2} />
+                    変更
                   </Button>
                 </motion.div>
                 <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
@@ -717,13 +732,13 @@ export default function StoreUpdatePage() {
                     size="sm"
                     variant="outline"
                     onClick={() => router.push(`/store/manage/${store.id}/engagement`)}
-                    className="rounded-xl font-bold shadow-md border-0 hover:opacity-95 [&_svg]:stroke-[currentColor]"
+                    className="w-full rounded-xl font-bold shadow-md border-0 hover:opacity-95 [&_svg]:stroke-[currentColor]"
                     style={{
                       background: COLORS.goldGradient,
                       color: COLORS.charcoal,
                     }}
                   >
-                    <Megaphone className="w-4 h-4 mr-2 shrink-0" strokeWidth={2} />
+                    <Megaphone className="w-4 h-4 mr-1.5 shrink-0" strokeWidth={2} />
                     集客設定
                   </Button>
                 </motion.div>
@@ -827,27 +842,51 @@ export default function StoreUpdatePage() {
                     })}
                   </RadioGroup>
 
-                  {/* 閉店選択時の注意書き */}
+                  {/* 閉店選択時の注意書き（トグル） */}
                   {vacancyStatus === 'closed' && (
                     <motion.div
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: 'auto' }}
-                      className="mt-4 p-4 rounded-xl"
-                      style={{ 
+                      className="mt-4 rounded-xl overflow-hidden"
+                      style={{
                         backgroundColor: 'rgba(201, 168, 108, 0.08)',
                         border: `1px solid rgba(201, 168, 108, 0.2)`,
                       }}
                     >
-                      <div className="flex items-start gap-2">
-                        <Info className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: COLORS.champagneGold }} />
-                        <div className="text-sm">
-                          <p className="font-bold mb-1" style={{ color: COLORS.deepNavy }}>閉店について</p>
-                          <ul className="list-disc list-inside space-y-1" style={{ color: COLORS.charcoal }}>
+                      <button
+                        type="button"
+                        onClick={() => setClosedNoteOpen((prev) => !prev)}
+                        className="w-full flex items-center justify-between p-4 text-left transition-colors hover:bg-[rgba(201,168,108,0.04)]"
+                        aria-expanded={closedNoteOpen}
+                      >
+                        <div className="flex items-center gap-2">
+                          <Info className="w-5 h-5 flex-shrink-0" style={{ color: COLORS.champagneGold }} />
+                          <span className="text-sm font-bold" style={{ color: COLORS.deepNavy }}>
+                            閉店について
+                          </span>
+                        </div>
+                        {closedNoteOpen ? (
+                          <ChevronUp className="w-4 h-4" style={{ color: COLORS.warmGray }} />
+                        ) : (
+                          <ChevronDown className="w-4 h-4" style={{ color: COLORS.warmGray }} />
+                        )}
+                      </button>
+                      {closedNoteOpen && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="px-4 pb-4"
+                        >
+                          <ul
+                            className="text-sm list-disc list-inside space-y-1 pl-7"
+                            style={{ color: COLORS.charcoal }}
+                          >
                             <li>12時間後に自動的に解除されます</li>
                             <li>営業を再開するには、他のステータスを選択してください</li>
                           </ul>
-                        </div>
-                      </div>
+                        </motion.div>
+                      )}
                     </motion.div>
                   )}
                 </Card>

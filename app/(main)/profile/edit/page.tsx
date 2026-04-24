@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Card } from '@/components/ui/card';
 import { useAuth } from '@/lib/auth/context';
 import { supabase } from '@/lib/supabase/client';
 
@@ -118,35 +117,59 @@ export default function ProfileEditPage() {
     return <LoadingScreen size="lg" />;
   }
 
+  const BG_OFFWHITE = '#F7F3E9';
+  const NAVY = '#13294b';
+  const BRASS = '#ffc62d';
+  const COPPER = '#B87333';
+  const GOLD_GRADIENT = 'linear-gradient(135deg, #ffc62d 0%, #FFD966 50%, #C9A86C 100%)';
+  const NAVY_GRADIENT = 'linear-gradient(165deg, #13294b 0%, #1A3562 50%, #1F57A4 100%)';
+
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#1C1E26' }}>
-      <header className="sticky top-0 z-10 bg-popover border-b border-border">
-        <div className="flex items-center gap-3 p-4">
-          <Button
-            variant="ghost"
-            size="icon"
+    <div className="min-h-screen pb-20" style={{ background: BG_OFFWHITE }}>
+      <header
+        className="sticky top-0 z-20 safe-top"
+        style={{ background: NAVY_GRADIENT, borderBottom: `1px solid ${BRASS}33` }}
+      >
+        <div className="flex items-center justify-between p-4 max-w-2xl mx-auto">
+          <button
             onClick={() => router.back()}
+            className="flex items-center gap-1.5 text-sm font-medium transition-opacity hover:opacity-80"
+            style={{ color: '#FDFBF7' }}
           >
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <h1 className="text-xl font-bold text-center flex-1">プロフィール編集</h1>
-          <div className="w-10" />
+            <ArrowLeft className="w-4 h-4" />
+            戻る
+          </button>
+          <h1 className="text-lg font-light tracking-[0.2em]" style={{ color: '#FDFBF7' }}>
+            プロフィール編集
+          </h1>
+          <div className="w-12" />
         </div>
       </header>
 
-      <div className="max-w-2xl mx-auto p-4">
+      <div className="max-w-2xl mx-auto p-4 pt-6">
         <motion.form
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           onSubmit={handleSubmit}
           className="space-y-6"
         >
-          <Card className="p-6 bg-popover">
+          <div
+            className="rounded-2xl p-6 relative overflow-hidden"
+            style={{
+              background: 'white',
+              border: `1px solid ${BRASS}33`,
+              boxShadow: '0 12px 32px rgba(19, 41, 75, 0.10)',
+            }}
+          >
+            <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ background: GOLD_GRADIENT }} />
             <div className="space-y-4">
-              {/* 表示名 */}
-              <div>
-                <Label htmlFor="displayName" className="font-bold flex items-center gap-2">
-                  <User className="w-4 h-4" />
+              <div className="space-y-1.5">
+                <Label
+                  htmlFor="displayName"
+                  className="text-xs font-semibold flex items-center gap-1.5"
+                  style={{ color: NAVY }}
+                >
+                  <User className="w-3.5 h-3.5" />
                   表示名
                 </Label>
                 <Input
@@ -156,15 +179,18 @@ export default function ProfileEditPage() {
                   placeholder="例: 山田太郎"
                   required
                   disabled={loading}
-                  className="font-bold bg-popover text-foreground border-2 border-border"
-                  style={{ fontSize: '16px' }}
+                  className="h-12 text-sm rounded-xl border-2 bg-muted"
+                  style={{ fontSize: '16px', color: NAVY }}
                 />
               </div>
 
-              {/* メールアドレス */}
-              <div>
-                <Label htmlFor="email" className="font-bold flex items-center gap-2">
-                  <Mail className="w-4 h-4" />
+              <div className="space-y-1.5">
+                <Label
+                  htmlFor="email"
+                  className="text-xs font-semibold flex items-center gap-1.5"
+                  style={{ color: NAVY }}
+                >
+                  <Mail className="w-3.5 h-3.5" />
                   メールアドレス
                 </Label>
                 <Input
@@ -175,20 +201,23 @@ export default function ProfileEditPage() {
                   placeholder="example@email.com"
                   required
                   disabled={loading}
-                  className="font-bold bg-popover text-foreground border-2 border-border"
-                  style={{ fontSize: '16px' }}
+                  className="h-12 text-sm rounded-xl border-2 bg-muted"
+                  style={{ fontSize: '16px', color: NAVY }}
                 />
                 {email !== currentEmail && (
-                  <p className="text-xs text-warning font-bold mt-2">
-                    ⚠️ メールアドレス変更には確認が必要です。新しいメールアドレスに確認リンクが送信されます。
+                  <p className="text-xs font-semibold mt-2" style={{ color: COPPER }}>
+                    メールアドレス変更には確認が必要です。新しいメールアドレスに確認リンクが送信されます。
                   </p>
                 )}
               </div>
 
-              {/* アバターURL */}
-              <div>
-                <Label htmlFor="avatarUrl" className="font-bold flex items-center gap-2">
-                  <ImageIcon className="w-4 h-4" />
+              <div className="space-y-1.5">
+                <Label
+                  htmlFor="avatarUrl"
+                  className="text-xs font-semibold flex items-center gap-1.5"
+                  style={{ color: NAVY }}
+                >
+                  <ImageIcon className="w-3.5 h-3.5" />
                   アバター画像URL
                 </Label>
                 <Input
@@ -198,15 +227,18 @@ export default function ProfileEditPage() {
                   onChange={(e) => setAvatarUrl(e.target.value)}
                   placeholder="https://example.com/avatar.jpg"
                   disabled={loading}
-                  className="font-bold bg-popover text-foreground border-2 border-border"
-                  style={{ fontSize: '16px' }}
+                  className="h-12 text-sm rounded-xl border-2 bg-muted"
+                  style={{ fontSize: '16px', color: NAVY }}
                 />
               </div>
 
-              {/* 自己紹介 */}
-              <div>
-                <Label htmlFor="bio" className="font-bold flex items-center gap-2">
-                  <FileText className="w-4 h-4" />
+              <div className="space-y-1.5">
+                <Label
+                  htmlFor="bio"
+                  className="text-xs font-semibold flex items-center gap-1.5"
+                  style={{ color: NAVY }}
+                >
+                  <FileText className="w-3.5 h-3.5" />
                   自己紹介
                 </Label>
                 <Textarea
@@ -216,28 +248,37 @@ export default function ProfileEditPage() {
                   placeholder="自己紹介を入力してください"
                   rows={4}
                   disabled={loading}
-                  className="font-bold bg-popover text-foreground border-2 border-border"
-                  style={{ fontSize: '16px' }}
+                  className="text-sm rounded-xl border-2 bg-muted"
+                  style={{ fontSize: '16px', color: NAVY }}
                 />
               </div>
             </div>
-          </Card>
+          </div>
 
-          {/* ボタン */}
           <div className="flex gap-3">
             <Button
               type="button"
               variant="outline"
-              className="flex-1 font-bold bg-white"
+              className="flex-1 h-12 font-semibold rounded-xl"
               onClick={() => router.back()}
               disabled={loading}
+              style={{
+                background: 'white',
+                color: NAVY,
+                border: `1.5px solid ${BRASS}60`,
+              }}
             >
               キャンセル
             </Button>
-            <Button 
-              type="submit" 
-              className="flex-1 font-bold" 
+            <Button
+              type="submit"
+              className="flex-1 h-12 font-bold rounded-xl shadow-lg"
               disabled={loading}
+              style={{
+                background: GOLD_GRADIENT,
+                color: NAVY,
+                boxShadow: `0 6px 24px ${BRASS}55`,
+              }}
             >
               {loading ? (
                 <>

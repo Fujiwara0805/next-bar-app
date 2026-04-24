@@ -156,26 +156,27 @@ export function LoginForm() {
         />
       </div>
 
-      <div className="relative mx-auto flex w-full max-w-lg px-4 sm:px-6 min-h-[100dvh] items-center justify-center">
+      <div className="relative mx-auto flex w-full max-w-2xl px-4 sm:px-6 min-h-[100dvh] items-center justify-center py-10">
         <motion.section
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
           className="w-full"
         >
-          <div className="w-full max-w-[440px] mx-auto">
+          <div className="w-full max-w-[460px] mx-auto">
             <div className="flex flex-col items-center mb-6">
               <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="flex items-center gap-2 mb-3"
+                className="flex items-center gap-2 mb-2"
               >
-                <Sparkles className="w-4 h-4" style={{ color: COLORS.champagneGold }} />
+                <img src={LOGO_URL} alt="NIKENME+" className="w-5 h-5" />
+                <Sparkles className="w-3.5 h-3.5" style={{ color: COLORS.champagneGold }} />
                 <span
-                  className="text-xs tracking-[0.18em] uppercase font-semibold"
+                  className="text-[11px] tracking-[0.2em] uppercase font-semibold"
                   style={{ color: COLORS.antiqueGold }}
                 >
-                  {t('auth.login_hero_kicker') || 'NIKENME+ Login'}
+                  {t('auth.login_hero_kicker') || 'NIKENME+'}
                 </span>
               </motion.div>
             </div>

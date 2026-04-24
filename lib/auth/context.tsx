@@ -27,6 +27,7 @@ interface AuthContextType {
   signInWithLine: () => Promise<{ error: Error | null; accountType?: AccountType }>;
   signUp: (email: string, password: string, displayName: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -257,6 +258,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const refreshProfile = async () => {
+    if (!user) return;
+    const { data: userRow } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', user.id)
+      .maybeSingle();
+    if (userRow) setProfile(userRow);
+    const { data: storeData } = await supabase
+      .from('stores')
+      .select('*')
+      .eq('id', user.id)
+      .maybeSingle();
+    if (storeData) setStore(storeData);
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -270,6 +287,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         signInWithLine,
         signUp,
         signOut,
+        refreshProfile,
       }}
     >
       {children}

@@ -12,10 +12,10 @@ import {
   ChevronRight,
   Clock,
   Sparkles,
+  UserCog,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth/context';
 import { useLanguage } from '@/lib/i18n/context';
-import { useAppMode } from '@/lib/app-mode-context';
 import { supabase } from '@/lib/supabase/client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -36,7 +36,7 @@ const NAVY_SOFT = 'rgba(19, 41, 75, 0.08)';
 const BRASS = '#ffc62d'; // Brewers Yellow
 const COPPER = '#B87333'; // Copper / orange accent
 const GOLD_GRADIENT = 'linear-gradient(135deg, #ffc62d 0%, #FFD966 50%, #C9A86C 100%)';
-const COPPER_GRADIENT = 'linear-gradient(135deg, #B87333 0%, #C9A86C 100%)';
+const NAVY_GRADIENT = 'linear-gradient(165deg, #13294b 0%, #1A3562 50%, #1F57A4 100%)';
 
 function tokyoDateString(): string {
   const now = new Date();
@@ -147,9 +147,33 @@ export default function MyPage() {
 
   return (
     <div
-      className="min-h-screen pb-24 safe-top relative"
+      className="min-h-screen pb-24 relative"
       style={{ background: BG_OFFWHITE }}
     >
+      {/* ヘッダー（店舗管理画面と同じビジュアル言語） */}
+      <header
+        className="sticky top-0 z-20 safe-top"
+        style={{
+          background: NAVY_GRADIENT,
+          borderBottom: `1px solid ${BRASS}33`,
+        }}
+      >
+        <div className="flex items-center justify-between p-4 max-w-md mx-auto">
+          <div className="w-16" />
+          <h1 className="text-lg font-light tracking-[0.2em]" style={{ color: '#FDFBF7' }}>
+            マイページ
+          </h1>
+          <Link
+            href="/mypage/edit"
+            className="inline-flex items-center gap-1 text-xs font-medium transition-opacity hover:opacity-80"
+            style={{ color: BRASS }}
+          >
+            <UserCog className="w-3.5 h-3.5" />
+            編集
+          </Link>
+        </div>
+      </header>
+
       {/* 装飾的なアクセント */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div
@@ -197,12 +221,12 @@ export default function MyPage() {
                 </AvatarFallback>
               </Avatar>
               <div className="min-w-0 flex-1">
-                <h1
+                <h2
                   className="text-lg font-bold truncate"
                   style={{ color: NAVY }}
                 >
                   {displayName}
-                </h1>
+                </h2>
                 <p
                   className="text-xs truncate mt-0.5"
                   style={{ color: 'rgba(19, 41, 75, 0.6)' }}
@@ -210,6 +234,17 @@ export default function MyPage() {
                   {user.email?.endsWith('@line.nikenme.local') ? 'LINE' : user.email}
                 </p>
               </div>
+              <Link
+                href="/mypage/edit"
+                className="flex-shrink-0 inline-flex items-center justify-center w-9 h-9 rounded-full transition-colors"
+                style={{
+                  background: `${BRASS}18`,
+                  border: `1px solid ${BRASS}50`,
+                }}
+                aria-label="プロフィール編集"
+              >
+                <UserCog className="w-4 h-4" style={{ color: COPPER }} />
+              </Link>
             </div>
           </div>
 
@@ -380,6 +415,20 @@ export default function MyPage() {
 
           {/* その他導線 */}
           <div className="space-y-2 mb-4">
+            <Link href="/mypage/edit">
+              <Button
+                variant="outline"
+                className="w-full justify-start h-12 rounded-xl font-medium"
+                style={{
+                  background: 'white',
+                  border: `1px solid ${BRASS}55`,
+                  color: NAVY,
+                }}
+              >
+                <UserCog className="w-4 h-4 mr-2" style={{ color: COPPER }} />
+                プロフィール編集
+              </Button>
+            </Link>
             <Link href="/map">
               <Button
                 variant="outline"

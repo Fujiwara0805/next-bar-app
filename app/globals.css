@@ -80,12 +80,12 @@
   }
 }
 
-/* placeholder 視認性: 明るい白背景では濃いめの neutral を既定値に。
-   Tailwind の placeholder:text-* utility クラスは具体度で上書きされるので、
-   ガラス系ダーク背景の placeholder:text-white/80 などは維持される。 */
+/* placeholder 視認性: 白/オフホワイト背景の入力では Brewer Navy 系ライトグレーを既定値に。
+   Tailwind の placeholder:text-* utility は具体度で上書きされるので、
+   ガラス系ダーク背景 placeholder:text-white/80 等は維持される。 */
 input::placeholder,
 textarea::placeholder {
-  color: hsl(221 14% 45%);
+  color: hsl(216 35% 65% / 0.85);
   opacity: 1;
 }
 

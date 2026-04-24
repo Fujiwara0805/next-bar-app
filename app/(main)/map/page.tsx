@@ -21,7 +21,7 @@
 import { useEffect, useState, Suspense, useRef, useCallback, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { List, RefreshCw, AlertCircle, User } from 'lucide-react';
+import { List, RefreshCw, AlertCircle, User, Building2 } from 'lucide-react';
 import { LoadingScreen } from '@/components/ui/loading-screen';
 import { MapView } from '@/components/map/map-view';
 import { Button } from '@/components/ui/button';
@@ -467,7 +467,7 @@ function MapPageContent() {
   const searchParams = useSearchParams();
   const { t, language } = useLanguage();
   const { colorsA: colors } = useAppMode();
-  const { user, accountType, store: authStore } = useAuth();
+  const { user, accountType, store: authStore, profile: authProfile } = useAuth();
 
   // body背景色をページの背景色に同期（画面外の色漏れ防止）
   useEffect(() => {
@@ -1012,7 +1012,25 @@ function MapPageContent() {
                   }}
                   title={user ? t('map.my_page') || 'マイページ' : t('auth.login') || 'ログイン'}
                 >
-                  <User className="w-5 h-5" style={{ color: colors.text }} />
+                  {user && accountType === 'customer' && authProfile?.avatar_url ? (
+                    <img
+                      src={authProfile.avatar_url}
+                      alt=""
+                      className="w-6 h-6 rounded-full object-cover"
+                      style={{ border: `1.5px solid ${colors.accent}` }}
+                    />
+                  ) : user && accountType === 'customer' && authProfile?.line_picture_url ? (
+                    <img
+                      src={authProfile.line_picture_url}
+                      alt=""
+                      className="w-6 h-6 rounded-full object-cover"
+                      style={{ border: `1.5px solid ${colors.accent}` }}
+                    />
+                  ) : user && (accountType === 'store' || accountType === 'platform') ? (
+                    <Building2 className="w-5 h-5" style={{ color: colors.text }} />
+                  ) : (
+                    <User className="w-5 h-5" style={{ color: colors.text }} />
+                  )}
                   <span className="text-[8px] font-bold leading-tight" style={{ color: colors.text }}>
                     {user ? (t('map.my_page') || 'マイページ') : (t('auth.login') || 'ログイン')}
                   </span>

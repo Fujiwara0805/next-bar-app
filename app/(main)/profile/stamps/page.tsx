@@ -34,6 +34,13 @@ const WINDOW_HOURS = 12;
 const STAMP_ICON_URL =
   'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761355092/%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png';
 
+const BG_OFFWHITE = '#F7F3E9';
+const NAVY = '#13294b';
+const BRASS = '#ffc62d';
+const COPPER = '#B87333';
+const GOLD_GRADIENT = 'linear-gradient(135deg, #ffc62d 0%, #FFD966 50%, #C9A86C 100%)';
+const NAVY_GRADIENT = 'linear-gradient(165deg, #13294b 0%, #1A3562 50%, #1F57A4 100%)';
+
 type CheckIn = {
   id: string;
   store_id: string;
@@ -84,6 +91,19 @@ export default function StampsPage() {
   const [showEntryForm, setShowEntryForm] = useState(params.get('enter') === '1');
 
   const today = tokyoDateString();
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const body = document.body;
+    const prevRoot = root.style.background;
+    const prevBody = body.style.background;
+    root.style.background = BG_OFFWHITE;
+    body.style.background = BG_OFFWHITE;
+    return () => {
+      root.style.background = prevRoot;
+      body.style.background = prevBody;
+    };
+  }, []);
 
   useEffect(() => {
     if (authLoading) return;
@@ -245,36 +265,61 @@ export default function StampsPage() {
     (_, i) => i < windowStoreCount
   );
 
-  return (
-    <div className="min-h-screen bg-background pb-24 safe-top">
-      <div className="max-w-2xl mx-auto px-4 py-6">
-        <button
-          onClick={() => router.back()}
-          className="flex items-center gap-1 text-sm text-muted-foreground mb-4"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          {t('common.back')}
-        </button>
+  const whiteCardStyle: React.CSSProperties = {
+    background: 'white',
+    border: `1px solid ${BRASS}33`,
+    boxShadow: '0 12px 32px rgba(19, 41, 75, 0.08)',
+  };
 
+  return (
+    <div className="min-h-screen pb-24" style={{ background: BG_OFFWHITE }}>
+      <header
+        className="sticky top-0 z-20 safe-top"
+        style={{ background: NAVY_GRADIENT, borderBottom: `1px solid ${BRASS}33` }}
+      >
+        <div className="flex items-center justify-between p-4 max-w-2xl mx-auto">
+          <button
+            onClick={() => router.back()}
+            className="flex items-center gap-1.5 text-sm font-medium transition-opacity hover:opacity-80"
+            style={{ color: '#FDFBF7' }}
+          >
+            <ArrowLeft className="w-4 h-4" />
+            {t('common.back')}
+          </button>
+          <h1 className="text-lg font-light tracking-[0.2em]" style={{ color: '#FDFBF7' }}>
+            スタンプ履歴
+          </h1>
+          <div className="w-12" />
+        </div>
+      </header>
+
+      <div className="max-w-2xl mx-auto px-4 py-6">
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-          <div className="flex items-center gap-2 mb-2">
-            <Stamp className="w-5 h-5 text-primary" />
-            <h1 className="text-2xl font-bold">{t('stamps.title')}</h1>
+          <div className="mb-6">
+            <div className="flex items-center gap-2 mb-2">
+              <Stamp className="w-5 h-5" style={{ color: COPPER }} />
+              <h2 className="text-2xl font-bold" style={{ color: NAVY }}>
+                {t('stamps.title')}
+              </h2>
+            </div>
+            <p className="text-sm" style={{ color: 'rgba(19, 41, 75, 0.65)' }}>
+              {t('stamps.subtitle')}
+            </p>
           </div>
-          <p className="text-sm text-muted-foreground mb-6">
-            {t('stamps.subtitle')}
-          </p>
 
           {/* 12h窓の進捗 */}
-          <Card className="p-5 mb-4">
+          <div className="p-5 mb-4 rounded-2xl relative overflow-hidden" style={whiteCardStyle}>
+            <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ background: GOLD_GRADIENT }} />
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <Trophy className="w-5 h-5 text-brass-500" />
-                <h2 className="font-semibold">{t('stamps.today_progress')}</h2>
+                <Trophy className="w-5 h-5" style={{ color: COPPER }} />
+                <h3 className="font-semibold" style={{ color: NAVY }}>
+                  {t('stamps.today_progress')}
+                </h3>
               </div>
-              <span className="text-2xl font-bold">
+              <span className="text-2xl font-bold" style={{ color: NAVY }}>
                 {windowStoreCount}
-                <span className="text-sm text-muted-foreground ml-1">
+                <span className="text-sm ml-1" style={{ color: 'rgba(19, 41, 75, 0.5)' }}>
                   / {LOTTERY_MAX}
                 </span>
               </span>
@@ -284,11 +329,19 @@ export default function StampsPage() {
               {stampSlots.map((filled, i) => (
                 <div
                   key={i}
-                  className={`aspect-square rounded-xl flex items-center justify-center border-2 transition-all ${
+                  className="aspect-square rounded-xl flex items-center justify-center transition-all"
+                  style={
                     filled
-                      ? 'border-primary bg-primary/10'
-                      : 'border-dashed border-muted-foreground/30 bg-muted/30'
-                  }`}
+                      ? {
+                          border: `2px solid ${BRASS}`,
+                          background: `linear-gradient(135deg, ${BRASS}1f 0%, ${BRASS}0a 100%)`,
+                          boxShadow: `0 4px 12px ${BRASS}33`,
+                        }
+                      : {
+                          border: `2px dashed rgba(19, 41, 75, 0.25)`,
+                          background: 'rgba(19, 41, 75, 0.04)',
+                        }
+                  }
                 >
                   {filled ? (
                     <motion.img
@@ -305,70 +358,107 @@ export default function StampsPage() {
                       }}
                     />
                   ) : (
-                    <span className="text-xs text-muted-foreground">{i + 1}</span>
+                    <span
+                      className="text-xs font-semibold"
+                      style={{ color: 'rgba(19, 41, 75, 0.4)' }}
+                    >
+                      {i + 1}
+                    </span>
                   )}
                 </div>
               ))}
             </div>
 
-            <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+            <div
+              className="h-1.5 w-full rounded-full overflow-hidden"
+              style={{ background: 'rgba(19, 41, 75, 0.08)' }}
+            >
               <div
-                className="h-full bg-primary transition-all duration-500"
-                style={{ width: `${progressPct}%` }}
+                className="h-full transition-all duration-500"
+                style={{ width: `${progressPct}%`, background: GOLD_GRADIENT }}
               />
             </div>
-            <p className="text-xs text-muted-foreground mt-2">
+            <p className="text-xs mt-2" style={{ color: 'rgba(19, 41, 75, 0.6)' }}>
               {remainingForLottery > 0
                 ? t('stamps.remaining_hint').replace('{n}', String(remainingForLottery))
                 : t('stamps.lottery_ready')}
             </p>
-          </Card>
+          </div>
 
           {/* 抽選応募エリア */}
           {todayEntry ? (
-            <Card className="p-5 mb-4 border-primary/40 bg-primary/5">
+            <div
+              className="p-5 mb-4 rounded-2xl"
+              style={{
+                background: `${BRASS}12`,
+                border: `1px solid ${BRASS}66`,
+                boxShadow: '0 12px 32px rgba(19, 41, 75, 0.08)',
+              }}
+            >
               <div className="flex items-start gap-3">
-                <CheckCircle2 className="w-5 h-5 text-primary mt-0.5" />
+                <CheckCircle2 className="w-5 h-5 mt-0.5" style={{ color: COPPER }} />
                 <div>
-                  <h3 className="font-semibold mb-1">{t('stamps.entry_confirmed')}</h3>
-                  <p className="text-sm text-muted-foreground">
+                  <h3 className="font-semibold mb-1" style={{ color: NAVY }}>
+                    {t('stamps.entry_confirmed')}
+                  </h3>
+                  <p className="text-sm" style={{ color: 'rgba(19, 41, 75, 0.7)' }}>
                     {t('stamps.entry_email_hint')}: {todayEntry.email}
                   </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {t('stamps.entry_status')}: {t(`stamps.status_${todayEntry.status}`) || todayEntry.status}
+                  <p className="text-xs mt-1" style={{ color: 'rgba(19, 41, 75, 0.55)' }}>
+                    {t('stamps.entry_status')}:{' '}
+                    {t(`stamps.status_${todayEntry.status}`) || todayEntry.status}
                   </p>
                 </div>
               </div>
-            </Card>
+            </div>
           ) : eligible ? (
             showEntryForm ? (
-              <Card className="p-5 mb-4">
+              <div className="p-5 mb-4 rounded-2xl" style={whiteCardStyle}>
                 <div className="flex items-center gap-2 mb-3">
-                  <Ticket className="w-5 h-5 text-primary" />
-                  <h3 className="font-semibold">{t('stamps.enter_lottery_title')}</h3>
+                  <Ticket className="w-5 h-5" style={{ color: COPPER }} />
+                  <h3 className="font-semibold" style={{ color: NAVY }}>
+                    {t('stamps.enter_lottery_title')}
+                  </h3>
                 </div>
-                <p className="text-sm text-muted-foreground mb-4">
+                <p className="text-sm mb-4" style={{ color: 'rgba(19, 41, 75, 0.7)' }}>
                   {t('stamps.enter_lottery_desc')}
                 </p>
                 <form onSubmit={handleSubmit} className="space-y-3">
                   <div>
-                    <Label htmlFor="entry-email" className="text-xs">
+                    <Label
+                      htmlFor="entry-email"
+                      className="text-xs font-semibold"
+                      style={{ color: NAVY }}
+                    >
                       {t('stamps.email_label')}
                     </Label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Mail
+                        className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
+                        style={{ color: COPPER }}
+                      />
                       <Input
                         id="entry-email"
                         type="email"
                         required
-                        className="pl-9"
+                        className="pl-9 h-11 rounded-xl"
                         placeholder="you@example.com"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
+                        style={{ fontSize: '16px', color: NAVY }}
                       />
                     </div>
                   </div>
-                  <Button type="submit" disabled={submitting} className="w-full">
+                  <Button
+                    type="submit"
+                    disabled={submitting}
+                    className="w-full h-12 font-bold rounded-xl"
+                    style={{
+                      background: GOLD_GRADIENT,
+                      color: NAVY,
+                      boxShadow: `0 6px 22px ${BRASS}55`,
+                    }}
+                  >
                     {submitting ? (
                       <Loader2 className="w-4 h-4 animate-spin mr-2" />
                     ) : (
@@ -377,69 +467,100 @@ export default function StampsPage() {
                     {t('stamps.submit_entry')}
                   </Button>
                 </form>
-              </Card>
+              </div>
             ) : (
-              <Card className="p-5 mb-4 border-primary/40 bg-primary/5">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Ticket className="w-5 h-5 text-primary" />
-                    <div>
-                      <h3 className="font-semibold">{t('stamps.eligible_title')}</h3>
-                      <p className="text-xs text-muted-foreground">
+              <div
+                className="p-5 mb-4 rounded-2xl"
+                style={{
+                  background: `${BRASS}12`,
+                  border: `1px solid ${BRASS}66`,
+                  boxShadow: '0 12px 32px rgba(19, 41, 75, 0.08)',
+                }}
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <Ticket className="w-5 h-5 flex-shrink-0" style={{ color: COPPER }} />
+                    <div className="min-w-0">
+                      <h3 className="font-semibold truncate" style={{ color: NAVY }}>
+                        {t('stamps.eligible_title')}
+                      </h3>
+                      <p className="text-xs truncate" style={{ color: 'rgba(19, 41, 75, 0.65)' }}>
                         {t('stamps.eligible_desc')}
                       </p>
                     </div>
                   </div>
-                  <Button size="sm" onClick={() => setShowEntryForm(true)}>
+                  <Button
+                    size="sm"
+                    onClick={() => setShowEntryForm(true)}
+                    className="font-bold rounded-xl flex-shrink-0"
+                    style={{
+                      background: GOLD_GRADIENT,
+                      color: NAVY,
+                      boxShadow: `0 4px 14px ${BRASS}55`,
+                    }}
+                  >
                     {t('stamps.enter')}
                   </Button>
                 </div>
-              </Card>
+              </div>
             )
           ) : null}
 
           {/* 履歴 */}
           <div className="mb-3 flex items-center gap-2">
-            <Clock className="w-4 h-4 text-muted-foreground" />
-            <h2 className="font-semibold">{t('stamps.history')}</h2>
+            <Clock className="w-4 h-4" style={{ color: COPPER }} />
+            <h2 className="font-semibold" style={{ color: NAVY }}>
+              {t('stamps.history')}
+            </h2>
           </div>
 
           {loading ? (
             <div className="py-8 flex justify-center">
-              <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+              <Loader2 className="w-6 h-6 animate-spin" style={{ color: COPPER }} />
             </div>
           ) : sortedDates.length === 0 ? (
-            <Card className="p-6 text-center">
-              <Stamp className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">{t('stamps.empty')}</p>
+            <div className="p-6 text-center rounded-2xl" style={whiteCardStyle}>
+              <Stamp className="w-8 h-8 mx-auto mb-2" style={{ color: 'rgba(19, 41, 75, 0.4)' }} />
+              <p className="text-sm" style={{ color: 'rgba(19, 41, 75, 0.65)' }}>
+                {t('stamps.empty')}
+              </p>
               <Link href="/map">
-                <Button variant="outline" size="sm" className="mt-3">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-3 font-semibold rounded-xl"
+                  style={{
+                    background: 'white',
+                    color: NAVY,
+                    border: `1.5px solid ${BRASS}60`,
+                  }}
+                >
                   <MapPin className="w-4 h-4 mr-2" />
                   {t('stamps.find_stores')}
                 </Button>
               </Link>
-            </Card>
+            </div>
           ) : (
             <div className="space-y-3">
               {sortedDates.map((dateKey) => {
                 const items = grouped.get(dateKey) ?? [];
                 const d = new Date(dateKey);
                 return (
-                  <Card key={dateKey} className="p-4">
-                    <div className="text-xs text-muted-foreground mb-2">
+                  <div key={dateKey} className="p-4 rounded-2xl" style={whiteCardStyle}>
+                    <div className="text-xs mb-2" style={{ color: 'rgba(19, 41, 75, 0.6)' }}>
                       {format(d, 'PPP', { locale: dateLocale })}
                     </div>
                     <ul className="space-y-2">
                       {items.map((c) => (
                         <li key={c.id} className="flex items-center gap-2 text-sm">
-                          <Stamp className="w-4 h-4 text-primary" />
-                          <span className="font-medium">
+                          <Stamp className="w-4 h-4" style={{ color: COPPER }} />
+                          <span className="font-medium" style={{ color: NAVY }}>
                             {c.store_name ?? '—'}
                           </span>
                         </li>
                       ))}
                     </ul>
-                  </Card>
+                  </div>
                 );
               })}
             </div>

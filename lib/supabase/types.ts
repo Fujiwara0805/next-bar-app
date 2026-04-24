@@ -1201,6 +1201,7 @@ export type Database = {
           line_picture_url: string | null
           line_user_id: string | null
           phone: string | null
+          profile_attributes: Json
           role: string
           updated_at: string | null
         }
@@ -1216,6 +1217,7 @@ export type Database = {
           line_picture_url?: string | null
           line_user_id?: string | null
           phone?: string | null
+          profile_attributes?: Json
           role?: string
           updated_at?: string | null
         }
@@ -1231,6 +1233,7 @@ export type Database = {
           line_picture_url?: string | null
           line_user_id?: string | null
           phone?: string | null
+          profile_attributes?: Json
           role?: string
           updated_at?: string | null
         }
