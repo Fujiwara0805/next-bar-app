@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Mail, Lock, Loader2, Home, Sparkles, MapPin } from 'lucide-react';
+import { Mail, Lock, Loader2, Home, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -42,24 +42,8 @@ export function LoginForm() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [lineLoading, setLineLoading] = useState(false);
-  const [lineInClient, setLineInClient] = useState<boolean | null>(null);
 
   const liffAvailable = Boolean(process.env.NEXT_PUBLIC_LIFF_ID);
-
-  useEffect(() => {
-    let cancel = false;
-    (async () => {
-      if (!liffAvailable) {
-        if (!cancel) setLineInClient(null);
-        return;
-      }
-      const liff = await (await import('@/lib/line/liff')).getLiff();
-      if (!cancel) setLineInClient(!!liff?.isInClient());
-    })();
-    return () => {
-      cancel = true;
-    };
-  }, [liffAvailable]);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -67,7 +51,7 @@ export function LoginForm() {
     const prevRoot = root.style.background;
     const prevBody = body.style.background;
     const prevBodyColor = body.style.backgroundColor;
-    const bg = COLORS.luxuryGradient;
+    const bg = COLORS.cardGradient;
     root.style.background = bg;
     body.style.background = bg;
     body.style.backgroundColor = '';
@@ -76,7 +60,7 @@ export function LoginForm() {
       body.style.background = prevBody;
       body.style.backgroundColor = prevBodyColor;
     };
-  }, [COLORS.luxuryGradient]);
+  }, [COLORS.cardGradient]);
 
   // ログイン済みなら役割に応じて自動遷移
   useEffect(() => {
@@ -148,84 +132,39 @@ export function LoginForm() {
   return (
     <div
       className="min-h-[100dvh] relative overflow-hidden"
-      style={{ background: COLORS.luxuryGradient }}
+      style={{ background: COLORS.cardGradient }}
     >
+      {/* Subtle decorative accents on off-white */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div
-          className="absolute -top-40 -left-40 h-[50rem] w-[50rem] rounded-full opacity-15"
-          style={{ background: `radial-gradient(circle, ${COLORS.champagneGold}25 0%, transparent 60%)` }}
+          className="absolute -top-48 -left-48 h-[44rem] w-[44rem] rounded-full"
+          style={{
+            background: `radial-gradient(circle, ${COLORS.champagneGold}1f 0%, transparent 60%)`,
+          }}
         />
         <div
-          className="absolute -bottom-40 -right-40 h-[50rem] w-[50rem] rounded-full opacity-10"
-          style={{ background: `radial-gradient(circle, ${COLORS.royalNavy} 0%, transparent 60%)` }}
+          className="absolute -bottom-56 -right-40 h-[44rem] w-[44rem] rounded-full"
+          style={{
+            background: `radial-gradient(circle, ${COLORS.royalNavy}26 0%, transparent 60%)`,
+          }}
         />
         <div
-          className="absolute top-0 left-0 right-0 h-[1px]"
-          style={{ background: `linear-gradient(90deg, transparent, ${COLORS.champagneGold}60, transparent)` }}
+          className="absolute top-0 left-0 right-0 h-[2px]"
+          style={{
+            background: `linear-gradient(90deg, transparent, ${COLORS.champagneGold}, transparent)`,
+          }}
         />
       </div>
 
-      <div className="relative mx-auto grid w-full min-h-[100dvh] grid-cols-1 lg:grid-cols-2 lg:max-w-6xl lg:gap-12 lg:px-10 xl:px-16">
-        {/* PC only: Brand hero column */}
-        <motion.aside
-          initial={{ opacity: 0, x: -16 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6 }}
-          className="hidden lg:flex flex-col justify-center relative"
-        >
-          <div
-            className="absolute inset-y-8 -left-2 right-4 rounded-[2rem] pointer-events-none"
-            style={{
-              background: `linear-gradient(135deg, ${COLORS.royalNavy}80 0%, ${COLORS.deepNavy}40 100%)`,
-              border: `1px solid ${COLORS.champagneGold}22`,
-              boxShadow: '0 30px 80px rgba(0,0,0,0.35)',
-            }}
-          />
-          <div className="relative px-10 xl:px-14 py-14">
-            <div className="flex items-center gap-3 mb-10">
-              <img src={LOGO_URL} alt="NIKENME+" className="w-10 h-10 object-contain" />
-              <span
-                className="text-xs tracking-[0.2em] uppercase font-semibold"
-                style={{ color: COLORS.champagneGold }}
-              >
-                {t('auth.login_hero_kicker') || 'NIKENME+'}
-              </span>
-            </div>
-            <h1
-              className="text-4xl xl:text-[2.6rem] font-bold leading-[1.25] tracking-tight mb-6"
-              style={{ color: COLORS.ivory }}
-            >
-              {t('auth.login_hero_copy') || '一次会後のお店探しはNIKENME+で決まり。'}
-            </h1>
-            <p
-              className="text-sm xl:text-base leading-relaxed max-w-md mb-10"
-              style={{ color: COLORS.warmGray }}
-            >
-              {t('auth.login_tagline')}
-            </p>
-            <div
-              className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-medium"
-              style={{
-                background: `${COLORS.champagneGold}14`,
-                border: `1px solid ${COLORS.champagneGold}33`,
-                color: COLORS.champagneGold,
-              }}
-            >
-              <MapPin className="w-3.5 h-3.5" />
-              <span>大分・福岡ほか全国対応</span>
-            </div>
-          </div>
-        </motion.aside>
-
-        {/* Form column (both PC and mobile) */}
+      <div className="relative mx-auto flex w-full max-w-lg px-4 sm:px-6 min-h-[100dvh] items-center justify-center">
         <motion.section
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="flex items-center justify-center w-full px-4 sm:px-6 py-10 lg:py-16"
+          className="w-full"
         >
           <div className="w-full max-w-[440px] mx-auto">
-            <div className="flex flex-col items-center mb-6 lg:hidden">
+            <div className="flex flex-col items-center mb-6">
               <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -233,8 +172,8 @@ export function LoginForm() {
               >
                 <Sparkles className="w-4 h-4" style={{ color: COLORS.champagneGold }} />
                 <span
-                  className="text-xs tracking-[0.15em] uppercase font-medium"
-                  style={{ color: COLORS.champagneGold + '90' }}
+                  className="text-xs tracking-[0.18em] uppercase font-semibold"
+                  style={{ color: COLORS.antiqueGold }}
                 >
                   {t('auth.login_hero_kicker') || 'NIKENME+ Login'}
                 </span>
@@ -242,10 +181,12 @@ export function LoginForm() {
             </div>
 
             <div
-              className="rounded-2xl p-7 sm:p-8 bg-popover"
+              className="rounded-2xl p-7 sm:p-9"
               style={{
-                border: `1px solid rgba(201, 168, 108, 0.1)`,
-                boxShadow: '0 25px 80px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255,255,255,0.04)',
+                background: '#ffffff',
+                border: `1px solid ${COLORS.champagneGold}33`,
+                boxShadow:
+                  '0 18px 48px rgba(19, 41, 75, 0.12), 0 4px 12px rgba(19, 41, 75, 0.06)',
               }}
             >
               <div className="text-center mb-8">
@@ -254,10 +195,16 @@ export function LoginForm() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2 }}
                 >
-                  <h2 className="text-2xl font-bold tracking-tight" style={{ color: COLORS.deepNavy }}>
+                  <h2
+                    className="text-2xl font-bold tracking-tight"
+                    style={{ color: COLORS.deepNavy }}
+                  >
                     {t('auth.login_heading')}
                   </h2>
-                  <p className="text-sm mt-2 text-muted-foreground">
+                  <p
+                    className="text-sm mt-2 leading-relaxed"
+                    style={{ color: COLORS.warmGray }}
+                  >
                     {t('auth.login_tagline')}
                   </p>
                 </motion.div>
@@ -412,11 +359,6 @@ export function LoginForm() {
                       </span>
                     )}
                   </Button>
-                  {lineInClient === false && (
-                    <p className="mt-2 text-[11px] text-center text-muted-foreground leading-relaxed">
-                      {t('auth.line_login_browser_note')}
-                    </p>
-                  )}
                 </motion.div>
               )}
 
@@ -465,7 +407,7 @@ export function LoginFormFallback() {
     const prevRoot = root.style.background;
     const prevBody = body.style.background;
     const prevBodyColor = body.style.backgroundColor;
-    const bg = COLORS.luxuryGradient;
+    const bg = COLORS.cardGradient;
     root.style.background = bg;
     body.style.background = bg;
     body.style.backgroundColor = '';
@@ -474,11 +416,11 @@ export function LoginFormFallback() {
       body.style.background = prevBody;
       body.style.backgroundColor = prevBodyColor;
     };
-  }, [COLORS.luxuryGradient]);
+  }, [COLORS.cardGradient]);
   return (
     <div
       className="min-h-[100dvh] flex items-center justify-center"
-      style={{ background: COLORS.luxuryGradient }}
+      style={{ background: COLORS.cardGradient }}
     >
       <Loader2 className="w-8 h-8 animate-spin" style={{ color: COLORS.champagneGold }} />
     </div>

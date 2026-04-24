@@ -519,28 +519,14 @@ export default function LandingPage() {
                     );
                   })}
                 </nav>
-                {/* 店舗向けリンク */}
+                {/* ログイン（顧客 / 店舗 / 運営すべて共通） + 加盟店登録 */}
                 <div className="mt-8 pt-6" style={{ borderTop: `1px solid ${lpPage.border}` }}>
-                  <p className="text-sm font-medium mb-3 lg:text-lg" style={{ color: lpPage.textMuted }}>{t('menu.for_stores')}</p>
+                  <p className="text-sm font-medium mb-3 lg:text-lg" style={{ color: lpPage.textMuted }}>{t('menu.account')}</p>
                   <Link href="/login" onClick={() => setShowMenu(false)} className="flex items-center gap-3 p-4 rounded-lg transition-colors group" style={{ color: lpPage.textMuted }}>
-                    <LogIn className="w-5 h-5" style={{ color: accentTextOnLightBg(lpPage.bg) }} /><span className="group-hover:opacity-100 font-medium">{t('header.store_login')}</span><ChevronRight className="w-4 h-4 ml-auto opacity-30" />
+                    <LogIn className="w-5 h-5" style={{ color: accentTextOnLightBg(lpPage.bg) }} /><span className="group-hover:opacity-100 font-medium">{t('auth.login')}</span><ChevronRight className="w-4 h-4 ml-auto opacity-30" />
                   </Link>
                   <Link href="/partner/apply" onClick={() => setShowMenu(false)} className="flex items-center gap-3 p-4 rounded-lg transition-colors group" style={{ color: lpPage.textMuted }}>
                     <Building2 className="w-5 h-5" style={{ color: accentTextOnLightBg(lpPage.bg) }} /><span className="group-hover:opacity-100 font-medium">{t('landing.cta_button_recruitment')}</span><ChevronRight className="w-4 h-4 ml-auto opacity-30" />
-                  </Link>
-                </div>
-                {/* 顧客ログイン */}
-                <div className="mt-8 pt-6" style={{ borderTop: `1px solid ${lpPage.border}` }}>
-                  <p className="text-sm font-medium mb-3 lg:text-lg" style={{ color: lpPage.textMuted }}>{t('auth.login_switch_to_customer')}</p>
-                  <Link href="/login" onClick={() => setShowMenu(false)} className="flex items-center gap-3 p-4 rounded-lg transition-colors group" style={{ color: lpPage.textMuted }}>
-                    <LogIn className="w-5 h-5" style={{ color: accentTextOnLightBg(lpPage.bg) }} /><span className="group-hover:opacity-100 font-medium">{t('menu.customer_login')}</span><ChevronRight className="w-4 h-4 ml-auto opacity-30" />
-                  </Link>
-                </div>
-                {/* 運営ログイン */}
-                <div className="mt-8 pt-6" style={{ borderTop: `1px solid ${lpPage.border}` }}>
-                  <p className="text-sm font-medium mb-3 lg:text-lg" style={{ color: lpPage.textMuted }}>{t('menu.for_operators')}</p>
-                  <Link href="/login" onClick={() => setShowMenu(false)} className="flex items-center gap-3 p-4 rounded-lg transition-colors group" style={{ color: lpPage.textMuted }}>
-                    <LogIn className="w-5 h-5" style={{ color: accentTextOnLightBg(lpPage.bg) }} /><span className="group-hover:opacity-100 font-medium">{t('menu.normal_login')}</span><ChevronRight className="w-4 h-4 ml-auto opacity-30" />
                   </Link>
                 </div>
                 {/* Official Account */}
@@ -576,15 +562,6 @@ export default function LandingPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
               >
-                <div className="flex items-center gap-2 mb-8">
-                  <div className="h-[1px] w-8" style={{ background: accentTextOnLightBg(lpPage.bg) }} />
-                  <span
-                    className="text-xs font-semibold uppercase tracking-[0.2em] lg:text-base"
-                    style={{ color: accentTextOnLightBg(lpPage.bg) }}
-                  >
-                    {t('landing.hero_pc_badge')}
-                  </span>
-                </div>
                 <h1 className="text-xl xl:text-4xl leading-[1.2] font-bold mb-6 tracking-tight" style={{ color: lpPage.text }}>
                   {t('landing.hero_pc_title').split('\n').map((line, i) => (
                     <span key={i} className="block">
