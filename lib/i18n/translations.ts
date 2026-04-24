@@ -135,7 +135,6 @@ export const translations = {
       // --- Unified login / LINE login ---
       login_heading: 'NIKENME+ にログイン',
       login_tagline: '1次会前後のお店探しはNIKENME+で決まり',
-      login_hint: 'メールアドレスとパスワード、または LINE アカウントでログインできます。',
       login_hero_kicker: 'NIKENME+',
       login_hero_copy: '一次会後のお店探しはNIKENME+で決まり。',
       customer_login_title: 'NIKENME+ にログイン',
@@ -1346,7 +1345,6 @@ export const translations = {
       // --- Unified login / LINE login ---
       login_heading: 'Log in to NIKENME+',
       login_tagline: 'Your go-to for finding the next spot — before or after the main event.',
-      login_hint: 'Use your email and password, or sign in with LINE.',
       login_hero_kicker: 'NIKENME+',
       login_hero_copy: 'Your go-to companion for the night out — after the first round.',
       customer_login_title: 'Log in to NIKENME+',
@@ -2521,7 +2519,6 @@ export const translations = {
       // --- Customer login / LINE login ---
       login_heading: 'NIKENME+ 로그인',
       login_tagline: '1차 전후의 가게 찾기는 NIKENME+로 결정.',
-      login_hint: '이메일과 비밀번호 또는 LINE 계정으로 로그인할 수 있습니다.',
       login_hero_kicker: 'NIKENME+',
       login_hero_copy: '1차가 끝난 뒤, 다음 가게는 NIKENME+로.',
       customer_login_title: 'NIKENME+ 로그인',
@@ -3685,7 +3682,6 @@ export const translations = {
       // --- Customer login / LINE login ---
       login_heading: '登录 NIKENME+',
       login_tagline: '一次聚会前后的找店，就交给 NIKENME+。',
-      login_hint: '可使用邮箱密码或 LINE 账号登录。',
       login_hero_kicker: 'NIKENME+',
       login_hero_copy: '一次聚会结束后，下一家就交给 NIKENME+。',
       customer_login_title: '登录 NIKENME+',

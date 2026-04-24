@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { motion } from 'framer-motion';
-import { Mail, Lock, Loader2, Home, Sparkles } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Mail, Lock, Loader2, Home, Sparkles, MapPin, Zap, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,6 +22,16 @@ const LINE_BRAND_ICON_URL =
   'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1776852523/LINE_Brand_icon_zfypmz.png';
 
 const LINE_BRAND = '#06C755';
+
+const HERO_IMAGES = [
+  'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1774355369/brian-jones-YBlcnXfv9OM-unsplash_orpuaz.jpg',
+  'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772501853/masahiro-miyagi-RLDNGblOqHU-unsplash_zadhp8.jpg',
+  'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1774355344/romeo-a-P8dzevR1yE4-unsplash_enlnhr.jpg',
+  'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772501853/patrick-tomasso-GXXYkSwndP4-unsplash_w4c9df.jpg',
+  'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772501860/drew-beamer-bTN-zKFy9uA-unsplash_kmcnyo.jpg',
+];
+
+const LP_NAVY = '#0A1628';
 
 export function LoginForm() {
   const { colorsB: COLORS } = useAppMode();
@@ -42,6 +52,21 @@ export function LoginForm() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [lineLoading, setLineLoading] = useState(false);
+  const [heroImageIndex, setHeroImageIndex] = useState(0);
+
+  useEffect(() => {
+    HERO_IMAGES.forEach((src) => {
+      const img = new Image();
+      img.src = src;
+    });
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setHeroImageIndex((prev) => (prev + 1) % HERO_IMAGES.length);
+    }, 4500);
+    return () => clearInterval(interval);
+  }, []);
 
   const liffAvailable = Boolean(process.env.NEXT_PUBLIC_LIFF_ID);
 
@@ -131,11 +156,156 @@ export function LoginForm() {
 
   return (
     <div
-      className="min-h-[100dvh] relative overflow-hidden"
+      className="min-h-[100dvh] relative overflow-hidden lg:grid lg:grid-cols-2"
       style={{ background: COLORS.cardGradient }}
     >
-      {/* Subtle decorative accents on off-white */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+      {/* ===== Desktop-only: Left Hero Panel ===== */}
+      <aside
+        className="hidden lg:flex relative overflow-hidden flex-col justify-between p-12 xl:p-16"
+        style={{ background: LP_NAVY, minHeight: '100dvh' }}
+      >
+        {/* Rotating hero background */}
+        <div className="absolute inset-0 z-0">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={heroImageIndex}
+              initial={{ opacity: 0, scale: 1.05 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 1.2, ease: 'easeOut' }}
+              className="absolute inset-0 bg-cover bg-center"
+              style={{ backgroundImage: `url('${HERO_IMAGES[heroImageIndex]}')` }}
+            />
+          </AnimatePresence>
+          {/* Dark overlay for readability */}
+          <div
+            className="absolute inset-0"
+            style={{
+              background: `linear-gradient(135deg, rgba(10,22,40,0.88) 0%, rgba(10,22,40,0.7) 45%, rgba(19,41,75,0.82) 100%)`,
+            }}
+          />
+          <div
+            className="absolute inset-0"
+            style={{
+              background: `radial-gradient(circle at 20% 0%, ${COLORS.champagneGold}22 0%, transparent 55%)`,
+            }}
+          />
+        </div>
+
+        {/* Top: Kicker + Logo */}
+        <motion.div
+          initial={{ opacity: 0, y: -12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="relative z-10 flex items-center gap-3"
+        >
+          <img src={LOGO_URL} alt="NIKENME+" className="w-9 h-9" />
+          <div className="flex flex-col">
+            <span
+              className="text-[10px] tracking-[0.25em] uppercase font-semibold"
+              style={{ color: COLORS.champagneGold }}
+            >
+              Night Discovery Platform
+            </span>
+            <span className="text-base font-bold text-white">NIKENME+</span>
+          </div>
+        </motion.div>
+
+        {/* Middle: Hero copy */}
+        <div className="relative z-10 space-y-6 max-w-xl">
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.1 }}
+            className="text-4xl xl:text-5xl font-bold tracking-tight text-white leading-[1.15]"
+          >
+            {t('landing.hero_pc_title').split('\n').map((line, i, arr) => (
+              <span key={i}>
+                {line}
+                {i < arr.length - 1 && <br />}
+              </span>
+            ))}
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.2 }}
+            className="text-base xl:text-lg leading-relaxed"
+            style={{ color: 'rgba(255,255,255,0.82)' }}
+          >
+            {t('landing.hero_pc_description')}
+          </motion.p>
+
+          {/* Floating availability chip */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.3 }}
+            className="inline-flex items-center gap-3 px-4 py-3 rounded-2xl"
+            style={{
+              background: 'rgba(255,255,255,0.08)',
+              backdropFilter: 'blur(20px)',
+              border: `1px solid ${COLORS.champagneGold}4d`,
+              boxShadow: '0 12px 32px rgba(0,0,0,0.3)',
+            }}
+          >
+            <motion.span
+              animate={{ scale: [1, 1.3, 1], opacity: [1, 0.6, 1] }}
+              transition={{ duration: 1.6, repeat: Infinity }}
+              className="w-2.5 h-2.5 rounded-full"
+              style={{ background: '#4ADE80', boxShadow: '0 0 10px #4ADE80' }}
+            />
+            <div>
+              <p className="text-sm font-semibold text-white">
+                {t('landing.seats_available')}
+              </p>
+              <p className="text-[11px]" style={{ color: 'rgba(255,255,255,0.6)' }}>
+                {t('landing.hero_subcopy')}
+              </p>
+            </div>
+          </motion.div>
+        </div>
+
+        {/* Bottom: Feature cards */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.4 }}
+          className="relative z-10 space-y-3"
+        >
+          {[
+            { icon: MapPin, title: t('landing.benefit_quick_check'), desc: t('landing.benefit_quick_check_desc') },
+            { icon: Zap, title: t('landing.benefit_one_tap'), desc: t('landing.benefit_one_tap_desc') },
+          ].map((item) => (
+            <div
+              key={item.title}
+              className="flex items-center gap-3 p-3.5 rounded-xl"
+              style={{
+                background: 'rgba(255,255,255,0.06)',
+                backdropFilter: 'blur(12px)',
+                border: '1px solid rgba(255,255,255,0.1)',
+              }}
+            >
+              <div
+                className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
+                style={{ background: `${COLORS.champagneGold}26`, border: `1px solid ${COLORS.champagneGold}4d` }}
+              >
+                <item.icon className="w-4 h-4" style={{ color: COLORS.champagneGold }} />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-white truncate">{item.title}</p>
+                <p className="text-xs" style={{ color: 'rgba(255,255,255,0.6)' }}>
+                  {item.desc}
+                </p>
+              </div>
+              <CheckCircle2 className="w-4 h-4 ml-auto shrink-0" style={{ color: COLORS.champagneGold }} />
+            </div>
+          ))}
+        </motion.div>
+      </aside>
+
+      {/* Subtle decorative accents on off-white (right side / mobile) */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden lg:hidden">
         <div
           className="absolute -top-48 -left-48 h-[44rem] w-[44rem] rounded-full"
           style={{
@@ -156,7 +326,8 @@ export function LoginForm() {
         />
       </div>
 
-      <div className="relative mx-auto flex w-full max-w-2xl px-4 sm:px-6 min-h-[100dvh] items-center justify-center py-10">
+      {/* ===== Right: Login Form (= mobile full layout) ===== */}
+      <div className="relative mx-auto flex w-full max-w-2xl lg:max-w-xl px-4 sm:px-6 min-h-[100dvh] items-center justify-center py-10">
         <motion.section
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -364,9 +535,6 @@ export function LoginForm() {
               )}
 
               <div className="mt-5 flex flex-col gap-2 text-center text-xs">
-                <p className="text-muted-foreground leading-relaxed">
-                  {t('auth.login_hint')}
-                </p>
                 <Link
                   href="/register?role=customer"
                   className="font-medium transition-colors hover:opacity-80 mt-2"
