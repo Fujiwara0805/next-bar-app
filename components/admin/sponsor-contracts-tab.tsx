@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Loader2, Calendar, Ban, FileText } from 'lucide-react';
+import { Plus, Loader2, Calendar, Ban, FileText, RotateCcw } from 'lucide-react';
 import { useAdminTheme } from '@/lib/admin-theme-context';
 import { CustomModal } from '@/components/ui/custom-modal';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/auth/context';
 import { calculateEndDate } from '@/lib/sponsors/utils';
+import { renewContract } from '@/lib/actions/sponsor-contract';
 import { PLAN_LABELS, CONTRACT_STATUS_LABELS } from '@/lib/sponsors/types';
 import type { SponsorContract, PlanType, ContractStatus } from '@/lib/sponsors/types';
 
@@ -40,6 +41,13 @@ export function SponsorContractsTab({ sponsorId }: Props) {
   const [amount, setAmount] = useState(0);
   const [notes, setNotes] = useState('');
 
+  // Renew modal
+  const [renewOpen, setRenewOpen] = useState(false);
+  const [renewTarget, setRenewTarget] = useState<SponsorContract | null>(null);
+  const [renewPlanType, setRenewPlanType] = useState<PlanType>('7day');
+  const [renewStartDate, setRenewStartDate] = useState(new Date().toISOString().split('T')[0]);
+  const [renewEndDate, setRenewEndDate] = useState('');
+
   useEffect(() => {
     fetchContracts();
   }, [sponsorId]);
@@ -49,6 +57,12 @@ export function SponsorContractsTab({ sponsorId }: Props) {
       setEndDate(calculateEndDate(startDate, planType));
     }
   }, [planType, startDate]);
+
+  useEffect(() => {
+    if (renewPlanType !== 'custom') {
+      setRenewEndDate(calculateEndDate(renewStartDate, renewPlanType));
+    }
+  }, [renewPlanType, renewStartDate]);
 
   const fetchContracts = async () => {
     setLoading(true);
@@ -104,6 +118,36 @@ export function SponsorContractsTab({ sponsorId }: Props) {
       fetchContracts();
     } else {
       toast.error(error.message || 'キャンセルに失敗しました');
+    }
+  };
+
+  const openRenew = (c: SponsorContract) => {
+    setRenewTarget(c);
+    const today = new Date().toISOString().split('T')[0];
+    const originalPlan = (c.plan_type as PlanType) || '7day';
+    setRenewPlanType(originalPlan);
+    setRenewStartDate(today);
+    setRenewEndDate(originalPlan === 'custom' ? today : calculateEndDate(today, originalPlan));
+    setRenewOpen(true);
+  };
+
+  const handleRenew = async () => {
+    if (!renewTarget || !user) { toast.error('ログインが必要です'); return; }
+    setSaving(true);
+    const result = await renewContract(renewTarget.id, {
+      plan_type: renewPlanType,
+      start_date: renewStartDate,
+      end_date: renewEndDate,
+      userId: user.id,
+    });
+    setSaving(false);
+    if (result.success) {
+      toast.success('同じ条件で広告を再開しました');
+      setRenewOpen(false);
+      setRenewTarget(null);
+      fetchContracts();
+    } else {
+      toast.error(result.error || '再開に失敗しました');
     }
   };
 
@@ -194,6 +238,19 @@ export function SponsorContractsTab({ sponsorId }: Props) {
                         <Ban className="w-4 h-4" />
                       </motion.button>
                     )}
+                    {(status === 'expired' || status === 'cancelled') && (
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => openRenew(c)}
+                        className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-white transition-colors"
+                        style={{ background: C.accent }}
+                        title="同じ条件で再広告"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5" />
+                        再開
+                      </motion.button>
+                    )}
                   </div>
                 </motion.div>
               );
@@ -277,6 +334,72 @@ export function SponsorContractsTab({ sponsorId }: Props) {
               className="flex-1 py-2.5 rounded-lg text-sm font-semibold text-white bg-brass-500 disabled:opacity-50"
             >
               {saving ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : '作成'}
+            </button>
+          </div>
+        </div>
+      </CustomModal>
+
+      {/* Renew Contract Modal */}
+      <CustomModal
+        isOpen={renewOpen}
+        onClose={() => setRenewOpen(false)}
+        title="広告を同じ条件で再開"
+        description="元契約の金額・備考・広告枠・クリエイティブをそのまま引き継いで、新しい期間の契約を作成します。"
+      >
+        <div className="space-y-4">
+          {renewTarget && (
+            <div className="p-3 rounded-lg text-xs" style={{ background: C.bgCard, border: `1px solid ${C.border}`, color: C.textMuted }}>
+              <div>元契約: {PLAN_LABELS[renewTarget.plan_type as PlanType]} ({renewTarget.start_date} 〜 {renewTarget.end_date})</div>
+              {renewTarget.price != null && <div>金額: ¥{Number(renewTarget.price).toLocaleString()}</div>}
+            </div>
+          )}
+          <div>
+            <label className="block text-xs font-semibold text-gray-600 mb-1">プランタイプ</label>
+            <select
+              value={renewPlanType}
+              onChange={(e) => setRenewPlanType(e.target.value as PlanType)}
+              className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-brass-500"
+            >
+              {(Object.keys(PLAN_LABELS) as PlanType[]).map((k) => (
+                <option key={k} value={k}>{PLAN_LABELS[k]}</option>
+              ))}
+            </select>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 mb-1">開始日</label>
+              <input
+                type="date"
+                value={renewStartDate}
+                onChange={(e) => setRenewStartDate(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-brass-500"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 mb-1">終了日</label>
+              <input
+                type="date"
+                value={renewEndDate}
+                onChange={(e) => setRenewEndDate(e.target.value)}
+                disabled={renewPlanType !== 'custom'}
+                className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-brass-500 disabled:opacity-60"
+              />
+            </div>
+          </div>
+          <div className="flex gap-2 pt-2">
+            <button
+              onClick={() => setRenewOpen(false)}
+              className="flex-1 py-2.5 rounded-lg text-sm font-medium border border-gray-200 text-gray-600 hover:bg-gray-50"
+            >
+              キャンセル
+            </button>
+            <button
+              onClick={handleRenew}
+              disabled={saving}
+              className="flex-1 py-2.5 rounded-lg text-sm font-semibold text-white disabled:opacity-50"
+              style={{ background: C.accent }}
+            >
+              {saving ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : '再開する'}
             </button>
           </div>
         </div>
