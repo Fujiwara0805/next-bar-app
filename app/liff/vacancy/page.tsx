@@ -8,7 +8,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Bell, BellOff, Loader2, MapPin, Save } from 'lucide-react';
+import { Bell, BellOff, Loader2, MapPin, Save, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -16,6 +16,7 @@ import { Switch } from '@/components/ui/switch';
 import { useLiff } from '@/lib/line/context';
 import { useLanguage } from '@/lib/i18n/context';
 import { LINE_BRAND_COLOR } from '@/lib/line/constants';
+import { useAppMode } from '@/lib/app-mode-context';
 import { toast } from 'sonner';
 
 type Subscription = {
@@ -34,6 +35,7 @@ type Subscription = {
 export default function LiffVacancyOptInPage() {
   const { t } = useLanguage();
   const { isLiffReady, isLineLoggedIn, liffLogin, getIdToken, liffError } = useLiff();
+  const { colorsB: COLORS } = useAppMode();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -170,64 +172,147 @@ export default function LiffVacancyOptInPage() {
     }
   }, [subscription]);
 
+  const cardStyle: React.CSSProperties = {
+    background: '#FFFFFF',
+    border: `1px solid ${COLORS.champagneGold}4d`,
+    boxShadow: '0 8px 24px rgba(19, 41, 75, 0.18)',
+  };
+
+  const labelStyle: React.CSSProperties = { color: COLORS.deepNavy };
+  const hintStyle: React.CSSProperties = { color: COLORS.warmGray };
+
   return (
     <div
-      className="min-h-screen safe-top pb-16"
+      className="min-h-screen safe-top pb-16 relative overflow-hidden"
       style={{
-        background: 'linear-gradient(180deg, #0B2447 0%, #152C5B 100%)',
-        color: '#F5F3EC',
+        background: COLORS.luxuryGradient,
+        color: COLORS.ivory,
       }}
     >
-      <div className="max-w-xl mx-auto px-4 pt-6">
-        <div className="flex items-center gap-2 mb-6">
-          <Bell className="w-5 h-5" style={{ color: LINE_BRAND_COLOR }} />
-          <h1 className="text-lg font-bold">{t('liffVacancy.title')}</h1>
-        </div>
+      {/* 装飾オーラ */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div
+          className="absolute -top-40 -right-40 h-[34rem] w-[34rem] rounded-full"
+          style={{
+            background: `radial-gradient(circle, ${COLORS.champagneGold}1f 0%, transparent 60%)`,
+          }}
+        />
+        <div
+          className="absolute -bottom-56 -left-48 h-[34rem] w-[34rem] rounded-full"
+          style={{
+            background: `radial-gradient(circle, ${COLORS.midnightBlue}33 0%, transparent 65%)`,
+          }}
+        />
+        <div
+          className="absolute top-0 left-0 right-0 h-[2px]"
+          style={{
+            background: `linear-gradient(90deg, transparent, ${COLORS.champagneGold}, transparent)`,
+          }}
+        />
+      </div>
+
+      <div className="relative z-10 max-w-xl mx-auto px-4 pt-8">
+        {/* ヘッダー */}
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="flex flex-col items-center text-center mb-6"
+        >
+          <div
+            className="w-14 h-14 rounded-2xl flex items-center justify-center mb-3"
+            style={{
+              background: COLORS.goldGradient,
+              boxShadow: '0 8px 24px rgba(255, 198, 45, 0.35)',
+            }}
+          >
+            <Bell className="w-6 h-6" style={{ color: COLORS.deepNavy }} />
+          </div>
+          <div className="flex items-center gap-1.5 mb-1">
+            <Sparkles className="w-3.5 h-3.5" style={{ color: COLORS.champagneGold }} />
+            <span
+              className="text-[10px] tracking-[0.25em] uppercase font-semibold"
+              style={{ color: COLORS.champagneGold }}
+            >
+              NIKENME+
+            </span>
+            <Sparkles className="w-3.5 h-3.5" style={{ color: COLORS.champagneGold }} />
+          </div>
+          <h1
+            className="text-xl sm:text-2xl font-bold tracking-tight"
+            style={{ color: COLORS.ivory }}
+          >
+            {t('liffVacancy.title')}
+          </h1>
+        </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
           {!isLiffReady ? (
             <div className="flex justify-center py-16">
-              <Loader2 className="w-6 h-6 animate-spin" />
+              <Loader2 className="w-6 h-6 animate-spin" style={{ color: COLORS.champagneGold }} />
             </div>
           ) : !canUseLine ? (
-            <Card className="p-5 bg-white text-slate-800">
-              <p className="text-sm mb-4">{t('liffVacancy.login_required_body')}</p>
+            <Card className="p-6 rounded-2xl" style={cardStyle}>
+              <p className="text-sm mb-4 leading-relaxed" style={labelStyle}>
+                {t('liffVacancy.login_required_body')}
+              </p>
               {liffError ? (
                 <p className="text-xs text-destructive mb-3">{liffError}</p>
               ) : null}
               <Button
                 onClick={() => liffLogin()}
-                className="w-full"
-                style={{ backgroundColor: LINE_BRAND_COLOR, color: 'white' }}
+                className="w-full h-12 text-sm font-bold rounded-xl text-white"
+                style={{
+                  backgroundColor: LINE_BRAND_COLOR,
+                  boxShadow: '0 6px 20px rgba(6, 199, 85, 0.32)',
+                }}
               >
                 {t('liffVacancy.login_button')}
               </Button>
             </Card>
           ) : loading ? (
             <div className="flex justify-center py-16">
-              <Loader2 className="w-6 h-6 animate-spin" />
+              <Loader2 className="w-6 h-6 animate-spin" style={{ color: COLORS.champagneGold }} />
             </div>
           ) : exists === false ? (
-            <Card className="p-5 bg-white text-slate-800">
-              <p className="text-sm mb-3">{t('liffVacancy.need_follow_oa_title')}</p>
-              <p className="text-xs text-slate-500">{t('liffVacancy.need_follow_oa_body')}</p>
+            <Card className="p-6 rounded-2xl" style={cardStyle}>
+              <p className="text-sm font-bold mb-2" style={labelStyle}>
+                {t('liffVacancy.need_follow_oa_title')}
+              </p>
+              <p className="text-xs leading-relaxed" style={hintStyle}>
+                {t('liffVacancy.need_follow_oa_body')}
+              </p>
             </Card>
           ) : (
             <>
-              <Card className="p-5 bg-white text-slate-800 mb-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-bold">{t('liffVacancy.opt_in_label')}</p>
-                    <p className="text-xs text-slate-500 mt-1">{t('liffVacancy.opt_in_hint')}</p>
+              {/* 通知オン/オフ */}
+              <Card className="p-5 rounded-2xl mb-4" style={cardStyle}>
+                <div className="flex items-center justify-between gap-4">
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold" style={labelStyle}>
+                      {t('liffVacancy.opt_in_label')}
+                    </p>
+                    <p className="text-xs mt-1 leading-relaxed" style={hintStyle}>
+                      {t('liffVacancy.opt_in_hint')}
+                    </p>
                   </div>
                   <Switch checked={optIn} onCheckedChange={setOptIn} />
                 </div>
               </Card>
 
-              <Card className="p-5 bg-white text-slate-800 mb-4">
-                <p className="text-sm font-bold mb-2">
-                  {t('liffVacancy.radius_label')}: {radiusKm} km
-                </p>
+              {/* 半径スライダー */}
+              <Card className="p-5 rounded-2xl mb-4" style={cardStyle}>
+                <div className="flex items-baseline justify-between mb-3">
+                  <p className="text-sm font-bold" style={labelStyle}>
+                    {t('liffVacancy.radius_label')}
+                  </p>
+                  <span
+                    className="text-base font-bold tabular-nums"
+                    style={{ color: COLORS.champagneGold }}
+                  >
+                    {radiusKm} km
+                  </span>
+                </div>
                 <input
                   type="range"
                   min={minRadius}
@@ -235,26 +320,50 @@ export default function LiffVacancyOptInPage() {
                   step={0.5}
                   value={radiusKm}
                   onChange={(e) => setRadiusKm(Number(e.target.value))}
-                  className="w-full"
+                  className="w-full accent-current"
+                  style={{ accentColor: COLORS.champagneGold }}
                   disabled={!optIn}
                 />
-                <p className="text-xs text-slate-500 mt-2">{t('liffVacancy.radius_hint')}</p>
+                <div
+                  className="flex justify-between text-[11px] mt-1 tabular-nums"
+                  style={hintStyle}
+                >
+                  <span>{minRadius} km</span>
+                  <span>{maxRadius} km</span>
+                </div>
+                <p className="text-xs mt-2 leading-relaxed" style={hintStyle}>
+                  {t('liffVacancy.radius_hint')}
+                </p>
               </Card>
 
-              <Card className="p-5 bg-white text-slate-800 mb-4">
-                <p className="text-sm font-bold mb-2">{t('liffVacancy.area_label')}</p>
+              {/* エリア + 中心位置 */}
+              <Card className="p-5 rounded-2xl mb-5" style={cardStyle}>
+                <p className="text-sm font-bold mb-2" style={labelStyle}>
+                  {t('liffVacancy.area_label')}
+                </p>
                 <Input
                   value={areaLabel}
                   onChange={(e) => setAreaLabel(e.target.value.slice(0, 64))}
                   placeholder={t('liffVacancy.area_placeholder')}
                   disabled={!optIn}
+                  className="h-11 rounded-xl border-2"
+                  style={{
+                    borderColor: `${COLORS.champagneGold}55`,
+                    color: COLORS.deepNavy,
+                    fontSize: '16px',
+                  }}
                 />
-                <p className="text-xs text-slate-500 mt-2">{t('liffVacancy.area_hint')}</p>
-                <div className="flex items-center justify-between mt-3">
-                  <div className="text-xs text-slate-500 truncate">
+                <p className="text-xs mt-2 leading-relaxed" style={hintStyle}>
+                  {t('liffVacancy.area_hint')}
+                </p>
+                <div
+                  className="flex items-center justify-between gap-2 mt-3 pt-3"
+                  style={{ borderTop: `1px solid ${COLORS.champagneGold}33` }}
+                >
+                  <div className="text-xs truncate" style={hintStyle}>
                     {centerLat != null && centerLng != null ? (
-                      <span>
-                        <MapPin className="inline w-3 h-3 mr-1" />
+                      <span className="inline-flex items-center gap-1">
+                        <MapPin className="w-3 h-3" style={{ color: COLORS.champagneGold }} />
                         {centerLat.toFixed(4)}, {centerLng.toFixed(4)}
                       </span>
                     ) : (
@@ -263,10 +372,15 @@ export default function LiffVacancyOptInPage() {
                   </div>
                   <Button
                     type="button"
-                    variant="outline"
                     size="sm"
                     onClick={handleUseCurrentLocation}
                     disabled={!optIn || locating}
+                    className="rounded-lg font-semibold shrink-0"
+                    style={{
+                      background: `${COLORS.champagneGold}1f`,
+                      color: COLORS.deepNavy,
+                      border: `1px solid ${COLORS.champagneGold}66`,
+                    }}
                   >
                     {locating ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
@@ -278,12 +392,17 @@ export default function LiffVacancyOptInPage() {
                 </div>
               </Card>
 
+              {/* 保存ボタン */}
               <Button
                 onClick={handleSave}
                 disabled={saving}
-                className="w-full"
+                className="w-full h-12 text-sm font-bold rounded-xl shadow-lg"
                 size="lg"
-                style={{ backgroundColor: LINE_BRAND_COLOR, color: 'white' }}
+                style={{
+                  background: COLORS.deepNavy,
+                  color: COLORS.champagneGold,
+                  boxShadow: '0 8px 24px rgba(19, 41, 75, 0.45)',
+                }}
               >
                 {saving ? (
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -296,7 +415,10 @@ export default function LiffVacancyOptInPage() {
               </Button>
 
               {lastSavedLabel ? (
-                <p className="text-[11px] text-center mt-3 text-white/60">
+                <p
+                  className="text-[11px] text-center mt-3"
+                  style={{ color: `${COLORS.ivory}99` }}
+                >
                   {t('liffVacancy.last_saved')}: {lastSavedLabel}
                 </p>
               ) : null}
