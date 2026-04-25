@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Mail, Lock, Loader2, Home, Sparkles, MapPin, Zap, CheckCircle2 } from 'lucide-react';
+import { Mail, Lock, Loader2, Home, MapPin, Zap, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -351,22 +351,24 @@ export function LoginForm() {
           className="w-full"
         >
           <div className="w-full max-w-[460px] mx-auto">
-            <div className="flex flex-col items-center mb-6">
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="flex items-center gap-2 mb-2"
+            <motion.div
+              initial={{ opacity: 0, y: -12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="flex flex-col items-center mb-6"
+            >
+              <img
+                src={LOGO_URL}
+                alt="NIKENME+"
+                className="w-24 h-24 sm:w-28 sm:h-28 object-contain"
+              />
+              <p
+                className="mt-3 text-lg sm:text-xl font-bold tracking-tight text-center"
+                style={{ color: COLORS.deepNavy }}
               >
-                <img src={LOGO_URL} alt="NIKENME+" className="w-5 h-5" />
-                <Sparkles className="w-3.5 h-3.5" style={{ color: COLORS.champagneGold }} />
-                <span
-                  className="text-[11px] tracking-[0.2em] uppercase font-semibold"
-                  style={{ color: COLORS.deepNavy }}
-                >
-                  {t('auth.login_hero_kicker') || 'NIKENME+'}
-                </span>
-              </motion.div>
-            </div>
+                {t('auth.login_welcome')}
+              </p>
+            </motion.div>
 
             <div
               className="rounded-2xl p-7 sm:p-9"
@@ -377,27 +379,6 @@ export function LoginForm() {
                   '0 18px 48px rgba(19, 41, 75, 0.12), 0 4px 12px rgba(19, 41, 75, 0.06)',
               }}
             >
-              <div className="text-center mb-8">
-                <motion.div
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 }}
-                >
-                  <h2
-                    className="text-2xl font-bold tracking-tight"
-                    style={{ color: COLORS.deepNavy }}
-                  >
-                    {t('auth.login_heading')}
-                  </h2>
-                  <p
-                    className="text-sm mt-2 leading-relaxed"
-                    style={{ color: COLORS.warmGray }}
-                  >
-                    {t('auth.login_tagline')}
-                  </p>
-                </motion.div>
-              </div>
-
               <form onSubmit={handleSubmit} className="space-y-5">
                 <motion.div
                   initial={{ opacity: 0, y: 6 }}

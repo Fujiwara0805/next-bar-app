@@ -190,7 +190,7 @@ function ManageLayoutInner({ children }: { children: React.ReactNode }) {
 }
 
 /** 店舗アカウントがログイン後に使うパス（運営ダッシュボードとは別） */
-const STORE_SELF_MANAGE_SEGMENTS = /^(update|edit|change-password|scan|broadcast|analytics|coupons|redeem|engagement)$/;
+const STORE_SELF_MANAGE_SEGMENTS = /^(update|edit|change-password|scan|broadcast|analytics|coupons|redeem|engagement|customers)$/;
 
 export default function ManageLayout({
   children,

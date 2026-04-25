@@ -16,6 +16,7 @@ import {
   Sparkles,
   ChevronRight,
   Building2,
+  Users,
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { CloseCircleButton } from '@/components/ui/close-circle-button';
@@ -76,6 +77,12 @@ export default function StoreEngagementMenuPage() {
       icon: QrCode,
       title: 'スキャン',
       description: '顧客が表示するQRを読み取ってチェックインを記録',
+    },
+    {
+      href: `/store/manage/${storeId}/customers`,
+      icon: Users,
+      title: '顧客データ',
+      description: '来店履歴・来店頻度の確認とCSV出力',
     },
     {
       href: `/store/manage/${storeId}/coupons`,

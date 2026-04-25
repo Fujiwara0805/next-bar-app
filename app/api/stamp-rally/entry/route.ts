@@ -136,5 +136,69 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'insert_failed' }, { status: 500 });
   }
 
+  // Google Sheets Webhook 連携 (fire-and-forget)
+  // 失敗してもユーザー応募は成立。タイムアウト3秒で切る。
+  const sheetWebhook = process.env.STAMP_RALLY_SHEET_WEBHOOK_URL;
+  if (sheetWebhook && inserted) {
+    const { data: profile } = await admin
+      .from('users')
+      .select('display_name, line_display_name, profile_attributes, line_user_id')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    const { data: stores } = await admin
+      .from('stores')
+      .select('id, name')
+      .in('id', visitedStoreIds);
+    const storeNameMap = new Map((stores ?? []).map((s) => [s.id, s.name]));
+    const visitedStoreNames = visitedStoreIds
+      .map((id) => storeNameMap.get(id) ?? id)
+      .join(' / ');
+
+    const attrs = (profile?.profile_attributes ?? {}) as {
+      address?: string;
+      age?: string;
+      occupation?: string;
+      gender?: string;
+    };
+
+    const payload = {
+      entry_id: inserted.id,
+      user_id: user.id,
+      display_name:
+        profile?.line_display_name || profile?.display_name || '(no name)',
+      line_linked: !!profile?.line_user_id,
+      email,
+      entry_date: entryDate,
+      created_at: inserted.created_at,
+      visited_store_ids: visitedStoreIds,
+      visited_store_names: visitedStoreNames,
+      stamp_count: visitedStoreIds.length,
+      address: attrs.address ?? '',
+      age: attrs.age ?? '',
+      occupation: attrs.occupation ?? '',
+      gender: attrs.gender ?? '',
+      status: 'pending',
+    };
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 3000);
+    fetch(sheetWebhook, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    })
+      .then((res) => {
+        if (!res.ok) {
+          console.error('[stamp-rally sheet] webhook non-ok', res.status);
+        }
+      })
+      .catch((err) => {
+        console.error('[stamp-rally sheet] webhook error', err);
+      })
+      .finally(() => clearTimeout(timeout));
+  }
+
   return NextResponse.json({ ok: true, entry: inserted });
 }

@@ -13,8 +13,6 @@ import {
   Clock,
   Sparkles,
   UserCog,
-  ArrowLeft,
-  Info,
   ChevronDown,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth/context';
@@ -176,20 +174,10 @@ export default function MyPage() {
           borderBottom: `1px solid ${BRASS}33`,
         }}
       >
-        <div className="flex items-center justify-between p-4 max-w-md mx-auto">
-          <button
-            onClick={() => router.back()}
-            className="flex items-center gap-1.5 text-sm font-medium transition-opacity hover:opacity-80"
-            style={{ color: '#FDFBF7' }}
-            aria-label={t('mypage.back')}
-          >
-            <ArrowLeft className="w-4 h-4" />
-            {t('mypage.back')}
-          </button>
+        <div className="flex items-center justify-center p-4 max-w-md mx-auto">
           <h1 className="text-lg font-light tracking-[0.2em]" style={{ color: '#FDFBF7' }}>
             {t('mypage.title')}
           </h1>
-          <div className="w-16" />
         </div>
       </header>
 
@@ -380,10 +368,14 @@ export default function MyPage() {
               aria-controls="stamp-help-body"
             >
               <div
-                className="flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center"
+                className="flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center overflow-hidden"
                 style={{ background: `${BRASS}28`, border: `1px solid ${BRASS}66` }}
               >
-                <Info className="w-4 h-4" style={{ color: COPPER }} />
+                <img
+                  src={STAMP_ICON_URL}
+                  alt="stamp"
+                  className="w-6 h-6 object-contain"
+                />
               </div>
               <h3 className="flex-1 font-bold text-sm" style={{ color: NAVY }}>
                 {t('mypage.stamp_explanation_title')}
@@ -402,7 +394,7 @@ export default function MyPage() {
                 className="px-4 pb-4 pl-14 space-y-1.5 text-xs leading-relaxed list-disc list-outside marker:text-[#B87333]"
                 style={{ color: 'rgba(19, 41, 75, 0.85)' }}
               >
-                <li>加盟店で会員証QRをスタッフに見せる → スタンプ1個</li>
+                <li>加盟店で会員証QRを見せてスタンプをGET</li>
                 <li>12時間以内に3個以上で抽選に応募可能</li>
                 <li>毎日Amazonギフト券500円分が当たる（ランダム）</li>
                 <li>スタンプが多いほど当選率UP</li>

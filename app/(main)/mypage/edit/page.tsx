@@ -13,6 +13,8 @@ import {
   Cake,
   Briefcase,
   Users as UsersIcon,
+  Mail,
+  CheckCircle2,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth/context';
 import { supabase } from '@/lib/supabase/client';
@@ -55,6 +57,11 @@ export default function MyPageEdit() {
   const [attributes, setAttributes] = useState<ProfileAttributes>({});
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [emailInput, setEmailInput] = useState('');
+  const [emailSaving, setEmailSaving] = useState(false);
+  const [emailSent, setEmailSent] = useState<string | null>(null);
+
+  const isLineDummyEmail = (user?.email ?? '').endsWith('@line.nikenme.local');
 
   useEffect(() => {
     const root = document.documentElement;
@@ -126,6 +133,47 @@ export default function MyPageEdit() {
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleEmailRegister = async () => {
+    if (!user) return;
+    const trimmed = emailInput.trim();
+    if (!trimmed) {
+      toast.error('メールアドレスを入力してください');
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      toast.error('メールアドレスの形式が正しくありません');
+      return;
+    }
+    if (trimmed.endsWith('@line.nikenme.local')) {
+      toast.error('このドメインは登録できません');
+      return;
+    }
+    setEmailSaving(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ email: trimmed });
+      if (error) throw error;
+      setEmailSent(trimmed);
+      setEmailInput('');
+      toast.success('確認メールを送信しました', {
+        description: `${trimmed} のメールに記載のリンクをクリックして登録を完了してください。`,
+        position: 'top-center',
+        duration: 4000,
+      });
+    } catch (err) {
+      console.error('[email register]', err);
+      const message =
+        err instanceof Error
+          ? err.message
+          : 'メールアドレスの登録に失敗しました';
+      toast.error('メールアドレスの登録に失敗しました', {
+        description: message,
+        position: 'top-center',
+      });
+    } finally {
+      setEmailSaving(false);
     }
   };
 
@@ -422,6 +470,90 @@ export default function MyPageEdit() {
               </div>
             </div>
           </div>
+
+          {/* メールアドレス登録（LINEログインユーザー向け） */}
+          {isLineDummyEmail && (
+            <div
+              className="rounded-2xl p-6 bg-white mb-4 relative overflow-hidden"
+              style={{
+                border: `1px solid ${BRASS}33`,
+                boxShadow: '0 12px 32px rgba(19, 41, 75, 0.08)',
+              }}
+            >
+              <h2 className="text-sm font-bold mb-1" style={{ color: NAVY }}>
+                メールアドレスを登録
+              </h2>
+              <p className="text-xs mb-4 leading-relaxed" style={{ color: 'rgba(19, 41, 75, 0.7)' }}>
+                抽選応募の自動入力やお知らせ通知の受信に利用されます。確認メールのリンクをクリックすると登録が完了します。
+              </p>
+
+              {emailSent ? (
+                <div
+                  className="rounded-xl p-3 flex items-start gap-2.5"
+                  style={{
+                    background: `${BRASS}14`,
+                    border: `1px solid ${BRASS}55`,
+                  }}
+                >
+                  <CheckCircle2 className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: COPPER }} />
+                  <div className="text-xs leading-relaxed" style={{ color: NAVY }}>
+                    <p className="font-semibold mb-0.5">確認メールを送信しました</p>
+                    <p style={{ color: 'rgba(19, 41, 75, 0.7)' }}>
+                      <span className="font-semibold">{emailSent}</span>{' '}
+                      に届くメールのリンクをクリックして登録を完了してください。
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="space-y-1.5">
+                    <Label
+                      htmlFor="email"
+                      className="text-xs font-semibold flex items-center gap-1.5"
+                      style={{ color: NAVY }}
+                    >
+                      <Mail className="w-3.5 h-3.5" />
+                      メールアドレス
+                    </Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      inputMode="email"
+                      value={emailInput}
+                      onChange={(e) => setEmailInput(e.target.value)}
+                      placeholder="example@email.com"
+                      autoComplete="email"
+                      className="h-12 text-sm rounded-xl border-2 bg-muted"
+                      style={{ fontSize: '16px', color: NAVY }}
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    onClick={handleEmailRegister}
+                    disabled={emailSaving || !emailInput.trim()}
+                    className="w-full h-11 font-bold rounded-xl"
+                    style={{
+                      background: GOLD_GRADIENT,
+                      color: NAVY,
+                      boxShadow: `0 6px 18px ${BRASS}44`,
+                    }}
+                  >
+                    {emailSaving ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        送信中...
+                      </>
+                    ) : (
+                      <>
+                        <Mail className="w-4 h-4 mr-2" />
+                        確認メールを送信
+                      </>
+                    )}
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="flex gap-3">
             <Button
