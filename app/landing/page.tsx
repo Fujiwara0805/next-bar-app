@@ -67,6 +67,11 @@ const DEFAULT_LOCATION = {
 
 const LP_NAVY = '#13294b';
 const LP_YELLOW = '#ffc62d';
+
+// LINE公式アカウント 友だち追加URL（Basic ID @621uzlfv → @ を %40 にURLエンコード）
+const LINE_OA_FRIEND_URL = 'https://line.me/R/ti/p/%40621uzlfv';
+const LINE_BRAND_ICON_URL =
+  'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1776852523/LINE_Brand_icon_zfypmz.png';
 const LP_ON_NAVY = {
   text: '#FFFFFF',
   textMuted: 'rgba(255, 255, 255, 0.78)',
@@ -568,6 +573,9 @@ export default function LandingPage() {
                   <p className="text-sm font-medium mb-3 lg:text-lg" style={{ color: lpPage.textMuted }}>{t('menu.official_account')}</p>
                   <a href="https://www.instagram.com/nikenme_nobody/" target="_blank" rel="noopener noreferrer" onClick={() => setShowMenu(false)} className="flex items-center gap-3 p-4 rounded-lg transition-colors group" style={{ color: lpPage.textMuted }}>
                     <Instagram className="w-5 h-5" style={{ color: accentTextOnLightBg(lpPage.bg) }} /><span className="group-hover:opacity-100 font-medium">Instagram</span><ChevronRight className="w-4 h-4 ml-auto opacity-30" />
+                  </a>
+                  <a href={LINE_OA_FRIEND_URL} target="_blank" rel="noopener noreferrer" onClick={() => setShowMenu(false)} className="flex items-center gap-3 p-4 rounded-lg transition-colors group" style={{ color: lpPage.textMuted }}>
+                    <img src={LINE_BRAND_ICON_URL} alt="" width={20} height={20} className="w-5 h-5 object-contain shrink-0" /><span className="group-hover:opacity-100 font-medium">LINE</span><ChevronRight className="w-4 h-4 ml-auto opacity-30" />
                   </a>
                 </div>
                 <div className="mt-6 pt-6" style={{ borderTop: `1px solid ${lpPage.border}` }}>
