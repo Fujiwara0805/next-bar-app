@@ -66,10 +66,12 @@ export function SponsorContractsTab({ sponsorId }: Props) {
 
   const fetchContracts = async () => {
     setLoading(true);
+    // cancelled は画面上から除外（DBは保持＝論理削除）
     const { data, error } = await supabase
       .from('sponsor_contracts')
       .select('*')
       .eq('sponsor_id', sponsorId)
+      .neq('status', 'cancelled')
       .order('created_at', { ascending: false });
     if (!error && data) setContracts(data as SponsorContract[]);
     setLoading(false);
@@ -176,8 +178,8 @@ export function SponsorContractsTab({ sponsorId }: Props) {
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={() => setCreateOpen(true)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white"
-          style={{ background: C.accent }}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold"
+          style={{ background: C.accent, color: C.accentForeground }}
         >
           <Plus className="w-3.5 h-3.5" />
           新規契約
@@ -238,13 +240,13 @@ export function SponsorContractsTab({ sponsorId }: Props) {
                         <Ban className="w-4 h-4" />
                       </motion.button>
                     )}
-                    {(status === 'expired' || status === 'cancelled') && (
+                    {status === 'expired' && (
                       <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={() => openRenew(c)}
-                        className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-white transition-colors"
-                        style={{ background: C.accent }}
+                        className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors"
+                        style={{ background: C.accent, color: C.accentForeground }}
                         title="同じ条件で再広告"
                       >
                         <RotateCcw className="w-3.5 h-3.5" />
@@ -259,11 +261,11 @@ export function SponsorContractsTab({ sponsorId }: Props) {
         </div>
       )}
 
-      {/* Create Contract Modal */}
+      {/* Create Contract Modal (タイトルなし / PCひと回り大きく) */}
       <CustomModal
         isOpen={createOpen}
         onClose={() => setCreateOpen(false)}
-        title="新規契約作成"
+        size="lg"
       >
         <div className="space-y-4">
           <div>
@@ -331,7 +333,8 @@ export function SponsorContractsTab({ sponsorId }: Props) {
             <button
               onClick={handleCreate}
               disabled={saving}
-              className="flex-1 py-2.5 rounded-lg text-sm font-semibold text-white bg-brass-500 disabled:opacity-50"
+              className="flex-1 py-2.5 rounded-lg text-sm font-semibold disabled:opacity-50"
+              style={{ background: C.accent, color: C.accentForeground }}
             >
               {saving ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : '作成'}
             </button>
@@ -339,11 +342,11 @@ export function SponsorContractsTab({ sponsorId }: Props) {
         </div>
       </CustomModal>
 
-      {/* Renew Contract Modal */}
+      {/* Renew Contract Modal (タイトルなし / PCひと回り大きく) */}
       <CustomModal
         isOpen={renewOpen}
         onClose={() => setRenewOpen(false)}
-        title="広告を同じ条件で再開"
+        size="lg"
         description="元契約の金額・備考・広告枠・クリエイティブをそのまま引き継いで、新しい期間の契約を作成します。"
       >
         <div className="space-y-4">
@@ -396,8 +399,8 @@ export function SponsorContractsTab({ sponsorId }: Props) {
             <button
               onClick={handleRenew}
               disabled={saving}
-              className="flex-1 py-2.5 rounded-lg text-sm font-semibold text-white disabled:opacity-50"
-              style={{ background: C.accent }}
+              className="flex-1 py-2.5 rounded-lg text-sm font-semibold disabled:opacity-50"
+              style={{ background: C.accent, color: C.accentForeground }}
             >
               {saving ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : '再開する'}
             </button>

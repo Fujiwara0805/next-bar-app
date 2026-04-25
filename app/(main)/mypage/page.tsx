@@ -7,12 +7,15 @@ import { motion } from 'framer-motion';
 import {
   QrCode,
   Ticket,
-  MapPin,
+  Map,
   LogOut,
   ChevronRight,
   Clock,
   Sparkles,
   UserCog,
+  ArrowLeft,
+  Info,
+  ChevronDown,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth/context';
 import { useLanguage } from '@/lib/i18n/context';
@@ -52,6 +55,7 @@ export default function MyPage() {
   const [windowStoreCount, setWindowStoreCount] = useState(0);
   const [hasTodayEntry, setHasTodayEntry] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [stampHelpOpen, setStampHelpOpen] = useState(false);
 
   // 背景をオフホワイトで上書き
   useEffect(() => {
@@ -145,6 +149,20 @@ export default function MyPage() {
 
   const displayName = profile?.display_name ?? user.email?.split('@')[0] ?? '';
 
+  // QR表示前提のプロフィール必須項目チェック（住所エリア / 年齢 / 職業 / 性別）
+  const profileAttrs = (profile?.profile_attributes ?? {}) as {
+    address?: string;
+    age?: string;
+    occupation?: string;
+    gender?: string;
+  };
+  const isProfileComplete = Boolean(
+    profileAttrs.address?.trim() &&
+      profileAttrs.age?.trim() &&
+      profileAttrs.occupation?.trim() &&
+      profileAttrs.gender?.trim()
+  );
+
   return (
     <div
       className="min-h-screen pb-24 relative"
@@ -159,18 +177,19 @@ export default function MyPage() {
         }}
       >
         <div className="flex items-center justify-between p-4 max-w-md mx-auto">
-          <div className="w-16" />
-          <h1 className="text-lg font-light tracking-[0.2em]" style={{ color: '#FDFBF7' }}>
-            マイページ
-          </h1>
-          <Link
-            href="/mypage/edit"
-            className="inline-flex items-center gap-1 text-xs font-medium transition-opacity hover:opacity-80"
-            style={{ color: BRASS }}
+          <button
+            onClick={() => router.back()}
+            className="flex items-center gap-1.5 text-sm font-medium transition-opacity hover:opacity-80"
+            style={{ color: '#FDFBF7' }}
+            aria-label={t('mypage.back')}
           >
-            <UserCog className="w-3.5 h-3.5" />
-            編集
-          </Link>
+            <ArrowLeft className="w-4 h-4" />
+            {t('mypage.back')}
+          </button>
+          <h1 className="text-lg font-light tracking-[0.2em]" style={{ color: '#FDFBF7' }}>
+            {t('mypage.title')}
+          </h1>
+          <div className="w-16" />
         </div>
       </header>
 
@@ -236,60 +255,160 @@ export default function MyPage() {
               </div>
               <Link
                 href="/mypage/edit"
-                className="flex-shrink-0 inline-flex items-center justify-center w-9 h-9 rounded-full transition-colors"
-                style={{
-                  background: `${BRASS}18`,
-                  border: `1px solid ${BRASS}50`,
-                }}
-                aria-label="プロフィール編集"
+                className="flex-shrink-0 inline-flex flex-col items-center justify-center gap-0.5 px-1 py-1 rounded-lg transition-colors"
+                aria-label={t('mypage.edit')}
               >
-                <UserCog className="w-4 h-4" style={{ color: COPPER }} />
+                <span
+                  className="inline-flex items-center justify-center w-9 h-9 rounded-full"
+                  style={{
+                    background: `${BRASS}18`,
+                    border: `1px solid ${BRASS}50`,
+                  }}
+                >
+                  <UserCog className="w-4 h-4" style={{ color: COPPER }} />
+                </span>
+                <span
+                  className="text-[10px] font-semibold leading-none"
+                  style={{ color: NAVY }}
+                >
+                  {t('mypage.edit')}
+                </span>
               </Link>
             </div>
           </div>
 
-          {/* チェックインQR表示誘導 */}
-          <Link href="/mypage/qr" className="block mb-4">
+          {/* チェックインQR表示誘導（プロフィール未入力時はガード表示） */}
+          {isProfileComplete ? (
+            <Link href="/mypage/qr" className="block mb-4">
+              <div
+                className="rounded-2xl p-5 transition-all hover:translate-y-[-2px] relative overflow-hidden"
+                style={{
+                  background: `linear-gradient(135deg, ${NAVY} 0%, #1A3562 100%)`,
+                  boxShadow: `0 14px 36px rgba(19, 41, 75, 0.30)`,
+                  border: `1px solid ${BRASS}55`,
+                }}
+              >
+                <div
+                  className="absolute -top-12 -right-12 w-32 h-32 rounded-full opacity-30"
+                  style={{ background: `radial-gradient(circle, ${BRASS}, transparent 70%)` }}
+                />
+                <div className="relative flex items-center gap-4">
+                  <div
+                    className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0"
+                    style={{
+                      background: GOLD_GRADIENT,
+                      boxShadow: `0 6px 16px ${BRASS}55`,
+                    }}
+                  >
+                    <QrCode className="w-7 h-7" style={{ color: NAVY }} />
+                  </div>
+                  <div className="flex-1">
+                    <h2
+                      className="font-bold text-base mb-0.5"
+                      style={{ color: '#FDFBF7' }}
+                    >
+                      {t('mypage.qr_cta_title')}
+                    </h2>
+                    <p
+                      className="text-xs"
+                      style={{ color: 'rgba(253, 251, 247, 0.75)' }}
+                    >
+                      {t('mypage.qr_cta_desc')}
+                    </p>
+                  </div>
+                  <ChevronRight className="w-5 h-5" style={{ color: BRASS }} />
+                </div>
+              </div>
+            </Link>
+          ) : (
             <div
-              className="rounded-2xl p-5 transition-all hover:translate-y-[-2px] relative overflow-hidden"
+              className="rounded-2xl p-5 mb-4 relative overflow-hidden"
               style={{
-                background: `linear-gradient(135deg, ${NAVY} 0%, #1A3562 100%)`,
-                boxShadow: `0 14px 36px rgba(19, 41, 75, 0.30)`,
-                border: `1px solid ${BRASS}55`,
+                background: 'white',
+                border: `1px dashed ${COPPER}88`,
+                boxShadow: '0 8px 22px rgba(19, 41, 75, 0.08)',
               }}
             >
-              <div
-                className="absolute -top-12 -right-12 w-32 h-32 rounded-full opacity-30"
-                style={{ background: `radial-gradient(circle, ${BRASS}, transparent 70%)` }}
-              />
-              <div className="relative flex items-center gap-4">
+              <div className="flex items-start gap-3 mb-3">
                 <div
-                  className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0"
-                  style={{
-                    background: GOLD_GRADIENT,
-                    boxShadow: `0 6px 16px ${BRASS}55`,
-                  }}
+                  className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center"
+                  style={{ background: `${COPPER}1c`, border: `1px solid ${COPPER}44` }}
                 >
-                  <QrCode className="w-7 h-7" style={{ color: NAVY }} />
+                  <QrCode className="w-5 h-5" style={{ color: COPPER }} />
                 </div>
-                <div className="flex-1">
-                  <h2
-                    className="font-bold text-base mb-0.5"
-                    style={{ color: '#FDFBF7' }}
-                  >
-                    {t('mypage.qr_cta_title')}
-                  </h2>
+                <div className="min-w-0">
+                  <h3 className="font-bold text-sm mb-1" style={{ color: NAVY }}>
+                    {t('mypage.profile_required_title')}
+                  </h3>
                   <p
-                    className="text-xs"
-                    style={{ color: 'rgba(253, 251, 247, 0.75)' }}
+                    className="text-xs leading-relaxed"
+                    style={{ color: 'rgba(19, 41, 75, 0.72)' }}
                   >
-                    {t('mypage.qr_cta_desc')}
+                    {t('mypage.profile_required_desc')}
                   </p>
                 </div>
-                <ChevronRight className="w-5 h-5" style={{ color: BRASS }} />
               </div>
+              <Link href="/mypage/edit">
+                <Button
+                  className="w-full h-11 font-bold rounded-xl"
+                  style={{
+                    background: GOLD_GRADIENT,
+                    color: NAVY,
+                    boxShadow: `0 6px 18px ${BRASS}44`,
+                  }}
+                >
+                  <UserCog className="w-4 h-4 mr-2" />
+                  {t('mypage.profile_required_cta')}
+                </Button>
+              </Link>
             </div>
-          </Link>
+          )}
+
+          {/* スタンプの貯め方 説明カード（トグル / デフォルト閉） */}
+          <div
+            className="rounded-2xl mb-4 relative overflow-hidden"
+            style={{
+              background: `linear-gradient(135deg, ${BRASS}14 0%, ${BRASS}06 100%)`,
+              border: `1px solid ${BRASS}55`,
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => setStampHelpOpen((v) => !v)}
+              className="w-full flex items-center gap-3 p-4 text-left transition-opacity hover:opacity-90"
+              aria-expanded={stampHelpOpen}
+              aria-controls="stamp-help-body"
+            >
+              <div
+                className="flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center"
+                style={{ background: `${BRASS}28`, border: `1px solid ${BRASS}66` }}
+              >
+                <Info className="w-4 h-4" style={{ color: COPPER }} />
+              </div>
+              <h3 className="flex-1 font-bold text-sm" style={{ color: NAVY }}>
+                {t('mypage.stamp_explanation_title')}
+              </h3>
+              <ChevronDown
+                className="w-4 h-4 transition-transform duration-200"
+                style={{
+                  color: COPPER,
+                  transform: stampHelpOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                }}
+              />
+            </button>
+            {stampHelpOpen && (
+              <ul
+                id="stamp-help-body"
+                className="px-4 pb-4 pl-14 space-y-1.5 text-xs leading-relaxed list-disc list-outside marker:text-[#B87333]"
+                style={{ color: 'rgba(19, 41, 75, 0.85)' }}
+              >
+                <li>加盟店で会員証QRをスタッフに見せる → スタンプ1個</li>
+                <li>12時間以内に3個以上で抽選に応募可能</li>
+                <li>毎日Amazonギフト券500円分が当たる（ランダム）</li>
+                <li>スタンプが多いほど当選率UP</li>
+              </ul>
+            )}
+          </div>
 
           {/* スタンプ進捗 */}
           <div
@@ -413,22 +532,8 @@ export default function MyPage() {
             )}
           </div>
 
-          {/* その他導線 */}
+          {/* その他導線（プロフィール編集はアバター横へ統合済） */}
           <div className="space-y-2 mb-4">
-            <Link href="/mypage/edit">
-              <Button
-                variant="outline"
-                className="w-full justify-start h-12 rounded-xl font-medium"
-                style={{
-                  background: 'white',
-                  border: `1px solid ${BRASS}55`,
-                  color: NAVY,
-                }}
-              >
-                <UserCog className="w-4 h-4 mr-2" style={{ color: COPPER }} />
-                プロフィール編集
-              </Button>
-            </Link>
             <Link href="/map">
               <Button
                 variant="outline"
@@ -439,7 +544,7 @@ export default function MyPage() {
                   color: NAVY,
                 }}
               >
-                <MapPin className="w-4 h-4 mr-2" style={{ color: COPPER }} />
+                <Map className="w-4 h-4 mr-2" style={{ color: COPPER }} />
                 {t('mypage.find_stores')}
               </Button>
             </Link>

@@ -54,7 +54,24 @@ export default function MyPageQrPage() {
       router.replace('/mypage');
       return;
     }
-  }, [authLoading, user, accountType, router]);
+    // プロフィール必須項目（住所エリア / 年齢 / 職業 / 性別）が未入力なら QR を表示しない
+    const attrs = (profile?.profile_attributes ?? {}) as {
+      address?: string;
+      age?: string;
+      occupation?: string;
+      gender?: string;
+    };
+    const isComplete = Boolean(
+      attrs.address?.trim() &&
+        attrs.age?.trim() &&
+        attrs.occupation?.trim() &&
+        attrs.gender?.trim()
+    );
+    if (profile && !isComplete) {
+      router.replace('/mypage');
+      return;
+    }
+  }, [authLoading, user, accountType, profile, router]);
 
   const resolveSiteUrl = (): string => {
     const env =

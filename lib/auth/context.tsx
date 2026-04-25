@@ -4,7 +4,12 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase/client';
 import type { Database } from '@/lib/supabase/types';
-import { getLineIdToken, lineLogin as liffLoginFn, getLiff } from '@/lib/line/liff';
+import {
+  getLineIdToken,
+  lineLogin as liffLoginFn,
+  getLiff,
+  isLineIdTokenExpired,
+} from '@/lib/line/liff';
 
 type UserRow = Database['public']['Tables']['users']['Row'];
 type Store = Database['public']['Tables']['stores']['Row'];
@@ -181,9 +186,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { error: null };
       }
 
-      const idToken = await getLineIdToken();
-      if (!idToken) {
-        return { error: new Error('Failed to obtain LINE id_token') };
+      let idToken = await getLineIdToken();
+
+      // LIFF SDKはキャッシュされた id_token を返すため、期限切れなら logout→login で強制リフレッシュ
+      if (!idToken || isLineIdTokenExpired(idToken)) {
+        try {
+          liff.logout();
+        } catch (err) {
+          console.error('[LINE] logout error:', err);
+        }
+        liff.login({ redirectUri: window.location.href });
+        // リダイレクトが発生するので以降は実行されない
+        return { error: null };
       }
 
       // サーバーで検証 + Supabase認証 magiclink hashed_token 発行
@@ -195,12 +209,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (!res.ok) {
         const errJson = await res.json().catch(() => ({}));
+        const errCode = typeof errJson?.error === 'string' ? errJson.error : '';
+        const errMessage = typeof errJson?.message === 'string' ? errJson.message : '';
+
+        // サーバー側検証で expired が出た場合（LIFFキャッシュと実際のズレ）も logout→login でリカバリ
+        if (
+          errCode === 'line_verify_failed' &&
+          /IdToken expired|id_token expired/i.test(errMessage)
+        ) {
+          try {
+            liff.logout();
+          } catch (err) {
+            console.error('[LINE] logout error:', err);
+          }
+          liff.login({ redirectUri: window.location.href });
+          return { error: null };
+        }
+
         return {
-          error: new Error(errJson?.message || errJson?.error || 'LINE exchange failed'),
+          error: new Error(errMessage || errCode || 'LINE exchange failed'),
         };
       }
 
-      const { email, hashedToken } = (await res.json()) as {
+      const { hashedToken } = (await res.json()) as {
         email: string;
         hashedToken: string;
       };

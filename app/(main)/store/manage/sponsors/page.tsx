@@ -200,7 +200,7 @@ export default function SponsorsPage() {
           </div>
           <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={openCreate}
             className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold"
-            style={{ background: C.accent, color: '#fff' }}>
+            style={{ background: C.accent, color: C.accentForeground }}>
             <Plus className="w-4 h-4" /> 新規登録
           </motion.button>
         </motion.div>
@@ -330,7 +330,7 @@ export default function SponsorsPage() {
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
                     <motion.button key={p} whileTap={{ scale: 0.9 }} onClick={() => setCurrentPage(p)}
                       className="w-7 h-7 rounded-lg text-xs font-medium transition-colors"
-                      style={{ background: currentPage === p ? C.accent : 'transparent', color: currentPage === p ? '#fff' : C.textMuted }}>
+                      style={{ background: currentPage === p ? C.accent : 'transparent', color: currentPage === p ? C.accentForeground : C.textMuted }}>
                       {p}
                     </motion.button>
                   ))}
@@ -401,12 +401,14 @@ export default function SponsorsPage() {
             </button>
           </div>
           <div className="flex gap-2 pt-2">
-            <Button variant="outline" className="flex-1 font-semibold rounded-lg" onClick={() => setFormOpen(false)}
-              style={{ borderColor: C.border, color: C.textMuted }}>
+            <button
+              onClick={() => setFormOpen(false)}
+              className="flex-1 py-2.5 rounded-lg text-sm font-medium border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
+            >
               キャンセル
-            </Button>
+            </button>
             <Button className="flex-1 font-semibold rounded-lg" onClick={handleSave} disabled={saving}
-              style={{ background: C.accent, color: '#fff' }}>
+              style={{ background: C.accent, color: C.accentForeground }}>
               {saving ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : editTarget ? '更新' : '登録'}
             </Button>
           </div>
@@ -417,10 +419,12 @@ export default function SponsorsPage() {
       <CustomModal isOpen={deleteOpen} onClose={() => setDeleteOpen(false)} title="スポンサー削除"
         description={`「${deleteTarget?.company_name}」を削除しますか？関連する契約・広告枠もすべて削除されます。`}>
         <div className="flex gap-2 pt-4">
-          <Button variant="outline" className="flex-1 font-semibold rounded-lg" onClick={() => setDeleteOpen(false)}
-            style={{ borderColor: C.border, color: C.textMuted }}>
+          <button
+            onClick={() => setDeleteOpen(false)}
+            className="flex-1 py-2.5 rounded-lg text-sm font-medium border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
+          >
             キャンセル
-          </Button>
+          </button>
           <Button className="flex-1 font-semibold rounded-lg" onClick={handleDelete} disabled={deleting}
             style={{ background: C.danger, color: '#fff' }}>
             {deleting ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : '削除する'}

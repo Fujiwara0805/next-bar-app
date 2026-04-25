@@ -141,14 +141,30 @@ export function LoginForm() {
     try {
       const { error } = await signInWithLine();
       if (error) {
-        toast.error(t('auth.line_login_failed'), { description: error.message });
+        const msg = error.message || '';
+        if (/IdToken expired|id_token expired|expired/i.test(msg)) {
+          toast.error(t('auth.line_login_expired_title'), {
+            description: t('auth.line_login_expired_desc'),
+          });
+        } else {
+          toast.error(t('auth.line_login_failed'), {
+            description: t('auth.line_login_generic_error'),
+          });
+        }
         return;
       }
       toast.success(t('auth.login_success'), { position: 'top-center', duration: 1000 });
     } catch (err) {
-      toast.error(t('auth.line_login_failed'), {
-        description: err instanceof Error ? err.message : undefined,
-      });
+      const msg = err instanceof Error ? err.message : '';
+      if (/IdToken expired|id_token expired|expired/i.test(msg)) {
+        toast.error(t('auth.line_login_expired_title'), {
+          description: t('auth.line_login_expired_desc'),
+        });
+      } else {
+        toast.error(t('auth.line_login_failed'), {
+          description: t('auth.line_login_generic_error'),
+        });
+      }
     } finally {
       setLineLoading(false);
     }
@@ -274,8 +290,8 @@ export function LoginForm() {
           className="relative z-10 space-y-3"
         >
           {[
-            { icon: MapPin, title: t('landing.benefit_quick_check'), desc: t('landing.benefit_quick_check_desc') },
-            { icon: Zap, title: t('landing.benefit_one_tap'), desc: t('landing.benefit_one_tap_desc') },
+            { icon: MapPin, title: t('auth.benefit_quick_check'), desc: t('auth.benefit_quick_check_desc') },
+            { icon: Zap, title: t('auth.benefit_one_tap'), desc: t('auth.benefit_one_tap_desc') },
           ].map((item) => (
             <div
               key={item.title}
@@ -345,7 +361,7 @@ export function LoginForm() {
                 <Sparkles className="w-3.5 h-3.5" style={{ color: COLORS.champagneGold }} />
                 <span
                   className="text-[11px] tracking-[0.2em] uppercase font-semibold"
-                  style={{ color: COLORS.antiqueGold }}
+                  style={{ color: COLORS.deepNavy }}
                 >
                   {t('auth.login_hero_kicker') || 'NIKENME+'}
                 </span>
@@ -432,7 +448,7 @@ export function LoginForm() {
                     <Link
                       href="/auth/forgot-password"
                       className="text-[11px] font-medium transition-colors hover:opacity-80"
-                      style={{ color: COLORS.champagneGold }}
+                      style={{ color: COLORS.deepNavy }}
                     >
                       {t('auth.forgot_password')}
                     </Link>
@@ -467,9 +483,9 @@ export function LoginForm() {
                     type="submit"
                     className="w-full h-12 text-sm font-bold rounded-xl shadow-lg transition-all duration-200 mt-1 group"
                     style={{
-                      background: COLORS.goldGradient,
-                      color: COLORS.deepNavy,
-                      boxShadow: '0 6px 24px rgba(201, 168, 108, 0.35)',
+                      background: COLORS.deepNavy,
+                      color: COLORS.champagneGold,
+                      boxShadow: '0 6px 24px rgba(19, 41, 75, 0.35)',
                     }}
                     disabled={loading}
                   >
@@ -538,7 +554,7 @@ export function LoginForm() {
                 <Link
                   href="/register?role=customer"
                   className="font-medium transition-colors hover:opacity-80 mt-2"
-                  style={{ color: COLORS.champagneGold }}
+                  style={{ color: COLORS.deepNavy }}
                 >
                   {t('auth.customer_signup_cta')}
                 </Link>

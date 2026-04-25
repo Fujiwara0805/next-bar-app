@@ -188,7 +188,7 @@ export default function ApplicationsManagePage() {
             whileTap={{ scale: 0.98 }}
             onClick={handleExportCSV}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold"
-            style={{ background: C.accent, color: '#fff' }}
+            style={{ background: C.accent, color: C.accentForeground }}
           >
             <Download className="w-3.5 h-3.5" />
             CSV出力
@@ -263,7 +263,7 @@ export default function ApplicationsManagePage() {
                 render: (a: StoreApplication) => (
                   <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                     <Link href={`/store/manage/new?application_id=${a.id}`}>
-                      <button className="flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold" style={{ background: C.accent, color: '#fff' }}>
+                      <button className="flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold" style={{ background: C.accent, color: C.accentForeground }}>
                         <ChevronRight className="w-3 h-3" /> 審査
                       </button>
                     </Link>

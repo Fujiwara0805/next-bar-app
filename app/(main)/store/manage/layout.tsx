@@ -113,7 +113,8 @@ function ManageLayoutInner({ children }: { children: React.ReactNode }) {
       <aside
         className="hidden md:flex md:flex-col md:w-[240px] md:flex-shrink-0 fixed inset-y-0 left-0 z-40"
         style={{
-          background: isDark ? '#0c1222' : '#ffffff',
+          // Dark: Navy 濃い面 / Light: 白
+          background: isDark ? '#0F1F3A' : '#ffffff',
           borderRight: `1px solid ${C.border}`,
         }}
       >
@@ -161,7 +162,7 @@ function ManageLayoutInner({ children }: { children: React.ReactNode }) {
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
               className="md:hidden fixed inset-y-0 left-0 z-50 w-[260px]"
               style={{
-                background: isDark ? '#0c1222' : '#ffffff',
+                background: isDark ? '#0F1F3A' : '#ffffff',
                 borderRight: `1px solid ${C.border}`,
               }}
             >

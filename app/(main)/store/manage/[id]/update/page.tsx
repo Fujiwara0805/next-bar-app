@@ -684,7 +684,7 @@ export default function StoreUpdatePage() {
                   type="button"
                   onClick={() => router.push(`/store/manage/${store.id}/scan`)}
                   className="inline-flex items-center gap-1.5 mt-2 text-xs font-semibold w-fit transition-opacity hover:opacity-80"
-                  style={{ color: COLORS.champagneGold }}
+                  style={{ color: COLORS.deepNavy }}
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
                   <QrCode className="w-3.5 h-3.5" />

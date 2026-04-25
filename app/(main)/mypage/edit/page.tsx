@@ -139,11 +139,24 @@ export default function MyPageEdit() {
       return;
     }
 
-    const cleanAttributes: ProfileAttributes = {};
-    if (attributes.address?.trim()) cleanAttributes.address = attributes.address.trim();
-    if (attributes.age?.trim()) cleanAttributes.age = attributes.age.trim();
-    if (attributes.occupation?.trim()) cleanAttributes.occupation = attributes.occupation.trim();
-    if (attributes.gender?.trim()) cleanAttributes.gender = attributes.gender.trim();
+    // 会員証QR表示の前提として 4項目を必須化
+    const trimmedAddress = attributes.address?.trim() ?? '';
+    const trimmedAge = attributes.age?.trim() ?? '';
+    const trimmedOccupation = attributes.occupation?.trim() ?? '';
+    const trimmedGender = attributes.gender?.trim() ?? '';
+    if (!trimmedAddress || !trimmedAge || !trimmedOccupation || !trimmedGender) {
+      toast.error('住所エリア・年齢・職業・性別をすべて入力してください', {
+        description: '会員証QRを表示するために必要です。',
+      });
+      return;
+    }
+
+    const cleanAttributes: ProfileAttributes = {
+      address: trimmedAddress,
+      age: trimmedAge,
+      occupation: trimmedOccupation,
+      gender: trimmedGender,
+    };
 
     setSaving(true);
     try {
@@ -292,10 +305,10 @@ export default function MyPageEdit() {
             }}
           >
             <h2 className="text-sm font-bold mb-1" style={{ color: NAVY }}>
-              プロフィール情報
+              プロフィール情報 <span className="text-destructive">*</span>
             </h2>
-            <p className="text-xs mb-5 leading-relaxed" style={{ color: 'rgba(19, 41, 75, 0.6)' }}>
-              ここで入力した情報は、クーポン発行や特典のマッチングに使われます（任意）。
+            <p className="text-xs mb-5 leading-relaxed" style={{ color: 'rgba(19, 41, 75, 0.7)' }}>
+              会員証QRの表示・クーポン発行・特典マッチングに利用されます。すべて必須項目です。
             </p>
 
             <div className="space-y-4">
@@ -306,13 +319,14 @@ export default function MyPageEdit() {
                   style={{ color: NAVY }}
                 >
                   <MapPin className="w-3.5 h-3.5" />
-                  住所エリア
+                  住所エリア <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   id="address"
                   value={attributes.address ?? ''}
                   onChange={(e) => setAttributes((prev) => ({ ...prev, address: e.target.value }))}
                   placeholder="例: 大分市中央町"
+                  required
                   maxLength={100}
                   className="h-12 text-sm rounded-xl border-2 bg-muted"
                   style={{ fontSize: '16px', color: NAVY }}
@@ -326,7 +340,7 @@ export default function MyPageEdit() {
                   style={{ color: NAVY }}
                 >
                   <Cake className="w-3.5 h-3.5" />
-                  年齢
+                  年齢 <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   id="age"
@@ -335,6 +349,7 @@ export default function MyPageEdit() {
                   value={attributes.age ?? ''}
                   onChange={(e) => setAttributes((prev) => ({ ...prev, age: e.target.value }))}
                   placeholder="例: 28"
+                  required
                   min={0}
                   max={120}
                   className="h-12 text-sm rounded-xl border-2 bg-muted"
@@ -349,13 +364,14 @@ export default function MyPageEdit() {
                   style={{ color: NAVY }}
                 >
                   <Briefcase className="w-3.5 h-3.5" />
-                  職業
+                  職業 <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   id="occupation"
                   value={attributes.occupation ?? ''}
                   onChange={(e) => setAttributes((prev) => ({ ...prev, occupation: e.target.value }))}
                   placeholder="例: 会社員 / デザイナー"
+                  required
                   maxLength={100}
                   className="h-12 text-sm rounded-xl border-2 bg-muted"
                   style={{ fontSize: '16px', color: NAVY }}
@@ -368,7 +384,7 @@ export default function MyPageEdit() {
                   style={{ color: NAVY }}
                 >
                   <UsersIcon className="w-3.5 h-3.5" />
-                  性別
+                  性別 <span className="text-destructive">*</span>
                 </Label>
                 <div className="grid grid-cols-2 gap-2">
                   {GENDER_OPTIONS.map((opt) => {

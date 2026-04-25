@@ -261,7 +261,7 @@ export default function CustomersPage() {
                 <ChevronLeft className="w-4 h-4" />
               </motion.button>
               {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                <motion.button key={p} whileTap={{ scale: 0.9 }} onClick={() => setCurrentPage(p)} className="w-7 h-7 rounded-lg text-xs font-medium transition-colors" style={{ background: currentPage === p ? C.accent : 'transparent', color: currentPage === p ? '#fff' : C.textMuted }}>
+                <motion.button key={p} whileTap={{ scale: 0.9 }} onClick={() => setCurrentPage(p)} className="w-7 h-7 rounded-lg text-xs font-medium transition-colors" style={{ background: currentPage === p ? C.accent : 'transparent', color: currentPage === p ? C.accentForeground : C.textMuted }}>
                   {p}
                 </motion.button>
               ))}
@@ -273,7 +273,7 @@ export default function CustomersPage() {
         )}
       </div>
 
-      {/* 詳細モーダル */}
+      {/* 詳細モーダル (白背景 → Navy テキスト / Yellow アクセント) */}
       <CustomModal
         isOpen={detailOpen}
         onClose={() => setDetailOpen(false)}
@@ -281,43 +281,42 @@ export default function CustomersPage() {
         description={selected?.email || ''}
       >
         {selected && (
-          <div className="space-y-3 text-sm">
+          <div className="space-y-3 text-sm" style={{ color: '#13294b' }}>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <p className="text-xs text-muted-foreground">電話番号</p>
-                <p className="font-semibold">{selected.phone || '—'}</p>
+                <p className="text-xs font-semibold" style={{ color: '#13294b', opacity: 0.7 }}>電話番号</p>
+                <p className="font-semibold" style={{ color: '#13294b' }}>{selected.phone || '—'}</p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">登録日</p>
-                <p className="font-semibold">
+                <p className="text-xs font-semibold" style={{ color: '#13294b', opacity: 0.7 }}>登録日</p>
+                <p className="font-semibold" style={{ color: '#13294b' }}>
                   {selected.created_at ? new Date(selected.created_at).toLocaleDateString('ja-JP') : '—'}
                 </p>
               </div>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground mb-1">LINE連携</p>
+              <p className="text-xs font-semibold mb-1" style={{ color: '#13294b', opacity: 0.7 }}>LINE連携</p>
               {selected.line_user_id ? (
                 <div className="flex items-center gap-2">
-                  <MessageCircle className="w-4 h-4 text-success" />
-                  <span className="font-semibold">連携済 {selected.line_display_name ? `(${selected.line_display_name})` : ''}</span>
+                  <MessageCircle className="w-4 h-4" style={{ color: '#16a34a' }} />
+                  <span className="font-semibold" style={{ color: '#13294b' }}>連携済 {selected.line_display_name ? `(${selected.line_display_name})` : ''}</span>
                 </div>
               ) : (
-                <span className="text-muted-foreground">未連携</span>
+                <span style={{ color: '#13294b', opacity: 0.6 }}>未連携</span>
               )}
             </div>
             {selected.bio && (
               <div>
-                <p className="text-xs text-muted-foreground mb-1">自己紹介</p>
-                <p className="text-sm leading-relaxed">{selected.bio}</p>
+                <p className="text-xs font-semibold mb-1" style={{ color: '#13294b', opacity: 0.7 }}>自己紹介</p>
+                <p className="text-sm leading-relaxed" style={{ color: '#13294b' }}>{selected.bio}</p>
               </div>
             )}
             <div className="pt-4 border-t flex gap-2">
               <Button
-                variant="outline"
-                size="sm"
                 onClick={handleSendReset}
                 disabled={sendingReset || !selected.email}
-                className="flex-1"
+                className="flex-1 h-10 text-sm font-semibold rounded-lg"
+                style={{ background: C.accent, color: C.accentForeground }}
               >
                 {sendingReset ? (
                   <><Loader2 className="w-3 h-3 mr-1 animate-spin" /> 送信中…</>

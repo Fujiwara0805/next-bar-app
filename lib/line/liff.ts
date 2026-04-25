@@ -103,6 +103,73 @@ export async function getLineIdToken(): Promise<string | null> {
 }
 
 /**
+ * JWT id_token の exp を確認して期限切れかどうか判定する。
+ * LIFF SDK はキャッシュされた id_token を返すため、期限切れを検出したら
+ * logout → login でリフレッシュする必要がある。
+ * 余裕を持って exp の 60 秒前で期限切れ扱いにする。
+ */
+export function isLineIdTokenExpired(idToken: string | null | undefined): boolean {
+  if (!idToken) return true;
+  try {
+    const parts = idToken.split('.');
+    if (parts.length !== 3) return true;
+    const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
+    const payload = JSON.parse(
+      typeof atob === 'function'
+        ? decodeURIComponent(
+            atob(padded)
+              .split('')
+              .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+              .join('')
+          )
+        : Buffer.from(padded, 'base64').toString('utf8')
+    );
+    if (typeof payload.exp !== 'number') return true;
+    const nowSec = Math.floor(Date.now() / 1000);
+    return payload.exp - nowSec < 60;
+  } catch {
+    return true;
+  }
+}
+
+/**
+ * 期限切れを考慮して id_token を取得。
+ * 期限切れなら一度 logout → login させ、リダイレクト後に取り直す。
+ * login はリダイレクトを発生させるため、この関数から戻らない場合がある。
+ */
+export async function getFreshLineIdToken(): Promise<string | null> {
+  const liff = await getLiff();
+  if (!liff) return null;
+
+  if (!liff.isLoggedIn()) {
+    liff.login({ redirectUri: window.location.href });
+    return null;
+  }
+
+  const token = (() => {
+    try {
+      return liff.getIDToken();
+    } catch (err) {
+      console.error('[LIFF] IDトークン取得エラー:', err);
+      return null;
+    }
+  })();
+
+  if (!token || isLineIdTokenExpired(token)) {
+    try {
+      liff.logout();
+    } catch (err) {
+      console.error('[LIFF] logout エラー:', err);
+    }
+    liff.login({ redirectUri: window.location.href });
+    return null;
+  }
+
+  return token;
+}
+
+/**
  * LINEログインを実行
  * - LINEアプリ内ブラウザ: 多くの場合セッションがありスムーズ
  * - 通常ブラウザ: LINE の OAuth 画面へ飛ばす。未ログインだと **LINE 側** の

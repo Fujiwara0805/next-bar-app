@@ -119,10 +119,12 @@ export function SponsorAdSlotsTab({ sponsorId }: Props) {
 
   const fetchData = async () => {
     setLoading(true);
+    // cancelled 契約は画面上から除外（DBは保持＝論理削除）
     const { data: contracts, error: cErr } = await supabase
       .from('sponsor_contracts')
       .select('*')
       .eq('sponsor_id', sponsorId)
+      .neq('status', 'cancelled')
       .order('created_at', { ascending: false });
     if (cErr || !contracts) { setLoading(false); return; }
 
@@ -386,8 +388,8 @@ export function SponsorAdSlotsTab({ sponsorId }: Props) {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => { setSlotContractId(contract.id); setSlotFormOpen(true); }}
-                className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold text-white"
-                style={{ background: C.accent }}
+                className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold"
+                style={{ background: C.accent, color: C.accentForeground }}
               >
                 <Plus className="w-3 h-3" />
                 枠追加
@@ -508,8 +510,8 @@ export function SponsorAdSlotsTab({ sponsorId }: Props) {
         ))
       )}
 
-      {/* Slot Create Modal */}
-      <CustomModal isOpen={slotFormOpen} onClose={() => setSlotFormOpen(false)} title="広告枠追加">
+      {/* Slot Create Modal (タイトルなし / PCはひと回り大きく) */}
+      <CustomModal isOpen={slotFormOpen} onClose={() => setSlotFormOpen(false)} size="lg">
         <div className="space-y-4">
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1">枠タイプ</label>
@@ -540,18 +542,18 @@ export function SponsorAdSlotsTab({ sponsorId }: Props) {
             <button onClick={() => setSlotFormOpen(false)} className="flex-1 py-2.5 rounded-lg text-sm font-medium border border-gray-200 text-gray-600 hover:bg-gray-50">
               キャンセル
             </button>
-            <button onClick={handleCreateSlot} disabled={saving} className="flex-1 py-2.5 rounded-lg text-sm font-semibold text-white disabled:opacity-50 bg-brass-500">
+            <button onClick={handleCreateSlot} disabled={saving} className="flex-1 py-2.5 rounded-lg text-sm font-semibold disabled:opacity-50" style={{ background: C.accent, color: C.accentForeground }}>
               {saving ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : '作成'}
             </button>
           </div>
         </div>
       </CustomModal>
 
-      {/* Creative Create/Edit Modal */}
+      {/* Creative Create/Edit Modal (PCはひと回り大きく / タイトルなし) */}
       <CustomModal
         isOpen={creativeFormOpen}
         onClose={() => setCreativeFormOpen(false)}
-        title={`${isEditing ? 'クリエイティブ編集' : 'クリエイティブ追加'}（${SLOT_TYPE_LABELS[creativeSlotType]}）`}
+        size="lg"
       >
         <div className="space-y-4 max-h-[70vh] overflow-y-auto px-1">
           {/* Image upload (not for cta_button) */}
@@ -808,7 +810,8 @@ export function SponsorAdSlotsTab({ sponsorId }: Props) {
             <button
               onClick={handleSaveCreative}
               disabled={saving || uploadingImage}
-              className="flex-1 py-2.5 rounded-lg text-sm font-semibold text-white disabled:opacity-50 bg-brass-500"
+              className="flex-1 py-2.5 rounded-lg text-sm font-semibold disabled:opacity-50"
+              style={{ background: C.accent, color: C.accentForeground }}
             >
               {saving ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : isEditing ? '更新' : '作成'}
             </button>

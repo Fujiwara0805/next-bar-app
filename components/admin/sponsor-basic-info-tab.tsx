@@ -147,8 +147,8 @@ export function SponsorBasicInfoTab({ sponsor, onUpdate }: Props) {
           whileTap={{ scale: 0.98 }}
           onClick={handleSave}
           disabled={saving}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold text-white transition-colors disabled:opacity-50"
-          style={{ background: C.accent }}
+          className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50"
+          style={{ background: C.accent, color: C.accentForeground }}
         >
           {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
           保存

@@ -6,11 +6,20 @@ import { CloseCircleButton } from './close-circle-button';
 interface CustomModalProps {
   isOpen: boolean;
   onClose: () => void;
-  title: string;
+  /** タイトル省略時は空文字 or undefined を渡す */
+  title?: string;
   description?: string;
   children?: React.ReactNode;
   showCloseButton?: boolean;
+  /** PCでのモーダル横幅。デフォルト 'md' (28rem) */
+  size?: 'md' | 'lg' | 'xl';
 }
+
+const SIZE_CLASS: Record<NonNullable<CustomModalProps['size']>, string> = {
+  md: 'max-w-md',
+  lg: 'max-w-xl',
+  xl: 'max-w-2xl',
+};
 
 export function CustomModal({
   isOpen,
@@ -19,6 +28,7 @@ export function CustomModal({
   description,
   children,
   showCloseButton = true,
+  size = 'md',
 }: CustomModalProps) {
   return (
     <AnimatePresence>
@@ -40,7 +50,7 @@ export function CustomModal({
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 relative"
+              className={`bg-white rounded-2xl shadow-2xl ${SIZE_CLASS[size]} w-full p-6 relative`}
               onClick={(e) => e.stopPropagation()}
             >
               {/* 閉じるボタン */}
@@ -53,12 +63,12 @@ export function CustomModal({
                 />
               )}
 
-              {/* ヘッダー */}
+              {/* ヘッダー (白カード → Brewer Navy テキスト) */}
               {(title || description) && (
                 <div className="mb-4">
-                  {title && <h2 className="text-2xl font-bold mb-2 text-card-foreground">{title}</h2>}
+                  {title && <h2 className="text-2xl font-bold mb-2 text-brewer-700">{title}</h2>}
                   {description && (
-                    <p className="text-card-foreground text-sm font-bold">{description}</p>
+                    <p className="text-brewer-700 text-sm font-bold">{description}</p>
                   )}
                 </div>
               )}

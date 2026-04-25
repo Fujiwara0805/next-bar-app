@@ -80,20 +80,28 @@ export async function GET(
     const contractTotalPrice = (contracts || []).reduce((sum, c) => sum + (c.price || 0), 0) || null;
 
     // 4. クリエイティブIDからスロットタイプのマッピングを取得
+    // （slot削除済みでも creative.ad_slot_id 経由で2段階取得 → 必ず slot_type を返す）
     const creativeIds = Array.from(new Set(allEvents.map((e) => e.creative_id).filter(Boolean)));
     const creativeSlotMap: Record<string, string> = {};
     if (creativeIds.length > 0) {
       const { data: creativeRows } = await supabase
         .from('sponsor_ad_creatives')
-        .select('id, sponsor_ad_slots!inner(slot_type)')
+        .select('id, ad_slot_id')
         .in('id', creativeIds);
-      if (creativeRows) {
-        for (const row of creativeRows) {
-          const slot = row.sponsor_ad_slots as unknown as { slot_type: string };
-          if (slot?.slot_type) {
-            creativeSlotMap[row.id] = slot.slot_type;
-          }
+      const slotIds = Array.from(new Set((creativeRows || []).map((r) => r.ad_slot_id).filter(Boolean)));
+      const slotTypeById: Record<string, string> = {};
+      if (slotIds.length > 0) {
+        const { data: slotRows } = await supabase
+          .from('sponsor_ad_slots')
+          .select('id, slot_type')
+          .in('id', slotIds);
+        for (const s of slotRows || []) {
+          if (s.slot_type) slotTypeById[s.id] = s.slot_type;
         }
+      }
+      for (const row of creativeRows || []) {
+        const st = slotTypeById[row.ad_slot_id];
+        if (st) creativeSlotMap[row.id] = st;
       }
     }
 

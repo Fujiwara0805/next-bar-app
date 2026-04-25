@@ -564,7 +564,7 @@ export function SponsorReportsTab({ sponsorId }: Props) {
                 style={{ background: C.bgElevated }}
               >
                 <span className="text-xs font-medium truncate w-32" style={{ color: C.text }}>
-                  {cp.slot_type ? (SLOT_LABELS[cp.slot_type] || cp.slot_type) : cp.creative_id.slice(0, 8) + '...'}
+                  {cp.slot_type ? (SLOT_LABELS[cp.slot_type] || cp.slot_type) : '広告（不明枠）'}
                 </span>
                 <div className="flex-1 flex items-center gap-6">
                   <div>

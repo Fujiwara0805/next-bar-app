@@ -397,7 +397,7 @@ export default function StoreManagePage() {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold"
-                style={{ background: C.accent, color: '#fff' }}
+                style={{ background: C.accent, color: C.accentForeground }}
               >
                 <Plus className="w-3.5 h-3.5" />
                 店舗を追加

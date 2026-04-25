@@ -9,6 +9,7 @@ import {
   X,
   FileText,
   Shield,
+  ShieldCheck,
   HelpCircle,
   Globe,
   Radio,
@@ -18,7 +19,6 @@ import {
   ChevronLeft,
   Building2,
   AlertCircle,
-  Sparkles,
   MessageCircle,
   Instagram,
   Mail,
@@ -26,6 +26,8 @@ import {
   Scale,
   LogIn,
   Loader2,
+  Camera,
+  Armchair,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -86,6 +88,38 @@ const GoldDivider = () => (
     <div className="w-1.5 h-1.5 rotate-45" style={{ backgroundColor: LP_YELLOW }} />
     <div className="h-px flex-1 max-w-16" style={{ background: `linear-gradient(90deg, ${LP_YELLOW}40, transparent)` }} />
   </div>
+);
+
+/**
+ * セクション間を自然な曲線で繋ぐSVGウェーブ。
+ * `fill` に "上のセクション色" を渡し、`position='bottom'` なら上セクション下端に、
+ * `position='top'` なら下セクション上端に絶対配置する。
+ */
+const WaveDivider = ({
+  fill,
+  position = 'bottom',
+  className = '',
+}: {
+  fill: string;
+  position?: 'top' | 'bottom';
+  className?: string;
+}) => (
+  <svg
+    className={`absolute ${position === 'bottom' ? 'bottom-0' : 'top-0'} left-0 right-0 w-full pointer-events-none ${className}`}
+    viewBox="0 0 1440 80"
+    preserveAspectRatio="none"
+    style={{
+      display: 'block',
+      height: '60px',
+      transform: position === 'top' ? 'rotate(180deg) translateY(1px)' : 'translateY(1px)',
+    }}
+    aria-hidden
+  >
+    <path
+      d="M0,40 C240,80 480,0 720,30 C960,60 1200,20 1440,50 L1440,80 L0,80 Z"
+      fill={fill}
+    />
+  </svg>
 );
 
 export default function LandingPage() {
@@ -546,30 +580,54 @@ export default function LandingPage() {
       </AnimatePresence>
 
       {/* Hero Section */}
-      <section className="relative h-[100svh] lg:h-[96svh] overflow-hidden">
-        <div className="h-full grid grid-cols-1 lg:grid-cols-2">
+      <section className="relative h-[100svh] lg:h-[96svh] overflow-hidden" style={{ background: lpPage.bg }}>
+        <div className="h-full grid grid-cols-1 lg:grid-cols-[minmax(0,44%)_minmax(0,56%)]">
           {/* Left Column - PC only: Service description */}
           <motion.aside
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6 }}
-            className="hidden lg:flex flex-col justify-center px-12 xl:px-16 relative z-10"
+            className="hidden lg:flex flex-col justify-center px-12 xl:px-20 relative z-20"
             style={{ background: lpPage.bg }}
           >
+            {/* 装飾: 左上のイエローのドット */}
+            <div
+              className="absolute top-14 left-12 xl:left-20 w-1.5 h-1.5 rotate-45"
+              style={{ backgroundColor: LP_YELLOW, opacity: 0.9 }}
+              aria-hidden
+            />
+            <div
+              className="absolute top-14 left-[3.5rem] xl:left-[5.5rem] h-px w-20"
+              style={{ background: `linear-gradient(90deg, ${LP_YELLOW}, transparent)` }}
+              aria-hidden
+            />
+
             <div className="max-w-lg">
               <motion.div
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
+                transition={{ delay: 0.15 }}
               >
-                <h1 className="text-xl xl:text-4xl leading-[1.2] font-bold mb-6 tracking-tight" style={{ color: lpPage.text }}>
+                <span
+                  className="inline-block text-[10px] tracking-[0.32em] uppercase font-semibold mb-6"
+                  style={{ color: LP_YELLOW }}
+                >
+                  Night Discovery Platform
+                </span>
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.25 }}
+              >
+                <h1 className="text-2xl xl:text-[2.4rem] leading-[1.25] font-bold mb-7 tracking-tight" style={{ color: lpPage.text }}>
                   {t('landing.hero_pc_title').split('\n').map((line, i) => (
                     <span key={i} className="block">
                       {line}
                     </span>
                   ))}
                 </h1>
-                <p className="text-base xl:text-2xl leading-relaxed mb-10" style={{ color: lpPage.textMuted }}>
+                <p className="text-base xl:text-lg leading-[1.85] mb-10" style={{ color: lpPage.textMuted }}>
                   {renderWithLineBreaks(t('landing.hero_pc_description'))}
                 </p>
               </motion.div>
@@ -583,13 +641,13 @@ export default function LandingPage() {
                   whileHover={{ scale: 1.03, y: -2 }}
                   whileTap={{ scale: 0.98 }}
                   className="rounded-full relative overflow-hidden group inline-block"
-                  style={{ boxShadow: '0 8px 28px rgba(255, 198, 45, 0.35)' }}
+                  style={{ boxShadow: '0 12px 32px rgba(255, 198, 45, 0.35)' }}
                 >
                   <Button
                     size="lg"
                     onClick={handleMapClick}
-                    className="text-lg px-10 py-6 rounded-full font-semibold transition-all relative z-10 lg:text-2xl"
-                  style={{ background: LP_YELLOW, color: LP_NAVY }}
+                    className="text-base px-10 py-6 rounded-full font-semibold transition-all relative z-10 lg:text-lg"
+                    style={{ background: LP_YELLOW, color: LP_NAVY }}
                   >
                     <Store className="w-5 h-5 mr-2" />{t('landing.cta_button_primary')}
                   </Button>
@@ -605,8 +663,8 @@ export default function LandingPage() {
               <motion.p
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ delay: 0.6 }}
-                className="text-xs tracking-wider mt-5 lg:text-base"
+                transition={{ delay: 0.55 }}
+                className="text-xs tracking-wider mt-6 lg:text-sm"
                 style={{ color: lpPage.textSubtle }}
               >
                 {t('landing.hero_subcopy')}
@@ -630,30 +688,66 @@ export default function LandingPage() {
                     className="absolute inset-0 bg-cover bg-center bg-no-repeat"
                     style={{
                       backgroundImage: `url('${heroImages[heroImageIndex]}')`,
-                      filter: 'brightness(1.06)',
+                      filter: 'brightness(1.08) saturate(1.05)',
                     }}
                   />
                 </motion.div>
               </AnimatePresence>
+
+              {/* PC: 左側 Navy パネル → 画像へ自然にフェード (右へ透明化) */}
               <div
-                className="absolute inset-0"
+                className="absolute inset-0 hidden lg:block"
                 style={{
-                  background: 'linear-gradient(to bottom, rgba(19,41,75,0.45) 0%, rgba(19,41,75,0.25) 40%, rgba(19,41,75,0.72) 100%)',
+                  background: `linear-gradient(90deg, ${LP_NAVY} 0%, rgba(19,41,75,0.55) 18%, rgba(19,41,75,0.15) 42%, rgba(19,41,75,0) 65%)`,
                 }}
+                aria-hidden
+              />
+              {/* PC: 下部のビネット（次セクションへの繋ぎ） */}
+              <div
+                className="absolute inset-0 hidden lg:block"
+                style={{
+                  background: 'linear-gradient(to bottom, transparent 55%, rgba(19,41,75,0.35) 88%, rgba(19,41,75,0.6) 100%)',
+                }}
+                aria-hidden
+              />
+              {/* Mobile: 全体に乗せる overlay（テキスト可読性） */}
+              <div
+                className="absolute inset-0 lg:hidden"
+                style={{
+                  background: 'linear-gradient(to bottom, rgba(19,41,75,0.40) 0%, rgba(19,41,75,0.18) 38%, rgba(19,41,75,0.78) 100%)',
+                }}
+                aria-hidden
               />
             </motion.div>
+
+            {/* PC: 左パネルと画像を繋ぐ細い縦のゴールドアクセントライン */}
+            <motion.div
+              className="absolute top-[18%] bottom-[18%] left-0 w-px z-10 hidden lg:block"
+              style={{
+                background: `linear-gradient(to bottom, transparent 0%, ${LP_YELLOW}aa 20%, ${LP_YELLOW}60 50%, ${LP_YELLOW}aa 80%, transparent 100%)`,
+              }}
+              initial={{ scaleY: 0, opacity: 0 }}
+              animate={{ scaleY: 1, opacity: 1 }}
+              transition={{ duration: 1.2, ease: 'easeOut', delay: 0.6 }}
+            />
 
             <div className="flex-1" />
 
             {/* Mobile/Tablet: show text overlay on image */}
             <motion.div
-              className="relative z-10 text-center pb-8 mt-3 lg:hidden"
+              className="relative z-10 text-center pb-12 mt-3 lg:hidden px-2"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
-              <h1 className="text-lg sm:text-xl md:text-4xl font-bold mb-6 leading-tight tracking-tight">
-                <span style={{ color: '#FFFFFF', textShadow: '0 2px 12px rgba(0,0,0,0.45)' }}>
+              <span
+                className="inline-block text-[10px] tracking-[0.3em] uppercase font-semibold mb-4"
+                style={{ color: LP_YELLOW, textShadow: '0 1px 4px rgba(0,0,0,0.4)' }}
+              >
+                Night Discovery Platform
+              </span>
+              <h1 className="text-xl sm:text-2xl md:text-4xl font-bold mb-6 leading-tight tracking-tight">
+                <span style={{ color: '#FFFFFF', textShadow: '0 2px 14px rgba(0,0,0,0.5)' }}>
                   {t('landing.hero_catchphrase').split('\n').map((line, i) => (
                     <span key={i} className="block">
                       {line}
@@ -670,7 +764,7 @@ export default function LandingPage() {
                 <Button
                   size="lg"
                   onClick={handleMapClick}
-                  className="text-lg px-10 py-6 rounded-full font-semibold transition-all relative z-10 lg:text-2xl"
+                  className="text-base px-10 py-6 rounded-full font-semibold transition-all relative z-10 lg:text-lg"
                   style={{ background: LP_YELLOW, color: LP_NAVY }}
                 >
                   <Store className="w-5 h-5 mr-2" />{t('landing.cta_button_primary')}
@@ -686,10 +780,11 @@ export default function LandingPage() {
                 {t('landing.hero_subcopy')}
               </p>
             </motion.div>
-
-            <motion.div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${LP_YELLOW}60, transparent)` }} initial={{ scaleX: 0 }} whileInView={{ scaleX: 1 }} viewport={{ once: true }} transition={{ duration: 1.5, ease: 'easeOut' }} />
           </div>
         </div>
+
+        {/* Hero 下端: 次セクション(オフホワイト)への自然な曲線ウェーブ */}
+        <WaveDivider fill={lpMid.page.bg} position="bottom" className="z-20" />
       </section>
 
       {/* お知らせセクション */}
@@ -854,9 +949,9 @@ export default function LandingPage() {
           </motion.div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
-              { num: 1, Icon: Sparkles },
-              { num: 2, Icon: Radio },
-              { num: 3, Icon: Shield },
+              { num: 1, Icon: Camera },      // 雰囲気がわかる: 画像で店舗を確認
+              { num: 2, Icon: Armchair },    // 空席がわかる: リアルタイム座席状況
+              { num: 3, Icon: ShieldCheck }, // 安心できる: 料金・客層情報の透明性
             ].map(({ num, Icon }, index) => (
                 <motion.div key={index} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.15 }}>
                   <Card className="h-full p-8 group cursor-pointer transition-all duration-500 hover:translate-y-[-4px] relative overflow-hidden text-center" style={{ background: lpMid.elevated.bg, backdropFilter: 'blur(10px)', border: `1px solid ${lpMid.elevated.border}`, boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
@@ -867,7 +962,11 @@ export default function LandingPage() {
                       </motion.div>
                       <h3 className="text-xl font-bold mb-2 lg:text-3xl" style={{ color: lpMid.elevated.text }}>{t(`landing.solution_feature${num}_title`)}</h3>
                       <p className="text-xs uppercase tracking-wider mb-4 font-medium lg:text-base" style={{ color: lpMid.subtitleOnElevated }}>{t(`landing.solution_feature${num}_title_en`)}</p>
-                      <p style={{ color: lpMid.elevated.textMuted }} className="leading-relaxed text-sm lg:text-lg">{renderWithLineBreaks(t(`landing.solution_feature${num}_desc`))}</p>
+                      <p style={{ color: lpMid.elevated.textMuted }} className="leading-relaxed text-sm lg:text-lg">
+                        {/* PC: \n を除去して幅で自然折返し / モバイル: \n を <br/> に変換 */}
+                        <span className="lg:hidden">{renderWithLineBreaks(t(`landing.solution_feature${num}_desc`))}</span>
+                        <span className="hidden lg:inline">{t(`landing.solution_feature${num}_desc`).replace(/\n/g, '')}</span>
+                      </p>
                     </div>
                     <motion.div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ background: `linear-gradient(90deg, ${LP_YELLOW}, #E6B020)` }} initial={{ scaleX: 0 }} whileHover={{ scaleX: 1 }} transition={{ duration: 0.3 }} />
                   </Card>
@@ -1113,7 +1212,8 @@ export default function LandingPage() {
             );
           })()}
         </div>
-        <motion.div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${LP_YELLOW}40, transparent)` }} />
+        {/* cream → navy 自然な曲線ウェーブ */}
+        <WaveDivider fill={lpPage.bg} position="bottom" />
       </section>
 
       {/* Partner Stores Section - 流れるマーキー */}
@@ -1184,12 +1284,13 @@ export default function LandingPage() {
             </Link>
           </motion.div>
         </div>
-        <motion.div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${LP_YELLOW}40, transparent)` }} />
+        {/* navy → cream 自然な曲線ウェーブ */}
+        <WaveDivider fill={LP_CARD.bg} position="bottom" />
       </section>
 
       {/* Company Section */}
       <section className="relative py-12 md:py-24 px-4 overflow-hidden" style={{ background: LP_CARD.bg }}>
-        <div className="container mx-auto max-w-3xl">
+        <div className="container mx-auto max-w-3xl relative z-10">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
             <GoldDivider />
             <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4 lg:text-base" style={{ color: LP_NAVY }}>Company</span>
@@ -1216,10 +1317,12 @@ export default function LandingPage() {
             </div>
           </motion.div>
         </div>
+        {/* cream → navy (Footer) 自然な曲線ウェーブ */}
+        <WaveDivider fill={lpPage.bg} position="bottom" />
       </section>
 
       {/* Footer */}
-      <footer className="py-12 px-4" style={{ background: lpPage.bg, borderTop: '1px solid rgba(255, 198, 45, 0.35)' }}>
+      <footer className="py-12 px-4" style={{ background: lpPage.bg }}>
         <div className="container mx-auto max-w-6xl">
           <div className="flex justify-center mb-8">
             <img src="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761355092/%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png" alt="NIKENME+" className="h-12 w-auto object-contain opacity-70" />
