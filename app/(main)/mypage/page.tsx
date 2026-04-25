@@ -20,6 +20,7 @@ import { useLanguage } from '@/lib/i18n/context';
 import { supabase } from '@/lib/supabase/client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { CloseCircleButton } from '@/components/ui/close-circle-button';
 import { LoadingScreen } from '@/components/ui/loading-screen';
 import { toast } from 'sonner';
 
@@ -174,10 +175,17 @@ export default function MyPage() {
           borderBottom: `1px solid ${BRASS}33`,
         }}
       >
-        <div className="flex items-center justify-center p-4 max-w-md mx-auto">
+        <div className="relative flex items-center justify-center p-4 max-w-md mx-auto">
           <h1 className="text-lg font-light tracking-[0.2em]" style={{ color: '#FDFBF7' }}>
             {t('mypage.title')}
           </h1>
+          <div className="absolute right-3 top-1/2 -translate-y-1/2">
+            <CloseCircleButton
+              size="md"
+              aria-label={t('common.close')}
+              onClick={() => router.push('/map')}
+            />
+          </div>
         </div>
       </header>
 

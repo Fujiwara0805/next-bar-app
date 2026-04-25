@@ -78,21 +78,31 @@ export async function GET(request: NextRequest) {
     .eq('line_user_id', lineUserId)
     .maybeSingle();
 
-  if (!data) {
-    // 未フォロー状態: OAを友だち追加していないケース → UI側で「まずOA友だち追加」と案内するためのフラグを返す
-    return NextResponse.json({
-      ok: true,
-      exists: false,
-      subscription: null,
-      defaultRadiusKm: DEFAULT_RADIUS_KM,
-      minRadiusKm: MIN_RADIUS_KM,
-      maxRadiusKm: MAX_RADIUS_KM,
-    });
+  // LIFFでid_tokenを発行できている = LINEログイン済み（リッチメニュー経由ならOAフォロワー）。
+  // webhookのfollowイベントはOAを後から友だち追加した場合のみ発火するため、
+  // 旧来からのフォロワーや配信設定変更前の友だちはレコードがない。
+  // ここでレコードがなければ自動的に作成して設定UIを表示する。
+  let row = data;
+  if (!row) {
+    const { data: created, error: insertError } = await admin
+      .from('line_oa_subscribers')
+      .upsert(
+        { line_user_id: lineUserId },
+        { onConflict: 'line_user_id' }
+      )
+      .select('*')
+      .maybeSingle();
+    if (insertError || !created) {
+      console.error('[line/subscription] auto-create failed', insertError);
+      return NextResponse.json({ error: 'auto_create_failed' }, { status: 500 });
+    }
+    row = created;
   }
+
   return NextResponse.json({
     ok: true,
     exists: true,
-    subscription: toPayload(data),
+    subscription: toPayload(row),
     defaultRadiusKm: DEFAULT_RADIUS_KM,
     minRadiusKm: MIN_RADIUS_KM,
     maxRadiusKm: MAX_RADIUS_KM,

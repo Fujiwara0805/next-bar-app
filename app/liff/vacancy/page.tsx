@@ -7,12 +7,14 @@
 // ============================================
 
 import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Bell, BellOff, Loader2, MapPin, Save, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
+import { CloseCircleButton } from '@/components/ui/close-circle-button';
 import { useLiff } from '@/lib/line/context';
 import { useLanguage } from '@/lib/i18n/context';
 import { LINE_BRAND_COLOR } from '@/lib/line/constants';
@@ -33,9 +35,28 @@ type Subscription = {
 };
 
 export default function LiffVacancyOptInPage() {
+  const router = useRouter();
   const { t } = useLanguage();
   const { isLiffReady, isLineLoggedIn, liffLogin, getIdToken, liffError } = useLiff();
   const { colorsB: COLORS } = useAppMode();
+
+  // 画面外（オーバースクロール領域含む）まで navy 系で塗りつぶす。
+  useEffect(() => {
+    const root = document.documentElement;
+    const body = document.body;
+    const prevRootBg = root.style.background;
+    const prevBodyBg = body.style.background;
+    root.style.background = COLORS.deepNavy;
+    body.style.background = COLORS.deepNavy;
+    return () => {
+      root.style.background = prevRootBg;
+      body.style.background = prevBodyBg;
+    };
+  }, [COLORS.deepNavy]);
+
+  const handleClose = () => {
+    router.push('/mypage');
+  };
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -208,6 +229,15 @@ export default function LiffVacancyOptInPage() {
           style={{
             background: `linear-gradient(90deg, transparent, ${COLORS.champagneGold}, transparent)`,
           }}
+        />
+      </div>
+
+      {/* 右上の閉じるボタン */}
+      <div className="absolute top-3 right-3 z-20 safe-top">
+        <CloseCircleButton
+          size="md"
+          aria-label={t('common.close')}
+          onClick={handleClose}
         />
       </div>
 

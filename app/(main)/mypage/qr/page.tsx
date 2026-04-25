@@ -3,12 +3,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { ArrowLeft, RefreshCw, Info, Loader2, QrCode } from 'lucide-react';
+import { RefreshCw, Info, Loader2, QrCode } from 'lucide-react';
 import QRCode from 'qrcode';
 import { useAuth } from '@/lib/auth/context';
 import { useLanguage } from '@/lib/i18n/context';
 import { supabase } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
+import { CloseCircleButton } from '@/components/ui/close-circle-button';
 import { LoadingScreen } from '@/components/ui/loading-screen';
 
 const REFRESH_INTERVAL_SEC = 90;
@@ -153,19 +154,17 @@ export default function MyPageQrPage() {
         className="sticky top-0 z-20 safe-top"
         style={{ background: NAVY_GRADIENT, borderBottom: `1px solid ${BRASS}33` }}
       >
-        <div className="flex items-center justify-between p-4 max-w-md mx-auto">
-          <button
-            onClick={() => router.back()}
-            className="flex items-center gap-1.5 text-sm font-medium transition-opacity hover:opacity-80"
-            style={{ color: '#FDFBF7' }}
-          >
-            <ArrowLeft className="w-4 h-4" />
-            {t('common.back')}
-          </button>
+        <div className="relative flex items-center justify-center p-4 max-w-md mx-auto">
           <h1 className="text-lg font-light tracking-[0.2em]" style={{ color: '#FDFBF7' }}>
             チェックインQR
           </h1>
-          <div className="w-12" />
+          <div className="absolute right-3 top-1/2 -translate-y-1/2">
+            <CloseCircleButton
+              size="md"
+              aria-label={t('common.close')}
+              onClick={() => router.push('/mypage')}
+            />
+          </div>
         </div>
       </header>
 
