@@ -28,11 +28,64 @@ async function getStore(id: string) {
   const { data } = await supabase
     .from('stores')
     .select(
-      'name, description, address, image_urls, google_rating, google_reviews_count, budget_min, budget_max, phone'
+      'name, description, address, image_urls, google_rating, google_reviews_count, budget_min, budget_max, phone, store_category, latitude, longitude'
     )
     .eq('id', id)
     .maybeSingle();
   return data;
+}
+
+/**
+ * 日本の住所文字列から「都道府県＋市区町村」を抽出する。
+ * SEO上の主目的は (a) 店舗名で検索された際の上位表示、
+ * (b) 加盟店所在エリアの「飲食店探し」検索の上位表示。
+ * いずれもタイトル/説明文にエリア名を含めることが必須のため、ここで安全に抽出する。
+ *
+ * 例: "大分県大分市大字旦野原700番地" → "大分県大分市"
+ *     "福岡県福岡市中央区天神2-1-1"     → "福岡県福岡市中央区"（区まで含めて精度UP）
+ */
+function extractArea(address: string | null | undefined): string | null {
+  if (!address) return null;
+  // 都道府県（4文字以内の最短マッチ）
+  const prefMatch = address.match(/^[぀-ヿ一-鿿々ヶ]{1,4}?(?:都|道|府|県)/);
+  const prefecture = prefMatch ? prefMatch[0] : '';
+  const rest = prefecture ? address.slice(prefecture.length) : address;
+  // 市区町村（最初の市/区/町/村まで）
+  const cityMatch = rest.match(/^[぀-ヿ一-鿿々ヶ]{1,8}?(?:市|区|町|村)/);
+  let city = cityMatch ? cityMatch[0] : '';
+  // 政令市配下の「区」も含める（例: 福岡市中央区）
+  if (city.endsWith('市')) {
+    const afterCity = rest.slice(city.length);
+    const wardMatch = afterCity.match(/^[぀-ヿ一-鿿々ヶ]{1,6}?区/);
+    if (wardMatch) city += wardMatch[0];
+  }
+  const area = `${prefecture}${city}`.trim();
+  return area || null;
+}
+
+/**
+ * store_category 値を日本語ラベルに正規化（SEOキーワード適合）。
+ * 検索クエリ「〇〇市 バー」「〇〇 居酒屋」等のロングテール対策。
+ */
+function categoryLabel(category: string | null | undefined): string {
+  switch ((category || '').toLowerCase()) {
+    case 'bar':
+      return 'バー';
+    case 'snack':
+    case 'snack_bar':
+      return 'スナック';
+    case 'izakaya':
+      return '居酒屋';
+    case 'dining_bar':
+    case 'dining':
+      return 'ダイニングバー';
+    case 'lounge':
+      return 'ラウンジ';
+    case 'cocktail_bar':
+      return 'カクテルバー';
+    default:
+      return 'バー';
+  }
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -46,14 +99,31 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
 
-  const title = `${store.name} - ${seo.title_suffix}`;
+  const area = extractArea(store.address);
+  const category = categoryLabel(store.store_category);
 
-  // description: 店舗説明 + 住所（160文字以内）
+  // タイトル: 店舗名を主軸に、エリア×ジャンルを併記。
+  // エリアが取れたときは title_template、取れないときは従来の suffix にフォールバック。
+  const title = area
+    ? seo.title_template
+        .replace('{name}', store.name)
+        .replace('{area}', area)
+        .replace('{category}', category)
+    : `${store.name}｜${seo.title_suffix}`;
+
+  // description: 店舗説明 + エリア・ジャンル文 + 住所 + 予算（160字に丸める）
   const descParts: string[] = [];
   if (store.description) {
     descParts.push(store.description);
   }
-  if (store.address) {
+  if (area) {
+    descParts.push(
+      seo.description_template
+        .replace(/\{name\}/g, store.name)
+        .replace(/\{area\}/g, area)
+        .replace(/\{category\}/g, category)
+    );
+  } else if (store.address) {
     descParts.push(`📍${store.address}`);
   }
   if (store.budget_min || store.budget_max) {
@@ -67,8 +137,34 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       descParts.push(`予算〜${max}`);
     }
   }
-  descParts.push('NIKENME+で空席情報をチェック');
   const description = descParts.join('。').slice(0, 160);
+
+  // 店舗ページ専用キーワード: 店舗名 × エリア × ジャンル × シーンの組み合わせを生成。
+  // 「店舗名で検索」「店舗名＋エリア」「エリア＋ジャンル」のロングテールを同時にカバー。
+  const keywordSet = new Set<string>();
+  keywordSet.add(store.name);
+  keywordSet.add(`${store.name} 空席`);
+  keywordSet.add(`${store.name} 予約`);
+  keywordSet.add(`${store.name} 営業時間`);
+  keywordSet.add(`${store.name} 口コミ`);
+  if (area) {
+    keywordSet.add(`${store.name} ${area}`);
+    keywordSet.add(`${area} ${category}`);
+    keywordSet.add(`${area} ${category} おすすめ`);
+    keywordSet.add(`${area} ${category} 人気`);
+    keywordSet.add(`${area} ${category} 空席`);
+    keywordSet.add(`${area} 飲食店`);
+    keywordSet.add(`${area} 二軒目`);
+    keywordSet.add(`${area} はしご酒`);
+    keywordSet.add(`${area} 一人飲み`);
+    keywordSet.add(`${area} デート ${category}`);
+    keywordSet.add(`${area} 深夜営業`);
+  }
+  keywordSet.add(category);
+  keywordSet.add(`${category} 空席`);
+  keywordSet.add('NIKENME+');
+  keywordSet.add('にけんめぷらす');
+  const keywords = Array.from(keywordSet).join(', ');
 
   const ogImage =
     store.image_urls && store.image_urls.length > 0
@@ -80,6 +176,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title,
     description,
+    keywords,
     alternates: {
       canonical: storeUrl,
     },
@@ -95,7 +192,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
           url: ogImage,
           width: 1200,
           height: 630,
-          alt: `${store.name} | NIKENME+`,
+          alt: `${store.name}${area ? `（${area}・${category}）` : ''}｜NIKENME+`,
         },
       ],
     },

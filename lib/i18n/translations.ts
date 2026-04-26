@@ -947,38 +947,128 @@ export const translations = {
       blocked: '通知ブロック中',
       turn_on: '空席通知をONにする',
     },
-    // SEOメタデータ（各ページのtitle/description）
+    // ============================================
+    // SEO / AI検索メタデータ（多エリア展開対応・AI検索最適化）
+    // --------------------------------------------
+    // 目的:
+    //   1) 加盟店名で検索された際に、当該店舗ページが上位に表示されること
+    //      → store_detail.title_template / description_template に
+    //         {name} と {area}（住所から抽出した「都道府県＋市区町村」）を埋め込み、
+    //         店舗名と地名の両方をタイトル・説明文の主軸に据える。
+    //   2) 加盟店があるエリアの「飲食店探し」検索（例: 〇〇市 バー、〇〇駅 居酒屋）で
+    //      上位に表示されること
+    //      → root / landing / map / store_list でエリア横断の汎用キーワードを配置し、
+    //         ジャンル（バー / スナック / 居酒屋 / ダイニング）× シーン（二軒目 /
+    //         はしご酒 / デート / 一人飲み / 女子会 / 出張 / 観光）を網羅。
+    //
+    // 多エリア展開戦略:
+    //   - 大分県（フラッグシップ）と福岡県（拡大中）を主軸エリアとして明文化。
+    //   - その他エリアにも横展開できるよう、コピーは「全国」を含む汎用表現で構成。
+    //   - 個別店舗ページの動的 SEO（住所から抽出するエリア名）が、新エリア追加時の
+    //     SEO 効果をそのまま吸収する設計。
+    //
+    // AI検索（SGE / Bing Copilot / Perplexity / ChatGPT Search 等）対策:
+    //   - root.abstract: AI が要約引用しやすい完結した一文を提供。
+    //   - description / og_description は「公式」「リアルタイム」「無料」「ログイン
+    //     不要」など、AI が信頼性判定に使うシグナルを含める。
+    //   - store_detail.description_template は店舗データ（店名・エリア・カテゴリ）
+    //     を統合した「事実ベースの一段落」となるため、AI Q&A での引用に適合。
+    // ============================================
     seo: {
       root: {
-        title: 'NIKENME+(にけんめぷらす) | 一次会前後のお店探しはにけんめぷらすで決まり',
-        description: '一次会前後のお店探しはにけんめぷらすで決まり。人気バー・スナック・居酒屋の空席情報がリアルタイムでわかる地図アプリ。2軒目探し、はしご酒、飲み歩き、デート、一人飲みに最適。出張・観光にも。ログイン不要で完全無料。',
-        og_title: 'NIKENME+ | 一次会前後のお店探しはにけんめぷらすで決まり',
-        og_description: '一次会前後のお店探しはにけんめぷらすで決まり。人気のバー・スナック・居酒屋の空席がリアルタイムでわかる地図アプリ。2軒目探し、はしご酒、デート、一人飲みに最適。',
-        twitter_title: 'NIKENME+ | 一次会前後のお店探しはにけんめぷらすで決まり',
-        twitter_description: '一次会前後のお店探しはにけんめぷらすで決まり。人気のバー・スナック・居酒屋の空席情報をリアルタイムで確認。デート、一人飲み、出張にも最適。',
+        title: 'NIKENME+(にけんめぷらす)｜加盟店の空席がリアルタイムで分かる飲食店マップ｜公式',
+        description: 'NIKENME+(にけんめぷらす)は、加盟店のバー・スナック・居酒屋・ダイニングの空席状況をリアルタイムで地図表示する飲食店探しの公式サービス。「今すぐ入れる」店を地図で発見。二軒目・はしご酒・デート・一人飲み・女子会・出張・観光に最適。大分・福岡を中心に全国へ拡大中。ログイン不要・完全無料。',
+        og_title: 'NIKENME+｜加盟店の空席がリアルタイムで分かる飲食店マップ',
+        og_description: 'バー・スナック・居酒屋の空席を地図で即チェック。二軒目・デート・一人飲み・出張に。大分・福岡を中心に全国の加盟店ネットワーク拡大中。ログイン不要・完全無料の公式アプリ。',
+        twitter_title: 'NIKENME+｜空席リアルタイム飲食店マップ',
+        twitter_description: '加盟店のバー・スナック・居酒屋の空席が地図で一目。二軒目・はしご酒・出張・観光に。ログイン不要・完全無料。',
+        // <meta name="abstract"> 用 — AI検索エンジンが引用要約に使用
+        abstract: 'NIKENME+（にけんめぷらす）は、加盟店の空席情報をリアルタイムで地図表示する飲食店探しの公式マップサービスです。バー・スナック・居酒屋・ダイニングバーを「今すぐ入れる順」で確認でき、二軒目探し・はしご酒・デート・一人飲み・女子会・出張・観光・忘年会や新年会の二次会など多様なシーンに対応します。大分県・福岡県を起点に全国の加盟店ネットワークを拡大中で、各加盟店ページでは店舗名・住所（都道府県／市区町村）・カテゴリ・空席状況・営業時間・予算・口コミ評価をひと目で確認できます。日本語・英語・韓国語・中国語に対応し、ログイン不要・完全無料で利用可能です。',
+        // <meta name="keywords"> 用（カンマ区切りで結合）
+        // ブランド名 / 機能 / シーン / ジャンル / エリア（フラッグシップ＝大分、拡大中＝福岡）/ 全国汎用 / 英語インバウンド を網羅
+        keywords: [
+          // ブランド
+          'NIKENME+', 'にけんめぷらす', 'ニケンメ', 'にけんめプラス', 'にけんめ', 'nikenme', '二軒目プラス',
+          // コア機能（エリア非依存）
+          '空席マップ', '空席 リアルタイム', '飲食店 空席', '飲食店 マップ', '飲食店 検索',
+          '今入れる店', '今すぐ入れる 飲食店', '営業中 飲食店', 'リアルタイム 営業中',
+          '近くの バー', '近くの 居酒屋', '近くの スナック', '近くの 飲食店', '近くの 飲み屋',
+          'ログイン不要 飲食店', '加盟店 検索', '加盟店 一覧',
+          // シーン
+          '二軒目', '2軒目', '二次会', '三次会', 'はしご酒', '飲み歩き', '梯子酒',
+          '一人飲み', 'ひとり飲み', 'デート バー', 'デート 居酒屋', '女子会', '記念日 バー', '誕生日 バー',
+          '出張 飲み', '出張 バー', '観光 夜', '観光 バー', 'インバウンド 夜',
+          '忘年会 二次会', '新年会 二次会', '歓迎会 二次会', '送別会 二次会', '合コン おすすめ', '接待 バー',
+          // ジャンル
+          'バー おすすめ', 'スナック おすすめ', '居酒屋 おすすめ', 'ダイニングバー',
+          'カクテルバー', 'オーセンティックバー', 'ショットバー', 'ワインバー', '日本酒バー',
+          '焼酎バー', 'スポーツバー', 'カラオケスナック', 'ガールズバー', 'ラウンジ',
+          '深夜営業 バー', '深夜営業 居酒屋', '個室 バー', '個室 居酒屋',
+          // エリア（フラッグシップ：大分県）
+          '大分 バー', '大分 スナック', '大分 居酒屋', '大分 飲食店', '大分 飲み屋',
+          '大分 おすすめ バー', '大分 おすすめ スナック', '大分 おすすめ 居酒屋',
+          '大分 バー ランキング', '大分 居酒屋 ランキング', '大分 人気 バー', '大分 人気 居酒屋',
+          '大分 二軒目', '大分 はしご酒', '大分 飲み歩き', '大分 二次会',
+          '大分市 バー', '大分市 スナック', '大分市 居酒屋',
+          '大分 都町 バー', '大分 都町 スナック', '大分 都町 居酒屋', '大分 都町 おすすめ',
+          '大分 中央町 バー', '大分 中央町 居酒屋',
+          '大分駅 バー', '大分駅 居酒屋', '大分駅周辺 バー', '大分駅周辺 居酒屋',
+          '大分 深夜営業', '大分 一人飲み', '大分 デート バー', '大分 女子会',
+          '別府 バー', '別府 スナック', '別府 居酒屋', '別府温泉 夜 飲み',
+          // エリア（拡大中：福岡県）
+          '福岡 バー', '福岡 スナック', '福岡 居酒屋', '福岡 飲食店',
+          '福岡 おすすめ バー', '福岡 おすすめ 居酒屋', '福岡 二軒目', '福岡 はしご酒',
+          '天神 バー', '天神 スナック', '天神 居酒屋', '天神 おすすめ',
+          '中洲 バー', '中洲 スナック', '中洲 居酒屋',
+          '博多 バー', '博多 居酒屋', '博多駅 バー',
+          '福岡 一人飲み', '福岡 デート バー', '福岡 女子会', '福岡 深夜営業',
+          // 全国汎用
+          '全国 バー', '全国 居酒屋', '全国 飲食店', '日本 バー 検索',
+          // 英語（インバウンド向けハイブリッド）
+          'bar near me', 'izakaya near me', 'snack bar Japan', 'best bars Japan',
+          'real-time bar availability Japan', 'second round drinking Japan',
+          'Oita bar', 'Oita izakaya', 'Oita nightlife', 'best bars in Oita',
+          'Fukuoka bar', 'Fukuoka izakaya', 'Fukuoka nightlife', 'best bars in Fukuoka',
+          'Tenjin bar', 'Nakasu izakaya', 'Hakata bar',
+        ].join(', '),
       },
       landing: {
-        title: '一次会前後のお店探しはにけんめぷらすで決まり | NIKENME+(にけんめぷらす)',
-        description: '一次会前後のお店探しはにけんめぷらすで決まり。人気バー・スナック・居酒屋の空席情報がリアルタイムでわかる。デート、一人飲み、女子会、出張、観光、はしご酒に最適。ログイン不要で完全無料。',
-        og_title: '一次会前後のお店探しはにけんめぷらすで決まり | NIKENME+',
-        og_description: '一次会前後のお店探しはにけんめぷらすで決まり。人気バー・スナック・居酒屋の空席がリアルタイムでわかる地図アプリ。',
+        title: '一次会のあとは NIKENME+｜加盟店の空席をリアルタイム表示｜公式',
+        description: '加盟店のバー・スナック・居酒屋・ダイニングの空席状況をリアルタイムで地図に表示する公式マップサービス。二軒目・はしご酒・デート・一人飲み・女子会・出張・観光に最適。大分・福岡を起点に全国へ拡大中。ログイン不要・完全無料。NIKENME+(にけんめぷらす)。',
+        og_title: '一次会のあとは NIKENME+｜空席リアルタイム飲食店マップ',
+        og_description: '加盟店のバー・スナック・居酒屋の空席を地図で即チェック。二軒目・デート・一人飲み・出張に。ログイン不要・完全無料。',
+      },
+      map: {
+        title: '近くの空席バー・居酒屋・スナックを地図で発見｜NIKENME+',
+        description: '現在地周辺の加盟店の空席状況を地図でリアルタイム確認。バー・スナック・居酒屋・ダイニングの「今すぐ入れる」店が一目で分かる。二軒目・はしご酒・デート・出張・観光に。大分・福岡を中心に全国対応。ログイン不要・完全無料の公式マップ NIKENME+(にけんめぷらす)。',
+        og_title: '空席が分かる飲食店マップ｜近くのバー・居酒屋・スナック｜NIKENME+',
+        og_description: '加盟店のバー・スナック・居酒屋の空席を地図でリアルタイム表示。今すぐ入れる店を発見。',
       },
       store_list: {
-        title: '一次会前後のお店探しはにけんめぷらすで決まり | 店舗一覧 | NIKENME+',
-        description: '一次会前後のお店探しはにけんめぷらすで決まり。人気バー・スナック・居酒屋の店舗一覧。空席状況をリアルタイムで確認。人気店、デート向け、一人飲み向けなど夜の飲食店を探せます。',
-        og_title: '一次会前後のお店探しはにけんめぷらすで決まり | 店舗一覧 | NIKENME+',
-        og_description: '一次会前後のお店探しはにけんめぷらすで決まり。人気バー・スナック・居酒屋の店舗一覧。空席状況をリアルタイムで確認できます。',
+        title: '加盟店一覧｜空席・営業中の人気バー・スナック・居酒屋｜NIKENME+',
+        description: 'NIKENME+(にけんめぷらす)の加盟店一覧。バー・スナック・居酒屋・ダイニングバーの最新の空席状況・営業時間・口コミ評価をまとめて確認。デート向け・一人飲み向け・女子会向けなど目的別に飲食店を探せる公式リスト。大分・福岡を中心に全国の加盟店を掲載。',
+        og_title: '加盟店一覧｜空席リアルタイム｜NIKENME+',
+        og_description: 'バー・スナック・居酒屋の空席状況・営業情報・評価を一覧で確認。NIKENME+ 公式ストアリスト。',
       },
       faq: {
-        title: 'よくある質問 | 一次会前後のお店探しはにけんめぷらすで決まり | NIKENME+',
-        description: 'NIKENME+のよくある質問。一次会前後のお店探しはにけんめぷらすで決まり。人気バー・スナック・居酒屋の探し方、使い方、空席情報の確認方法など。夜のお店探しに。',
-        og_title: 'よくある質問 | NIKENME+',
-        og_description: 'NIKENME+のよくある質問。一次会前後のお店探しはにけんめぷらすで決まり。',
+        title: 'よくある質問｜使い方・対応エリア・加盟店登録｜NIKENME+',
+        description: 'NIKENME+(にけんめぷらす)のよくある質問（FAQ）。空席リアルタイム表示の仕組み、対応エリア（大分県・福岡県を中心に拡大中）、利用料金、加盟店募集、二軒目・はしご酒の便利な使い方、AI検索でNIKENME+が引用される理由などをQ&A形式で解説。',
+        og_title: 'FAQ｜NIKENME+',
+        og_description: '空席リアルタイム飲食店マップ NIKENME+(にけんめぷらす) のよくある質問。使い方・対応エリア・加盟店登録など。',
       },
       store_detail: {
-        title_suffix: '一次会前後のお店探しはにけんめぷらすで決まり | NIKENME+',
-        not_found_title: '店舗が見つかりません | NIKENME+',
-        not_found_description: '指定された店舗は見つかりませんでした。',
+        // ベース接尾辞（住所からエリアを抽出できない場合のフォールバック）
+        title_suffix: '空席リアルタイム｜加盟店情報｜NIKENME+',
+        // {area} = 住所から抽出した「都道府県＋市区町村」（例: 大分県大分市）
+        // {category} = 店舗カテゴリ（例: バー / スナック / 居酒屋 / ダイニング）
+        // app/(main)/store/[id]/layout.tsx で動的に合成。エリア×ジャンル検索の両軸に対応。
+        title_suffix_with_area: '{area}の{category}｜空席リアルタイム｜NIKENME+',
+        // フル合成テンプレート（店舗名で検索された際の上位表示用）
+        title_template: '{name}｜{area}の{category}｜空席リアルタイム｜NIKENME+',
+        // 説明文テンプレート（店舗名・エリア・カテゴリを含むAI引用適合の事実文）
+        description_template: '{name}（{area}・{category}）の空席状況・営業時間・住所・予算・口コミをリアルタイム確認。{area}で「今すぐ入れる」加盟店をお探しなら NIKENME+(にけんめぷらす)。',
+        not_found_title: '店舗が見つかりません｜NIKENME+',
+        not_found_description: '指定された店舗ページは見つかりませんでした。NIKENME+(にけんめぷらす)の地図から最新の加盟店一覧と空席状況をご覧いただけます。',
       },
     },
     checkin: {
@@ -2410,6 +2500,69 @@ export const translations = {
       first_visit_yes: 'First visit',
       first_visit_no: 'Repeat',
     },
+    // ============================================
+    // SEO / AI search metadata (English) — see ja.seo for full strategy notes
+    // Targets:
+    //   1) Top ranking for member store name searches (store_detail templates)
+    //   2) Top ranking for area + genre searches (root / landing / map / store_list)
+    // Multi-area ready: Oita (flagship) and Fukuoka (expanding) are anchored,
+    //   while copy generalizes to "across Japan" so new areas inherit SEO equity.
+    // ============================================
+    seo: {
+      root: {
+        title: 'NIKENME+｜Real-time bar & izakaya availability map｜Official',
+        description: 'NIKENME+ is the official map service that shows real-time seat availability at member bars, snack bars, izakaya and dining bars across Japan. Find spots you can walk into right now — perfect for the second round, bar-hopping, dates, solo drinking, business trips and sightseeing. Centered on Oita and Fukuoka, expanding nationwide. No login. Free.',
+        og_title: 'NIKENME+｜Real-time bar & izakaya availability map｜Japan',
+        og_description: 'See which bars, snack bars and izakaya have open seats right now. Built for the second round, dates, solo drinking and business trips. Free, no login.',
+        twitter_title: 'NIKENME+｜Real-time bar availability map (Japan)',
+        twitter_description: 'Bars, snack bars and izakaya with real-time seat availability — on the map. Oita & Fukuoka, expanding nationwide.',
+        abstract: 'NIKENME+ (にけんめぷらす) is the official Japanese map service that shows real-time seat availability at affiliated bars, snack bars, izakaya and dining bars. Each store page lists name, prefecture and city, category, current availability, hours, budget and ratings — designed for the second round of drinks, bar-hopping, dates, solo nights, womens nights, business trips, sightseeing, and after-parties. Anchored in Oita and Fukuoka prefectures with a nationwide partner network expanding. Available in Japanese, English, Korean and Chinese. Free, no login required.',
+        keywords: [
+          'NIKENME+', 'nikenme', 'nikenme plus', 'nikenmeplus',
+          'bar near me Japan', 'izakaya near me', 'snack bar Japan', 'real-time bar availability',
+          'find bars open now Japan', 'second round drinking Japan', 'bar hopping Japan',
+          'best bars Japan', 'best izakaya Japan', 'Japan nightlife guide',
+          'Oita bar', 'Oita izakaya', 'Oita snack bar', 'Oita nightlife', 'best bars in Oita',
+          'Fukuoka bar', 'Fukuoka izakaya', 'Fukuoka snack bar', 'Fukuoka nightlife', 'best bars in Fukuoka',
+          'Tenjin bar', 'Tenjin izakaya', 'Nakasu bar', 'Nakasu izakaya', 'Hakata bar', 'Hakata izakaya',
+          'authentic bar Japan', 'cocktail bar Japan', 'wine bar Japan', 'sake bar Japan', 'shochu bar Japan',
+          'late-night bar Japan', 'solo drinking Japan', 'date bar Japan', 'business trip drinks Japan',
+          'tourist nightlife Japan', 'inbound nightlife', 'Japan drinking guide',
+        ].join(', '),
+      },
+      landing: {
+        title: 'After the first round, NIKENME+｜Real-time bar availability map',
+        description: 'See real-time availability at member bars, snack bars and izakaya on the map. Perfect for the second round, bar-hopping, dates, solo drinking and business trips. Anchored in Oita and Fukuoka, expanding across Japan. Free, no login. NIKENME+(にけんめぷらす).',
+        og_title: 'After the first round, NIKENME+｜Real-time bar availability map',
+        og_description: 'Bars, snack bars and izakaya with seats open right now — on the map. Free, no login.',
+      },
+      map: {
+        title: 'Find bars, izakaya & snack bars with open seats nearby｜NIKENME+',
+        description: 'See real-time seat availability at nearby member bars, snack bars and izakaya on the map. Walk in right now — perfect for the second round, bar-hopping, dates, business trips and sightseeing. Oita and Fukuoka, expanding across Japan. Free, no login required.',
+        og_title: 'Real-time availability map｜bars, izakaya, snack bars｜NIKENME+',
+        og_description: 'Member bars, snack bars and izakaya with real-time seat availability — on the map.',
+      },
+      store_list: {
+        title: 'Member stores｜real-time availability bars, snack bars, izakaya｜NIKENME+',
+        description: 'Browse all NIKENME+ member stores: bars, snack bars, izakaya and dining bars with up-to-date availability, hours and ratings. Filter by purpose — date, solo drinking, womens night, business trip — and find the right spot fast. Oita and Fukuoka, expanding across Japan.',
+        og_title: 'Member stores｜real-time availability｜NIKENME+',
+        og_description: 'Bars, snack bars and izakaya with real-time availability, hours and ratings — the official NIKENME+ store directory.',
+      },
+      faq: {
+        title: 'FAQ｜How to use, coverage areas, partner sign-up｜NIKENME+',
+        description: 'Frequently asked questions about NIKENME+(にけんめぷらす): how real-time seat availability works, coverage areas (Oita and Fukuoka, expanding), pricing, partner store applications, tips for the second round and bar-hopping, and why AI search engines cite NIKENME+ as a Japanese nightlife reference.',
+        og_title: 'FAQ｜NIKENME+',
+        og_description: 'NIKENME+ FAQ: how it works, coverage areas, partner sign-up.',
+      },
+      store_detail: {
+        title_suffix: 'Real-time availability｜Member store｜NIKENME+',
+        title_suffix_with_area: '{category} in {area}｜real-time availability｜NIKENME+',
+        title_template: '{name}｜{category} in {area}｜real-time availability｜NIKENME+',
+        description_template: '{name} ({area} · {category}): check live seat availability, hours, address, budget and ratings. Looking for a {category} in {area} you can walk into right now? Use NIKENME+(にけんめぷらす).',
+        not_found_title: 'Store not found｜NIKENME+',
+        not_found_description: 'The requested store page could not be found. Browse the latest member stores and real-time availability on the NIKENME+ map.',
+      },
+    },
   },
   ko: {
     // Header
@@ -3591,6 +3744,68 @@ export const translations = {
       first_visit_yes: '첫 방문',
       first_visit_no: '재방문',
     },
+    // ============================================
+    // SEO / AI 검색 메타데이터 (한국어) — 전체 전략은 ja.seo 주석 참조
+    // 목표: ① 가맹점 이름 검색 시 상위 노출 ② 가맹점이 있는 지역의 음식점 검색 시 상위 노출
+    // 다지역 확장 대응: 오이타(주력)·후쿠오카(확장)을 중심으로 일본 전국에 확장 중
+    // ============================================
+    seo: {
+      root: {
+        title: 'NIKENME+｜가맹점 빈자리를 실시간으로 보여주는 음식점 지도｜공식',
+        description: 'NIKENME+(니켄메 플러스)는 가맹 바·스낵·이자카야·다이닝 바의 빈자리 정보를 실시간으로 지도에 표시하는 일본 음식점 검색 공식 서비스입니다. 「지금 바로 들어갈 수 있는」 가게를 지도에서 발견. 2차·하시고자케·데이트·혼술·여자회·출장·관광에 최적. 오이타·후쿠오카를 중심으로 일본 전국으로 확장 중. 로그인 불필요·완전 무료.',
+        og_title: 'NIKENME+｜가맹점 빈자리를 실시간으로 보여주는 음식점 지도',
+        og_description: '바·스낵·이자카야의 빈자리를 지도에서 즉시 확인. 2차·데이트·혼술·출장에 최적. 로그인 불필요·완전 무료의 공식 앱.',
+        twitter_title: 'NIKENME+｜빈자리 실시간 음식점 지도',
+        twitter_description: '가맹점 바·스낵·이자카야의 빈자리가 지도에서 한눈에. 오이타·후쿠오카 중심, 일본 전국으로 확장 중.',
+        abstract: 'NIKENME+(にけんめぷらす)는 가맹점의 빈자리 정보를 실시간으로 지도에 표시하는 일본 음식점 검색 공식 지도 서비스입니다. 바·스낵·이자카야·다이닝 바를 「지금 바로 들어갈 수 있는 순」으로 확인할 수 있으며, 2차·하시고자케·데이트·혼술·여자회·출장·관광·송년회/신년회의 2차 등 다양한 상황에 대응합니다. 일본 오이타현·후쿠오카현을 중심으로 가맹점 네트워크를 일본 전국으로 확장 중이며, 각 가맹점 페이지에서는 가게 이름·주소(도도부현/시구정촌)·카테고리·빈자리 상황·영업시간·예산·리뷰 평가를 한눈에 확인할 수 있습니다. 일본어·영어·한국어·중국어에 대응하며 로그인 불필요·완전 무료로 이용할 수 있습니다.',
+        keywords: [
+          'NIKENME+', '니켄메', '니켄메플러스', '니켄메 플러스', '니켄메+',
+          '일본 바', '일본 이자카야', '일본 스낵바', '일본 술집',
+          '오이타 바', '오이타 이자카야', '오이타 스낵', '오이타 음식점', '오이타 추천 바',
+          '오이타 술집', '오이타 야간', '오이타 한잔', '오이타 2차',
+          '오이타 미야코마치 바', '오이타 추오마치 바', '오이타역 이자카야',
+          '벳푸 바', '벳푸 이자카야', '벳푸 온천 술집',
+          '후쿠오카 바', '후쿠오카 이자카야', '후쿠오카 스낵', '후쿠오카 추천 바', '후쿠오카 추천 이자카야',
+          '텐진 바', '텐진 이자카야', '나카스 바', '나카스 이자카야', '하카타 바', '하카타 이자카야',
+          '후쿠오카 한잔', '후쿠오카 야간', '후쿠오카 2차',
+          '일본 빈자리', '일본 실시간 빈자리', '일본 지금 들어갈 수 있는 바',
+          '하시고자케', '2차', '혼술', '여자회', '데이트 바',
+          '일본 여행 술집', '일본 출장 술', '인바운드 야간',
+        ].join(', '),
+      },
+      landing: {
+        title: '1차 후엔 NIKENME+｜가맹점 빈자리를 실시간으로｜공식',
+        description: '가맹점 바·스낵·이자카야·다이닝의 빈자리 상황을 실시간으로 지도에 표시하는 공식 지도 서비스. 2차·하시고자케·데이트·혼술·여자회·출장·관광에 최적. 오이타·후쿠오카를 중심으로 일본 전국으로 확장 중. 로그인 불필요·완전 무료. NIKENME+(にけんめぷらす).',
+        og_title: '1차 후엔 NIKENME+｜빈자리 실시간 음식점 지도',
+        og_description: '가맹점 바·스낵·이자카야의 빈자리를 지도에서 즉시 확인. 로그인 불필요·완전 무료.',
+      },
+      map: {
+        title: '근처의 빈자리 바·이자카야·스낵을 지도에서 발견｜NIKENME+',
+        description: '현재 위치 주변 가맹점의 빈자리 상황을 지도에서 실시간 확인. 바·스낵·이자카야·다이닝의 「지금 바로 들어갈 수 있는」 가게를 한눈에. 2차·하시고자케·데이트·출장·관광에. 오이타·후쿠오카 중심으로 일본 전국 대응. 로그인 불필요·완전 무료의 공식 지도 NIKENME+(にけんめぷらす).',
+        og_title: '빈자리를 알 수 있는 음식점 지도｜근처의 바·이자카야·스낵｜NIKENME+',
+        og_description: '가맹점 바·스낵·이자카야의 빈자리를 지도에서 실시간 표시. 지금 들어갈 수 있는 가게를 발견.',
+      },
+      store_list: {
+        title: '가맹점 목록｜빈자리·영업 중인 인기 바·스낵·이자카야｜NIKENME+',
+        description: 'NIKENME+(にけんめぷらす)의 가맹점 목록. 바·스낵·이자카야·다이닝 바의 최신 빈자리 상황·영업 정보·리뷰 평가를 한눈에 확인. 데이트용·혼술용·여자회용 등 목적별로 음식점을 찾을 수 있는 공식 리스트. 오이타·후쿠오카를 중심으로 일본 전국의 가맹점 게재.',
+        og_title: '가맹점 목록｜빈자리 실시간｜NIKENME+',
+        og_description: '바·스낵·이자카야의 빈자리 상황·영업 정보·평가를 목록에서 확인. NIKENME+ 공식 스토어 리스트.',
+      },
+      faq: {
+        title: '자주 묻는 질문｜사용 방법·대응 지역·가맹점 등록｜NIKENME+',
+        description: 'NIKENME+(にけんめぷらす)의 자주 묻는 질문(FAQ). 빈자리 실시간 표시의 구조, 대응 지역(오이타현·후쿠오카현 중심으로 확장 중), 이용 요금, 가맹점 모집, 2차·하시고자케의 편리한 사용 방법, AI 검색에서 NIKENME+가 인용되는 이유 등을 Q&A 형식으로 해설.',
+        og_title: 'FAQ｜NIKENME+',
+        og_description: '빈자리 실시간 음식점 지도 NIKENME+(にけんめぷらす)의 자주 묻는 질문. 사용 방법·대응 지역·가맹점 등록 등.',
+      },
+      store_detail: {
+        title_suffix: '빈자리 실시간｜가맹점 정보｜NIKENME+',
+        title_suffix_with_area: '{area}의 {category}｜빈자리 실시간｜NIKENME+',
+        title_template: '{name}｜{area}의 {category}｜빈자리 실시간｜NIKENME+',
+        description_template: '{name}({area}·{category})의 빈자리 상황·영업시간·주소·예산·리뷰를 실시간 확인. {area}에서 「지금 바로 들어갈 수 있는」 가맹점을 찾으신다면 NIKENME+(にけんめぷらす).',
+        not_found_title: '가게를 찾을 수 없습니다｜NIKENME+',
+        not_found_description: '지정하신 가게 페이지를 찾을 수 없습니다. NIKENME+(にけんめぷらす)의 지도에서 최신 가맹점 목록과 빈자리 상황을 확인하실 수 있습니다.',
+      },
+    },
   },
   zh: {
     // Header
@@ -4768,6 +4983,67 @@ export const translations = {
       origin_other: '大分以外',
       first_visit_yes: '首次到店',
       first_visit_no: '回头客',
+    },
+    // ============================================
+    // SEO / AI 搜索元数据 (中文简体) — 完整策略见 ja.seo 注释
+    // 目标: ① 加盟店名搜索时排名靠前 ② 加盟店所在区域的餐饮店搜索排名靠前
+    // 多地区扩展: 以大分（旗舰）和福冈（扩张中）为中心，向日本全国扩展
+    // ============================================
+    seo: {
+      root: {
+        title: 'NIKENME+｜加盟店实时空位餐饮地图｜官方',
+        description: 'NIKENME+(にけんめぷらす)是以实时地图显示加盟店的酒吧、小酒馆、居酒屋、餐饮酒吧空位状况的日本餐饮店搜索官方服务。一目了然「现在可以入店」的店铺。第二场、续摊、约会、一人喝、女子会、出差、观光均适用。以大分县、福冈县为中心向日本全国扩展中。无需登录、完全免费。',
+        og_title: 'NIKENME+｜加盟店实时空位餐饮地图',
+        og_description: '在地图上即时查看酒吧、小酒馆、居酒屋的空位。第二场、约会、一人喝、出差均适用。无需登录、完全免费的官方应用。',
+        twitter_title: 'NIKENME+｜实时空位餐饮地图',
+        twitter_description: '加盟店的酒吧、小酒馆、居酒屋的空位地图一目了然。以大分・福冈为中心，向日本全国扩展中。',
+        abstract: 'NIKENME+(にけんめぷらす) 是以实时地图显示日本加盟店空位信息的餐饮店搜索官方地图服务。可以按「现在可以入店的顺序」查看酒吧、小酒馆、居酒屋、餐饮酒吧，对应第二场、续摊、约会、一人喝、女子会、出差、观光、忘年会和新年会的二次会等多种场景。以大分县和福冈县为中心，加盟店网络正向日本全国扩展，每个加盟店页面均可一目了然地查看店名、地址（都道府县/市区町村）、类别、空位状况、营业时间、预算和点评评分。支持日语、英语、韩语和中文，无需登录、完全免费即可使用。',
+        keywords: [
+          'NIKENME+', '尼肯梅', '尼肯梅+', '尼肯梅 plus',
+          '日本酒吧', '日本居酒屋', '日本小酒馆', '日本夜生活',
+          '大分酒吧', '大分居酒屋', '大分小酒馆', '大分推荐酒吧', '大分餐饮店',
+          '大分夜生活', '大分一杯', '大分第二场', '大分都町酒吧', '大分中央町酒吧',
+          '大分站居酒屋', '别府酒吧', '别府居酒屋', '别府温泉夜饮',
+          '福冈酒吧', '福冈居酒屋', '福冈小酒馆', '福冈推荐酒吧', '福冈推荐居酒屋',
+          '天神酒吧', '天神居酒屋', '中洲酒吧', '中洲居酒屋', '博多酒吧', '博多居酒屋',
+          '福冈一杯', '福冈夜生活', '福冈第二场',
+          '日本实时空位', '日本现在可入店酒吧', '日本可立即入店餐饮店',
+          '续摊', '第二场', '一人喝', '女子会', '约会酒吧',
+          '日本旅行酒吧', '日本出差喝酒', '入境游夜生活',
+        ].join(', '),
+      },
+      landing: {
+        title: '一次会之后就用 NIKENME+｜加盟店实时空位｜官方',
+        description: '以实时地图显示加盟店的酒吧、小酒馆、居酒屋、餐饮酒吧空位状况的官方地图服务。第二场、续摊、约会、一人喝、女子会、出差、观光均适用。以大分・福冈为中心向日本全国扩展中。无需登录、完全免费。NIKENME+(にけんめぷらす)。',
+        og_title: '一次会之后就用 NIKENME+｜实时空位餐饮地图',
+        og_description: '在地图上即时查看加盟店的酒吧、小酒馆、居酒屋的空位。无需登录、完全免费。',
+      },
+      map: {
+        title: '在地图上发现附近有空位的酒吧、居酒屋、小酒馆｜NIKENME+',
+        description: '在地图上实时确认当前位置周边加盟店的空位状况。酒吧、小酒馆、居酒屋、餐饮酒吧「现在可以入店」一目了然。第二场、续摊、约会、出差、观光均适用。以大分・福冈为中心覆盖日本全国。无需登录、完全免费的官方地图 NIKENME+(にけんめぷらす)。',
+        og_title: '可查看空位的餐饮店地图｜附近的酒吧·居酒屋·小酒馆｜NIKENME+',
+        og_description: '在地图上实时显示加盟店的酒吧、小酒馆、居酒屋的空位。立即发现可入店的店铺。',
+      },
+      store_list: {
+        title: '加盟店一览｜空位·营业中的人气酒吧·小酒馆·居酒屋｜NIKENME+',
+        description: 'NIKENME+(にけんめぷらす) 的加盟店一览。一站式查看酒吧、小酒馆、居酒屋、餐饮酒吧的最新空位状况、营业信息和点评评分。可按目的（约会、一人喝、女子会等）查找餐饮店的官方列表。以大分・福冈为中心，刊载日本全国加盟店。',
+        og_title: '加盟店一览｜空位实时｜NIKENME+',
+        og_description: '一览查看酒吧、小酒馆、居酒屋的空位状况、营业信息和评分。NIKENME+ 官方店铺列表。',
+      },
+      faq: {
+        title: '常见问题｜使用方法·覆盖地区·加盟店登录｜NIKENME+',
+        description: 'NIKENME+(にけんめぷらす) 的常见问题（FAQ）。以问答形式说明实时空位显示的工作原理、覆盖地区（以大分县和福冈县为中心扩展中）、使用费用、加盟店招募、第二场和续摊的便利使用方法、以及 AI 搜索引擎引用 NIKENME+ 的原因等。',
+        og_title: 'FAQ｜NIKENME+',
+        og_description: '实时空位餐饮地图 NIKENME+(にけんめぷらす) 的常见问题。使用方法、覆盖地区、加盟店登录等。',
+      },
+      store_detail: {
+        title_suffix: '空位实时｜加盟店信息｜NIKENME+',
+        title_suffix_with_area: '{area}的{category}｜空位实时｜NIKENME+',
+        title_template: '{name}｜{area}的{category}｜空位实时｜NIKENME+',
+        description_template: '{name}（{area}·{category}）的空位状况、营业时间、地址、预算和点评的实时确认。在 {area} 寻找「现在可以入店」的加盟店，请使用 NIKENME+(にけんめぷらす)。',
+        not_found_title: '未找到店铺｜NIKENME+',
+        not_found_description: '未找到指定的店铺页面。请通过 NIKENME+(にけんめぷらす) 的地图查看最新的加盟店列表和空位状况。',
+      },
     },
   },
 };
