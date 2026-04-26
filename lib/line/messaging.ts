@@ -130,7 +130,17 @@ export type NearbyCandidate = {
   vacancy_notify_radius_km: number | null;
   unfollowed_at: string | null;
   last_vacancy_sent_at?: string | null;
+  daily_notify_count?: number;
+  daily_notify_date?: string | null;
 };
+
+/** 1ユーザーが LINE OA から1日に受け取れる通知の上限（vacancy + broadcast 共通） */
+export const DAILY_NOTIFY_CAP = 5;
+
+/** Asia/Tokyo の今日（YYYY-MM-DD）を返す。DBの date 列と直接比較できる形式。 */
+export function todayJst(now: Date = new Date()): string {
+  return new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Tokyo' }).format(now);
+}
 
 /** ユーザー指定の通知拠点があれば優先、なければ最新共有位置を使う */
 function pickNotifyCoord(c: NearbyCandidate): { lat: number; lng: number } | null {
@@ -162,17 +172,21 @@ export function filterNearbySubscribers(
 }
 
 /**
- * 空席通知向けのターゲット抽出。近傍フィルタに加え、直近 throttleHours 時間以内に
- * 同一ユーザーへ空席通知を送っていないことを条件にする（Phase 4 4-E-4）。
+ * 空席通知向けのターゲット抽出。近傍フィルタに加え、
+ *  - 直近 throttleHours 時間以内に同一ユーザーへ通知を送っていない
+ *  - JST の当日通知数が dailyCap 未満
+ * を条件にする。
  */
 export function filterVacancyTargets(
   subscribers: NearbyCandidate[],
   storeLat: number,
   storeLng: number,
   defaultRadiusKm: number,
-  throttleHours: number
+  throttleHours: number,
+  dailyCap: number = DAILY_NOTIFY_CAP
 ): string[] {
   const threshold = Date.now() - throttleHours * 60 * 60 * 1000;
+  const today = todayJst();
   return subscribers
     .filter((s) => s.unfollowed_at === null && s.vacancy_notify_opt_in)
     .filter((s) => {
@@ -180,6 +194,11 @@ export function filterVacancyTargets(
       const ts = new Date(s.last_vacancy_sent_at).getTime();
       if (Number.isNaN(ts)) return true;
       return ts <= threshold;
+    })
+    .filter((s) => {
+      // JSTの「今日」と一致する日付のカウンタのみ有効。日付が違う/NULLなら 0 扱い。
+      if (s.daily_notify_date !== today) return true;
+      return (s.daily_notify_count ?? 0) < dailyCap;
     })
     .filter((s) => {
       const coord = pickNotifyCoord(s);

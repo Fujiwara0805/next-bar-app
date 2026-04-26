@@ -6,7 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '@/lib/supabase/types';
-import { filterVacancyTargets, isMessagingConfigured, multicast } from '@/lib/line/messaging';
+import { DAILY_NOTIFY_CAP, filterVacancyTargets, isMessagingConfigured, multicast, todayJst } from '@/lib/line/messaging';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -14,7 +14,7 @@ export const runtime = 'nodejs';
 const MAX_BODY_LEN = 400;
 const MAX_ALL_OA_PER_DAY = 3;
 const DEFAULT_RADIUS_KM = 1.5;
-const BROADCAST_THROTTLE_HOURS = 1; // Phase 4: 1ユーザー1時間1通まで
+const BROADCAST_THROTTLE_HOURS = 0.5; // 1ユーザー30分1通まで
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -133,10 +133,10 @@ export async function POST(
     const { data: subscribers } = await admin
       .from('line_oa_subscribers')
       .select(
-        'line_user_id, latest_latitude, latest_longitude, notify_center_latitude, notify_center_longitude, vacancy_notify_opt_in, vacancy_notify_radius_km, unfollowed_at, last_vacancy_sent_at'
+        'line_user_id, latest_latitude, latest_longitude, notify_center_latitude, notify_center_longitude, vacancy_notify_opt_in, vacancy_notify_radius_km, unfollowed_at, last_vacancy_sent_at, daily_notify_count, daily_notify_date'
       )
       .is('unfollowed_at', null);
-    // Phase 4: nearby配信にも 1h スロットルを適用（ユーザーへの集中配信を防ぐ）
+    // 連投防止スロットル + 日次キャップを適用
     targetIds = filterVacancyTargets(
       subscribers ?? [],
       store.latitude as number,
@@ -147,9 +147,16 @@ export async function POST(
   } else {
     const { data: subscribers } = await admin
       .from('line_oa_subscribers')
-      .select('line_user_id')
+      .select('line_user_id, daily_notify_count, daily_notify_date')
       .is('unfollowed_at', null);
-    targetIds = (subscribers ?? []).map((s) => s.line_user_id);
+    // 全友だち向けでも日次キャップは適用する（1ユーザー1日最大 DAILY_NOTIFY_CAP 通）
+    const today = todayJst();
+    targetIds = (subscribers ?? [])
+      .filter((s) => {
+        if (s.daily_notify_date !== today) return true;
+        return (s.daily_notify_count ?? 0) < DAILY_NOTIFY_CAP;
+      })
+      .map((s) => s.line_user_id);
   }
 
   // 先にメッセージ行を作成し、クリック追跡URLに使うID確定
@@ -181,13 +188,9 @@ export async function POST(
     ? await multicast(targetIds, [{ type: 'text', text: messageText }])
     : { requested: 0, delivered: 0, failed: 0, errors: [] };
 
-  // 送信成功者のスロットルタイムスタンプを更新
-  if (targetAudience === 'nearby' && result.delivered > 0 && targetIds.length > 0) {
-    const nowIso = new Date().toISOString();
-    await admin
-      .from('line_oa_subscribers')
-      .update({ last_vacancy_sent_at: nowIso })
-      .in('line_user_id', targetIds);
+  // 送信成功者のスロットルタイムスタンプ + 日次カウンタを更新（JSTで自動リセット）
+  if (result.delivered > 0 && targetIds.length > 0) {
+    await admin.rpc('bump_line_oa_daily_count', { p_users: targetIds });
   }
 
   const status =

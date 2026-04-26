@@ -14,7 +14,7 @@ import { sendPushToNearbyUsers } from '@/lib/push/server';
 import { filterVacancyTargets, isMessagingConfigured, multicast } from '@/lib/line/messaging';
 
 const DEFAULT_LINE_VACANCY_RADIUS_KM = 1.0;
-const VACANCY_THROTTLE_HOURS = 1; // Phase 4: 1ユーザー1時間1通まで
+const VACANCY_THROTTLE_HOURS = 0.5; // 1ユーザー30分1通まで
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -138,7 +138,7 @@ export async function PATCH(
             const { data: subscribers } = await supabase
               .from('line_oa_subscribers')
               .select(
-                'line_user_id, latest_latitude, latest_longitude, notify_center_latitude, notify_center_longitude, vacancy_notify_opt_in, vacancy_notify_radius_km, unfollowed_at, last_vacancy_sent_at'
+                'line_user_id, latest_latitude, latest_longitude, notify_center_latitude, notify_center_longitude, vacancy_notify_opt_in, vacancy_notify_radius_km, unfollowed_at, last_vacancy_sent_at, daily_notify_count, daily_notify_date'
               )
               .is('unfollowed_at', null)
               .eq('vacancy_notify_opt_in', true);
@@ -190,13 +190,9 @@ export async function PATCH(
               },
             ]);
 
-            // 送信成功したtargetsへ last_vacancy_sent_at を反映（Phase 4: 1hスロットル用）
+            // 送信成功したtargetsへ last_vacancy_sent_at と日次カウンタを反映（JSTで自動リセット）
             if (result.delivered > 0 && targets.length > 0) {
-              const nowIso = new Date().toISOString();
-              await supabase
-                .from('line_oa_subscribers')
-                .update({ last_vacancy_sent_at: nowIso })
-                .in('line_user_id', targets);
+              await supabase.rpc('bump_line_oa_daily_count', { p_users: targets });
             }
 
             if (msgRow?.id) {

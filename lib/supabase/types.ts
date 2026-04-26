@@ -155,6 +155,8 @@ export type Database = {
       }
       line_oa_subscribers: {
         Row: {
+          daily_notify_count: number
+          daily_notify_date: string | null
           display_name: string | null
           followed_at: string
           language: string | null
@@ -175,6 +177,8 @@ export type Database = {
           vacancy_sent_count: number
         }
         Insert: {
+          daily_notify_count?: number
+          daily_notify_date?: string | null
           display_name?: string | null
           followed_at?: string
           language?: string | null
@@ -195,6 +199,8 @@ export type Database = {
           vacancy_sent_count?: number
         }
         Update: {
+          daily_notify_count?: number
+          daily_notify_date?: string | null
           display_name?: string | null
           followed_at?: string
           language?: string | null
@@ -1245,6 +1251,10 @@ export type Database = {
     }
     Functions: {
       aggregate_sponsor_daily_reports: { Args: never; Returns: undefined }
+      bump_line_oa_daily_count: {
+        Args: { p_users: string[] }
+        Returns: undefined
+      }
       is_platform_admin: { Args: never; Returns: boolean }
       update_sponsor_contract_statuses: { Args: never; Returns: undefined }
     }

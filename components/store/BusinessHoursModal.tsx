@@ -179,7 +179,7 @@ export function BusinessHoursModal({
                 <Label
                   htmlFor={`closed-${key}`}
                   className="text-xs cursor-pointer"
-                  style={{ color: COLORS.warmGray }}
+                  style={{ color: COLORS.royalNavy }}
                 >
                   休
                 </Label>
@@ -190,7 +190,7 @@ export function BusinessHoursModal({
                 <div className="flex-1 text-center">
                   <span
                     className="text-sm"
-                    style={{ color: COLORS.warmGray }}
+                    style={{ color: COLORS.royalNavy }}
                   >
                     定休日
                   </span>
@@ -202,17 +202,17 @@ export function BusinessHoursModal({
                     onChange={(e) => updateDay(key, 'open', e.target.value)}
                     disabled={disabled}
                     className="flex-1 text-sm px-2 py-1.5 rounded-lg border border-border bg-popover focus:outline-none focus:ring-2 focus:ring-brass-500/20"
-                    style={{ fontSize: '14px' }}
+                    style={{ fontSize: '14px', color: COLORS.deepNavy }}
                   >
                     {TIME_OPTIONS.map((t) => (
-                      <option key={t} value={t}>
+                      <option key={t} value={t} style={{ color: COLORS.deepNavy }}>
                         {t}
                       </option>
                     ))}
                   </select>
                   <span
                     className="text-sm shrink-0"
-                    style={{ color: COLORS.warmGray }}
+                    style={{ color: COLORS.royalNavy }}
                   >
                     〜
                   </span>
@@ -221,10 +221,10 @@ export function BusinessHoursModal({
                     onChange={(e) => updateDay(key, 'close', e.target.value)}
                     disabled={disabled}
                     className="flex-1 text-sm px-2 py-1.5 rounded-lg border border-border bg-popover focus:outline-none focus:ring-2 focus:ring-brass-500/20"
-                    style={{ fontSize: '14px' }}
+                    style={{ fontSize: '14px', color: COLORS.deepNavy }}
                   >
                     {TIME_OPTIONS.map((t) => (
-                      <option key={t} value={t}>
+                      <option key={t} value={t} style={{ color: COLORS.deepNavy }}>
                         {t}
                       </option>
                     ))}

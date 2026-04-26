@@ -364,7 +364,7 @@ export default function LiffVacancyOptInPage() {
                   </p>
                   <span
                     className="text-base font-bold tabular-nums"
-                    style={{ color: COLORS.champagneGold }}
+                    style={{ color: COLORS.deepNavy }}
                   >
                     {radiusKm} km
                   </span>
