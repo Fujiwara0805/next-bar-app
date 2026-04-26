@@ -1039,10 +1039,10 @@ export const translations = {
         og_description: '加盟店のバー・スナック・居酒屋の空席を地図で即チェック。二軒目・デート・一人飲み・出張に。ログイン不要・完全無料。',
       },
       map: {
-        title: '近くの空席バー・居酒屋・スナックを地図で発見｜NIKENME+',
-        description: '現在地周辺の加盟店の空席状況を地図でリアルタイム確認。バー・スナック・居酒屋・ダイニングの「今すぐ入れる」店が一目で分かる。二軒目・はしご酒・デート・出張・観光に。大分・福岡を中心に全国対応。ログイン不要・完全無料の公式マップ NIKENME+(にけんめぷらす)。',
-        og_title: '空席が分かる飲食店マップ｜近くのバー・居酒屋・スナック｜NIKENME+',
-        og_description: '加盟店のバー・スナック・居酒屋の空席を地図でリアルタイム表示。今すぐ入れる店を発見。',
+        title: '近くの飲食店の空席状況を確認｜NIKENME+',
+        description: '現在地周辺の加盟店の空席状況を地図でリアルタイム確認。「今すぐ入れる」飲食店が一目で分かる。二軒目・はしご酒・デート・出張・観光に。大分・福岡を中心に全国対応。ログイン不要・完全無料の公式マップ NIKENME+(にけんめぷらす)。',
+        og_title: '近くの飲食店の空席状況を確認｜NIKENME+',
+        og_description: '加盟店の空席状況を地図でリアルタイム確認。今すぐ入れる飲食店を発見。',
       },
       store_list: {
         title: '加盟店一覧｜空席・営業中の人気バー・スナック・居酒屋｜NIKENME+',
@@ -2537,10 +2537,10 @@ export const translations = {
         og_description: 'Bars, snack bars and izakaya with seats open right now — on the map. Free, no login.',
       },
       map: {
-        title: 'Find bars, izakaya & snack bars with open seats nearby｜NIKENME+',
-        description: 'See real-time seat availability at nearby member bars, snack bars and izakaya on the map. Walk in right now — perfect for the second round, bar-hopping, dates, business trips and sightseeing. Oita and Fukuoka, expanding across Japan. Free, no login required.',
-        og_title: 'Real-time availability map｜bars, izakaya, snack bars｜NIKENME+',
-        og_description: 'Member bars, snack bars and izakaya with real-time seat availability — on the map.',
+        title: 'Check real-time seat availability at restaurants nearby｜NIKENME+',
+        description: 'See real-time seat availability at nearby member restaurants on the map. Find a place you can walk into right now — perfect for the second round, bar-hopping, dates, business trips and sightseeing. Oita and Fukuoka, expanding across Japan. Free, no login required.',
+        og_title: 'Check real-time seat availability at restaurants nearby｜NIKENME+',
+        og_description: 'Real-time seat availability at member restaurants — on the map. Find a place you can walk into right now.',
       },
       store_list: {
         title: 'Member stores｜real-time availability bars, snack bars, izakaya｜NIKENME+',
@@ -3780,10 +3780,10 @@ export const translations = {
         og_description: '가맹점 바·스낵·이자카야의 빈자리를 지도에서 즉시 확인. 로그인 불필요·완전 무료.',
       },
       map: {
-        title: '근처의 빈자리 바·이자카야·스낵을 지도에서 발견｜NIKENME+',
-        description: '현재 위치 주변 가맹점의 빈자리 상황을 지도에서 실시간 확인. 바·스낵·이자카야·다이닝의 「지금 바로 들어갈 수 있는」 가게를 한눈에. 2차·하시고자케·데이트·출장·관광에. 오이타·후쿠오카 중심으로 일본 전국 대응. 로그인 불필요·완전 무료의 공식 지도 NIKENME+(にけんめぷらす).',
-        og_title: '빈자리를 알 수 있는 음식점 지도｜근처의 바·이자카야·스낵｜NIKENME+',
-        og_description: '가맹점 바·스낵·이자카야의 빈자리를 지도에서 실시간 표시. 지금 들어갈 수 있는 가게를 발견.',
+        title: '근처 음식점의 빈자리 상황을 확인｜NIKENME+',
+        description: '현재 위치 주변 가맹점의 빈자리 상황을 지도에서 실시간 확인. 「지금 바로 들어갈 수 있는」 음식점을 한눈에. 2차·하시고자케·데이트·출장·관광에. 오이타·후쿠오카 중심으로 일본 전국 대응. 로그인 불필요·완전 무료의 공식 지도 NIKENME+(にけんめぷらす).',
+        og_title: '근처 음식점의 빈자리 상황을 확인｜NIKENME+',
+        og_description: '가맹점의 빈자리 상황을 지도에서 실시간 표시. 지금 들어갈 수 있는 음식점을 발견.',
       },
       store_list: {
         title: '가맹점 목록｜빈자리·영업 중인 인기 바·스낵·이자카야｜NIKENME+',
@@ -5019,10 +5019,10 @@ export const translations = {
         og_description: '在地图上即时查看加盟店的酒吧、小酒馆、居酒屋的空位。无需登录、完全免费。',
       },
       map: {
-        title: '在地图上发现附近有空位的酒吧、居酒屋、小酒馆｜NIKENME+',
-        description: '在地图上实时确认当前位置周边加盟店的空位状况。酒吧、小酒馆、居酒屋、餐饮酒吧「现在可以入店」一目了然。第二场、续摊、约会、出差、观光均适用。以大分・福冈为中心覆盖日本全国。无需登录、完全免费的官方地图 NIKENME+(にけんめぷらす)。',
-        og_title: '可查看空位的餐饮店地图｜附近的酒吧·居酒屋·小酒馆｜NIKENME+',
-        og_description: '在地图上实时显示加盟店的酒吧、小酒馆、居酒屋的空位。立即发现可入店的店铺。',
+        title: '查看附近餐饮店的空位状况｜NIKENME+',
+        description: '在地图上实时确认当前位置周边加盟店的空位状况。「现在可以入店」的餐饮店一目了然。第二场、续摊、约会、出差、观光均适用。以大分・福冈为中心覆盖日本全国。无需登录、完全免费的官方地图 NIKENME+(にけんめぷらす)。',
+        og_title: '查看附近餐饮店的空位状况｜NIKENME+',
+        og_description: '在地图上实时显示加盟店的空位状况。立即发现可入店的餐饮店。',
       },
       store_list: {
         title: '加盟店一览｜空位·营业中的人气酒吧·小酒馆·居酒屋｜NIKENME+',
