@@ -9,11 +9,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Bell, BellOff, Loader2, MapPin, Save, Sparkles } from 'lucide-react';
+import { BellOff, Loader2, MapPin, Save, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Switch } from '@/components/ui/switch';
 import { CloseCircleButton } from '@/components/ui/close-circle-button';
 import { useLiff } from '@/lib/line/context';
 import { useLanguage } from '@/lib/i18n/context';
@@ -249,15 +248,6 @@ export default function LiffVacancyOptInPage() {
           transition={{ duration: 0.5 }}
           className="flex flex-col items-center text-center mb-6"
         >
-          <div
-            className="w-14 h-14 rounded-2xl flex items-center justify-center mb-3"
-            style={{
-              background: COLORS.goldGradient,
-              boxShadow: '0 8px 24px rgba(255, 198, 45, 0.35)',
-            }}
-          >
-            <Bell className="w-6 h-6" style={{ color: COLORS.deepNavy }} />
-          </div>
           <div className="flex items-center gap-1.5 mb-1">
             <Sparkles className="w-3.5 h-3.5" style={{ color: COLORS.champagneGold }} />
             <span
@@ -326,7 +316,43 @@ export default function LiffVacancyOptInPage() {
                       {t('liffVacancy.opt_in_hint')}
                     </p>
                   </div>
-                  <Switch checked={optIn} onCheckedChange={setOptIn} />
+                  <div
+                    role="group"
+                    aria-label={t('liffVacancy.opt_in_label')}
+                    className="inline-flex items-stretch shrink-0 rounded-xl overflow-hidden"
+                    style={{
+                      border: `2px solid ${COLORS.champagneGold}`,
+                      boxShadow: '0 4px 12px rgba(19, 41, 75, 0.18)',
+                    }}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setOptIn(true)}
+                      aria-pressed={optIn}
+                      className="px-5 py-2 text-sm font-extrabold tracking-wider transition-colors duration-150 focus:outline-none focus-visible:ring-2"
+                      style={{
+                        background: optIn ? COLORS.champagneGold : COLORS.ivory,
+                        color: optIn ? COLORS.deepNavy : COLORS.warmGray,
+                        minWidth: 64,
+                      }}
+                    >
+                      {t('liffVacancy.opt_in_on')}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setOptIn(false)}
+                      aria-pressed={!optIn}
+                      className="px-5 py-2 text-sm font-extrabold tracking-wider transition-colors duration-150 focus:outline-none focus-visible:ring-2"
+                      style={{
+                        background: !optIn ? COLORS.champagneGold : COLORS.ivory,
+                        color: !optIn ? COLORS.deepNavy : COLORS.warmGray,
+                        borderLeft: `2px solid ${COLORS.champagneGold}`,
+                        minWidth: 64,
+                      }}
+                    >
+                      {t('liffVacancy.opt_in_off')}
+                    </button>
+                  </div>
                 </div>
               </Card>
 
