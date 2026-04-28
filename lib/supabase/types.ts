@@ -874,6 +874,10 @@ export type Database = {
       }
       store_check_ins: {
         Row: {
+          check_in_accuracy_m: number | null
+          check_in_distance_m: number | null
+          check_in_lat: number | null
+          check_in_lng: number | null
           checked_in_at: string
           id: string
           source: string
@@ -882,6 +886,10 @@ export type Database = {
           visit_date: string
         }
         Insert: {
+          check_in_accuracy_m?: number | null
+          check_in_distance_m?: number | null
+          check_in_lat?: number | null
+          check_in_lng?: number | null
           checked_in_at?: string
           id?: string
           source?: string
@@ -890,6 +898,10 @@ export type Database = {
           visit_date?: string
         }
         Update: {
+          check_in_accuracy_m?: number | null
+          check_in_distance_m?: number | null
+          check_in_lat?: number | null
+          check_in_lng?: number | null
           checked_in_at?: string
           id?: string
           source?: string
@@ -972,6 +984,60 @@ export type Database = {
             columns: ["store_id"]
             isOneToOne: false
             referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      store_crowd_reports: {
+        Row: {
+          distance_m: number | null
+          id: string
+          is_valid: boolean
+          report_type: string
+          reported_at: string
+          source: string
+          store_id: string
+          user_id: string | null
+          user_lat: number | null
+          user_lng: number | null
+        }
+        Insert: {
+          distance_m?: number | null
+          id?: string
+          is_valid?: boolean
+          report_type: string
+          reported_at?: string
+          source?: string
+          store_id: string
+          user_id?: string | null
+          user_lat?: number | null
+          user_lng?: number | null
+        }
+        Update: {
+          distance_m?: number | null
+          id?: string
+          is_valid?: boolean
+          report_type?: string
+          reported_at?: string
+          source?: string
+          store_id?: string
+          user_id?: string | null
+          user_lat?: number | null
+          user_lng?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_crowd_reports_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_crowd_reports_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]

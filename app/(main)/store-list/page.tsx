@@ -746,9 +746,13 @@ function StoreListContent() {
                                 if (isNaN(distanceKm)) return null;
                                 const distanceM = Math.round(distanceKm * 1000);
                                 const distanceText = distanceM >= 1000 ? `${(distanceKm).toFixed(1)}km` : `${distanceM}m`;
+                                const minutes = calculateWalkingTime(distanceKm);
+                                const text = minutes > 60
+                                  ? t('store_list.walking_time_hours').replace('{hours}', (minutes / 60).toFixed(1)).replace('{distance}', distanceText)
+                                  : t('store_list.walking_time').replace('{minutes}', String(minutes)).replace('{distance}', distanceText);
                                 return (
                                   <p className="text-sm font-bold" style={{ color: COLORS.warmGray }}>
-                                    {t('store_list.walking_time').replace('{minutes}', String(calculateWalkingTime(distanceKm))).replace('{distance}', distanceText)}
+                                    {text}
                                   </p>
                                 );
                               })()}

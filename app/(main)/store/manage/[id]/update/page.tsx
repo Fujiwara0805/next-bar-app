@@ -680,16 +680,27 @@ export default function StoreUpdatePage() {
                 >
                   {store.name}
                 </h2>
-                <button
-                  type="button"
-                  onClick={() => router.push(`/store/manage/${store.id}/scan`)}
-                  className="inline-flex items-center gap-1.5 mt-2 text-xs font-semibold w-fit transition-opacity hover:opacity-80"
-                  style={{ color: COLORS.deepNavy }}
-                >
-                  <ExternalLink className="w-3.5 h-3.5" />
-                  <QrCode className="w-3.5 h-3.5" />
-                  QRコードをスキャン
-                </button>
+                <div className="flex items-center gap-3 mt-2 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={() => router.push(`/store/manage/${store.id}/scan`)}
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold transition-opacity hover:opacity-80"
+                    style={{ color: COLORS.deepNavy }}
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    <QrCode className="w-3.5 h-3.5" />
+                    QRコードをスキャン
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => router.push(`/store/manage/${store.id}/poster`)}
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold transition-opacity hover:opacity-80"
+                    style={{ color: COLORS.deepNavy }}
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    店内ポスターを発行
+                  </button>
+                </div>
               </div>
             </div>
             <div>

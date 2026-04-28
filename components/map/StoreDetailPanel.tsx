@@ -25,6 +25,7 @@ import { getTodayOpenTime, isTodayClosedDay, checkIsOpenFromStructuredHours } fr
 import { sendGAEvent } from '@/lib/analytics';
 import { useAppMode } from '@/lib/app-mode-context';
 import type { Database, BusinessHours } from '@/lib/supabase/types';
+import { CrowdVoteIcon } from '@/components/store/crowd-vote-icon';
 
 type Store = Database['public']['Tables']['stores']['Row'];
 
@@ -330,13 +331,17 @@ export function StoreDetailPanel({
 
                 {distanceInfo && (
                   <p className="text-sm font-bold" style={{ color: theme.textMuted }}>
-                    {t('store_detail.walking_time')
-                      .replace('{minutes}', String(distanceInfo.minutes))
-                      .replace('{distance}', distanceInfo.text)}
+                    {distanceInfo.minutes > 60
+                      ? t('store_detail.walking_time_hours')
+                          .replace('{hours}', (distanceInfo.minutes / 60).toFixed(1))
+                          .replace('{distance}', distanceInfo.text)
+                      : t('store_detail.walking_time')
+                          .replace('{minutes}', String(distanceInfo.minutes))
+                          .replace('{distance}', distanceInfo.text)}
                   </p>
                 )}
 
-                <div className="flex items-center gap-2 pt-1">
+                <div className="flex items-center gap-2 pt-1 flex-wrap">
                   <img
                     src={getVacancyIcon(effectiveStatus)}
                     alt={getVacancyLabel(effectiveStatus)}
@@ -367,6 +372,14 @@ export function StoreDetailPanel({
                       </span>
                     );
                   })()}
+
+                  {/* お客様の声アイコン (定休日/営業時間外/投票なし時は非表示) */}
+                  <CrowdVoteIcon
+                    storeId={store.id}
+                    hidden={effectiveStatus === 'closed'}
+                    emptyMode="hide"
+                    size="sm"
+                  />
                 </div>
               </div>
             </div>
@@ -378,6 +391,7 @@ export function StoreDetailPanel({
                 </p>
               </div>
             )}
+
           </div>
 
           {/* --- 展開時の詳細セクション --- */}
@@ -412,9 +426,13 @@ export function StoreDetailPanel({
                     </p>
                     {distanceInfo && (
                       <p className="text-sm font-medium mt-1" style={{ color: lightTheme.textMuted }}>
-                        {t('store_detail.walking_time')
-                          .replace('{minutes}', String(distanceInfo.minutes))
-                          .replace('{distance}', distanceInfo.text)}
+                        {distanceInfo.minutes > 60
+                          ? t('store_detail.walking_time_hours')
+                              .replace('{hours}', (distanceInfo.minutes / 60).toFixed(1))
+                              .replace('{distance}', distanceInfo.text)
+                          : t('store_detail.walking_time')
+                              .replace('{minutes}', String(distanceInfo.minutes))
+                              .replace('{distance}', distanceInfo.text)}
                       </p>
                     )}
                   </div>

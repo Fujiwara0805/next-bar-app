@@ -51,6 +51,8 @@ import { FACILITY_CATEGORIES } from '@/lib/types/store-application';
 import { ImageLightbox } from '@/components/ui/ImageLightbox';
 import { sendGAEvent } from '@/lib/analytics';
 import { SponsorCampaignBanner } from '@/components/sponsors/sponsor-campaign-banner';
+import { CrowdReportModal } from '@/components/store/crowd-report-modal';
+import { CrowdVoteIcon } from '@/components/store/crowd-vote-icon';
 import { getTodayOpenTime, isTodayClosedDay, checkIsOpenFromStructuredHours } from '@/lib/structured-business-hours';
 import { useOptimizedLocation } from '@/lib/hooks/useOptimizedLocation';
 type Store = Database['public']['Tables']['stores']['Row'];
@@ -235,6 +237,7 @@ export default function StoreDetailPage() {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxImages, setLightboxImages] = useState<string[]>([]);
   const [lightboxInitialIndex, setLightboxInitialIndex] = useState(0);
+  const [crowdModalOpen, setCrowdModalOpen] = useState(false);
 
   // 自動スライド用のタイマーRef
   const autoSlideTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -287,6 +290,16 @@ export default function StoreDetailPage() {
     const walkingSpeedKmPerHour = 4;
     const walkingTimeMinutes = (distanceKm / walkingSpeedKmPerHour) * 60;
     return Math.round(walkingTimeMinutes);
+  }, []);
+
+  // 60分を超えたら「約 N.M 時間」の表示に切替える
+  const formatWalkingTime = useCallback((distanceKm: number): string => {
+    const minutes = (distanceKm / 4) * 60;
+    if (minutes <= 60) {
+      return `${Math.round(minutes)}分`;
+    }
+    const hours = minutes / 60;
+    return `約${hours.toFixed(1)}時間`;
   }, []);
 
   // ============================================
@@ -835,63 +848,72 @@ export default function StoreDetailPage() {
               )}
               
               {/* 空席情報 */}
-              <div className="flex gap-2 mb-3 items-center flex-wrap justify-between">
-                {(() => {
-                  const effectiveStatus = getEffectiveVacancyStatus();
-                  return (
-                <motion.div 
-                  className="flex items-center gap-2 rounded-xl px-4 py-2"
-                  style={{ 
-                    backgroundColor: 'rgba(10, 22, 40, 0.05)',
-                    border: `1px solid rgba(10, 22, 40, 0.1)`,
-                  }}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                >
-                  <img
-                    src={getVacancyIcon(effectiveStatus)}
-                    alt={getVacancyLabel(effectiveStatus)}
-                    className="w-8 h-8 object-contain"
-                  />
-                  <span className="text-lg font-bold" style={{ color: COLORS.deepNavy }}>
-                    {getVacancyLabel(effectiveStatus)}
-                  </span>
-                  {effectiveStatus === 'vacant' && store.vacant_seats != null && store.vacant_seats > 0 && (
-                    <span className="text-sm font-bold px-2 py-0.5 rounded-lg" style={{
-                      backgroundColor: 'rgba(34, 197, 94, 0.1)',
-                      color: '#16a34a',
-                    }}>
-                      {t('store_detail.vacant_seats').replace('{count}', String(store.vacant_seats))}
-                    </span>
-                  )}
-                  {effectiveStatus === 'closed' && (() => {
-                    const sbh = store.structured_business_hours as BusinessHours | null;
-                    if (isTodayClosedDay(sbh)) {
-                      return (
-                        <span className="text-sm font-bold px-2 py-0.5 rounded-lg" style={{
-                          backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                          color: '#ef4444',
-                        }}>
-                          {t('store_detail.regular_holiday')}
-                        </span>
-                      );
-                    }
-                    const openTime = getTodayOpenTime(sbh);
-                    if (!openTime) return null;
-                    return (
-                      <span className="text-sm font-bold px-2 py-0.5 rounded-lg" style={{
-                        backgroundColor: 'rgba(34, 197, 94, 0.1)',
-                        color: '#16a34a',
-                      }}>
-                        {t('store_detail.opens_at').replace('{time}', openTime)}
+              {(() => {
+                const effectiveStatus = getEffectiveVacancyStatus();
+                return (
+                  <div className="flex gap-2 mb-3 items-center flex-wrap">
+                    <motion.div
+                      className="flex items-center gap-2 rounded-xl px-4 py-2"
+                      style={{
+                        backgroundColor: 'rgba(10, 22, 40, 0.05)',
+                        border: `1px solid rgba(10, 22, 40, 0.1)`,
+                      }}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                    >
+                      <img
+                        src={getVacancyIcon(effectiveStatus)}
+                        alt={getVacancyLabel(effectiveStatus)}
+                        className="w-8 h-8 object-contain"
+                      />
+                      <span className="text-lg font-bold" style={{ color: COLORS.deepNavy }}>
+                        {getVacancyLabel(effectiveStatus)}
                       </span>
-                    );
-                  })()}
-                </motion.div>
-                  );
-                })()}
+                      {effectiveStatus === 'vacant' && store.vacant_seats != null && store.vacant_seats > 0 && (
+                        <span className="text-sm font-bold px-2 py-0.5 rounded-lg" style={{
+                          backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                          color: '#16a34a',
+                        }}>
+                          {t('store_detail.vacant_seats').replace('{count}', String(store.vacant_seats))}
+                        </span>
+                      )}
+                      {effectiveStatus === 'closed' && (() => {
+                        const sbh = store.structured_business_hours as BusinessHours | null;
+                        if (isTodayClosedDay(sbh)) {
+                          return (
+                            <span className="text-sm font-bold px-2 py-0.5 rounded-lg" style={{
+                              backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                              color: '#ef4444',
+                            }}>
+                              {t('store_detail.regular_holiday')}
+                            </span>
+                          );
+                        }
+                        const openTime = getTodayOpenTime(sbh);
+                        if (!openTime) return null;
+                        return (
+                          <span className="text-sm font-bold px-2 py-0.5 rounded-lg" style={{
+                            backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                            color: '#16a34a',
+                          }}>
+                            {t('store_detail.opens_at').replace('{time}', openTime)}
+                          </span>
+                        );
+                      })()}
+                    </motion.div>
 
-              </div>
+                    {/* お客様の声 (定休日/営業時間外は非表示、投票なしは投票ボタン表示) */}
+                    <CrowdVoteIcon
+                      storeId={store.id}
+                      hidden={effectiveStatus === 'closed'}
+                      onClick={() => setCrowdModalOpen(true)}
+                      emptyMode="button"
+                      size="md"
+                    />
+                  </div>
+                );
+              })()}
+
             </div>
 
             {store.description && (
@@ -952,14 +974,22 @@ export default function StoreDetailPage() {
                     </motion.button>
                     {distance !== null && (() => {
                       const distanceM = Math.round(distance * 1000);
-                      const distanceText = distanceM >= 1000 
-                        ? `${(distance).toFixed(1)}km` 
+                      const distanceText = distanceM >= 1000
+                        ? `${(distance).toFixed(1)}km`
                         : `${distanceM}m`;
+                      const minutes = calculateWalkingTime(distance);
+                      // 60分超は「徒歩およそ約 N.M 時間（約 X km）」表示
+                      const text =
+                        minutes > 60
+                          ? t('store_detail.walking_time_hours')
+                              .replace('{hours}', (minutes / 60).toFixed(1))
+                              .replace('{distance}', distanceText)
+                          : t('store_detail.walking_time')
+                              .replace('{minutes}', String(minutes))
+                              .replace('{distance}', distanceText);
                       return (
                         <p className="text-sm font-medium" style={{ color: COLORS.warmGray }}>
-                          {t('store_detail.walking_time')
-                            .replace('{minutes}', String(calculateWalkingTime(distance)))
-                            .replace('{distance}', distanceText)}
+                          {text}
                         </p>
                       );
                     })()}
@@ -1332,6 +1362,20 @@ export default function StoreDetailPage() {
         isOpen={lightboxOpen}
         onClose={closeLightbox}
         alt={store.name}
+      />
+
+      {/* 空席状況投票モーダル (Phase 1-A 改修) */}
+      <CrowdReportModal
+        open={crowdModalOpen}
+        onClose={() => setCrowdModalOpen(false)}
+        storeId={store.id}
+        storeLabel={store.name}
+        navy={COLORS.deepNavy}
+        champagneGold={COLORS.champagneGold}
+        isClosedToday={
+          getEffectiveVacancyStatus() === 'closed' &&
+          isTodayClosedDay(store.structured_business_hours as BusinessHours | null)
+        }
       />
 
     </div>

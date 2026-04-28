@@ -12,24 +12,18 @@ import {
   parseCustomerCheckInPayload,
   verifyCustomerCheckInToken,
 } from '@/lib/qr/signature';
+import {
+  snapshotPreInsertWindow,
+  aggregatePostInsert,
+} from '@/lib/check-in/aggregate';
 import type { Database } from '@/lib/supabase/types';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-const LOTTERY_STORE_THRESHOLD = 3;
-const LOTTERY_STORE_MAX = 5;
-const WINDOW_HOURS = 12;
-
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-function tokyoDate(): string {
-  const now = new Date();
-  const tokyoMs = now.getTime() + (9 * 60 + now.getTimezoneOffset()) * 60 * 1000;
-  return new Date(tokyoMs).toISOString().slice(0, 10);
-}
 
 export async function POST(
   request: NextRequest,
@@ -112,34 +106,11 @@ export async function POST(
   }
 
   const now = new Date();
-  const visitDate = tokyoDate();
-
-  const { data: latestEntry } = await admin
-    .from('stamp_rally_entries')
-    .select('created_at')
-    .eq('user_id', customer.id)
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  const windowStartMs = now.getTime() - WINDOW_HOURS * 60 * 60 * 1000;
-  const entryMs = latestEntry?.created_at
-    ? new Date(latestEntry.created_at).getTime()
-    : 0;
-  const cutoff = new Date(Math.max(windowStartMs, entryMs));
-
-  const { data: preWindow } = await admin
-    .from('store_check_ins')
-    .select('store_id')
-    .eq('user_id', customer.id)
-    .gte('checked_in_at', cutoff.toISOString());
-  const preStoreIds = new Set((preWindow ?? []).map((r) => r.store_id));
-  const wasAlreadyStamped = preStoreIds.has(store.id);
+  const pre = await snapshotPreInsertWindow(admin, customer.id, store.id, now);
 
   const { error: insertErr } = await admin.from('store_check_ins').insert({
     user_id: customer.id,
     store_id: store.id,
-    visit_date: visitDate,
     source: 'qr_scan',
   });
 
@@ -149,24 +120,13 @@ export async function POST(
     return NextResponse.json({ error: 'insert_failed' }, { status: 500 });
   }
 
-  const { data: postWindow } = await admin
-    .from('store_check_ins')
-    .select('store_id')
-    .eq('user_id', customer.id)
-    .gte('checked_in_at', cutoff.toISOString());
-  const stampStoreIds = Array.from(
-    new Set((postWindow ?? []).map((r) => r.store_id))
+  const aggregate = await aggregatePostInsert(
+    admin,
+    customer.id,
+    pre.cutoffIso,
+    pre.wasAlreadyStamped,
+    now
   );
-  const stampCount = stampStoreIds.length;
-
-  const { data: todayEntry } = await admin
-    .from('stamp_rally_entries')
-    .select('id, status')
-    .eq('user_id', customer.id)
-    .eq('entry_date', visitDate)
-    .maybeSingle();
-
-  const canEnterLottery = stampCount >= LOTTERY_STORE_THRESHOLD && !todayEntry;
 
   const userDisplayName =
     customer.line_display_name || customer.display_name || 'ゲスト';
@@ -176,13 +136,6 @@ export async function POST(
     storeName: store.name,
     userId: customer.id,
     userDisplayName,
-    isNewStamp: !wasAlreadyStamped,
-    windowStoreCount: stampCount,
-    lotteryThreshold: LOTTERY_STORE_THRESHOLD,
-    lotteryMax: LOTTERY_STORE_MAX,
-    canEnterLottery,
-    hasLotteryEntry: !!todayEntry,
-    visitDate,
-    windowHours: WINDOW_HOURS,
+    ...aggregate,
   });
 }

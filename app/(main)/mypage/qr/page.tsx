@@ -3,7 +3,16 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { RefreshCw, Info, Loader2, QrCode } from 'lucide-react';
+import {
+  RefreshCw,
+  Info,
+  Loader2,
+  QrCode,
+  Camera,
+  ScanLine,
+  X,
+  AlertCircle,
+} from 'lucide-react';
 import QRCode from 'qrcode';
 import { useAuth } from '@/lib/auth/context';
 import { useLanguage } from '@/lib/i18n/context';
@@ -13,6 +22,7 @@ import { CloseCircleButton } from '@/components/ui/close-circle-button';
 import { LoadingScreen } from '@/components/ui/loading-screen';
 
 const REFRESH_INTERVAL_SEC = 90;
+const SCANNER_REGION_ID = 'mypage-qr-scanner-region';
 
 const BG_OFFWHITE = '#F7F3E9';
 const NAVY = '#13294b';
@@ -31,6 +41,12 @@ export default function MyPageQrPage() {
   const [secondsLeft, setSecondsLeft] = useState(REFRESH_INTERVAL_SEC);
   const [error, setError] = useState<string | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // 店舗QR読み取りモード
+  const [scannerOpen, setScannerOpen] = useState(false);
+  const [scannerError, setScannerError] = useState<string | null>(null);
+  const scannerRef = useRef<any>(null);
+  const scannerLockRef = useRef(false);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -140,6 +156,87 @@ export default function MyPageQrPage() {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, [qrDataUrl, regenerate]);
+
+  const stopScanner = useCallback(async () => {
+    const scanner = scannerRef.current;
+    if (!scanner) return;
+    try {
+      if (scanner.getState && scanner.getState() === 2) {
+        await scanner.stop();
+      }
+      await scanner.clear();
+    } catch {
+      // ignore teardown errors
+    }
+    scannerRef.current = null;
+  }, []);
+
+  const handleDecoded = useCallback(
+    (decoded: string) => {
+      if (scannerLockRef.current) return;
+      try {
+        const url = new URL(decoded, window.location.origin);
+        const isStoreCheckIn =
+          url.pathname === '/liff/store-checkin' ||
+          url.pathname === '/liff/store-checkin/';
+        const storeIdParam = url.searchParams.get('store');
+        if (!isStoreCheckIn || !storeIdParam) {
+          setScannerError('店舗QRコードではありません');
+          return;
+        }
+        scannerLockRef.current = true;
+        stopScanner();
+        // 同一サイト内なのでクライアントナビゲーションで遷移
+        router.push(`/liff/store-checkin?store=${storeIdParam}&v=1`);
+      } catch {
+        setScannerError('QRコードの読み取りに失敗しました');
+      }
+    },
+    [router, stopScanner]
+  );
+
+  const startScanner = useCallback(async () => {
+    if (scannerRef.current) return;
+    setScannerError(null);
+    try {
+      const mod = await import('html5-qrcode');
+      const Html5Qrcode = mod.Html5Qrcode;
+      const scanner = new Html5Qrcode(SCANNER_REGION_ID);
+      scannerRef.current = scanner;
+      const config = {
+        fps: 10,
+        qrbox: { width: 220, height: 220 },
+        aspectRatio: 1.0,
+      };
+      try {
+        await scanner.start(
+          { facingMode: { exact: 'environment' } } as MediaTrackConstraints,
+          config,
+          handleDecoded,
+          () => {}
+        );
+      } catch {
+        await scanner.start(
+          { facingMode: 'environment' },
+          config,
+          handleDecoded,
+          () => {}
+        );
+      }
+    } catch (err) {
+      console.error('[mypage/qr] scanner start error', err);
+      setScannerError('カメラを起動できませんでした');
+    }
+  }, [handleDecoded]);
+
+  useEffect(() => {
+    if (!scannerOpen) return;
+    scannerLockRef.current = false;
+    startScanner();
+    return () => {
+      stopScanner();
+    };
+  }, [scannerOpen, startScanner, stopScanner]);
 
   if (authLoading || !user || accountType !== 'customer') {
     return <LoadingScreen size="lg" />;
@@ -265,6 +362,50 @@ export default function MyPageQrPage() {
             </div>
           </div>
 
+          {/* 店舗QRを読み取る (双方向化セクション) */}
+          <div
+            className="rounded-2xl p-5 mb-4 relative overflow-hidden"
+            style={{
+              background: 'white',
+              border: `1px solid ${BRASS}33`,
+              boxShadow: '0 12px 32px rgba(19, 41, 75, 0.08)',
+            }}
+          >
+            <div className="flex items-center justify-between gap-2 mb-3">
+              <div className="flex items-center gap-2">
+                <Camera className="w-4 h-4" style={{ color: COPPER }} />
+                <h3 className="font-semibold text-sm" style={{ color: NAVY }}>
+                  店舗QRを読み取る
+                </h3>
+              </div>
+              <span
+                className="text-[10px] uppercase tracking-[0.2em] px-2 py-0.5 rounded-full"
+                style={{ background: `${BRASS}20`, color: COPPER }}
+              >
+                NEW
+              </span>
+            </div>
+            <p
+              className="text-xs mb-3"
+              style={{ color: 'rgba(19, 41, 75, 0.65)' }}
+            >
+              店内に掲示されたQRコードを読み取ってセルフチェックインできます
+            </p>
+            <Button
+              size="sm"
+              onClick={() => setScannerOpen(true)}
+              style={{
+                background: GOLD_GRADIENT,
+                color: NAVY,
+                width: '100%',
+              }}
+              className="rounded-xl font-bold"
+            >
+              <ScanLine className="w-4 h-4 mr-2" />
+              スキャンを開始
+            </Button>
+          </div>
+
           <div
             className="rounded-2xl p-5 relative overflow-hidden"
             style={{
@@ -292,6 +433,80 @@ export default function MyPageQrPage() {
           </div>
         </motion.div>
       </div>
+
+      {/* 店舗QRスキャナーモーダル */}
+      {scannerOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          style={{ background: 'rgba(10, 10, 10, 0.92)' }}
+        >
+          <div className="w-full max-w-md mx-auto px-4">
+            <div className="flex items-center justify-between mb-4 px-1">
+              <h3 className="text-base font-semibold text-white">
+                店舗QRを読み取り
+              </h3>
+              <button
+                type="button"
+                onClick={() => {
+                  setScannerOpen(false);
+                  setScannerError(null);
+                }}
+                className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center"
+                aria-label="閉じる"
+              >
+                <X className="w-5 h-5 text-white" />
+              </button>
+            </div>
+
+            <div
+              className="aspect-square w-full rounded-2xl overflow-hidden relative"
+              style={{ background: '#0a0a0a' }}
+            >
+              <div id={SCANNER_REGION_ID} className="w-full h-full" />
+
+              {/* スキャナガイド枠 */}
+              <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                <div className="relative w-56 h-56">
+                  <div
+                    className="absolute top-0 left-0 w-7 h-7 border-t-2 border-l-2 rounded-tl-lg"
+                    style={{ borderColor: BRASS }}
+                  />
+                  <div
+                    className="absolute top-0 right-0 w-7 h-7 border-t-2 border-r-2 rounded-tr-lg"
+                    style={{ borderColor: BRASS }}
+                  />
+                  <div
+                    className="absolute bottom-0 left-0 w-7 h-7 border-b-2 border-l-2 rounded-bl-lg"
+                    style={{ borderColor: BRASS }}
+                  />
+                  <div
+                    className="absolute bottom-0 right-0 w-7 h-7 border-b-2 border-r-2 rounded-br-lg"
+                    style={{ borderColor: BRASS }}
+                  />
+                  <motion.div
+                    className="absolute left-0 right-0 h-[2px]"
+                    style={{ background: BRASS }}
+                    animate={{ top: ['5%', '95%', '5%'] }}
+                    transition={{ duration: 2.4, repeat: Infinity, ease: 'linear' }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-4 flex items-center justify-center gap-2 text-sm text-white/80">
+              <ScanLine className="w-4 h-4" />
+              <span>店内のQRコードを枠内に合わせてください</span>
+            </div>
+
+            {scannerError && (
+              <div className="mt-3 flex items-start gap-2 text-xs bg-red-500/15 border border-red-500/40 rounded-lg p-3 text-white/90">
+                <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                <span>{scannerError}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
