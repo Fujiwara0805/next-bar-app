@@ -4,8 +4,10 @@
 // セルフチェックイン受付エンドポイント (Phase 2-B 双方向QR)。
 //
 // 認証: LIFF id_token (Bearer)。
-// 検証: 店舗座標との Haversine 距離がジオフェンス内か (50m基準、
-//       GPS精度に応じた動的閾値)。
+// 検証: 店舗座標との Haversine 距離がジオフェンス内か (200m基準、
+//       GPS精度に応じた動的閾値)。屋内GPSでは数十m〜100m程度
+//       誤差が出る + 店舗付近の路上で読み取られるケースもあるため、
+//       50m → 200m に拡大して実利便性を優先する。
 // 結果: 既存 /api/stores/[id]/check-in-scan と同形式のレスポンスを返し、
 //       UI を共通化する。
 // ============================================
@@ -23,7 +25,7 @@ import type { Database } from '@/lib/supabase/types';
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-const BASE_GEOFENCE_M = 50;
+const BASE_GEOFENCE_M = 200;
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;

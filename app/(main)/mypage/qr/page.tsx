@@ -386,10 +386,16 @@ export default function MyPageQrPage() {
               </span>
             </div>
             <p
-              className="text-xs mb-3"
+              className="text-xs mb-2"
               style={{ color: 'rgba(19, 41, 75, 0.65)' }}
             >
               店内に掲示されたQRコードを読み取ってセルフチェックインできます
+            </p>
+            <p
+              className="text-[11px] mb-3"
+              style={{ color: 'rgba(19, 41, 75, 0.5)' }}
+            >
+              ※ セルフチェックインはLINEログインと位置情報の許可が必要です
             </p>
             <Button
               size="sm"

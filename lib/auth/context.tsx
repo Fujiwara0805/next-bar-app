@@ -58,6 +58,119 @@ function accountTypeForRole(role: UserRow['role']): AccountType {
   return role === 'admin' ? 'platform' : 'customer';
 }
 
+/**
+ * 「ユーザーが明示的にログアウトしたかどうか」を localStorage に保持。
+ * 立っている間は LINE 自動再ログインを行わない (ログアウト後に勝手に
+ * 再ログインされるのを防ぐ)。
+ */
+const SIGNED_OUT_FLAG_KEY = 'nikenme:user-signed-out';
+
+function markSignedOut() {
+  try {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(SIGNED_OUT_FLAG_KEY, '1');
+    }
+  } catch {
+    /* ignore */
+  }
+}
+
+function clearSignedOutFlag() {
+  try {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(SIGNED_OUT_FLAG_KEY);
+    }
+  } catch {
+    /* ignore */
+  }
+}
+
+function isSignedOutFlagSet(): boolean {
+  try {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem(SIGNED_OUT_FLAG_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * LIFF id_token を Supabase セッションへ交換する共通処理。
+ * - 手動ログイン (ログイン画面の「LINEで続ける」) でも
+ * - 自動再ログイン (AuthProvider 起動時の LIFF ログイン状態検出) でも
+ * 同じロジックを共有する。
+ *
+ * id_token が期限切れなら liff.login() でリダイレクト (関数からは戻らない場合あり)。
+ * `silent=true` の場合はリダイレクト系の副作用を抑制し、失敗時は false を返すだけ。
+ */
+async function performLineSignIn(silent: boolean): Promise<{
+  ok: boolean;
+  error?: Error;
+}> {
+  const liff = await getLiff();
+  if (!liff) return { ok: false };
+
+  if (!liff.isLoggedIn()) {
+    if (silent) return { ok: false };
+    await liffLoginFn();
+    return { ok: false };
+  }
+
+  let idToken = await getLineIdToken();
+  if (!idToken || isLineIdTokenExpired(idToken)) {
+    if (silent) return { ok: false };
+    try {
+      liff.logout();
+    } catch (err) {
+      console.error('[LINE] logout error:', err);
+    }
+    liff.login({ redirectUri: window.location.href });
+    return { ok: false };
+  }
+
+  let res: Response;
+  try {
+    res = await fetch('/api/auth/line-exchange', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken }),
+    });
+  } catch (err) {
+    return { ok: false, error: err as Error };
+  }
+
+  if (!res.ok) {
+    const errJson = await res.json().catch(() => ({}));
+    const errCode = typeof errJson?.error === 'string' ? errJson.error : '';
+    const errMessage = typeof errJson?.message === 'string' ? errJson.message : '';
+    if (
+      errCode === 'line_verify_failed' &&
+      /IdToken expired|id_token expired/i.test(errMessage)
+    ) {
+      if (silent) return { ok: false };
+      try {
+        liff.logout();
+      } catch (err) {
+        console.error('[LINE] logout error:', err);
+      }
+      liff.login({ redirectUri: window.location.href });
+      return { ok: false };
+    }
+    return { ok: false, error: new Error(errMessage || errCode || 'LINE exchange failed') };
+  }
+
+  const { hashedToken } = (await res.json()) as { email: string; hashedToken: string };
+  const { error: verifyErr } = await supabase.auth.verifyOtp({
+    type: 'magiclink',
+    token_hash: hashedToken,
+  });
+  if (verifyErr) return { ok: false, error: verifyErr };
+
+  // 成功した時点で signed-out フラグはクリア (再ログイン成立)
+  clearSignedOutFlag();
+  return { ok: true };
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserRow | null>(null);
@@ -97,22 +210,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     };
 
+    let cancelled = false;
+
     const getSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      setSession(session);
-      setUser(session?.user ?? null);
+      if (cancelled) return;
 
       if (session?.user) {
+        setSession(session);
+        setUser(session.user);
         await resolveAccount(session.user.id);
+        if (!cancelled) setLoading(false);
+        return;
       }
 
-      setLoading(false);
+      // Supabase セッションがない場合: ユーザーが明示的にログアウト済みでなければ
+      // LIFF (LINEログイン状態) を起点に自動再ログインを試みる。
+      // これにより /mypage / /mypage/qr / /liff/* など全ページで
+      // 「LINEに一度ログインしたら、ログアウトするまで永続」を実現する。
+      if (!isSignedOutFlagSet()) {
+        const result = await performLineSignIn(true /* silent */);
+        if (cancelled) return;
+        if (result.ok) {
+          // verifyOtp が onAuthStateChange を発火させ、setUser/resolveAccount が走る。
+          // loading は onAuthStateChange のリスナで false に落とす。
+          return;
+        }
+      }
+
+      // 自動再ログインが不可 / スキップされた → 通常の未ログイン状態として完了
+      if (!cancelled) {
+        setSession(null);
+        setUser(null);
+        setLoading(false);
+      }
     };
 
     getSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       (async () => {
+        if (cancelled) return;
         setSession(session);
         setUser(session?.user ?? null);
 
@@ -124,10 +262,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setAccountType(null);
           clearAuthCookies();
         }
+        if (!cancelled) setLoading(false);
       })();
     });
 
     return () => {
+      cancelled = true;
       subscription.unsubscribe();
     };
   }, []);
@@ -142,6 +282,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error) throw error;
 
       if (data.user) {
+        // 明示的にログインし直したので signed-out フラグを解除
+        clearSignedOutFlag();
+
         const { data: userRow } = await supabase
           .from('users')
           .select('*')
@@ -173,85 +316,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signInWithLine = async (): Promise<{ error: Error | null; accountType?: AccountType }> => {
-    try {
-      const liff = await getLiff();
-      if (!liff) {
-        return { error: new Error('LIFF SDK is not available (LIFF_ID not configured or not in browser)') };
-      }
-
-      // 未ログインならLIFF経由でLINEログインを開始（ブラウザならリダイレクト）
-      if (!liff.isLoggedIn()) {
-        await liffLoginFn();
-        // リダイレクトが発生するため、以降の処理はこの関数スコープ外で再実行される想定
-        return { error: null };
-      }
-
-      let idToken = await getLineIdToken();
-
-      // LIFF SDKはキャッシュされた id_token を返すため、期限切れなら logout→login で強制リフレッシュ
-      if (!idToken || isLineIdTokenExpired(idToken)) {
-        try {
-          liff.logout();
-        } catch (err) {
-          console.error('[LINE] logout error:', err);
-        }
-        liff.login({ redirectUri: window.location.href });
-        // リダイレクトが発生するので以降は実行されない
-        return { error: null };
-      }
-
-      // サーバーで検証 + Supabase認証 magiclink hashed_token 発行
-      const res = await fetch('/api/auth/line-exchange', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ idToken }),
-      });
-
-      if (!res.ok) {
-        const errJson = await res.json().catch(() => ({}));
-        const errCode = typeof errJson?.error === 'string' ? errJson.error : '';
-        const errMessage = typeof errJson?.message === 'string' ? errJson.message : '';
-
-        // サーバー側検証で expired が出た場合（LIFFキャッシュと実際のズレ）も logout→login でリカバリ
-        if (
-          errCode === 'line_verify_failed' &&
-          /IdToken expired|id_token expired/i.test(errMessage)
-        ) {
-          try {
-            liff.logout();
-          } catch (err) {
-            console.error('[LINE] logout error:', err);
-          }
-          liff.login({ redirectUri: window.location.href });
-          return { error: null };
-        }
-
-        return {
-          error: new Error(errMessage || errCode || 'LINE exchange failed'),
-        };
-      }
-
-      const { hashedToken } = (await res.json()) as {
-        email: string;
-        hashedToken: string;
-      };
-
-      // magiclinkトークンをOTPとして検証 → Supabaseセッション確立
-      const { error: verifyErr } = await supabase.auth.verifyOtp({
-        type: 'magiclink',
-        token_hash: hashedToken,
-      });
-
-      if (verifyErr) {
-        return { error: verifyErr };
-      }
-
-      // ここで onAuthStateChange が発火し、resolveAccount が走るため
-      // accountType は呼び出し側で状態を参照する
-      return { error: null, accountType: 'customer' };
-    } catch (error) {
-      return { error: error as Error };
-    }
+    // 手動ログイン (button) なので silent=false: id_token 期限切れ時は LIFF login() で
+    // リダイレクトしてユーザーに再認証してもらう。
+    const result = await performLineSignIn(false);
+    if (result.error) return { error: result.error };
+    if (!result.ok) return { error: null }; // リダイレクト中などで戻り値なし
+    return { error: null, accountType: 'customer' };
   };
 
   const signUp = async (email: string, password: string, displayName: string) => {
@@ -278,6 +348,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     clearAuthCookies();
+    // 自動再ログインの誤発火を防ぐため signed-out フラグを立てる。
+    // 次回の手動ログイン (LINE / メール) で performLineSignIn / signIn 内で解除される。
+    markSignedOut();
+    // LIFF が立ち上がっている場合は LIFF も一緒にログアウト。
+    // (LIFF が isLoggedIn のままだと AuthProvider の自動再ログインが復帰させてしまう)
+    try {
+      const liff = await getLiff();
+      if (liff && liff.isLoggedIn()) {
+        liff.logout();
+      }
+    } catch (e) {
+      console.error('LIFF logout error:', e);
+    }
     try {
       await supabase.auth.signOut();
     } catch (e) {

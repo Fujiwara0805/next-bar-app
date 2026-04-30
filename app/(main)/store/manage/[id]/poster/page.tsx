@@ -21,8 +21,10 @@ import {
   QrCode,
   Info,
   Sparkles,
+  ImageDown,
 } from 'lucide-react';
 import QRCode from 'qrcode';
+import { toast } from 'sonner';
 import { useAuth } from '@/lib/auth/context';
 import { supabase } from '@/lib/supabase/client';
 import { useAppMode } from '@/lib/app-mode-context';
@@ -52,25 +54,58 @@ export default function StorePosterPage() {
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const [generating, setGenerating] = useState(true);
   const [downloading, setDownloading] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
 
-  const isAuthorized = useMemo(() => {
-    if (authLoading || !user) return false;
-    if (accountType === 'platform') return true;
-    if (accountType === 'store' && store?.id === storeId) return true;
-    return false;
-  }, [authLoading, user, accountType, store, storeId]);
-
+  // 認可: platform/admin はそのまま、店舗オーナーは email 一致確認で判定
+  // (`/store/manage/[id]/update` と同じパターン)
   useEffect(() => {
     if (authLoading) return;
     if (!user) {
       router.replace('/login');
       return;
     }
-    if (!isAuthorized) {
+    if (!accountType) return;
+    if (accountType !== 'platform' && accountType !== 'store') {
       router.replace('/store/manage');
+      return;
     }
-  }, [authLoading, user, isAuthorized, router]);
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data: storeRow, error } = await supabase
+          .from('stores')
+          .select('id, name, email, owner_id')
+          .eq('id', storeId)
+          .maybeSingle();
+        if (cancelled) return;
+        if (error || !storeRow) {
+          router.replace('/store/manage');
+          return;
+        }
+        if (accountType === 'platform') {
+          // 運営は owner_id 一致をチェック (platform ロールで自店舗群を管理)
+          if (storeRow.owner_id !== user.id) {
+            router.replace('/store/manage');
+            return;
+          }
+        } else if (accountType === 'store') {
+          // 店舗オーナー: email 一致で本人確認
+          if (storeRow.email !== user.email) {
+            router.replace('/store/manage');
+            return;
+          }
+        }
+        setStoreName(storeRow.name ?? '');
+        setAuthChecked(true);
+      } catch {
+        if (!cancelled) router.replace('/store/manage');
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [authLoading, user, accountType, storeId, router]);
 
   const checkInUrl = useMemo(() => {
     const url = new URL('/liff/store-checkin', resolveSiteUrl());
@@ -79,21 +114,13 @@ export default function StorePosterPage() {
     return url.toString();
   }, [storeId]);
 
-  // 店舗名取得 + QR生成
+  // 店舗名取得 + QR生成 (認可確定後のみ)
   useEffect(() => {
-    if (!isAuthorized) return;
+    if (!authChecked) return;
     let cancelled = false;
     (async () => {
       try {
         setGenerating(true);
-        const { data: storeRow } = await supabase
-          .from('stores')
-          .select('name')
-          .eq('id', storeId)
-          .maybeSingle();
-        if (cancelled) return;
-        if (storeRow?.name) setStoreName(storeRow.name);
-
         const dataUrl = await QRCode.toDataURL(checkInUrl, {
           errorCorrectionLevel: 'H', // 高精度: 印刷後の汚れにも耐性
           margin: 2,
@@ -110,14 +137,33 @@ export default function StorePosterPage() {
     return () => {
       cancelled = true;
     };
-  }, [isAuthorized, storeId, checkInUrl]);
+  }, [authChecked, checkInUrl]);
 
   const handlePrint = useCallback(() => {
     window.print();
   }, []);
 
+  // PDF生成失敗時のフォールバック: QRコード画像 (PNG) を直接ダウンロード保存
+  const downloadQrAsPng = useCallback(() => {
+    if (!qrDataUrl) return;
+    try {
+      const link = document.createElement('a');
+      link.href = qrDataUrl;
+      link.download = `nikenme-checkin-${storeId.slice(0, 8)}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      toast.success('QRコード画像を保存しました', {
+        description: '画像ファイル (PNG) として保存できました',
+      });
+    } catch (err) {
+      console.error('[store/poster] png save error', err);
+      toast.error('画像の保存に失敗しました');
+    }
+  }, [qrDataUrl, storeId]);
+
   const handleDownloadPdf = useCallback(async () => {
-    if (!qrDataUrl || !storeName) return;
+    if (!qrDataUrl) return;
     setDownloading(true);
     try {
       const { jsPDF } = await import('jspdf');
@@ -129,7 +175,6 @@ export default function StorePosterPage() {
 
       // 用紙サイズ: A4 = 210 x 297 mm
       const pageWidth = 210;
-      const margin = 15;
       const navy = '#13294b';
       const gold = '#C9A86C';
 
@@ -147,15 +192,19 @@ export default function StorePosterPage() {
       doc.setLineWidth(0.4);
       doc.line(pageWidth / 2 - 20, 28, pageWidth / 2 + 20, 28);
 
-      // 店舗名
-      doc.setFontSize(20);
-      doc.setTextColor(navy);
-      doc.text(storeName, pageWidth / 2, 42, { align: 'center' });
+      // 店舗名 (jsPDF は日本語フォント未対応なので ASCII のみで表示。
+      // 日本語が含まれる場合は店舗名を出さず、汎用ガイド文のみで構成する)
+      const isAsciiOnly = /^[\x20-\x7E]*$/.test(storeName);
+      if (storeName && isAsciiOnly) {
+        doc.setFontSize(20);
+        doc.setTextColor(navy);
+        doc.text(storeName, pageWidth / 2, 42, { align: 'center' });
+      }
 
       // QR (中心、サイズ110mm)
       const qrSize = 110;
       const qrX = (pageWidth - qrSize) / 2;
-      const qrY = 60;
+      const qrY = storeName && isAsciiOnly ? 60 : 50;
       doc.addImage(qrDataUrl, 'PNG', qrX, qrY, qrSize, qrSize);
 
       // ガイド文 (英語＋日本語アスキーで印刷フォント問題を回避)
@@ -181,13 +230,19 @@ export default function StorePosterPage() {
 
       doc.save(`nikenme-checkin-${storeId.slice(0, 8)}.pdf`);
     } catch (err) {
-      console.error('[store/poster] pdf error', err);
+      // jsPDF の dynamic import 失敗 / 描画エラーなどに備え、
+      // QR画像 (PNG) ダウンロードにフォールバック。これで店舗オペレーションを止めない。
+      console.error('[store/poster] pdf error, falling back to PNG:', err);
+      toast.warning('PDFを生成できませんでした', {
+        description: '代わりにQRコード画像 (PNG) を保存します',
+      });
+      downloadQrAsPng();
     } finally {
       setDownloading(false);
     }
-  }, [qrDataUrl, storeName, storeId]);
+  }, [qrDataUrl, storeName, storeId, downloadQrAsPng]);
 
-  if (authLoading || !user || !isAuthorized) {
+  if (authLoading || !user || !authChecked) {
     return <LoadingScreen size="lg" />;
   }
 
@@ -323,7 +378,7 @@ export default function StorePosterPage() {
           </div>
 
           {/* アクションボタン */}
-          <div className="grid grid-cols-2 gap-3 mb-5 print:hidden">
+          <div className="grid grid-cols-2 gap-3 mb-3 print:hidden">
             <Button
               onClick={handleDownloadPdf}
               disabled={generating || downloading || !qrDataUrl}
@@ -355,6 +410,24 @@ export default function StorePosterPage() {
             >
               <Printer className="w-4 h-4 mr-2" />
               印刷
+            </Button>
+          </div>
+          {/* 画像 (PNG) 保存ボタン: PDFが使えない/失敗した場合の予備手段 */}
+          <div className="mb-5 print:hidden">
+            <Button
+              onClick={downloadQrAsPng}
+              disabled={generating || !qrDataUrl}
+              size="lg"
+              variant="outline"
+              className="rounded-xl font-bold w-full"
+              style={{
+                background: 'white',
+                color: COLORS.deepNavy,
+                border: `1.5px solid ${COLORS.champagneGold}40`,
+              }}
+            >
+              <ImageDown className="w-4 h-4 mr-2" />
+              QR画像で保存 (PNG)
             </Button>
           </div>
 

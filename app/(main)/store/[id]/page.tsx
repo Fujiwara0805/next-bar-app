@@ -51,8 +51,7 @@ import { FACILITY_CATEGORIES } from '@/lib/types/store-application';
 import { ImageLightbox } from '@/components/ui/ImageLightbox';
 import { sendGAEvent } from '@/lib/analytics';
 import { SponsorCampaignBanner } from '@/components/sponsors/sponsor-campaign-banner';
-import { CrowdReportModal } from '@/components/store/crowd-report-modal';
-import { CrowdVoteIcon } from '@/components/store/crowd-vote-icon';
+import { CrowdReportCard } from '@/components/store/crowd-report-card';
 import { getTodayOpenTime, isTodayClosedDay, checkIsOpenFromStructuredHours } from '@/lib/structured-business-hours';
 import { useOptimizedLocation } from '@/lib/hooks/useOptimizedLocation';
 type Store = Database['public']['Tables']['stores']['Row'];
@@ -237,8 +236,6 @@ export default function StoreDetailPage() {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxImages, setLightboxImages] = useState<string[]>([]);
   const [lightboxInitialIndex, setLightboxInitialIndex] = useState(0);
-  const [crowdModalOpen, setCrowdModalOpen] = useState(false);
-
   // 自動スライド用のタイマーRef
   const autoSlideTimerRef = useRef<NodeJS.Timeout | null>(null);
   const photoCarouselTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -902,14 +899,6 @@ export default function StoreDetailPage() {
                       })()}
                     </motion.div>
 
-                    {/* お客様の声 (定休日/営業時間外は非表示、投票なしは投票ボタン表示) */}
-                    <CrowdVoteIcon
-                      storeId={store.id}
-                      hidden={effectiveStatus === 'closed'}
-                      onClick={() => setCrowdModalOpen(true)}
-                      emptyMode="button"
-                      size="md"
-                    />
                   </div>
                 );
               })()}
@@ -927,9 +916,9 @@ export default function StoreDetailPage() {
 
             {store.status_message && (
               <>
-                <div 
+                <div
                   className="p-4 rounded-xl mb-4"
-                  style={{ 
+                  style={{
                     backgroundColor: 'rgba(201, 168, 108, 0.08)',
                     borderLeft: `4px solid ${COLORS.champagneGold}`,
                   }}
@@ -939,6 +928,22 @@ export default function StoreDetailPage() {
                   </p>
                 </div>
                 <GoldDivider />
+              </>
+            )}
+
+            {/* お客様の声: 3アイコン+投票数 + 投票セクション (定休日 / 営業時間外は非表示) */}
+            {getEffectiveVacancyStatus() !== 'closed' && (
+              <>
+                <CrowdReportCard
+                  storeId={store.id}
+                  storeLabel={store.name}
+                  navy={COLORS.deepNavy}
+                  champagneGold={COLORS.champagneGold}
+                  cardBackground="white"
+                />
+                <div className="my-4">
+                  <GoldDivider />
+                </div>
               </>
             )}
 
@@ -1362,20 +1367,6 @@ export default function StoreDetailPage() {
         isOpen={lightboxOpen}
         onClose={closeLightbox}
         alt={store.name}
-      />
-
-      {/* 空席状況投票モーダル (Phase 1-A 改修) */}
-      <CrowdReportModal
-        open={crowdModalOpen}
-        onClose={() => setCrowdModalOpen(false)}
-        storeId={store.id}
-        storeLabel={store.name}
-        navy={COLORS.deepNavy}
-        champagneGold={COLORS.champagneGold}
-        isClosedToday={
-          getEffectiveVacancyStatus() === 'closed' &&
-          isTodayClosedDay(store.structured_business_hours as BusinessHours | null)
-        }
       />
 
     </div>

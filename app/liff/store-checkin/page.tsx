@@ -564,7 +564,7 @@ function errorTitle(code: string): string {
 function errorMessage(code: string | undefined): string {
   switch (code) {
     case 'out_of_range':
-      return 'チェックインするには店舗から50m以内にいる必要があります。';
+      return 'チェックインするには店舗から200m以内にいる必要があります。';
     case 'location_denied':
       return 'ブラウザの設定から位置情報を許可してください。';
     case 'location_timeout':

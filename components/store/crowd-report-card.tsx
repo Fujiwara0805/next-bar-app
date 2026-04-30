@@ -228,6 +228,7 @@ export function CrowdReportCard({
   );
 
   const topMeta = aggregate?.status ? STATUS_META[aggregate.status] : null;
+  const totalReports = aggregate?.totalReports ?? 0;
 
   const statusButtons = useMemo(() => CROWD_STATUSES.map((s) => STATUS_META[s]), []);
 
@@ -244,18 +245,31 @@ export function CrowdReportCard({
         <div className="flex items-center gap-2">
           <MessageCircle className="w-4 h-4" style={{ color: champagneGold }} />
           <h3 className="font-semibold text-sm" style={{ color: navy }}>
-            空席状況を投票しよう
+            お客様の声 (空席状況)
           </h3>
         </div>
-        <span
-          className="text-[10px] uppercase tracking-[0.2em] px-2 py-0.5 rounded-full"
-          style={{ background: `${champagneGold}20`, color: champagneGold }}
-        >
-          BETA
-        </span>
+        <div className="flex items-center gap-2">
+          {totalReports > 0 && (
+            <span
+              className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+              style={{
+                background: `${champagneGold}20`,
+                color: navy,
+              }}
+            >
+              直近30分 {totalReports}票
+            </span>
+          )}
+          <span
+            className="text-[10px] uppercase tracking-[0.2em] px-2 py-0.5 rounded-full"
+            style={{ background: `${champagneGold}20`, color: champagneGold }}
+          >
+            BETA
+          </span>
+        </div>
       </div>
 
-      {/* 集計表示 */}
+      {/* サマリー行 (定休日 / 読み込み中 / 優勢ステータス / 空) */}
       <div className="mb-4">
         {isClosedToday ? (
           <div
@@ -277,38 +291,36 @@ export function CrowdReportCard({
             <Loader2 className="w-3.5 h-3.5 animate-spin" />
             <span>読み込み中...</span>
           </div>
+        ) : aggregate && aggregate.isValid && topMeta ? (
+          <div
+            className="flex items-center gap-3 rounded-xl px-4 py-3"
+            style={{ background: topMeta.bg }}
+          >
+            <topMeta.Icon className="w-6 h-6" style={{ color: topMeta.color }} />
+            <div className="flex-1">
+              <div className="text-base font-bold" style={{ color: topMeta.color }}>
+                「{topMeta.label}」が優勢
+              </div>
+              <div className="text-[11px]" style={{ color: 'rgba(19, 41, 75, 0.6)' }}>
+                直近30分で{aggregate.totalReports}件の報告
+              </div>
+            </div>
+          </div>
         ) : aggregate && aggregate.totalReports > 0 ? (
-          aggregate.isValid && topMeta ? (
-            <div
-              className="flex items-center gap-3 rounded-xl px-4 py-3"
-              style={{ background: topMeta.bg }}
-            >
-              <topMeta.Icon className="w-6 h-6" style={{ color: topMeta.color }} />
-              <div className="flex-1">
-                <div className="text-base font-bold" style={{ color: topMeta.color }}>
-                  「{topMeta.label}」が優勢
-                </div>
-                <div className="text-[11px]" style={{ color: 'rgba(19, 41, 75, 0.6)' }}>
-                  直近30分で{aggregate.totalReports}件の報告
-                </div>
+          <div
+            className="flex items-center gap-3 rounded-xl px-4 py-3"
+            style={{ background: 'rgba(167, 139, 250, 0.12)' }}
+          >
+            <MessageCircleQuestion className="w-6 h-6" style={{ color: '#7c3aed' }} />
+            <div className="flex-1">
+              <div className="text-sm font-bold" style={{ color: '#7c3aed' }}>
+                集計中 (現在 {aggregate.totalReports}件)
+              </div>
+              <div className="text-[11px]" style={{ color: 'rgba(19, 41, 75, 0.6)' }}>
+                あと{Math.max(0, 3 - aggregate.totalReports)}件で「優勢」表示に切り替わります
               </div>
             </div>
-          ) : (
-            <div
-              className="flex items-center gap-3 rounded-xl px-4 py-3"
-              style={{ background: 'rgba(167, 139, 250, 0.12)' }}
-            >
-              <MessageCircleQuestion className="w-6 h-6" style={{ color: '#7c3aed' }} />
-              <div className="flex-1">
-                <div className="text-sm font-bold" style={{ color: '#7c3aed' }}>
-                  集計中 (現在 {aggregate.totalReports}件)
-                </div>
-                <div className="text-[11px]" style={{ color: 'rgba(19, 41, 75, 0.6)' }}>
-                  あと{Math.max(0, 3 - aggregate.totalReports)}件で「優勢」表示に切り替わります
-                </div>
-              </div>
-            </div>
-          )
+          </div>
         ) : (
           <div
             className="flex items-center gap-3 rounded-xl px-4 py-3"
@@ -320,58 +332,75 @@ export function CrowdReportCard({
                 まだ投票がありません
               </div>
               <div className="text-[11px]" style={{ color: 'rgba(55, 65, 81, 0.7)' }}>
-                最初の1人になりませんか？
+                {readonly
+                  ? '店舗詳細から最初の1人になれます'
+                  : '下のアイコンをタップして最初の1人になりませんか？'}
               </div>
             </div>
           </div>
         )}
       </div>
 
-      {/* 報告ボタン (readonly / 定休日 では非表示) */}
-      {!readonly && !isClosedToday && (
-        <>
-          <div className="grid grid-cols-3 gap-2">
-            {statusButtons.map((meta) => {
-              const isSubmittingThis = submitting === meta.status;
-              const disabled = !!submitting || cooldownActive;
-              return (
-                <motion.button
-                  key={meta.status}
-                  type="button"
-                  disabled={disabled}
-                  onClick={() => submit(meta.status)}
-                  whileTap={{ scale: 0.95 }}
-                  className="rounded-xl p-2.5 flex flex-col items-center gap-1 text-[11px] font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                  style={{
-                    background: meta.bg,
-                    color: meta.color,
-                    border: `1px solid ${meta.color}33`,
-                  }}
-                >
-                  {isSubmittingThis ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                  ) : (
-                    <meta.Icon className="w-5 h-5" />
-                  )}
-                  <span>{meta.shortLabel}</span>
-                </motion.button>
-              );
-            })}
-          </div>
+      {/* 3アイコン + 投票数 (常時表示)。
+          readonly=true: タップ無効 (集計のみ表示)
+          readonly=false: タップで投票 (定休日のみ無効) */}
+      <div className="grid grid-cols-3 gap-2">
+        {statusButtons.map((meta) => {
+          const isSubmittingThis = submitting === meta.status;
+          const count = aggregate?.rawCounts?.[meta.status] ?? 0;
+          const isTop = !!(aggregate?.isValid && aggregate.status === meta.status);
+          const interactive = !readonly && !isClosedToday;
+          const disabled = !interactive || !!submitting || cooldownActive;
+          return (
+            <motion.button
+              key={meta.status}
+              type="button"
+              disabled={disabled}
+              onClick={interactive ? () => submit(meta.status) : undefined}
+              whileTap={interactive ? { scale: 0.95 } : undefined}
+              className="rounded-xl p-2.5 flex flex-col items-center gap-1 text-[11px] font-bold transition-all disabled:cursor-not-allowed"
+              style={{
+                background: meta.bg,
+                color: meta.color,
+                border: `${isTop ? 2 : 1}px solid ${meta.color}${isTop ? '99' : '33'}`,
+                opacity: disabled && !isTop ? 0.7 : 1,
+                cursor: interactive ? 'pointer' : 'default',
+              }}
+              aria-label={`${meta.label} (${count}票)`}
+            >
+              {isSubmittingThis ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <meta.Icon className="w-5 h-5" />
+              )}
+              <span>{meta.shortLabel}</span>
+              <span
+                className="text-[10px] tabular-nums leading-none"
+                style={{
+                  color: meta.color,
+                  opacity: count > 0 ? 1 : 0.45,
+                }}
+              >
+                {count}票
+              </span>
+            </motion.button>
+          );
+        })}
+      </div>
 
-          <div
-            className="mt-3 text-[10px]"
-            style={{ color: 'rgba(19, 41, 75, 0.5)' }}
-          >
-            {cooldownActive ? (
-              <span>※ 同じお店への連続報告は10分に1回まで</span>
-            ) : !isLineLoggedIn ? (
-              <span>※ 報告にはLINEログインと位置情報の許可が必要です</span>
-            ) : (
-              <span>※ お店から200m以内で報告できます</span>
-            )}
-          </div>
-        </>
+      {!readonly && !isClosedToday && (
+        <div
+          className="mt-3 text-[10px]"
+          style={{ color: 'rgba(19, 41, 75, 0.5)' }}
+        >
+          {cooldownActive ? (
+            <span>※ 同じお店への連続報告は10分に1回まで</span>
+          ) : !isLineLoggedIn ? (
+            <span>※ 報告にはLINEログインと位置情報の許可が必要です</span>
+          ) : (
+            <span>※ お店から200m以内で報告できます</span>
+          )}
+        </div>
       )}
     </div>
   );
