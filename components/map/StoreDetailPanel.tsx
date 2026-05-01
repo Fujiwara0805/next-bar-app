@@ -16,7 +16,12 @@ import {
   Loader2,
   Navigation,
   MessageCirclePlus,
+  Gauge,
+  CheckCircle2,
+  Flame,
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import type { CrowdStatus } from '@/lib/crowd/aggregate';
 import { CloseCircleButton } from '@/components/ui/close-circle-button';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/lib/i18n/context';
@@ -29,6 +34,13 @@ import type { Database, BusinessHours } from '@/lib/supabase/types';
 import { CrowdVoteModal } from '@/components/store/crowd-vote-modal';
 
 type Store = Database['public']['Tables']['stores']['Row'];
+
+// AI 集計（直近30分の客投票）の status をアイコン化
+function CrowdStatusIcon({ status }: { status: CrowdStatus }) {
+  if (status === 'vacant') return <CheckCircle2 className="w-5 h-5" style={{ color: '#16a34a' }} />;
+  if (status === 'wait') return <Clock className="w-5 h-5" style={{ color: '#f59e0b' }} />;
+  return <Flame className="w-5 h-5" style={{ color: '#dc2626' }} />;
+}
 
 interface StoreDetailPanelProps {
   store: Store;
@@ -56,12 +68,35 @@ export function StoreDetailPanel({
   const [isExpanded, setIsExpanded] = useState(false);
   const [showReservationModal, setShowReservationModal] = useState(false);
   const [voteModalOpen, setVoteModalOpen] = useState(false);
+  const [aiStatus, setAiStatus] = useState<CrowdStatus | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setIsExpanded(false);
     if (scrollRef.current) scrollRef.current.scrollTop = 0;
   }, [store.id]);
+
+  // AI 集計（直近30分の客投票）を取得し、有効ならアイコン表示
+  useEffect(() => {
+    if (!store?.id) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`/api/stores/${store.id}/crowd-report`, { cache: 'no-store' });
+        if (!res.ok) return;
+        const json = await res.json();
+        if (cancelled) return;
+        const agg = json?.aggregate;
+        if (agg?.isValid && agg?.status) setAiStatus(agg.status as CrowdStatus);
+        else setAiStatus(null);
+      } catch {
+        // ネットワーク失敗時は表示しない（既存のステータス表示を阻害しない）
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [store?.id, voteModalOpen]);
 
   const handleDragEnd = useCallback((_: any, info: PanInfo) => {
     if (!isExpanded) {
@@ -344,6 +379,7 @@ export function StoreDetailPanel({
                 )}
 
                 <div className="flex items-center gap-2 pt-1 flex-wrap">
+                  {/* 店舗側設定の空席アイコン */}
                   <img
                     src={getVacancyIcon(effectiveStatus)}
                     alt={getVacancyLabel(effectiveStatus)}
@@ -352,6 +388,17 @@ export function StoreDetailPanel({
                   <span className="text-xl font-bold" style={{ color: theme.text }}>
                     {getVacancyLabel(effectiveStatus)}
                   </span>
+
+                  {/* AI 集計アイコン（投票が valid な場合のみ）: 空席アイコンの横に縦並びで表示 */}
+                  {aiStatus && effectiveStatus !== 'closed' && (
+                    <div className="flex flex-col items-center ml-1">
+                      <span className="text-[9px] font-medium leading-none mb-0.5" style={{ color: theme.textMuted }}>
+                        {t('store_status.ai_aggregated_label')}
+                      </span>
+                      <CrowdStatusIcon status={aiStatus} />
+                    </div>
+                  )}
+
                   {effectiveStatus === 'vacant' && store.vacant_seats != null && store.vacant_seats > 0 && (
                     <span className="text-sm font-bold px-2 py-0.5 rounded-lg bg-success/10 text-success">
                       {t('store_detail.vacant_seats').replace('{count}', String(store.vacant_seats))}
@@ -374,28 +421,6 @@ export function StoreDetailPanel({
                       </span>
                     );
                   })()}
-
-                  {/* 空席投票ボタン (定休日/営業時間外は非表示) */}
-                  {effectiveStatus !== 'closed' && (
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setVoteModalOpen(true);
-                      }}
-                      aria-label={t('store_status.vote_button')}
-                      className="inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-bold transition-all hover:scale-105 active:scale-95"
-                      style={{
-                        background: 'linear-gradient(135deg, #ffc62d 0%, #FFD966 50%, #C9A86C 100%)',
-                        color: '#13294b',
-                        border: '1px solid rgba(201, 168, 108, 0.4)',
-                        boxShadow: '0 2px 8px rgba(201, 168, 108, 0.25)',
-                      }}
-                    >
-                      <MessageCirclePlus className="w-3.5 h-3.5" />
-                      <span>{t('store_status.vote_button')}</span>
-                    </button>
-                  )}
                 </div>
               </div>
             </div>
@@ -428,6 +453,33 @@ export function StoreDetailPanel({
                     <p className="text-sm font-medium leading-relaxed" style={{ color: lightTheme.textMuted }}>
                       {store.description}
                     </p>
+                  </div>
+                )}
+
+                {/* 店内の混雑状況を投票する: 店舗詳細画面と同じレイアウト */}
+                {effectiveStatus !== 'closed' && (
+                  <div className="flex items-start gap-3">
+                    <Gauge className="w-5 h-5 shrink-0 mt-0.5" style={{ color: lightTheme.accent }} />
+                    <div className="flex-1">
+                      <p className="text-sm font-bold mb-2" style={{ color: lightTheme.text }}>
+                        {t('store_status.vote_section_title')}
+                      </p>
+                      <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                        <Button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setVoteModalOpen(true);
+                          }}
+                          aria-label={t('store_status.vote_section_button')}
+                          className="font-bold bg-brewer-900 text-cream-50 hover:bg-brewer-800 rounded-xl shadow-md"
+                          size="default"
+                        >
+                          <MessageCirclePlus className="w-3 h-3 mr-2" />
+                          {t('store_status.vote_section_button')}
+                        </Button>
+                      </motion.div>
+                    </div>
                   </div>
                 )}
 

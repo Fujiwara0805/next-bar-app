@@ -36,7 +36,7 @@ import {
   Building2,
   Megaphone,
   QrCode,
-  ExternalLink,
+  Camera,
   ChevronDown,
   ChevronUp,
 } from 'lucide-react';
@@ -689,9 +689,8 @@ export default function StoreUpdatePage() {
                     className="inline-flex items-center gap-1.5 text-xs font-semibold transition-opacity hover:opacity-80"
                     style={{ color: COLORS.deepNavy }}
                   >
-                    <ExternalLink className="w-3.5 h-3.5" />
-                    <QrCode className="w-3.5 h-3.5" />
-                    QRコードをスキャン
+                    <Camera className="w-3.5 h-3.5" />
+                    {t('store_manage.scan_qr')}
                   </button>
                   <button
                     type="button"
@@ -699,7 +698,6 @@ export default function StoreUpdatePage() {
                     className="inline-flex items-center gap-1.5 text-xs font-semibold transition-opacity hover:opacity-80"
                     style={{ color: COLORS.deepNavy }}
                   >
-                    <ExternalLink className="w-3.5 h-3.5" />
                     <QrCode className="w-3.5 h-3.5" />
                     {t('store_qr.title')}
                   </button>

@@ -35,6 +35,7 @@ import {
   Sparkles,
   Expand,
   MessageCirclePlus,
+  Gauge,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CloseCircleButton } from '@/components/ui/close-circle-button';
@@ -935,35 +936,28 @@ export default function StoreDetailPage() {
               </>
             )}
 
-            {/* 店内ステータス: 「空席投票」ボタン (定休日 / 営業時間外は非表示) */}
+            {/* 店内の混雑状況を投票する: 「席をキープ」と同じレイアウト + 自動音声予約と同じボタンデザイン */}
             {getEffectiveVacancyStatus() !== 'closed' && (
               <>
-                <div
-                  className="rounded-2xl p-5 flex items-center justify-between gap-3"
-                  style={{
-                    background: 'white',
-                    border: `1px solid ${COLORS.champagneGold}33`,
-                    boxShadow: '0 8px 24px rgba(19, 41, 75, 0.06)',
-                  }}
-                >
-                  <h3 className="font-semibold text-sm" style={{ color: COLORS.deepNavy }}>
-                    {t('store_status.title')}
-                  </h3>
-                  <button
-                    type="button"
-                    onClick={() => setVoteModalOpen(true)}
-                    aria-label={t('store_status.vote_button')}
-                    className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-bold transition-all hover:scale-105 active:scale-95"
-                    style={{
-                      background: COLORS.goldGradient,
-                      color: COLORS.deepNavy,
-                      border: `1px solid ${COLORS.champagneGold}66`,
-                      boxShadow: '0 2px 8px rgba(201, 168, 108, 0.25)',
-                    }}
-                  >
-                    <MessageCirclePlus className="w-3.5 h-3.5" />
-                    <span>{t('store_status.vote_button')}</span>
-                  </button>
+                <div className="flex items-start gap-3">
+                  <Gauge className="w-5 h-5 shrink-0 mt-0.5" style={{ color: COLORS.champagneGold }} />
+                  <div className="flex-1">
+                    <p className="text-sm font-bold mb-2" style={{ color: COLORS.deepNavy }}>
+                      {t('store_status.vote_section_title')}
+                    </p>
+                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                      <Button
+                        type="button"
+                        onClick={() => setVoteModalOpen(true)}
+                        aria-label={t('store_status.vote_section_button')}
+                        className="font-bold bg-brewer-900 text-cream-50 hover:bg-brewer-800 rounded-xl shadow-md"
+                        size="default"
+                      >
+                        <MessageCirclePlus className="w-3 h-3 mr-2" />
+                        {t('store_status.vote_section_button')}
+                      </Button>
+                    </motion.div>
+                  </div>
                 </div>
                 <div className="my-4">
                   <GoldDivider />

@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { CustomModal } from '@/components/ui/custom-modal';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/auth/context';
+import { useLanguage } from '@/lib/i18n/context';
 import { useAdminTheme } from '@/lib/admin-theme-context';
 import { toast } from 'sonner';
 import { AdminKpiCard, AdminKpiGrid, AdminQuickAction, getKpiGradient } from '@/components/admin/admin-kpi-card';
@@ -64,6 +65,7 @@ export default function StoreManagePage() {
   const { colors: C, isDark } = useAdminTheme();
   const router = useRouter();
   const { user, profile, accountType, store, signOut } = useAuth();
+  const { t } = useLanguage();
   const [stores, setStores] = useState<Store[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -494,39 +496,46 @@ export default function StoreManagePage() {
         </section>
       </div>
 
-      {/* Delete Modal */}
+      {/* Delete Modal: CustomModal は bg-white 固定のため文字色は常にブルワーズネイビー固定 */}
       <CustomModal isOpen={deleteDialogOpen} onClose={() => !deleting && setDeleteDialogOpen(false)} title="" showCloseButton={!deleting}>
         <div className="space-y-4">
           <div className="text-center">
             <div className="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center" style={{ background: C.dangerBg }}>
               <Trash2 className="w-6 h-6" style={{ color: C.danger }} />
             </div>
-            <h3 className="text-lg font-bold" style={{ color: C.text }}>店舗を削除しますか？</h3>
+            <h3 className="text-lg font-bold" style={{ color: '#13294b' }}>{t('store_manage.delete_confirm_title')}</h3>
           </div>
           {storeToDelete && (
-            <p className="text-sm text-center" style={{ color: C.textMuted }}>
-              <span className="font-bold" style={{ color: C.text }}>{storeToDelete.name}</span>を削除します。この操作は取り消せません。
+            <p className="text-sm text-center" style={{ color: 'rgba(19, 41, 75, 0.7)' }}>
+              {t('store_manage.delete_confirm_with_name').split('{name}').map((part, i, arr) => (
+                <span key={i}>
+                  {part}
+                  {i < arr.length - 1 && (
+                    <span className="font-bold" style={{ color: '#13294b' }}>{storeToDelete.name}</span>
+                  )}
+                </span>
+              ))}
             </p>
           )}
           <div className="flex gap-3 pt-2">
-            <Button variant="outline" className="flex-1 font-semibold rounded-lg" onClick={() => setDeleteDialogOpen(false)} disabled={deleting} style={{ borderColor: C.border, color: C.textMuted }}>キャンセル</Button>
+            <Button variant="outline" className="flex-1 font-semibold rounded-lg" onClick={() => setDeleteDialogOpen(false)} disabled={deleting} style={{ borderColor: 'rgba(19, 41, 75, 0.2)', color: '#13294b' }}>{t('common.cancel')}</Button>
             <Button className="flex-1 font-semibold rounded-lg" onClick={handleDeleteConfirm} disabled={deleting} style={{ background: C.danger, color: '#fff' }}>
-              {deleting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />削除中...</> : <><Trash2 className="w-4 h-4 mr-2" />削除</>}
+              {deleting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t('store_manage.deleting')}</> : <><Trash2 className="w-4 h-4 mr-2" />{t('common.delete')}</>}
             </Button>
           </div>
         </div>
       </CustomModal>
 
-      {/* Password Reset Modal */}
-      <CustomModal isOpen={resetPasswordModalOpen} onClose={() => setResetPasswordModalOpen(false)} title="パスワードリセット">
+      {/* Password Reset Modal: 同様にナビ色固定 */}
+      <CustomModal isOpen={resetPasswordModalOpen} onClose={() => setResetPasswordModalOpen(false)} title={t('store_manage.reset_password')}>
         {storeToResetPassword && (
           <div className="space-y-4">
             <div className="text-center py-4">
-              <p className="text-lg font-bold" style={{ color: C.text }}>{storeToResetPassword.name}</p>
-              <p className="text-sm mt-1" style={{ color: C.textMuted }}>{storeToResetPassword.email}</p>
+              <p className="text-lg font-bold" style={{ color: '#13294b' }}>{storeToResetPassword.name}</p>
+              <p className="text-sm mt-1" style={{ color: 'rgba(19, 41, 75, 0.7)' }}>{storeToResetPassword.email}</p>
             </div>
             <div className="flex gap-3">
-              <Button variant="outline" className="flex-1 font-semibold rounded-lg" onClick={() => setResetPasswordModalOpen(false)} disabled={sendingResetEmail} style={{ borderColor: C.border, color: C.textMuted }}>キャンセル</Button>
+              <Button variant="outline" className="flex-1 font-semibold rounded-lg" onClick={() => setResetPasswordModalOpen(false)} disabled={sendingResetEmail} style={{ borderColor: 'rgba(19, 41, 75, 0.2)', color: '#13294b' }}>{t('common.cancel')}</Button>
               <Button className="flex-1 font-semibold rounded-lg" onClick={handlePasswordResetConfirm} disabled={sendingResetEmail} style={{ background: C.info, color: '#fff' }}>
                 {sendingResetEmail ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />送信中...</> : <><Mail className="w-4 h-4 mr-2" />送信</>}
               </Button>

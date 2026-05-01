@@ -24,18 +24,18 @@ export const metadata: Metadata = {
   // アイコン設定を最適化（Googleの検索結果に表示されるように）
   icons: {
     icon: [
-      { url: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_16/v1761311529/NIKENME_%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_r5gzn4.png', sizes: '16x16', type: 'image/png' },
-      { url: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_32/v1761311529/NIKENME_%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_r5gzn4.png', sizes: '32x32', type: 'image/png' },
-      { url: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_48/v1761311529/NIKENME_%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_r5gzn4.png', sizes: '48x48', type: 'image/png' },
-      { url: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_154,c_pad,w_192,h_192,b_white/v1761311529/NIKENME_%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_r5gzn4.png', sizes: '192x192', type: 'image/png' },
+      { url: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_16/v1777620739/a7ec37de-d4b1-46ff-8639-f2d49f567279_kym3yo.png', sizes: '16x16', type: 'image/png' },
+      { url: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_32/v1777620739/a7ec37de-d4b1-46ff-8639-f2d49f567279_kym3yo.png', sizes: '32x32', type: 'image/png' },
+      { url: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_48/v1777620739/a7ec37de-d4b1-46ff-8639-f2d49f567279_kym3yo.png', sizes: '48x48', type: 'image/png' },
+      { url: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_154,c_pad,w_192,h_192,b_white/v1777620739/a7ec37de-d4b1-46ff-8639-f2d49f567279_kym3yo.png', sizes: '192x192', type: 'image/png' },
     ],
     apple: [
-      { url: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_144,c_pad,w_180,h_180,b_white/v1761311529/NIKENME_%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_r5gzn4.png', sizes: '180x180', type: 'image/png' },
+      { url: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_144,c_pad,w_180,h_180,b_white/v1777620739/a7ec37de-d4b1-46ff-8639-f2d49f567279_kym3yo.png', sizes: '180x180', type: 'image/png' },
     ],
     other: [
       {
         rel: 'mask-icon',
-        url: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761311529/NIKENME_%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_r5gzn4.png',
+        url: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1777620739/a7ec37de-d4b1-46ff-8639-f2d49f567279_kym3yo.png',
       },
     ],
   },
@@ -294,10 +294,10 @@ export default function RootLayout({
     <html lang="ja">
       <head>
         {/* ファビコン - 複数サイズを提供（Google検索結果表示用に最適化） */}
-        <link rel="icon" type="image/png" sizes="16x16" href="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_16/v1761311529/NIKENME_%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_r5gzn4.png" />
-        <link rel="icon" type="image/png" sizes="32x32" href="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_32/v1761311529/NIKENME_%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_r5gzn4.png" />
-        <link rel="icon" type="image/png" sizes="48x48" href="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_48/v1761311529/NIKENME_%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_r5gzn4.png" />
-        <link rel="apple-touch-icon" sizes="180x180" href="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_144,c_pad,w_180,h_180,b_white/v1761311529/NIKENME_%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_r5gzn4.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_16/v1777620739/a7ec37de-d4b1-46ff-8639-f2d49f567279_kym3yo.png" />
+        <link rel="icon" type="image/png" sizes="32x32" href="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_32/v1777620739/a7ec37de-d4b1-46ff-8639-f2d49f567279_kym3yo.png" />
+        <link rel="icon" type="image/png" sizes="48x48" href="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_48/v1777620739/a7ec37de-d4b1-46ff-8639-f2d49f567279_kym3yo.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_144,c_pad,w_180,h_180,b_white/v1777620739/a7ec37de-d4b1-46ff-8639-f2d49f567279_kym3yo.png" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#3b82f6" />
         
