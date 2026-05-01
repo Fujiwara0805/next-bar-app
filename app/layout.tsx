@@ -24,18 +24,18 @@ export const metadata: Metadata = {
   // アイコン設定を最適化（Googleの検索結果に表示されるように）
   icons: {
     icon: [
-      { url: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_16/v1777620739/a7ec37de-d4b1-46ff-8639-f2d49f567279_kym3yo.png', sizes: '16x16', type: 'image/png' },
-      { url: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_32/v1777620739/a7ec37de-d4b1-46ff-8639-f2d49f567279_kym3yo.png', sizes: '32x32', type: 'image/png' },
-      { url: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_48/v1777620739/a7ec37de-d4b1-46ff-8639-f2d49f567279_kym3yo.png', sizes: '48x48', type: 'image/png' },
-      { url: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_154,c_pad,w_192,h_192,b_white/v1777620739/a7ec37de-d4b1-46ff-8639-f2d49f567279_kym3yo.png', sizes: '192x192', type: 'image/png' },
+      { url: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_16/v1777628277/e075bc44-b508-4353-ad2e-b91e79e08186_fqrdzs.png', sizes: '16x16', type: 'image/png' },
+      { url: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_32/v1777628277/e075bc44-b508-4353-ad2e-b91e79e08186_fqrdzs.png', sizes: '32x32', type: 'image/png' },
+      { url: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_48/v1777628277/e075bc44-b508-4353-ad2e-b91e79e08186_fqrdzs.png', sizes: '48x48', type: 'image/png' },
+      { url: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_154,c_pad,w_192,h_192,b_white/v1777628277/e075bc44-b508-4353-ad2e-b91e79e08186_fqrdzs.png', sizes: '192x192', type: 'image/png' },
     ],
     apple: [
-      { url: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_144,c_pad,w_180,h_180,b_white/v1777620739/a7ec37de-d4b1-46ff-8639-f2d49f567279_kym3yo.png', sizes: '180x180', type: 'image/png' },
+      { url: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_144,c_pad,w_180,h_180,b_white/v1777628277/e075bc44-b508-4353-ad2e-b91e79e08186_fqrdzs.png', sizes: '180x180', type: 'image/png' },
     ],
     other: [
       {
         rel: 'mask-icon',
-        url: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1777620739/a7ec37de-d4b1-46ff-8639-f2d49f567279_kym3yo.png',
+        url: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1777628277/e075bc44-b508-4353-ad2e-b91e79e08186_fqrdzs.png',
       },
     ],
   },
@@ -294,10 +294,10 @@ export default function RootLayout({
     <html lang="ja">
       <head>
         {/* ファビコン - 複数サイズを提供（Google検索結果表示用に最適化） */}
-        <link rel="icon" type="image/png" sizes="16x16" href="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_16/v1777620739/a7ec37de-d4b1-46ff-8639-f2d49f567279_kym3yo.png" />
-        <link rel="icon" type="image/png" sizes="32x32" href="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_32/v1777620739/a7ec37de-d4b1-46ff-8639-f2d49f567279_kym3yo.png" />
-        <link rel="icon" type="image/png" sizes="48x48" href="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_48/v1777620739/a7ec37de-d4b1-46ff-8639-f2d49f567279_kym3yo.png" />
-        <link rel="apple-touch-icon" sizes="180x180" href="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_144,c_pad,w_180,h_180,b_white/v1777620739/a7ec37de-d4b1-46ff-8639-f2d49f567279_kym3yo.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_16/v1777628277/e075bc44-b508-4353-ad2e-b91e79e08186_fqrdzs.png" />
+        <link rel="icon" type="image/png" sizes="32x32" href="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_32/v1777628277/e075bc44-b508-4353-ad2e-b91e79e08186_fqrdzs.png" />
+        <link rel="icon" type="image/png" sizes="48x48" href="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_48/v1777628277/e075bc44-b508-4353-ad2e-b91e79e08186_fqrdzs.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_144,c_pad,w_180,h_180,b_white/v1777628277/e075bc44-b508-4353-ad2e-b91e79e08186_fqrdzs.png" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#3b82f6" />
         

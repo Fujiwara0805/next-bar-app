@@ -442,9 +442,9 @@ export default function LandingPage() {
               aria-label={t('menu.for_stores')}
             >
               <img
-                src="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1777620739/a7ec37de-d4b1-46ff-8639-f2d49f567279_kym3yo.png"
+                src="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1777628277/e075bc44-b508-4353-ad2e-b91e79e08186_fqrdzs.png"
                 alt="NIKENME+"
-                className="h-8 w-auto shrink-0"
+                className="h-10 w-auto shrink-0"
               />
               <span
                 className="hidden sm:inline-block text-[9px] px-2 py-1 rounded-full font-medium tracking-[0.1em] uppercase shrink-0"
@@ -537,9 +537,9 @@ export default function LandingPage() {
                   style={{ borderBottom: `1px solid ${lpPage.border}` }}
                 >
                   <img
-                    src="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1777620739/a7ec37de-d4b1-46ff-8639-f2d49f567279_kym3yo.png"
+                    src="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1777628277/e075bc44-b508-4353-ad2e-b91e79e08186_fqrdzs.png"
                     alt="NIKENME+"
-                    className="h-12 w-auto max-w-[200px] object-contain object-center"
+                    className="h-14 w-auto max-w-[240px] object-contain object-center"
                   />
                 </motion.div>
                 <div className="mb-8">
@@ -1333,7 +1333,7 @@ export default function LandingPage() {
       <footer className="py-12 px-4" style={{ background: lpPage.bg }}>
         <div className="container mx-auto max-w-6xl">
           <div className="flex justify-center mb-8">
-            <img src="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1777620739/a7ec37de-d4b1-46ff-8639-f2d49f567279_kym3yo.png" alt="NIKENME+" className="h-12 w-auto object-contain opacity-70" />
+            <img src="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1777628277/e075bc44-b508-4353-ad2e-b91e79e08186_fqrdzs.png" alt="NIKENME+" className="h-12 w-auto object-contain opacity-70" />
           </div>
           <nav className="grid grid-cols-2 gap-4 sm:gap-6 max-w-md mx-auto mb-8">
             {footerLinks.map((link, index) => {
