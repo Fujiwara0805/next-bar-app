@@ -6,9 +6,9 @@
  * 投票を集計し、最多得票ステータスを返す。3票未満なら null (未確定)。
  */
 
-export type CrowdStatus = 'vacant' | 'busy' | 'full';
+export type CrowdStatus = 'vacant' | 'wait' | 'full';
 
-export const CROWD_STATUSES: CrowdStatus[] = ['vacant', 'busy', 'full'];
+export const CROWD_STATUSES: CrowdStatus[] = ['vacant', 'wait', 'full'];
 
 export const WINDOW_MINUTES = 30;
 export const HALFLIFE_MINUTES = 15;
@@ -31,7 +31,7 @@ export type CrowdAggregate = {
 
 const ZERO_VOTES = (): Record<CrowdStatus, number> => ({
   vacant: 0,
-  busy: 0,
+  wait: 0,
   full: 0,
 });
 

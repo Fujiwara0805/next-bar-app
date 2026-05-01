@@ -1,14 +1,12 @@
 'use client';
 
 /**
- * ============================================
- * ファイルパス: app/(main)/store/manage/[id]/poster/page.tsx
- * 店舗QRポスター生成ページ (Phase 2-A 双方向QR)
+ * 店内QRコード表示ページ (店舗管理)
  *
- * 店舗管理者がここで店内設置用のQRを発行する。客がLIFFで読み取ると
- * /store-checkin?store={storeId}&v=1 にアクセスし、ジオフェンス検証を経て
- * セルフチェックインが完了する。印刷用PDFも出力可能。
- * ============================================
+ * 顧客QRページ (`/mypage/qr`) と同じ簡素なレイアウトで、店舗が掲示する
+ * セルフチェックイン用 QR を表示する。PDF / 印刷 / PNG 保存に対応。
+ * 顧客が LINE でスキャンすると `/liff/store-checkin?store={storeId}&v=1`
+ * へ遷移し、ジオフェンス検証を経てチェックインが完了する。
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -26,14 +24,22 @@ import {
 import QRCode from 'qrcode';
 import { toast } from 'sonner';
 import { useAuth } from '@/lib/auth/context';
+import { useLanguage } from '@/lib/i18n/context';
 import { supabase } from '@/lib/supabase/client';
-import { useAppMode } from '@/lib/app-mode-context';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { CloseCircleButton } from '@/components/ui/close-circle-button';
 import { LoadingScreen } from '@/components/ui/loading-screen';
 
 const POSTER_VERSION = '1';
+
+const BG_OFFWHITE = '#F7F3E9';
+const NAVY = '#13294b';
+const BRASS = '#ffc62d';
+const COPPER = '#B87333';
+const GOLD_GRADIENT =
+  'linear-gradient(135deg, #ffc62d 0%, #FFD966 50%, #C9A86C 100%)';
+const NAVY_GRADIENT =
+  'linear-gradient(165deg, #13294b 0%, #1A3562 50%, #1F57A4 100%)';
 
 function resolveSiteUrl(): string {
   const env =
@@ -43,12 +49,14 @@ function resolveSiteUrl(): string {
   return 'https://nikenme.jp';
 }
 
-export default function StorePosterPage() {
+export default function StoreQrPage() {
   const params = useParams();
   const router = useRouter();
-  const storeId = Array.isArray(params.id) ? params.id[0] : (params.id as string);
-  const { user, accountType, store, loading: authLoading } = useAuth();
-  const { colorsB: COLORS } = useAppMode();
+  const storeId = Array.isArray(params.id)
+    ? params.id[0]
+    : (params.id as string);
+  const { user, accountType, loading: authLoading } = useAuth();
+  const { t } = useLanguage();
 
   const [storeName, setStoreName] = useState<string>('');
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
@@ -57,8 +65,21 @@ export default function StorePosterPage() {
   const [authChecked, setAuthChecked] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
 
-  // 認可: platform/admin はそのまま、店舗オーナーは email 一致確認で判定
-  // (`/store/manage/[id]/update` と同じパターン)
+  // ページ背景を顧客QRと揃える
+  useEffect(() => {
+    const root = document.documentElement;
+    const body = document.body;
+    const prevRoot = root.style.background;
+    const prevBody = body.style.background;
+    root.style.background = BG_OFFWHITE;
+    body.style.background = BG_OFFWHITE;
+    return () => {
+      root.style.background = prevRoot;
+      body.style.background = prevBody;
+    };
+  }, []);
+
+  // 認可: platform は owner_id 一致, store は email 一致 (poster と同パターン)
   useEffect(() => {
     if (authLoading) return;
     if (!user) {
@@ -84,13 +105,11 @@ export default function StorePosterPage() {
           return;
         }
         if (accountType === 'platform') {
-          // 運営は owner_id 一致をチェック (platform ロールで自店舗群を管理)
           if (storeRow.owner_id !== user.id) {
             router.replace('/store/manage');
             return;
           }
         } else if (accountType === 'store') {
-          // 店舗オーナー: email 一致で本人確認
           if (storeRow.email !== user.email) {
             router.replace('/store/manage');
             return;
@@ -114,7 +133,7 @@ export default function StorePosterPage() {
     return url.toString();
   }, [storeId]);
 
-  // 店舗名取得 + QR生成 (認可確定後のみ)
+  // QR 生成 (認可確定後のみ)
   useEffect(() => {
     if (!authChecked) return;
     let cancelled = false;
@@ -122,14 +141,14 @@ export default function StorePosterPage() {
       try {
         setGenerating(true);
         const dataUrl = await QRCode.toDataURL(checkInUrl, {
-          errorCorrectionLevel: 'H', // 高精度: 印刷後の汚れにも耐性
+          errorCorrectionLevel: 'H',
           margin: 2,
           width: 1024,
           color: { dark: '#13294b', light: '#FFFFFF' },
         });
         if (!cancelled) setQrDataUrl(dataUrl);
       } catch (err) {
-        console.error('[store/poster] generate error', err);
+        console.error('[store/qr] generate error', err);
       } finally {
         if (!cancelled) setGenerating(false);
       }
@@ -143,7 +162,6 @@ export default function StorePosterPage() {
     window.print();
   }, []);
 
-  // PDF生成失敗時のフォールバック: QRコード画像 (PNG) を直接ダウンロード保存
   const downloadQrAsPng = useCallback(() => {
     if (!qrDataUrl) return;
     try {
@@ -153,14 +171,14 @@ export default function StorePosterPage() {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      toast.success('QRコード画像を保存しました', {
-        description: '画像ファイル (PNG) として保存できました',
+      toast.success(t('store_qr.png_saved'), {
+        description: t('store_qr.png_saved_description'),
       });
     } catch (err) {
-      console.error('[store/poster] png save error', err);
-      toast.error('画像の保存に失敗しました');
+      console.error('[store/qr] png save error', err);
+      toast.error(t('store_qr.png_save_failed'));
     }
-  }, [qrDataUrl, storeId]);
+  }, [qrDataUrl, storeId, t]);
 
   const handleDownloadPdf = useCallback(async () => {
     if (!qrDataUrl) return;
@@ -173,27 +191,22 @@ export default function StorePosterPage() {
         format: 'a4',
       });
 
-      // 用紙サイズ: A4 = 210 x 297 mm
       const pageWidth = 210;
       const navy = '#13294b';
       const gold = '#C9A86C';
 
-      // 上端ゴールドライン
       doc.setFillColor(201, 168, 108);
       doc.rect(0, 0, pageWidth, 4, 'F');
 
-      // タイトル
       doc.setTextColor(navy);
       doc.setFontSize(10);
       doc.text('NIKENME+ CHECK-IN', pageWidth / 2, 25, { align: 'center' });
 
-      // ハイライト線
       doc.setDrawColor(gold);
       doc.setLineWidth(0.4);
       doc.line(pageWidth / 2 - 20, 28, pageWidth / 2 + 20, 28);
 
-      // 店舗名 (jsPDF は日本語フォント未対応なので ASCII のみで表示。
-      // 日本語が含まれる場合は店舗名を出さず、汎用ガイド文のみで構成する)
+      // jsPDF は日本語フォント未対応なので ASCII のみで店舗名描画
       const isAsciiOnly = /^[\x20-\x7E]*$/.test(storeName);
       if (storeName && isAsciiOnly) {
         doc.setFontSize(20);
@@ -201,13 +214,11 @@ export default function StorePosterPage() {
         doc.text(storeName, pageWidth / 2, 42, { align: 'center' });
       }
 
-      // QR (中心、サイズ110mm)
       const qrSize = 110;
       const qrX = (pageWidth - qrSize) / 2;
       const qrY = storeName && isAsciiOnly ? 60 : 50;
       doc.addImage(qrDataUrl, 'PNG', qrX, qrY, qrSize, qrSize);
 
-      // ガイド文 (英語＋日本語アスキーで印刷フォント問題を回避)
       const guideY = qrY + qrSize + 16;
       doc.setFontSize(13);
       doc.setTextColor(navy);
@@ -223,24 +234,21 @@ export default function StorePosterPage() {
         { align: 'center' }
       );
 
-      // 下部ロゴ風
       doc.setFontSize(8);
       doc.setTextColor(180, 180, 180);
       doc.text('powered by NIKENME+', pageWidth / 2, 285, { align: 'center' });
 
       doc.save(`nikenme-checkin-${storeId.slice(0, 8)}.pdf`);
     } catch (err) {
-      // jsPDF の dynamic import 失敗 / 描画エラーなどに備え、
-      // QR画像 (PNG) ダウンロードにフォールバック。これで店舗オペレーションを止めない。
-      console.error('[store/poster] pdf error, falling back to PNG:', err);
-      toast.warning('PDFを生成できませんでした', {
-        description: '代わりにQRコード画像 (PNG) を保存します',
+      console.error('[store/qr] pdf error, falling back to PNG:', err);
+      toast.warning(t('store_qr.pdf_failed'), {
+        description: t('store_qr.pdf_failed_description'),
       });
       downloadQrAsPng();
     } finally {
       setDownloading(false);
     }
-  }, [qrDataUrl, storeName, storeId, downloadQrAsPng]);
+  }, [qrDataUrl, storeName, storeId, downloadQrAsPng, t]);
 
   if (authLoading || !user || !authChecked) {
     return <LoadingScreen size="lg" />;
@@ -248,27 +256,24 @@ export default function StorePosterPage() {
 
   return (
     <div
-      className="min-h-[100dvh] pb-16 print:bg-white"
-      style={{ background: COLORS.cardGradient }}
+      className="min-h-screen pb-16 print:bg-white"
+      style={{ background: BG_OFFWHITE }}
     >
       <header
         className="sticky top-0 z-20 safe-top print:hidden"
-        style={{
-          background: COLORS.luxuryGradient,
-          borderBottom: `1px solid rgba(201, 168, 108, 0.2)`,
-        }}
+        style={{ background: NAVY_GRADIENT, borderBottom: `1px solid ${BRASS}33` }}
       >
         <div className="relative flex items-center justify-center p-4 max-w-md mx-auto">
           <h1
             className="text-lg font-light tracking-[0.2em]"
-            style={{ color: COLORS.ivory }}
+            style={{ color: '#FDFBF7' }}
           >
-            店舗QRポスター
+            {t('store_qr.header_title')}
           </h1>
           <div className="absolute right-3 top-1/2 -translate-y-1/2">
             <CloseCircleButton
               size="md"
-              aria-label="閉じる"
+              aria-label={t('common.close')}
               onClick={() => router.push(`/store/manage/${storeId}/update`)}
             />
           </div>
@@ -277,104 +282,88 @@ export default function StorePosterPage() {
 
       <div className="max-w-md mx-auto px-4 py-6 print:max-w-none print:p-0">
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-          {/* 紹介セクション */}
-          <div className="mb-5 text-center print:hidden">
+          <div className="mb-6 text-center print:hidden">
             <div className="inline-flex items-center gap-2 mb-2">
-              <div className="h-px w-6" style={{ background: COLORS.champagneGold }} />
+              <div className="h-px w-6" style={{ background: BRASS }} />
               <span
                 className="text-xs font-semibold uppercase tracking-[0.2em]"
-                style={{ color: COLORS.champagneGold }}
+                style={{ color: COPPER }}
               >
-                STORE QR
+                {t('store_qr.badge')}
               </span>
-              <div className="h-px w-6" style={{ background: COLORS.champagneGold }} />
+              <div className="h-px w-6" style={{ background: BRASS }} />
             </div>
-            <h2 className="text-xl font-bold mb-1" style={{ color: COLORS.deepNavy }}>
-              店内設置用QRコード
+            <h2 className="text-xl font-bold mb-1" style={{ color: NAVY }}>
+              {t('store_qr.title')}
             </h2>
             <p className="text-sm" style={{ color: 'rgba(19, 41, 75, 0.65)' }}>
-              印刷して店内に掲示すると、お客様が自分でチェックインできます
+              {t('store_qr.subtitle')}
             </p>
           </div>
 
-          {/* ポスター本体 (印刷対象) */}
+          {/* QR カード (印刷対象) */}
           <div ref={printRef} className="print:p-12">
-            <Card
-              className="rounded-2xl overflow-hidden mb-5 print:shadow-none print:border-0 print:rounded-none"
+            <div
+              className="rounded-2xl p-6 mb-4 relative overflow-hidden print:shadow-none print:border-0 print:rounded-none"
               style={{
                 background: 'white',
-                border: `1px solid ${COLORS.champagneGold}33`,
+                border: `1px solid ${BRASS}33`,
                 boxShadow: '0 12px 32px rgba(19, 41, 75, 0.10)',
               }}
             >
-              {/* 上端ゴールド帯 */}
               <div
-                className="h-[4px] print:h-[6px]"
-                style={{ background: COLORS.goldGradient }}
+                className="absolute top-0 left-0 right-0 h-[3px] print:h-[6px]"
+                style={{ background: GOLD_GRADIENT }}
               />
-              <div className="p-6 print:p-12">
-                <div className="text-center mb-4">
+              <div className="flex flex-col items-center">
+                {storeName && (
                   <div
-                    className="text-[10px] font-semibold tracking-[0.3em] mb-1 print:text-[12px]"
-                    style={{ color: COLORS.champagneGold }}
+                    className="mt-2 mb-3 text-base font-bold print:text-3xl text-center"
+                    style={{ color: NAVY }}
                   >
-                    NIKENME+ CHECK-IN
+                    {storeName}
                   </div>
-                  <h3
-                    className="text-2xl font-bold print:text-4xl"
-                    style={{ color: COLORS.deepNavy }}
-                  >
-                    {storeName || '...'}
-                  </h3>
-                </div>
-
-                <div className="flex justify-center my-6 print:my-10">
-                  <div
-                    className="p-4 rounded-2xl print:p-6 print:rounded-none"
-                    style={{
-                      background: '#FFFFFF',
-                      border: `1.5px solid ${COLORS.champagneGold}50`,
-                    }}
-                  >
-                    {generating || !qrDataUrl ? (
-                      <div className="w-[260px] h-[260px] flex items-center justify-center">
-                        <Loader2
-                          className="w-8 h-8 animate-spin"
-                          style={{ color: COLORS.champagneGold }}
-                        />
-                      </div>
-                    ) : (
-                      <img
-                        src={qrDataUrl}
-                        alt="Store Check-in QR"
-                        className="w-[260px] h-[260px] print:w-[400px] print:h-[400px]"
+                )}
+                <div
+                  className="p-4 rounded-2xl print:p-6 print:rounded-none"
+                  style={{
+                    background: BG_OFFWHITE,
+                    border: `1px solid ${BRASS}50`,
+                    boxShadow: `0 4px 14px ${BRASS}22`,
+                  }}
+                >
+                  {generating || !qrDataUrl ? (
+                    <div className="w-[280px] h-[280px] flex items-center justify-center">
+                      <Loader2
+                        className="w-8 h-8 animate-spin"
+                        style={{ color: COPPER }}
                       />
-                    )}
-                  </div>
+                    </div>
+                  ) : (
+                    <img
+                      src={qrDataUrl}
+                      alt="Store Check-in QR"
+                      className="w-[280px] h-[280px] print:w-[400px] print:h-[400px]"
+                    />
+                  )}
                 </div>
-
-                <div className="text-center">
-                  <p
-                    className="text-base font-semibold print:text-2xl mb-1"
-                    style={{ color: COLORS.deepNavy }}
-                  >
-                    LINEで読み取ってチェックイン
-                  </p>
-                  <p
-                    className="text-xs print:text-base"
-                    style={{ color: 'rgba(19, 41, 75, 0.55)' }}
-                  >
-                    LINEのカメラ機能で上記QRをスキャンしてください
-                  </p>
+                <div
+                  className="mt-4 flex items-center gap-2 text-sm"
+                  style={{ color: NAVY }}
+                >
+                  <QrCode className="w-4 h-4" style={{ color: COPPER }} />
+                  <span className="font-semibold">
+                    {t('store_qr.scan_instruction')}
+                  </span>
                 </div>
-
-                <div className="mt-6 pt-4 border-t print:hidden" style={{ borderColor: `${COLORS.champagneGold}30` }}>
-                  <p className="text-[10px] text-center" style={{ color: 'rgba(19, 41, 75, 0.4)' }}>
-                    powered by NIKENME+
-                  </p>
-                </div>
+                <p
+                  className="mt-1 text-xs print:text-base text-center"
+                  style={{ color: 'rgba(19, 41, 75, 0.55)' }}
+                >
+                  {t('store_qr.scan_instruction_sub')}
+                </p>
               </div>
-            </Card>
+            </div>
           </div>
 
           {/* アクションボタン */}
@@ -384,17 +373,14 @@ export default function StorePosterPage() {
               disabled={generating || downloading || !qrDataUrl}
               size="lg"
               className="rounded-xl font-bold"
-              style={{
-                background: COLORS.goldGradient,
-                color: COLORS.deepNavy,
-              }}
+              style={{ background: GOLD_GRADIENT, color: NAVY }}
             >
               {downloading ? (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
               ) : (
                 <Download className="w-4 h-4 mr-2" />
               )}
-              PDF出力
+              {t('store_qr.pdf_download')}
             </Button>
             <Button
               onClick={handlePrint}
@@ -404,15 +390,14 @@ export default function StorePosterPage() {
               className="rounded-xl font-bold"
               style={{
                 background: 'white',
-                color: COLORS.deepNavy,
-                border: `1.5px solid ${COLORS.champagneGold}60`,
+                color: NAVY,
+                border: `1.5px solid ${BRASS}60`,
               }}
             >
               <Printer className="w-4 h-4 mr-2" />
-              印刷
+              {t('store_qr.print')}
             </Button>
           </div>
-          {/* 画像 (PNG) 保存ボタン: PDFが使えない/失敗した場合の予備手段 */}
           <div className="mb-5 print:hidden">
             <Button
               onClick={downloadQrAsPng}
@@ -422,75 +407,66 @@ export default function StorePosterPage() {
               className="rounded-xl font-bold w-full"
               style={{
                 background: 'white',
-                color: COLORS.deepNavy,
-                border: `1.5px solid ${COLORS.champagneGold}40`,
+                color: NAVY,
+                border: `1.5px solid ${BRASS}40`,
               }}
             >
               <ImageDown className="w-4 h-4 mr-2" />
-              QR画像で保存 (PNG)
+              {t('store_qr.save_png')}
             </Button>
           </div>
 
           {/* 使い方ガイド */}
-          <Card
+          <div
             className="rounded-2xl p-5 mb-3 print:hidden"
             style={{
               background: 'white',
-              border: `1px solid ${COLORS.champagneGold}33`,
+              border: `1px solid ${BRASS}33`,
+              boxShadow: '0 12px 32px rgba(19, 41, 75, 0.08)',
             }}
           >
             <div className="flex items-center gap-2 mb-3">
-              <Info className="w-4 h-4" style={{ color: COLORS.champagneGold }} />
-              <h3 className="font-semibold text-sm" style={{ color: COLORS.deepNavy }}>
-                使い方
+              <Info className="w-4 h-4" style={{ color: COPPER }} />
+              <h3 className="font-semibold text-sm" style={{ color: NAVY }}>
+                {t('store_qr.how_to_use_title')}
               </h3>
             </div>
             <ol
               className="text-sm space-y-2 list-decimal ml-5"
               style={{ color: 'rgba(19, 41, 75, 0.75)' }}
             >
-              <li>「PDF出力」または「印刷」でこのQRポスターを出力</li>
-              <li>店内のお客様の目につく場所に掲示</li>
-              <li>お客様がLINEで読み取り、自動的にチェックインが完了</li>
+              <li>{t('store_qr.how_to_use_1')}</li>
+              <li>{t('store_qr.how_to_use_2')}</li>
+              <li>{t('store_qr.how_to_use_3')}</li>
             </ol>
-          </Card>
+          </div>
 
-          {/* 注意事項 */}
-          <Card
+          {/* セキュリティ注意事項 */}
+          <div
             className="rounded-2xl p-5 print:hidden"
             style={{
-              background: `${COLORS.champagneGold}10`,
-              border: `1px solid ${COLORS.champagneGold}40`,
+              background: `${BRASS}10`,
+              border: `1px solid ${BRASS}40`,
             }}
           >
             <div className="flex items-start gap-2">
               <Sparkles
                 className="w-4 h-4 mt-0.5 flex-shrink-0"
-                style={{ color: COLORS.champagneGold }}
+                style={{ color: COPPER }}
               />
-              <div className="text-xs leading-relaxed" style={{ color: COLORS.deepNavy }}>
-                <p className="font-semibold mb-1">セキュリティのご案内</p>
+              <div className="text-xs leading-relaxed" style={{ color: NAVY }}>
+                <p className="font-semibold mb-1">
+                  {t('store_qr.security_title')}
+                </p>
                 <p style={{ color: 'rgba(19, 41, 75, 0.7)' }}>
-                  店舗の位置情報を基にチェックインを検証するため、店外でこのQRを撮影しても
-                  チェックインは成立しません。安心して掲示いただけます。
+                  {t('store_qr.security_body')}
                 </p>
               </div>
             </div>
-          </Card>
-
-          {/* QR URL (デバッグ用、小さく表示) */}
-          <div className="mt-4 text-center print:hidden">
-            <p
-              className="text-[10px] break-all"
-              style={{ color: 'rgba(19, 41, 75, 0.35)' }}
-            >
-              {checkInUrl}
-            </p>
           </div>
         </motion.div>
       </div>
 
-      {/* 印刷時のスタイル */}
       <style jsx global>{`
         @media print {
           @page {

@@ -10,7 +10,7 @@ import type { NextRequest } from 'next/server';
  */
 
 /** 店舗アカウントがアクセス可能なセグメント */
-const STORE_ALLOWED_SEGMENTS = /^(update|edit|change-password|scan|broadcast|analytics|coupons|redeem|engagement)$/;
+const STORE_ALLOWED_SEGMENTS = /^(update|edit|change-password|scan|broadcast|analytics|coupons|redeem|engagement|qr)$/;
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;

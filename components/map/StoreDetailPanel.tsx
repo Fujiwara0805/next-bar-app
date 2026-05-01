@@ -15,6 +15,7 @@ import {
   CreditCard,
   Loader2,
   Navigation,
+  MessageCirclePlus,
 } from 'lucide-react';
 import { CloseCircleButton } from '@/components/ui/close-circle-button';
 import { Badge } from '@/components/ui/badge';
@@ -25,7 +26,7 @@ import { getTodayOpenTime, isTodayClosedDay, checkIsOpenFromStructuredHours } fr
 import { sendGAEvent } from '@/lib/analytics';
 import { useAppMode } from '@/lib/app-mode-context';
 import type { Database, BusinessHours } from '@/lib/supabase/types';
-import { CrowdVoteIcon } from '@/components/store/crowd-vote-icon';
+import { CrowdVoteModal } from '@/components/store/crowd-vote-modal';
 
 type Store = Database['public']['Tables']['stores']['Row'];
 
@@ -54,6 +55,7 @@ export function StoreDetailPanel({
   const { panelDark: darkTheme, panelLight: lightTheme } = useAppMode();
   const [isExpanded, setIsExpanded] = useState(false);
   const [showReservationModal, setShowReservationModal] = useState(false);
+  const [voteModalOpen, setVoteModalOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -373,13 +375,27 @@ export function StoreDetailPanel({
                     );
                   })()}
 
-                  {/* お客様の声アイコン (定休日/営業時間外/投票なし時は非表示) */}
-                  <CrowdVoteIcon
-                    storeId={store.id}
-                    hidden={effectiveStatus === 'closed'}
-                    emptyMode="hide"
-                    size="sm"
-                  />
+                  {/* 空席投票ボタン (定休日/営業時間外は非表示) */}
+                  {effectiveStatus !== 'closed' && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setVoteModalOpen(true);
+                      }}
+                      aria-label={t('store_status.vote_button')}
+                      className="inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-bold transition-all hover:scale-105 active:scale-95"
+                      style={{
+                        background: 'linear-gradient(135deg, #ffc62d 0%, #FFD966 50%, #C9A86C 100%)',
+                        color: '#13294b',
+                        border: '1px solid rgba(201, 168, 108, 0.4)',
+                        boxShadow: '0 2px 8px rgba(201, 168, 108, 0.25)',
+                      }}
+                    >
+                      <MessageCirclePlus className="w-3.5 h-3.5" />
+                      <span>{t('store_status.vote_button')}</span>
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -682,6 +698,13 @@ export function StoreDetailPanel({
         hideButton
         externalOpen={showReservationModal}
         onExternalOpenChange={setShowReservationModal}
+      />
+
+      {/* 空席投票モーダル */}
+      <CrowdVoteModal
+        storeId={store.id}
+        isOpen={voteModalOpen}
+        onClose={() => setVoteModalOpen(false)}
       />
     </motion.div>
   );

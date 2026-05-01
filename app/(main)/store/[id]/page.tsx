@@ -34,6 +34,7 @@ import {
   Ticket,
   Sparkles,
   Expand,
+  MessageCirclePlus,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CloseCircleButton } from '@/components/ui/close-circle-button';
@@ -51,7 +52,7 @@ import { FACILITY_CATEGORIES } from '@/lib/types/store-application';
 import { ImageLightbox } from '@/components/ui/ImageLightbox';
 import { sendGAEvent } from '@/lib/analytics';
 import { SponsorCampaignBanner } from '@/components/sponsors/sponsor-campaign-banner';
-import { CrowdReportCard } from '@/components/store/crowd-report-card';
+import { CrowdVoteModal } from '@/components/store/crowd-vote-modal';
 import { getTodayOpenTime, isTodayClosedDay, checkIsOpenFromStructuredHours } from '@/lib/structured-business-hours';
 import { useOptimizedLocation } from '@/lib/hooks/useOptimizedLocation';
 type Store = Database['public']['Tables']['stores']['Row'];
@@ -244,6 +245,9 @@ export default function StoreDetailPage() {
   // ホバー状態
   const [isHovering, setIsHovering] = useState(false);
   const [isPhotoHovering, setIsPhotoHovering] = useState(false);
+
+  // 空席投票モーダルの開閉
+  const [voteModalOpen, setVoteModalOpen] = useState(false);
 
   // ============================================
   // ライトボックスを開く・閉じる関数
@@ -931,16 +935,36 @@ export default function StoreDetailPage() {
               </>
             )}
 
-            {/* お客様の声: 3アイコン+投票数 + 投票セクション (定休日 / 営業時間外は非表示) */}
+            {/* 店内ステータス: 「空席投票」ボタン (定休日 / 営業時間外は非表示) */}
             {getEffectiveVacancyStatus() !== 'closed' && (
               <>
-                <CrowdReportCard
-                  storeId={store.id}
-                  storeLabel={store.name}
-                  navy={COLORS.deepNavy}
-                  champagneGold={COLORS.champagneGold}
-                  cardBackground="white"
-                />
+                <div
+                  className="rounded-2xl p-5 flex items-center justify-between gap-3"
+                  style={{
+                    background: 'white',
+                    border: `1px solid ${COLORS.champagneGold}33`,
+                    boxShadow: '0 8px 24px rgba(19, 41, 75, 0.06)',
+                  }}
+                >
+                  <h3 className="font-semibold text-sm" style={{ color: COLORS.deepNavy }}>
+                    {t('store_status.title')}
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => setVoteModalOpen(true)}
+                    aria-label={t('store_status.vote_button')}
+                    className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-bold transition-all hover:scale-105 active:scale-95"
+                    style={{
+                      background: COLORS.goldGradient,
+                      color: COLORS.deepNavy,
+                      border: `1px solid ${COLORS.champagneGold}66`,
+                      boxShadow: '0 2px 8px rgba(201, 168, 108, 0.25)',
+                    }}
+                  >
+                    <MessageCirclePlus className="w-3.5 h-3.5" />
+                    <span>{t('store_status.vote_button')}</span>
+                  </button>
+                </div>
                 <div className="my-4">
                   <GoldDivider />
                 </div>
@@ -1367,6 +1391,13 @@ export default function StoreDetailPage() {
         isOpen={lightboxOpen}
         onClose={closeLightbox}
         alt={store.name}
+      />
+
+      {/* 空席投票モーダル */}
+      <CrowdVoteModal
+        storeId={store.id}
+        isOpen={voteModalOpen}
+        onClose={() => setVoteModalOpen(false)}
       />
 
     </div>

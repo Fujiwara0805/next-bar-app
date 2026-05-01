@@ -54,6 +54,7 @@ import { toast } from 'sonner';
 import { ArrivalToggleButton, ArrivalStatusBadge } from '@/components/reservation/ArrivalToggleButton';
 import { PushNotificationManager } from '@/components/push-notification-manager';
 import { useAppMode } from '@/lib/app-mode-context';
+import { useLanguage } from '@/lib/i18n/context';
 import type { Database } from '@/lib/supabase/types';
 
 type Store = Database['public']['Tables']['stores']['Row'];
@@ -153,6 +154,7 @@ export default function StoreUpdatePage() {
   const router = useRouter();
   const params = useParams();
   const { user, accountType, signOut } = useAuth();
+  const { t } = useLanguage();
 
   // ルートの body 背景が透ける（オーバースクロール等）とき、カードエリアと同色に揃える
   useEffect(() => {
@@ -693,12 +695,13 @@ export default function StoreUpdatePage() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => router.push(`/store/manage/${store.id}/poster`)}
+                    onClick={() => router.push(`/store/manage/${store.id}/qr`)}
                     className="inline-flex items-center gap-1.5 text-xs font-semibold transition-opacity hover:opacity-80"
                     style={{ color: COLORS.deepNavy }}
                   >
-                    <Download className="w-3.5 h-3.5" />
-                    店内ポスターを発行
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    <QrCode className="w-3.5 h-3.5" />
+                    {t('store_qr.title')}
                   </button>
                 </div>
               </div>
