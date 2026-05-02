@@ -402,10 +402,10 @@ export default function MyPage() {
                 className="px-4 pb-4 pl-14 space-y-1.5 text-xs leading-relaxed list-disc list-outside marker:text-[#B87333]"
                 style={{ color: 'rgba(19, 41, 75, 0.85)' }}
               >
-                <li>加盟店で会員証QRを見せてスタンプをGET</li>
-                <li>12時間以内に3個以上で抽選に応募可能</li>
-                <li>毎日Amazonギフト券500円分が当たる（ランダム）</li>
-                <li>スタンプが多いほど当選率UP</li>
+                <li>{t('mypage.stamp_explanation_bullet_1')}</li>
+                <li>{t('mypage.stamp_explanation_bullet_2')}</li>
+                <li>{t('mypage.stamp_explanation_bullet_3')}</li>
+                <li>{t('mypage.stamp_explanation_bullet_4')}</li>
               </ul>
             )}
           </div>

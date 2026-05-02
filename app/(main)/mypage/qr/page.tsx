@@ -181,7 +181,7 @@ export default function MyPageQrPage() {
           url.pathname === '/liff/store-checkin/';
         const storeIdParam = url.searchParams.get('store');
         if (!isStoreCheckIn || !storeIdParam) {
-          setScannerError('店舗QRコードではありません');
+          setScannerError(t('mypageQr.scanner_invalid'));
           return;
         }
         scannerLockRef.current = true;
@@ -189,10 +189,10 @@ export default function MyPageQrPage() {
         // 同一サイト内なのでクライアントナビゲーションで遷移
         router.push(`/liff/store-checkin?store=${storeIdParam}&v=1`);
       } catch {
-        setScannerError('QRコードの読み取りに失敗しました');
+        setScannerError(t('mypageQr.scanner_decode_failed'));
       }
     },
-    [router, stopScanner]
+    [router, stopScanner, t]
   );
 
   const startScanner = useCallback(async () => {
@@ -225,9 +225,9 @@ export default function MyPageQrPage() {
       }
     } catch (err) {
       console.error('[mypage/qr] scanner start error', err);
-      setScannerError('カメラを起動できませんでした');
+      setScannerError(t('mypageQr.scanner_camera_error'));
     }
-  }, [handleDecoded]);
+  }, [handleDecoded, t]);
 
   useEffect(() => {
     if (!scannerOpen) return;
@@ -243,7 +243,7 @@ export default function MyPageQrPage() {
   }
 
   const displayName =
-    profile?.display_name ?? user.email?.split('@')[0] ?? 'ゲスト';
+    profile?.display_name ?? user.email?.split('@')[0] ?? t('mypageQr.guest_fallback');
 
   return (
     <div className="min-h-screen pb-16" style={{ background: BG_OFFWHITE }}>
@@ -253,7 +253,7 @@ export default function MyPageQrPage() {
       >
         <div className="relative flex items-center justify-center p-4 max-w-md mx-auto">
           <h1 className="text-lg font-light tracking-[0.2em]" style={{ color: '#FDFBF7' }}>
-            チェックインQR
+            {t('mypageQr.title')}
           </h1>
           <div className="absolute right-3 top-1/2 -translate-y-1/2">
             <CloseCircleButton
@@ -375,7 +375,7 @@ export default function MyPageQrPage() {
               <div className="flex items-center gap-2">
                 <Camera className="w-4 h-4" style={{ color: COPPER }} />
                 <h3 className="font-semibold text-sm" style={{ color: NAVY }}>
-                  店舗QRを読み取る
+                  {t('mypageQr.store_scan_card_title')}
                 </h3>
               </div>
               <span
@@ -389,13 +389,13 @@ export default function MyPageQrPage() {
               className="text-xs mb-2"
               style={{ color: 'rgba(19, 41, 75, 0.65)' }}
             >
-              店内に掲示されたQRコードを読み取ってセルフチェックインできます
+              {t('mypageQr.store_scan_card_desc')}
             </p>
             <p
               className="text-[11px] mb-3"
               style={{ color: 'rgba(19, 41, 75, 0.5)' }}
             >
-              ※ セルフチェックインはLINEログインと位置情報の許可が必要です
+              {t('mypageQr.store_scan_card_note')}
             </p>
             <Button
               size="sm"
@@ -408,7 +408,7 @@ export default function MyPageQrPage() {
               className="rounded-xl font-bold"
             >
               <ScanLine className="w-4 h-4 mr-2" />
-              スキャンを開始
+              {t('mypageQr.store_scan_start')}
             </Button>
           </div>
 
@@ -449,7 +449,7 @@ export default function MyPageQrPage() {
           <div className="w-full max-w-md mx-auto px-4">
             <div className="flex items-center justify-between mb-4 px-1">
               <h3 className="text-base font-semibold text-white">
-                店舗QRを読み取り
+                {t('mypageQr.scanner_modal_title')}
               </h3>
               <button
                 type="button"
@@ -458,7 +458,7 @@ export default function MyPageQrPage() {
                   setScannerError(null);
                 }}
                 className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center"
-                aria-label="閉じる"
+                aria-label={t('common.close')}
               >
                 <X className="w-5 h-5 text-white" />
               </button>
@@ -501,7 +501,7 @@ export default function MyPageQrPage() {
 
             <div className="mt-4 flex items-center justify-center gap-2 text-sm text-white/80">
               <ScanLine className="w-4 h-4" />
-              <span>店内のQRコードを枠内に合わせてください</span>
+              <span>{t('mypageQr.scanner_aim_help')}</span>
             </div>
 
             {scannerError && (

@@ -88,10 +88,10 @@ export default function ProfilePage() {
             style={{ color: '#FDFBF7' }}
           >
             <ArrowLeft className="w-4 h-4" />
-            ダッシュボード
+            {t('profile.dashboard_back')}
           </button>
           <h1 className="text-lg font-light tracking-[0.2em]" style={{ color: '#FDFBF7' }}>
-            プロフィール
+            {t('profile.title')}
           </h1>
           <div className="w-12" />
         </div>

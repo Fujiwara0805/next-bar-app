@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/lib/auth/context';
+import { useLanguage } from '@/lib/i18n/context';
 import { supabase } from '@/lib/supabase/client';
 
 import { toast } from 'sonner';
@@ -24,6 +25,7 @@ type ProfileUpdate = {
 export default function ProfileEditPage() {
   const router = useRouter();
   const { user, profile } = useAuth();
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
   
   // フォームの状態
@@ -52,7 +54,7 @@ export default function ProfileEditPage() {
     if (!user || !profile) return;
 
     if (!displayName.trim()) {
-      toast.error('表示名を入力してください', {
+      toast.error(t('profileEdit.display_name_required'), {
         position: 'top-center',
         duration: 2000,
         className: 'bg-gray-100'
@@ -71,8 +73,8 @@ export default function ProfileEditPage() {
 
         if (authError) throw authError;
 
-        toast.success('確認メールを送信しました', {
-          description: '新しいメールアドレスに送信された確認リンクをクリックしてください',
+        toast.success(t('profileEdit.confirmation_email_sent'), {
+          description: t('profileEdit.confirmation_email_sent_desc'),
           position: 'top-center',
           duration: 1000,
           className: 'bg-gray-100'
@@ -93,7 +95,7 @@ export default function ProfileEditPage() {
 
       if (profileError) throw profileError;
 
-      toast.success('プロフィールを更新しました', {
+      toast.success(t('profileEdit.profile_updated'), {
         position: 'top-center',
         duration: 1000,
         className: 'bg-gray-100'
@@ -102,8 +104,8 @@ export default function ProfileEditPage() {
       router.push('/profile');
     } catch (error) {
       console.error('Error updating profile:', error);
-      toast.error('更新に失敗しました', {
-        description: error instanceof Error ? error.message : '不明なエラー',
+      toast.error(t('profileEdit.update_failed'), {
+        description: error instanceof Error ? error.message : t('profileEdit.unknown_error'),
         position: 'top-center',
         duration: 3000,
         className: 'bg-gray-100'
@@ -137,10 +139,10 @@ export default function ProfileEditPage() {
             style={{ color: '#FDFBF7' }}
           >
             <ArrowLeft className="w-4 h-4" />
-            戻る
+            {t('common.back')}
           </button>
           <h1 className="text-lg font-light tracking-[0.2em]" style={{ color: '#FDFBF7' }}>
-            プロフィール編集
+            {t('profileEdit.title')}
           </h1>
           <div className="w-12" />
         </div>
@@ -170,13 +172,13 @@ export default function ProfileEditPage() {
                   style={{ color: NAVY }}
                 >
                   <User className="w-3.5 h-3.5" />
-                  表示名
+                  {t('profileEdit.display_name_label')}
                 </Label>
                 <Input
                   id="displayName"
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
-                  placeholder="例: 山田太郎"
+                  placeholder={t('profileEdit.display_name_placeholder')}
                   required
                   disabled={loading}
                   className="h-12 text-sm rounded-xl border-2 bg-muted"
@@ -191,7 +193,7 @@ export default function ProfileEditPage() {
                   style={{ color: NAVY }}
                 >
                   <Mail className="w-3.5 h-3.5" />
-                  メールアドレス
+                  {t('profileEdit.email_label')}
                 </Label>
                 <Input
                   id="email"
@@ -206,7 +208,7 @@ export default function ProfileEditPage() {
                 />
                 {email !== currentEmail && (
                   <p className="text-xs font-semibold mt-2" style={{ color: COPPER }}>
-                    メールアドレス変更には確認が必要です。新しいメールアドレスに確認リンクが送信されます。
+                    {t('profileEdit.email_change_notice')}
                   </p>
                 )}
               </div>
@@ -218,14 +220,14 @@ export default function ProfileEditPage() {
                   style={{ color: NAVY }}
                 >
                   <ImageIcon className="w-3.5 h-3.5" />
-                  アバター画像URL
+                  {t('profileEdit.avatar_url_label')}
                 </Label>
                 <Input
                   id="avatarUrl"
                   type="url"
                   value={avatarUrl}
                   onChange={(e) => setAvatarUrl(e.target.value)}
-                  placeholder="https://example.com/avatar.jpg"
+                  placeholder={t('profileEdit.avatar_url_placeholder')}
                   disabled={loading}
                   className="h-12 text-sm rounded-xl border-2 bg-muted"
                   style={{ fontSize: '16px', color: NAVY }}
@@ -239,13 +241,13 @@ export default function ProfileEditPage() {
                   style={{ color: NAVY }}
                 >
                   <FileText className="w-3.5 h-3.5" />
-                  自己紹介
+                  {t('profileEdit.bio_label')}
                 </Label>
                 <Textarea
                   id="bio"
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
-                  placeholder="自己紹介を入力してください"
+                  placeholder={t('profileEdit.bio_placeholder')}
                   rows={4}
                   disabled={loading}
                   className="text-sm rounded-xl border-2 bg-muted"
@@ -268,7 +270,7 @@ export default function ProfileEditPage() {
                 border: `1.5px solid ${BRASS}60`,
               }}
             >
-              キャンセル
+              {t('common.cancel')}
             </Button>
             <Button
               type="submit"
@@ -283,10 +285,10 @@ export default function ProfileEditPage() {
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  更新中...
+                  {t('profileEdit.updating')}
                 </>
               ) : (
-                '更新'
+                t('profileEdit.update_button')
               )}
             </Button>
           </div>
