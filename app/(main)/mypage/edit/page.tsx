@@ -17,6 +17,7 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth/context';
+import { useLanguage } from '@/lib/i18n/context';
 import { supabase } from '@/lib/supabase/client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -40,16 +41,17 @@ type ProfileAttributes = {
   gender?: string;
 };
 
-const GENDER_OPTIONS: { value: string; label: string }[] = [
-  { value: 'female', label: '女性' },
-  { value: 'male', label: '男性' },
-  { value: 'other', label: 'その他' },
-  { value: 'prefer_not_to_say', label: '回答しない' },
-];
-
 export default function MyPageEdit() {
   const router = useRouter();
   const { user, profile, accountType, loading: authLoading, refreshProfile } = useAuth();
+  const { t } = useLanguage();
+
+  const GENDER_OPTIONS: { value: string; label: string }[] = [
+    { value: 'female', label: t('mypageEdit.gender_female') },
+    { value: 'male', label: t('mypageEdit.gender_male') },
+    { value: 'other', label: t('mypageEdit.gender_other') },
+    { value: 'prefer_not_to_say', label: t('mypageEdit.gender_prefer_not_to_say') },
+  ];
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [displayName, setDisplayName] = useState('');
@@ -106,11 +108,11 @@ export default function MyPageEdit() {
     if (!file || !user) return;
 
     if (file.size > 5 * 1024 * 1024) {
-      toast.error('画像は5MB以下を選択してください');
+      toast.error(t('mypageEdit.upload_size_error'));
       return;
     }
     if (!file.type.startsWith('image/')) {
-      toast.error('画像ファイルを選択してください');
+      toast.error(t('mypageEdit.upload_type_error'));
       return;
     }
 
@@ -126,10 +128,10 @@ export default function MyPageEdit() {
         data: { publicUrl },
       } = supabase.storage.from('store-images').getPublicUrl(fileName);
       setAvatarUrl(publicUrl);
-      toast.success('画像をアップロードしました');
+      toast.success(t('mypageEdit.upload_success'));
     } catch (err) {
       console.error('[avatar upload]', err);
-      toast.error('画像のアップロードに失敗しました');
+      toast.error(t('mypageEdit.upload_failed'));
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -140,15 +142,15 @@ export default function MyPageEdit() {
     if (!user) return;
     const trimmed = emailInput.trim();
     if (!trimmed) {
-      toast.error('メールアドレスを入力してください');
+      toast.error(t('mypageEdit.email_required'));
       return;
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
-      toast.error('メールアドレスの形式が正しくありません');
+      toast.error(t('mypageEdit.email_invalid_format'));
       return;
     }
     if (trimmed.endsWith('@line.nikenme.local')) {
-      toast.error('このドメインは登録できません');
+      toast.error(t('mypageEdit.email_invalid_domain'));
       return;
     }
     setEmailSaving(true);
@@ -157,8 +159,8 @@ export default function MyPageEdit() {
       if (error) throw error;
       setEmailSent(trimmed);
       setEmailInput('');
-      toast.success('確認メールを送信しました', {
-        description: `${trimmed} のメールに記載のリンクをクリックして登録を完了してください。`,
+      toast.success(t('mypageEdit.email_confirmation_sent'), {
+        description: t('mypageEdit.email_confirmation_toast_desc').replace('{email}', trimmed),
         position: 'top-center',
         duration: 4000,
       });
@@ -167,8 +169,8 @@ export default function MyPageEdit() {
       const message =
         err instanceof Error
           ? err.message
-          : 'メールアドレスの登録に失敗しました';
-      toast.error('メールアドレスの登録に失敗しました', {
+          : t('mypageEdit.email_register_failed');
+      toast.error(t('mypageEdit.email_register_failed'), {
         description: message,
         position: 'top-center',
       });
@@ -183,7 +185,7 @@ export default function MyPageEdit() {
 
     const trimmedName = displayName.trim();
     if (!trimmedName) {
-      toast.error('表示名を入力してください');
+      toast.error(t('mypageEdit.display_name_required'));
       return;
     }
 
@@ -193,8 +195,8 @@ export default function MyPageEdit() {
     const trimmedOccupation = attributes.occupation?.trim() ?? '';
     const trimmedGender = attributes.gender?.trim() ?? '';
     if (!trimmedAddress || !trimmedAge || !trimmedOccupation || !trimmedGender) {
-      toast.error('住所エリア・年齢・職業・性別をすべて入力してください', {
-        description: '会員証QRを表示するために必要です。',
+      toast.error(t('mypageEdit.required_fields_error'), {
+        description: t('mypageEdit.required_fields_error_desc'),
       });
       return;
     }
@@ -221,11 +223,11 @@ export default function MyPageEdit() {
       if (error) throw error;
 
       await refreshProfile();
-      toast.success('プロフィールを更新しました', { position: 'top-center', duration: 1500 });
+      toast.success(t('mypageEdit.profile_updated'), { position: 'top-center', duration: 1500 });
       router.push('/mypage');
     } catch (err) {
       console.error('[profile save]', err);
-      toast.error('保存に失敗しました', {
+      toast.error(t('mypageEdit.save_failed'), {
         description: err instanceof Error ? err.message : undefined,
       });
     } finally {
@@ -252,10 +254,10 @@ export default function MyPageEdit() {
             style={{ color: '#FDFBF7' }}
           >
             <ArrowLeft className="w-4 h-4" />
-            戻る
+            {t('mypageEdit.back')}
           </button>
           <h1 className="text-lg font-light tracking-[0.2em]" style={{ color: '#FDFBF7' }}>
-            プロフィール編集
+            {t('mypageEdit.title')}
           </h1>
           <div className="w-12" />
         </div>
@@ -300,7 +302,7 @@ export default function MyPageEdit() {
                     boxShadow: `0 4px 12px ${BRASS}55`,
                     border: `2px solid white`,
                   }}
-                  aria-label="画像を変更"
+                  aria-label={t('mypageEdit.change_avatar')}
                 >
                   {uploading ? (
                     <Loader2 className="w-4 h-4 animate-spin" style={{ color: NAVY }} />
@@ -317,7 +319,7 @@ export default function MyPageEdit() {
                 />
               </div>
               <p className="text-xs mt-3" style={{ color: 'rgba(19, 41, 75, 0.6)' }}>
-                タップして画像を変更
+                {t('mypageEdit.tap_to_change_avatar')}
               </p>
             </div>
 
@@ -329,13 +331,13 @@ export default function MyPageEdit() {
                   style={{ color: NAVY }}
                 >
                   <UserIcon className="w-3.5 h-3.5" />
-                  表示名 <span className="text-destructive">*</span>
+                  {t('mypageEdit.display_name_label')} <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   id="displayName"
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
-                  placeholder="ニックネーム"
+                  placeholder={t('mypageEdit.display_name_placeholder')}
                   required
                   maxLength={50}
                   className="h-12 text-sm rounded-xl border-2 bg-muted"
@@ -353,10 +355,10 @@ export default function MyPageEdit() {
             }}
           >
             <h2 className="text-sm font-bold mb-1" style={{ color: NAVY }}>
-              プロフィール情報 <span className="text-destructive">*</span>
+              {t('mypageEdit.profile_section_title')} <span className="text-destructive">*</span>
             </h2>
             <p className="text-xs mb-5 leading-relaxed" style={{ color: 'rgba(19, 41, 75, 0.7)' }}>
-              会員証QRの表示・クーポン発行・特典マッチングに利用されます。すべて必須項目です。
+              {t('mypageEdit.profile_section_desc')}
             </p>
 
             <div className="space-y-4">
@@ -367,13 +369,13 @@ export default function MyPageEdit() {
                   style={{ color: NAVY }}
                 >
                   <MapPin className="w-3.5 h-3.5" />
-                  住所エリア <span className="text-destructive">*</span>
+                  {t('mypageEdit.address_label')} <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   id="address"
                   value={attributes.address ?? ''}
                   onChange={(e) => setAttributes((prev) => ({ ...prev, address: e.target.value }))}
-                  placeholder="例: 大分市中央町"
+                  placeholder={t('mypageEdit.address_placeholder')}
                   required
                   maxLength={100}
                   className="h-12 text-sm rounded-xl border-2 bg-muted"
@@ -388,7 +390,7 @@ export default function MyPageEdit() {
                   style={{ color: NAVY }}
                 >
                   <Cake className="w-3.5 h-3.5" />
-                  年齢 <span className="text-destructive">*</span>
+                  {t('mypageEdit.age_label')} <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   id="age"
@@ -396,7 +398,7 @@ export default function MyPageEdit() {
                   inputMode="numeric"
                   value={attributes.age ?? ''}
                   onChange={(e) => setAttributes((prev) => ({ ...prev, age: e.target.value }))}
-                  placeholder="例: 28"
+                  placeholder={t('mypageEdit.age_placeholder')}
                   required
                   min={0}
                   max={120}
@@ -412,13 +414,13 @@ export default function MyPageEdit() {
                   style={{ color: NAVY }}
                 >
                   <Briefcase className="w-3.5 h-3.5" />
-                  職業 <span className="text-destructive">*</span>
+                  {t('mypageEdit.occupation_label')} <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   id="occupation"
                   value={attributes.occupation ?? ''}
                   onChange={(e) => setAttributes((prev) => ({ ...prev, occupation: e.target.value }))}
-                  placeholder="例: 会社員 / デザイナー"
+                  placeholder={t('mypageEdit.occupation_placeholder')}
                   required
                   maxLength={100}
                   className="h-12 text-sm rounded-xl border-2 bg-muted"
@@ -432,7 +434,7 @@ export default function MyPageEdit() {
                   style={{ color: NAVY }}
                 >
                   <UsersIcon className="w-3.5 h-3.5" />
-                  性別 <span className="text-destructive">*</span>
+                  {t('mypageEdit.gender_label')} <span className="text-destructive">*</span>
                 </Label>
                 <div className="grid grid-cols-2 gap-2">
                   {GENDER_OPTIONS.map((opt) => {
@@ -481,10 +483,10 @@ export default function MyPageEdit() {
               }}
             >
               <h2 className="text-sm font-bold mb-1" style={{ color: NAVY }}>
-                メールアドレスを登録
+                {t('mypageEdit.email_section_title')}
               </h2>
               <p className="text-xs mb-4 leading-relaxed" style={{ color: 'rgba(19, 41, 75, 0.7)' }}>
-                抽選応募の自動入力やお知らせ通知の受信に利用されます。確認メールのリンクをクリックすると登録が完了します。
+                {t('mypageEdit.email_section_desc')}
               </p>
 
               {emailSent ? (
@@ -497,10 +499,19 @@ export default function MyPageEdit() {
                 >
                   <CheckCircle2 className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: COPPER }} />
                   <div className="text-xs leading-relaxed" style={{ color: NAVY }}>
-                    <p className="font-semibold mb-0.5">確認メールを送信しました</p>
+                    <p className="font-semibold mb-0.5">{t('mypageEdit.email_confirmation_sent')}</p>
                     <p style={{ color: 'rgba(19, 41, 75, 0.7)' }}>
-                      <span className="font-semibold">{emailSent}</span>{' '}
-                      に届くメールのリンクをクリックして登録を完了してください。
+                      {(() => {
+                        const template = t('mypageEdit.email_confirmation_card_desc');
+                        const [before, after] = template.split('{email}');
+                        return (
+                          <>
+                            {before}
+                            <span className="font-semibold">{emailSent}</span>
+                            {after}
+                          </>
+                        );
+                      })()}
                     </p>
                   </div>
                 </div>
@@ -513,7 +524,7 @@ export default function MyPageEdit() {
                       style={{ color: NAVY }}
                     >
                       <Mail className="w-3.5 h-3.5" />
-                      メールアドレス
+                      {t('mypageEdit.email_label')}
                     </Label>
                     <Input
                       id="email"
@@ -521,7 +532,7 @@ export default function MyPageEdit() {
                       inputMode="email"
                       value={emailInput}
                       onChange={(e) => setEmailInput(e.target.value)}
-                      placeholder="example@email.com"
+                      placeholder={t('mypageEdit.email_placeholder')}
                       autoComplete="email"
                       className="h-12 text-sm rounded-xl border-2 bg-muted"
                       style={{ fontSize: '16px', color: NAVY }}
@@ -541,12 +552,12 @@ export default function MyPageEdit() {
                     {emailSaving ? (
                       <>
                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        送信中...
+                        {t('mypageEdit.email_sending')}
                       </>
                     ) : (
                       <>
                         <Mail className="w-4 h-4 mr-2" />
-                        確認メールを送信
+                        {t('mypageEdit.email_send_confirmation')}
                       </>
                     )}
                   </Button>
@@ -568,7 +579,7 @@ export default function MyPageEdit() {
               onClick={() => router.push('/mypage')}
               disabled={saving}
             >
-              キャンセル
+              {t('mypageEdit.cancel')}
             </Button>
             <Button
               type="submit"
@@ -583,12 +594,12 @@ export default function MyPageEdit() {
               {saving ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  保存中...
+                  {t('mypageEdit.saving')}
                 </>
               ) : (
                 <>
                   <Save className="w-4 h-4 mr-2" />
-                  保存
+                  {t('mypageEdit.save')}
                 </>
               )}
             </Button>
