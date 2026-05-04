@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { CheckCircle2, Clock, Flame, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -8,7 +8,11 @@ import { CustomModal } from '@/components/ui/custom-modal';
 import { useLanguage } from '@/lib/i18n/context';
 import { useLiff } from '@/lib/line/context';
 import { getFreshLineIdToken } from '@/lib/line/liff';
-import { CROWD_STATUSES, type CrowdStatus } from '@/lib/crowd/aggregate';
+import {
+  CROWD_STATUSES,
+  type CrowdAggregate,
+  type CrowdStatus,
+} from '@/lib/crowd/aggregate';
 
 type Props = {
   storeId: string;
@@ -43,8 +47,32 @@ export function CrowdVoteModal({ storeId, isOpen, onClose, onSuccess }: Props) {
   const { isLineLoggedIn } = useLiff();
   const [submitting, setSubmitting] = useState<CrowdStatus | null>(null);
   const [cooldownUntil, setCooldownUntil] = useState<number | null>(null);
+  const [aggregate, setAggregate] = useState<CrowdAggregate | null>(null);
 
   const cooldownActive = !!(cooldownUntil && cooldownUntil > Date.now());
+
+  // モーダルを開いたタイミングで直近30分の集計を取得
+  useEffect(() => {
+    if (!isOpen) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`/api/stores/${storeId}/crowd-report`, {
+          cache: 'no-store',
+        });
+        if (!res.ok) return;
+        const json = await res.json();
+        if (!cancelled && json?.aggregate) {
+          setAggregate(json.aggregate as CrowdAggregate);
+        }
+      } catch {
+        // 集計取得失敗は致命的ではないので無視（投票UIは表示する）
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, storeId]);
 
   const requestLocation = useCallback((): Promise<GeolocationPosition> => {
     return new Promise((resolve, reject) => {
@@ -141,6 +169,10 @@ export function CrowdVoteModal({ storeId, isOpen, onClose, onSuccess }: Props) {
           description: t('store_status.submit_thanks_description'),
         });
         setCooldownUntil(Date.now() + 10 * 60 * 1000);
+        // POST レスポンスに含まれる最新集計でモーダル表示を即時更新
+        if (json?.aggregate) {
+          setAggregate(json.aggregate as CrowdAggregate);
+        }
         onSuccess?.();
         onClose();
       } catch (err) {
@@ -170,11 +202,18 @@ export function CrowdVoteModal({ storeId, isOpen, onClose, onSuccess }: Props) {
       description={t('store_status.modal_description')}
       size="md"
     >
-      <div className="grid grid-cols-3 gap-2 mt-2">
+      <div
+        className="text-[11px] font-bold mt-1 mb-2"
+        style={{ color: 'rgba(19, 41, 75, 0.65)' }}
+      >
+        {t('store_status.current_votes_label')}
+      </div>
+      <div className="grid grid-cols-3 gap-2">
         {CROWD_STATUSES.map((s) => {
           const visual = STATUS_VISUAL[s];
           const isSubmittingThis = submitting === s;
           const disabled = !!submitting || cooldownActive;
+          const count = aggregate?.rawCounts?.[s] ?? 0;
           return (
             <motion.button
               key={s}
@@ -197,6 +236,18 @@ export function CrowdVoteModal({ storeId, isOpen, onClose, onSuccess }: Props) {
                 <visual.Icon className="w-6 h-6" />
               )}
               <span>{t(`store_status.${s}`)}</span>
+              <span
+                className="text-[11px] font-bold mt-0.5 px-2 py-0.5 rounded-full"
+                style={{
+                  background: '#FFFFFF',
+                  color: visual.color,
+                  border: `1px solid ${visual.color}55`,
+                  minWidth: '40px',
+                }}
+              >
+                {count}
+                <span className="ml-0.5 opacity-70">{t('store_status.count_unit')}</span>
+              </span>
             </motion.button>
           );
         })}

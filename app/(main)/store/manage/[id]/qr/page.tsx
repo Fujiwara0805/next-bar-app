@@ -49,6 +49,63 @@ function resolveSiteUrl(): string {
   return 'https://nikenme.jp';
 }
 
+/**
+ * data: URL を Blob 化する。
+ * iOS Safari は <a download> + dataURL を確実にサポートしないため、
+ * Blob URL に変換した上で Web Share API もしくは <a download> を使う。
+ */
+async function dataUrlToBlob(dataUrl: string): Promise<Blob> {
+  const res = await fetch(dataUrl);
+  return res.blob();
+}
+
+type ShareResult = 'shared' | 'downloaded' | 'failed';
+
+/**
+ * Blob を Web Share API (files対応) でネイティブ共有シートに渡す。
+ * 不可なら <a download> + Blob URL でフォールバック。
+ * iOS でもネイティブ「ファイルに保存」「写真に保存」が出るため確実に保存できる。
+ */
+async function shareOrSaveFile(
+  blob: Blob,
+  filename: string,
+  mimeType: string
+): Promise<ShareResult> {
+  try {
+    if (typeof navigator !== 'undefined' && typeof File !== 'undefined') {
+      const file = new File([blob], filename, { type: mimeType });
+      const nav = navigator as Navigator & {
+        canShare?: (data: ShareData) => boolean;
+      };
+      if (nav.canShare && nav.canShare({ files: [file] }) && nav.share) {
+        try {
+          await nav.share({ files: [file], title: filename });
+          return 'shared';
+        } catch (err) {
+          // ユーザーがキャンセルしたケースは成功扱い
+          if ((err as Error)?.name === 'AbortError') return 'shared';
+          // それ以外はフォールバック
+        }
+      }
+    }
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.rel = 'noopener';
+    // iOS Safari: 一部ケースで download が無視される。その場合は別タブで開いて長押し保存。
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+    return 'downloaded';
+  } catch (err) {
+    console.error('[shareOrSaveFile] error:', err);
+    return 'failed';
+  }
+}
+
 export default function StoreQrPage() {
   const params = useParams();
   const router = useRouter();
@@ -162,15 +219,16 @@ export default function StoreQrPage() {
     window.print();
   }, []);
 
-  const downloadQrAsPng = useCallback(() => {
+  const downloadQrAsPng = useCallback(async () => {
     if (!qrDataUrl) return;
     try {
-      const link = document.createElement('a');
-      link.href = qrDataUrl;
-      link.download = `nikenme-checkin-${storeId.slice(0, 8)}.png`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      const blob = await dataUrlToBlob(qrDataUrl);
+      const filename = `nikenme-checkin-${storeId.slice(0, 8)}.png`;
+      const result = await shareOrSaveFile(blob, filename, 'image/png');
+      if (result === 'failed') {
+        toast.error(t('store_qr.png_save_failed'));
+        return;
+      }
       toast.success(t('store_qr.png_saved'), {
         description: t('store_qr.png_saved_description'),
       });
@@ -238,13 +296,24 @@ export default function StoreQrPage() {
       doc.setTextColor(180, 180, 180);
       doc.text('powered by NIKENME+', pageWidth / 2, 285, { align: 'center' });
 
-      doc.save(`nikenme-checkin-${storeId.slice(0, 8)}.pdf`);
+      // iOS Safari の Blob 共有 / 通常ブラウザの <a download> 両対応のため
+      // doc.save() ではなく blob を取り出して shareOrSaveFile を使う。
+      const pdfBlob = doc.output('blob') as Blob;
+      const filename = `nikenme-checkin-${storeId.slice(0, 8)}.pdf`;
+      const result = await shareOrSaveFile(pdfBlob, filename, 'application/pdf');
+      if (result === 'failed') {
+        // 最後の手段として PNG にフォールバック
+        toast.warning(t('store_qr.pdf_failed'), {
+          description: t('store_qr.pdf_failed_description'),
+        });
+        await downloadQrAsPng();
+      }
     } catch (err) {
       console.error('[store/qr] pdf error, falling back to PNG:', err);
       toast.warning(t('store_qr.pdf_failed'), {
         description: t('store_qr.pdf_failed_description'),
       });
-      downloadQrAsPng();
+      await downloadQrAsPng();
     } finally {
       setDownloading(false);
     }

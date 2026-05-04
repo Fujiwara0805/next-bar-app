@@ -201,7 +201,7 @@ export default function StoreManagePage() {
     if (s.is_open === false || s.vacancy_status === 'closed')
       return { label: '閉店', variant: 'neutral' as const };
     if (s.vacancy_status === 'vacant')
-      return { label: '空席あり', variant: 'success' as const };
+      return { label: '空席有', variant: 'success' as const };
     if (s.vacancy_status === 'full')
       return { label: '満席', variant: 'danger' as const };
     return { label: '開店', variant: 'info' as const };
@@ -369,7 +369,7 @@ export default function StoreManagePage() {
           {[
             { label: '開店', count: vacancyCounts.open, color: C.success },
             { label: '閉店', count: vacancyCounts.closed, color: C.textSubtle },
-            { label: '空席あり', count: vacancyCounts.vacant, color: C.warning || '#f59e0b' },
+            { label: '空席有', count: vacancyCounts.vacant, color: C.warning || '#f59e0b' },
             { label: '満席', count: vacancyCounts.full, color: C.danger },
           ].map((s) => (
             <div

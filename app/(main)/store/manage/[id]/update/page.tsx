@@ -116,7 +116,7 @@ export default function StoreUpdatePage() {
   const VACANCY_OPTIONS = [
     {
       value: 'vacant',
-      label: '空席あり',
+      label: '空席有',
       description: 'すぐに入店できます',
       color: '#16a34a',
       bgColor: 'rgba(34, 197, 94, 0.08)',

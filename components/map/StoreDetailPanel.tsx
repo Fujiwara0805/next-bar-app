@@ -21,7 +21,7 @@ import {
   Flame,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import type { CrowdStatus } from '@/lib/crowd/aggregate';
+import { CROWD_STATUSES, type CrowdStatus } from '@/lib/crowd/aggregate';
 import { CloseCircleButton } from '@/components/ui/close-circle-button';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/lib/i18n/context';
@@ -76,7 +76,9 @@ export function StoreDetailPanel({
     if (scrollRef.current) scrollRef.current.scrollTop = 0;
   }, [store.id]);
 
-  // AI 集計（直近30分の客投票）を取得し、有効ならアイコン表示
+  // 直近30分の客投票を取得し、leading status をアイコン表示。
+  // `isValid`（3票以上）でなくても投票が1件以上あれば最多得票ステータスを優先表示し、
+  // 店舗側の空席アイコンの隣に投票結果アイコンを並べる。
   useEffect(() => {
     if (!store?.id) return;
     let cancelled = false;
@@ -87,8 +89,27 @@ export function StoreDetailPanel({
         const json = await res.json();
         if (cancelled) return;
         const agg = json?.aggregate;
-        if (agg?.isValid && agg?.status) setAiStatus(agg.status as CrowdStatus);
-        else setAiStatus(null);
+        if (!agg || (agg.totalReports ?? 0) <= 0) {
+          setAiStatus(null);
+          return;
+        }
+        // isValid (3票以上) なら集計のステータスをそのまま採用。
+        // 1〜2票の段階でも leading 投票を可視化したいので rawCounts から最多を抽出。
+        if (agg.status) {
+          setAiStatus(agg.status as CrowdStatus);
+        } else {
+          let lead: CrowdStatus | null = null;
+          let maxCount = 0;
+          const counts = agg.rawCounts ?? {};
+          for (const s of CROWD_STATUSES) {
+            const c = counts[s] ?? 0;
+            if (c > maxCount) {
+              maxCount = c;
+              lead = s;
+            }
+          }
+          setAiStatus(lead);
+        }
       } catch {
         // ネットワーク失敗時は表示しない（既存のステータス表示を阻害しない）
       }

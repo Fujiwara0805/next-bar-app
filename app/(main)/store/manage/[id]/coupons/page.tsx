@@ -53,6 +53,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/lib/auth/context';
 import { supabase } from '@/lib/supabase/client';
 import { useAppMode } from '@/lib/app-mode-context';
+import { useLanguage } from '@/lib/i18n/context';
 import { toast } from 'sonner';
 
 type DiscountType = 'percent' | 'amount' | 'free_item' | 'other';
@@ -109,18 +110,9 @@ const MAX_TITLE = 60;
 const MAX_BODY = 400;
 const MAX_CONDITIONS = 300;
 
-const DISCOUNT_LABELS: Record<DiscountType, string> = {
-  percent: '％割引',
-  amount: '金額割引',
-  free_item: '1品無料',
-  other: 'その他',
-};
-
-const TARGET_LABELS: Record<TargetAudience, string> = {
-  nearby: '近隣の友だち',
-  all_oa: '全友だち',
-  store_followers: 'この店舗に来店歴あり',
-};
+// 翻訳化のため固定マップは廃止し、`useLanguage` の t() で動的に解決する。
+const DISCOUNT_KEYS: DiscountType[] = ['percent', 'amount', 'free_item', 'other'];
+const TARGET_KEYS: TargetAudience[] = ['nearby', 'all_oa', 'store_followers'];
 
 /** ISO 文字列 → <input type="datetime-local"> が受け付ける形式 */
 function toLocalInput(iso: string | null | undefined): string {
@@ -170,6 +162,13 @@ function StoreCouponsPageInner() {
   const storeId = Array.isArray(params.id) ? params.id[0] : (params.id as string);
   const { user, accountType, store, loading: authLoading } = useAuth();
   const { colorsB: COLORS } = useAppMode();
+  const { t } = useLanguage();
+  const discountLabel = (k: DiscountType) => t(`coupon.form_discount_${k}`);
+  const targetLabel = (k: TargetAudience) => {
+    if (k === 'nearby') return t('broadcast.target_nearby');
+    if (k === 'all_oa') return t('broadcast.target_all_oa');
+    return t('coupon.target_store_followers') || 'この店舗に来店歴あり';
+  };
 
   const [activeTab, setActiveTab] = useState<'active' | 'archived'>('active');
   const [coupons, setCoupons] = useState<Coupon[]>([]);
@@ -302,24 +301,24 @@ function StoreCouponsPageInner() {
     e.preventDefault();
     const title = form.title.trim();
     if (!title) {
-      toast.error('タイトルを入力してください');
+      toast.error(t('coupon.form_title_required'));
       return;
     }
     if (title.length > MAX_TITLE) {
-      toast.error(`タイトルは${MAX_TITLE}文字以内`);
+      toast.error(t('coupon.form_title_too_long').replace('{n}', String(MAX_TITLE)));
       return;
     }
     if (!form.validUntil) {
-      toast.error('有効期限を入力してください');
+      toast.error(t('coupon.form_validity_until_required'));
       return;
     }
     const validUntilIso = toISO(form.validUntil);
     if (!validUntilIso) {
-      toast.error('有効期限が無効です');
+      toast.error(t('coupon.form_validity_until_invalid'));
       return;
     }
     if (form.validFrom && !toISO(form.validFrom)) {
-      toast.error('開始日時が無効です');
+      toast.error(t('coupon.form_validity_from_invalid'));
       return;
     }
 
@@ -348,7 +347,7 @@ function StoreCouponsPageInner() {
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData.session?.access_token;
       if (!token) {
-        toast.error('セッションが切れています');
+        toast.error(t('coupon.form_session_expired'));
         return;
       }
       const url =
@@ -365,10 +364,12 @@ function StoreCouponsPageInner() {
       });
       const json = await res.json();
       if (!res.ok) {
-        toast.error(json?.error ?? '保存に失敗しました');
+        toast.error(json?.error ?? t('coupon.form_save_failed'));
         return;
       }
-      toast.success(formMode === 'create' ? 'クーポンを作成しました' : 'クーポンを更新しました');
+      toast.success(
+        formMode === 'create' ? t('coupon.form_create_success') : t('coupon.form_update_success')
+      );
       setFormOpen(false);
       fetchCoupons();
     } finally {
@@ -473,14 +474,14 @@ function StoreCouponsPageInner() {
             className="text-lg font-light tracking-widest"
             style={{ color: COLORS.ivory }}
           >
-            クーポン管理
+            {t('coupon.management_title')}
           </h1>
           <CloseCircleButton
             type="button"
             size="lg"
             onClick={() => router.push(`/store/manage/${storeId}/update`)}
             className="absolute right-4"
-            aria-label="閉じる"
+            aria-label={t('coupon.close')}
           />
         </div>
       </header>
@@ -511,7 +512,7 @@ function StoreCouponsPageInner() {
                     color: activeTab === 'active' ? COLORS.deepNavy : COLORS.warmGray,
                   }}
                 >
-                  アクティブ
+                  {t('coupon.tab_active')}
                   {activeCoupons.length > 0 && (
                     <span className="ml-1 opacity-60">({activeCoupons.length})</span>
                   )}
@@ -523,7 +524,7 @@ function StoreCouponsPageInner() {
                     color: activeTab === 'archived' ? COLORS.deepNavy : COLORS.warmGray,
                   }}
                 >
-                  アーカイブ
+                  {t('coupon.tab_archived')}
                   {archivedCoupons.length > 0 && (
                     <span className="ml-1 opacity-60">({archivedCoupons.length})</span>
                   )}
@@ -543,7 +544,7 @@ function StoreCouponsPageInner() {
                 }}
               >
                 <Plus className="w-4 h-4 mr-1" />
-                新規
+                {t('coupon.new_button')}
               </Button>
             </motion.div>
           </div>
@@ -569,8 +570,8 @@ function StoreCouponsPageInner() {
               />
               <p className="text-sm font-medium" style={{ color: COLORS.warmGray }}>
                 {activeTab === 'active'
-                  ? 'アクティブなクーポンはありません。「新規」ボタンから作成してください。'
-                  : 'アーカイブされたクーポンはありません。'}
+                  ? t('coupon.empty_active')
+                  : t('coupon.empty_archived')}
               </p>
             </Card>
           ) : (
@@ -591,21 +592,41 @@ function StoreCouponsPageInner() {
 
       {/* ===== 作成・編集ダイアログ ===== */}
       <Dialog open={formOpen} onOpenChange={setFormOpen}>
-        <DialogContent className="max-w-lg max-h-[90dvh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle style={{ color: COLORS.deepNavy }}>
-              {formMode === 'create' ? 'クーポン新規作成' : 'クーポン編集'}
-            </DialogTitle>
-            <DialogDescription>
-              LINE OA で配信するクーポンを設定します。
-            </DialogDescription>
-          </DialogHeader>
+        <DialogContent
+          className="max-w-lg max-h-[90dvh] overflow-y-auto p-0"
+          style={{
+            background: COLORS.ivory,
+            border: `1px solid rgba(201, 168, 108, 0.25)`,
+          }}
+        >
+          {/* ゴールドのトップアクセント */}
+          <div
+            className="h-1 w-full"
+            style={{ background: COLORS.goldGradient }}
+          />
+          <div className="px-6 pt-5 pb-6">
+            <DialogHeader className="mb-2">
+              <DialogTitle
+                className="text-xl font-bold tracking-wide"
+                style={{ color: COLORS.deepNavy }}
+              >
+                {formMode === 'create'
+                  ? t('coupon.form_create_title')
+                  : t('coupon.form_edit_title')}
+              </DialogTitle>
+              <DialogDescription
+                className="text-xs"
+                style={{ color: COLORS.warmGray }}
+              >
+                {t('coupon.form_description')}
+              </DialogDescription>
+            </DialogHeader>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* 画像 */}
             <div>
               <Label className="text-xs font-bold" style={{ color: COLORS.deepNavy }}>
-                画像
+                {t('coupon.form_image_label')}
               </Label>
               <div className="mt-2 flex items-center gap-3">
                 {form.imageUrl ? (
@@ -664,12 +685,12 @@ function StoreCouponsPageInner() {
                     ) : (
                       <ImageIcon className="w-3 h-3 mr-1" />
                     )}
-                    画像を選択
+                    {t('coupon.form_image_pick')}
                   </span>
                 </label>
               </div>
               <p className="text-[10px] mt-1" style={{ color: COLORS.warmGray }}>
-                8MB以下。LINE Flex Messageの上部に表示されます。
+                {t('coupon.form_image_hint')}
               </p>
             </div>
 
@@ -680,7 +701,8 @@ function StoreCouponsPageInner() {
                 className="text-xs font-bold"
                 style={{ color: COLORS.deepNavy }}
               >
-                タイトル <span style={{ color: '#dc2626' }}>*</span>
+                {t('coupon.form_title_label')}{' '}
+                <span style={{ color: COLORS.champagneGold }}>*</span>
               </Label>
               <Input
                 id="coupon-title"
@@ -691,9 +713,14 @@ function StoreCouponsPageInner() {
                     title: e.target.value.slice(0, MAX_TITLE),
                   }))
                 }
-                placeholder="例: 生ビール半額クーポン"
+                placeholder={t('coupon.form_title_placeholder')}
                 className="mt-1 rounded-xl"
-                style={{ fontSize: '16px' }}
+                style={{
+                  fontSize: '16px',
+                  background: '#FFFFFF',
+                  borderColor: 'rgba(201, 168, 108, 0.35)',
+                  color: COLORS.deepNavy,
+                }}
               />
               <p
                 className="text-[10px] text-right mt-1"
@@ -710,7 +737,7 @@ function StoreCouponsPageInner() {
                 className="text-xs font-bold"
                 style={{ color: COLORS.deepNavy }}
               >
-                説明文
+                {t('coupon.form_body_label')}
               </Label>
               <Textarea
                 id="coupon-body"
@@ -722,9 +749,14 @@ function StoreCouponsPageInner() {
                   }))
                 }
                 rows={3}
-                placeholder="クーポンの説明を入力してください"
+                placeholder={t('coupon.form_body_placeholder')}
                 className="mt-1 rounded-xl"
-                style={{ fontSize: '16px' }}
+                style={{
+                  fontSize: '16px',
+                  background: '#FFFFFF',
+                  borderColor: 'rgba(201, 168, 108, 0.35)',
+                  color: COLORS.deepNavy,
+                }}
               />
               <p
                 className="text-[10px] text-right mt-1"
@@ -738,7 +770,8 @@ function StoreCouponsPageInner() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label className="text-xs font-bold" style={{ color: COLORS.deepNavy }}>
-                  割引種別 <span style={{ color: '#dc2626' }}>*</span>
+                  {t('coupon.form_discount_type')}{' '}
+                  <span style={{ color: COLORS.champagneGold }}>*</span>
                 </Label>
                 <Select
                   value={form.discountType}
@@ -747,13 +780,21 @@ function StoreCouponsPageInner() {
                   }
                   disabled={formMode === 'edit'}
                 >
-                  <SelectTrigger className="mt-1 rounded-xl" style={{ fontSize: '16px' }}>
+                  <SelectTrigger
+                    className="mt-1 rounded-xl"
+                    style={{
+                      fontSize: '16px',
+                      background: '#FFFFFF',
+                      borderColor: 'rgba(201, 168, 108, 0.35)',
+                      color: COLORS.deepNavy,
+                    }}
+                  >
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {(Object.keys(DISCOUNT_LABELS) as DiscountType[]).map((k) => (
+                    {DISCOUNT_KEYS.map((k) => (
                       <SelectItem key={k} value={k}>
-                        {DISCOUNT_LABELS[k]}
+                        {discountLabel(k)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -761,7 +802,7 @@ function StoreCouponsPageInner() {
               </div>
               <div>
                 <Label className="text-xs font-bold" style={{ color: COLORS.deepNavy }}>
-                  値（任意）
+                  {t('coupon.form_discount_value')}
                 </Label>
                 <Input
                   type="number"
@@ -772,13 +813,18 @@ function StoreCouponsPageInner() {
                   }
                   placeholder={
                     form.discountType === 'percent'
-                      ? '例: 20 (%)'
+                      ? t('coupon.form_discount_value_percent_ph')
                       : form.discountType === 'amount'
-                      ? '例: 500 (円)'
+                      ? t('coupon.form_discount_value_amount_ph')
                       : ''
                   }
                   className="mt-1 rounded-xl"
-                  style={{ fontSize: '16px' }}
+                  style={{
+                    fontSize: '16px',
+                    background: '#FFFFFF',
+                    borderColor: 'rgba(201, 168, 108, 0.35)',
+                    color: COLORS.deepNavy,
+                  }}
                 />
               </div>
             </div>
@@ -791,7 +837,7 @@ function StoreCouponsPageInner() {
                   className="text-xs font-bold"
                   style={{ color: COLORS.deepNavy }}
                 >
-                  開始日時
+                  {t('coupon.form_validity_from')}
                 </Label>
                 <Input
                   id="valid-from"
@@ -801,7 +847,12 @@ function StoreCouponsPageInner() {
                     setForm((p) => ({ ...p, validFrom: e.target.value }))
                   }
                   className="mt-1 rounded-xl"
-                  style={{ fontSize: '16px' }}
+                  style={{
+                    fontSize: '16px',
+                    background: '#FFFFFF',
+                    borderColor: 'rgba(201, 168, 108, 0.35)',
+                    color: COLORS.deepNavy,
+                  }}
                 />
               </div>
               <div>
@@ -810,7 +861,8 @@ function StoreCouponsPageInner() {
                   className="text-xs font-bold"
                   style={{ color: COLORS.deepNavy }}
                 >
-                  終了日時 <span style={{ color: '#dc2626' }}>*</span>
+                  {t('coupon.form_validity_until')}{' '}
+                  <span style={{ color: COLORS.champagneGold }}>*</span>
                 </Label>
                 <Input
                   id="valid-until"
@@ -820,7 +872,12 @@ function StoreCouponsPageInner() {
                     setForm((p) => ({ ...p, validUntil: e.target.value }))
                   }
                   className="mt-1 rounded-xl"
-                  style={{ fontSize: '16px' }}
+                  style={{
+                    fontSize: '16px',
+                    background: '#FFFFFF',
+                    borderColor: 'rgba(201, 168, 108, 0.35)',
+                    color: COLORS.deepNavy,
+                  }}
                   required
                 />
               </div>
@@ -830,7 +887,7 @@ function StoreCouponsPageInner() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label className="text-xs font-bold" style={{ color: COLORS.deepNavy }}>
-                  発行上限（全体）
+                  {t('coupon.form_max_issues')}
                 </Label>
                 <Input
                   type="number"
@@ -840,14 +897,19 @@ function StoreCouponsPageInner() {
                   onChange={(e) =>
                     setForm((p) => ({ ...p, maxIssues: e.target.value }))
                   }
-                  placeholder="空欄=無制限"
+                  placeholder={t('coupon.form_max_issues_ph')}
                   className="mt-1 rounded-xl"
-                  style={{ fontSize: '16px' }}
+                  style={{
+                    fontSize: '16px',
+                    background: '#FFFFFF',
+                    borderColor: 'rgba(201, 168, 108, 0.35)',
+                    color: COLORS.deepNavy,
+                  }}
                 />
               </div>
               <div>
                 <Label className="text-xs font-bold" style={{ color: COLORS.deepNavy }}>
-                  1人あたり上限
+                  {t('coupon.form_max_per_user')}
                 </Label>
                 <Input
                   type="number"
@@ -858,7 +920,12 @@ function StoreCouponsPageInner() {
                     setForm((p) => ({ ...p, maxPerUser: e.target.value }))
                   }
                   className="mt-1 rounded-xl"
-                  style={{ fontSize: '16px' }}
+                  style={{
+                    fontSize: '16px',
+                    background: '#FFFFFF',
+                    borderColor: 'rgba(201, 168, 108, 0.35)',
+                    color: COLORS.deepNavy,
+                  }}
                 />
               </div>
             </div>
@@ -870,7 +937,7 @@ function StoreCouponsPageInner() {
                 className="text-xs font-bold"
                 style={{ color: COLORS.deepNavy }}
               >
-                利用条件
+                {t('coupon.form_conditions_label')}
               </Label>
               <Textarea
                 id="coupon-conditions"
@@ -882,9 +949,14 @@ function StoreCouponsPageInner() {
                   }))
                 }
                 rows={2}
-                placeholder="例: 他クーポンとの併用不可 / 1組1回限り"
+                placeholder={t('coupon.form_conditions_placeholder')}
                 className="mt-1 rounded-xl"
-                style={{ fontSize: '16px' }}
+                style={{
+                  fontSize: '16px',
+                  background: '#FFFFFF',
+                  borderColor: 'rgba(201, 168, 108, 0.35)',
+                  color: COLORS.deepNavy,
+                }}
               />
               <p
                 className="text-[10px] text-right mt-1"
@@ -894,15 +966,20 @@ function StoreCouponsPageInner() {
               </p>
             </div>
 
-            <DialogFooter className="gap-2 sm:gap-2">
+            <DialogFooter className="gap-2 sm:gap-2 pt-2">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => setFormOpen(false)}
                 className="rounded-xl"
                 disabled={submitting}
+                style={{
+                  background: '#FFFFFF',
+                  borderColor: 'rgba(201, 168, 108, 0.4)',
+                  color: COLORS.deepNavy,
+                }}
               >
-                キャンセル
+                {t('coupon.form_cancel')}
               </Button>
               <Button
                 type="submit"
@@ -911,6 +988,7 @@ function StoreCouponsPageInner() {
                 style={{
                   background: COLORS.goldGradient,
                   color: COLORS.deepNavy,
+                  boxShadow: '0 6px 18px rgba(201, 168, 108, 0.35)',
                 }}
               >
                 {submitting ? (
@@ -918,10 +996,13 @@ function StoreCouponsPageInner() {
                 ) : (
                   <CheckCircle2 className="w-4 h-4 mr-1" />
                 )}
-                {formMode === 'create' ? '作成' : '更新'}
+                {formMode === 'create'
+                  ? t('coupon.form_create_btn')
+                  : t('coupon.form_update_btn')}
               </Button>
             </DialogFooter>
           </form>
+          </div>
         </DialogContent>
       </Dialog>
 
@@ -937,10 +1018,10 @@ function StoreCouponsPageInner() {
           <div className="space-y-4">
             <div>
               <Label className="text-xs font-bold" style={{ color: COLORS.deepNavy }}>
-                配信対象
+                {t('broadcast.target_label')}
               </Label>
               <div className="mt-2 grid grid-cols-1 gap-2">
-                {(Object.keys(TARGET_LABELS) as TargetAudience[]).map((k) => (
+                {TARGET_KEYS.map((k) => (
                   <Button
                     key={k}
                     type="button"
@@ -962,7 +1043,7 @@ function StoreCouponsPageInner() {
                     }
                   >
                     <Users className="w-4 h-4 mr-2" />
-                    {TARGET_LABELS[k]}
+                    {targetLabel(k)}
                   </Button>
                 ))}
               </div>
@@ -1045,6 +1126,7 @@ function CouponCard({
   onArchive: () => void;
 }) {
   const { colorsB: COLORS } = useAppMode();
+  const { t } = useLanguage();
   const validUntil = new Date(coupon.valid_until);
   const isExpired = validUntil.getTime() < Date.now();
   const issued = coupon.issued_count ?? 0;
@@ -1095,7 +1177,7 @@ function CouponCard({
                   color: COLORS.warmGray,
                 }}
               >
-                アーカイブ
+                {t('coupon.card_archived')}
               </span>
             )}
           </div>
@@ -1104,7 +1186,7 @@ function CouponCard({
             style={{ color: COLORS.warmGray }}
           >
             <Tag className="w-3 h-3" />
-            <span>{DISCOUNT_LABELS[coupon.discount_type]}</span>
+            <span>{t(`coupon.form_discount_${coupon.discount_type}`)}</span>
             {coupon.discount_value != null && (
               <span className="font-semibold" style={{ color: COLORS.deepNavy }}>
                 {coupon.discount_type === 'percent'
@@ -1128,18 +1210,18 @@ function CouponCard({
                 hour: '2-digit',
                 minute: '2-digit',
               })}
-              {isExpired && ' (期限切れ)'}
+              {isExpired && ` (${t('coupon.card_expired')})`}
             </span>
           </div>
           <div
             className="flex items-center gap-3 text-[11px] mt-2 font-semibold"
             style={{ color: COLORS.deepNavy }}
           >
-            <span>発行 {issued}</span>
+            <span>{t('coupon.card_issued')} {issued}</span>
             <span>·</span>
-            <span>利用 {redeemed}</span>
+            <span>{t('coupon.card_redeemed')} {redeemed}</span>
             <span>·</span>
-            <span>CVR {cvrPct}%</span>
+            <span>{t('coupon.card_cvr')} {cvrPct}%</span>
           </div>
         </div>
       </div>
@@ -1158,7 +1240,7 @@ function CouponCard({
             }}
           >
             <Send className="w-3 h-3 mr-1" />
-            配信
+            {t('coupon.card_distribute')}
           </Button>
           <Button
             type="button"
@@ -1173,7 +1255,7 @@ function CouponCard({
             }}
           >
             <Edit className="w-3 h-3 mr-1" />
-            編集
+            {t('coupon.card_edit')}
           </Button>
           <Button
             type="button"
@@ -1190,12 +1272,12 @@ function CouponCard({
             {issued > 0 ? (
               <>
                 <Archive className="w-3 h-3 mr-1" />
-                アーカイブ
+                {t('coupon.card_archive_btn')}
               </>
             ) : (
               <>
                 <Trash2 className="w-3 h-3 mr-1" />
-                削除
+                {t('coupon.card_delete_btn')}
               </>
             )}
           </Button>

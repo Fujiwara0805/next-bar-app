@@ -16,6 +16,7 @@ import {
   ArrowLeft,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth/context';
+import { useLiff } from '@/lib/line/context';
 import { useLanguage } from '@/lib/i18n/context';
 import { supabase } from '@/lib/supabase/client';
 import { Card } from '@/components/ui/card';
@@ -66,7 +67,9 @@ function tokyoDateString(): string {
 export default function StampsPage() {
   const router = useRouter();
   const params = useSearchParams();
-  const { user, profile, accountType, loading: authLoading } = useAuth();
+  const { user, profile, accountType, loading: authLoading, signInWithLine } = useAuth();
+  const { isLiffReady, isLineLoggedIn, isInLine, liffLogin } = useLiff();
+  const [autoSigningIn, setAutoSigningIn] = useState(false);
   const { t, language } = useLanguage();
 
   const dateLocale = useMemo(() => {
@@ -105,17 +108,46 @@ export default function StampsPage() {
     };
   }, []);
 
+  // LINE リッチメニューから来たユーザーは LIFF コンテキスト内なので、
+  // ログイン画面を出さずに自動で LINE→Supabase セッション交換を行う。
+  // 通常ブラウザ (LIFF 不在) の場合は従来どおりログイン画面に誘導。
   useEffect(() => {
     if (authLoading) return;
-    if (!user) {
-      router.replace('/login?redirect=/profile/stamps');
+    if (user) {
+      if (accountType && accountType !== 'customer') {
+        router.replace('/map');
+      }
       return;
     }
-    if (accountType !== 'customer') {
-      router.replace('/map');
+    // 未認証 — まずは LIFF 準備を待つ
+    if (!isLiffReady) return;
+    if (autoSigningIn) return;
+
+    // LINE 内で LINE ログイン済み → Supabase セッションへ自動交換
+    if (isLineLoggedIn) {
+      setAutoSigningIn(true);
+      signInWithLine().finally(() => setAutoSigningIn(false));
       return;
     }
-  }, [authLoading, user, accountType, router]);
+    // LINE 内 (LIFF) だが未ログイン → liff.login() でリダイレクト (戻ってきたら再評価)
+    if (isInLine) {
+      liffLogin();
+      return;
+    }
+    // 通常ブラウザ → 従来どおりログイン画面に誘導
+    router.replace('/login?redirect=/profile/stamps');
+  }, [
+    authLoading,
+    user,
+    accountType,
+    isLiffReady,
+    isLineLoggedIn,
+    isInLine,
+    autoSigningIn,
+    signInWithLine,
+    liffLogin,
+    router,
+  ]);
 
   useEffect(() => {
     if (!user || accountType !== 'customer') return;
@@ -287,7 +319,7 @@ export default function StampsPage() {
             {t('common.back')}
           </button>
           <h1 className="text-lg font-light tracking-[0.2em]" style={{ color: '#FDFBF7' }}>
-            スタンプ履歴
+            {t('stamps.history')}
           </h1>
           <div className="w-12" />
         </div>
