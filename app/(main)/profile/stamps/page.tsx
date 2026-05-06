@@ -19,7 +19,6 @@ import { useAuth } from '@/lib/auth/context';
 import { useLiff } from '@/lib/line/context';
 import { useLanguage } from '@/lib/i18n/context';
 import { supabase } from '@/lib/supabase/client';
-import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -173,12 +172,17 @@ export default function StampsPage() {
       ).toISOString();
       setCutoffIso(cutoffIsoLocal);
 
+      // 履歴は直近1ヶ月分のみ表示（30日より前のチェックインは履歴セクションから除外）
+      const oneMonthAgoIso = new Date(
+        Date.now() - 30 * 24 * 60 * 60 * 1000
+      ).toISOString();
       const { data: checkInRows } = await supabase
         .from('store_check_ins')
         .select('id, store_id, visit_date, checked_in_at')
         .eq('user_id', user.id)
+        .gte('checked_in_at', oneMonthAgoIso)
         .order('checked_in_at', { ascending: false })
-        .limit(100);
+        .limit(200);
 
       const storeIds = Array.from(
         new Set((checkInRows ?? []).map((r) => r.store_id))

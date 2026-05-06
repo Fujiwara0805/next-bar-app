@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { CheckCircle2, Clock, Flame, Loader2 } from 'lucide-react';
+import { Loader2, User, Users, UsersRound } from 'lucide-react';
 import { toast } from 'sonner';
 import { CustomModal } from '@/components/ui/custom-modal';
 import { useLanguage } from '@/lib/i18n/context';
@@ -21,22 +21,24 @@ type Props = {
   onSuccess?: () => void;
 };
 
+// 混雑度を「人数」のメタファーで段階表示する。
+// 空席有=1人 / 待ち有=2人 / 満席=3人以上 — lucide の `User`/`Users`/`UsersRound`。
 const STATUS_VISUAL: Record<
   CrowdStatus,
-  { Icon: typeof CheckCircle2; color: string; bg: string }
+  { Icon: typeof User; color: string; bg: string }
 > = {
   vacant: {
-    Icon: CheckCircle2,
+    Icon: User,
     color: '#16a34a',
     bg: 'rgba(34, 197, 94, 0.10)',
   },
   wait: {
-    Icon: Clock,
+    Icon: Users,
     color: '#f59e0b',
     bg: 'rgba(245, 158, 11, 0.12)',
   },
   full: {
-    Icon: Flame,
+    Icon: UsersRound,
     color: '#dc2626',
     bg: 'rgba(220, 38, 38, 0.10)',
   },

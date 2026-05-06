@@ -3,30 +3,12 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bell, BellOff, Loader2, X, Share } from 'lucide-react';
+import { Bell, BellOff, Loader2 } from 'lucide-react';
 import { subscribeUserToPush } from '@/lib/push/client';
 import { useLanguage } from '@/lib/i18n/context';
 
 // マップページでのみ表示（レイアウトではなくマップページから直接マウント）
 const STORAGE_KEY = 'nikenme_user_push_sub';
-const PWA_BANNER_DISMISSED_KEY = 'nikenme_pwa_banner_dismissed_at';
-const PWA_BANNER_COOLDOWN_MS = 60 * 60 * 1000; // 1時間
-
-function isPWABannerCoolingDown(): boolean {
-  try {
-    const val = localStorage.getItem(PWA_BANNER_DISMISSED_KEY);
-    if (!val) return false;
-    return Date.now() - Number(val) < PWA_BANNER_COOLDOWN_MS;
-  } catch {
-    return false;
-  }
-}
-
-function recordPWABannerDismissed(): void {
-  try {
-    localStorage.setItem(PWA_BANNER_DISMISSED_KEY, String(Date.now()));
-  } catch { /* ignore */ }
-}
 
 interface StoredSubscription {
   latitude: number;
@@ -68,52 +50,8 @@ function isIOSBrowser(): boolean {
 }
 
 /**
- * iOS ブラウザ向け PWA インストール促進バナー
- * ダークネイビー + ゴールドのカラーパレット、画面上中央に表示
- */
-function PWAInstallBanner({ onDismiss, t }: { onDismiss: () => void; t: (key: string) => string }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: -40 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -40 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-      className="fixed top-16 left-4 right-4 z-50 mx-auto max-w-xs rounded-2xl shadow-2xl p-3 bg-gradient-to-br from-brewer-900 to-brewer-800"
-    >
-      <button
-        onClick={onDismiss}
-        className="absolute top-3 right-3 text-cream-50/50 hover:text-cream-50"
-      >
-        <X className="w-4 h-4" />
-      </button>
-      <div className="flex items-start gap-3">
-        <div className="w-8 h-8 rounded-xl bg-brass-500/20 border border-brass-500/30 flex items-center justify-center flex-shrink-0">
-          <Bell className="w-4 h-4 text-brass-500" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-bold text-cream-50">
-            {t('pushNotification.title')}
-          </p>
-          <p className="text-xs text-cream-50/60 mt-1 leading-relaxed">
-            {t('pushNotification.description_line1')}
-            <br />
-            {t('pushNotification.description_line2')}
-          </p>
-          <div className="flex items-center gap-1.5 mt-2.5 text-xs text-brass-500 font-medium">
-            <Share className="w-3.5 h-3.5" />
-            <span>
-              {t('pushNotification.share_instruction')}
-            </span>
-          </div>
-        </div>
-      </div>
-    </motion.div>
-  );
-}
-
-/**
  * ユーザー向け空席通知の購読UIコンポーネント
- * ベルアイコン + スライドトグル + PWAインストールバナー
+ * ベルアイコン + スライドトグル
  */
 export function UserPushSubscription() {
   const pathname = usePathname();
@@ -121,7 +59,6 @@ export function UserPushSubscription() {
   const [status, setStatus] = useState<'loading' | 'idle' | 'subscribed' | 'denied' | 'unsupported' | 'ios-browser'>('loading');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
-  const [showPWABanner, setShowPWABanner] = useState(false);
   const autoUpdateDone = useRef(false);
   const collapseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -150,12 +87,9 @@ export function UserPushSubscription() {
   }, []);
 
   useEffect(() => {
-    // iOS ブラウザ（非PWA）の場合
+    // iOS ブラウザ（非PWA）はベル UI を表示しない（PWA インストール促進バナーは廃止）。
     if (isIOSBrowser()) {
       setStatus('ios-browser');
-      if (!isPWABannerCoolingDown()) {
-        setShowPWABanner(true);
-      }
       return;
     }
 
@@ -238,21 +172,14 @@ export function UserPushSubscription() {
     }
   }, [status]);
 
-  const dismissPWABanner = useCallback(() => {
-    setShowPWABanner(false);
-    recordPWABannerDismissed();
-  }, []);
-
-  if (status === 'loading' || status === 'unsupported' || !isMapPage) return null;
-
-  // iOS ブラウザ: PWA インストールバナーのみ
-  if (status === 'ios-browser') {
-    return (
-      <AnimatePresence>
-        {showPWABanner && <PWAInstallBanner onDismiss={dismissPWABanner} t={t} />}
-      </AnimatePresence>
-    );
-  }
+  // iOS ブラウザ含め、unsupported / マップ以外 / 旧 ios-browser ステータスでは何も描画しない。
+  if (
+    status === 'loading' ||
+    status === 'unsupported' ||
+    status === 'ios-browser' ||
+    !isMapPage
+  )
+    return null;
 
   const isOn = status === 'subscribed';
   const iconColor = isOn ? 'bg-success' : 'bg-muted-foreground';
