@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { useLiff } from '@/lib/line/context';
 import { getFreshLineIdToken } from '@/lib/line/liff';
+import { supabase } from '@/lib/supabase/client';
 import { useAppMode } from '@/lib/app-mode-context';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -111,9 +112,14 @@ function StoreCheckinInner() {
     async (lat: number, lng: number, accuracy: number | null) => {
       setStage('checking_in');
       try {
-        const token = await getFreshLineIdToken();
+        const { data: sessionData } = await supabase.auth.getSession();
+        let token = sessionData.session?.access_token ?? null;
+        if (!token && isLineLoggedIn) {
+          token = await getFreshLineIdToken();
+        }
         if (!token) {
-          // login にリダイレクト中なので何もしない
+          setStage('awaiting_login');
+          await liffLogin();
           return;
         }
         const res = await fetch('/api/store-checkin', {
@@ -143,7 +149,7 @@ function StoreCheckinInner() {
         setStage('error');
       }
     },
-    [storeId]
+    [storeId, isLineLoggedIn, liffLogin]
   );
 
   const start = useCallback(async () => {
@@ -157,7 +163,8 @@ function StoreCheckinInner() {
 
     if (!isLiffReady) return;
 
-    if (!isLineLoggedIn) {
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session?.access_token && !isLineLoggedIn) {
       setStage('awaiting_login');
       await liffLogin();
       return;
@@ -545,7 +552,7 @@ function errorTitle(code: string): string {
     case 'profile_incomplete':
       return 'プロフィール登録が必要です';
     case 'user_not_found':
-      return 'LINEログインが必要です';
+      return 'ログインが必要です';
     case 'customer_only':
       return '顧客アカウントでログインしてください';
     case 'store_not_found':
@@ -575,7 +582,7 @@ function errorMessage(code: string | undefined): string {
     case 'profile_incomplete':
       return 'プロフィール (住所・年齢・職業・性別) の登録が必要です。';
     case 'user_not_found':
-      return 'LINEで初回ログインを完了してください。';
+      return 'マイページからログインしてください。';
     case 'customer_only':
       return '顧客アカウントでログインしてからチェックインしてください。';
     case 'store_not_found':
@@ -585,7 +592,7 @@ function errorMessage(code: string | undefined): string {
     case 'invalid_payload':
       return '読み取ったURLに問題があります。もう一度QRを読み直してください。';
     case 'unauthorized':
-      return 'LINEログインが必要です。';
+      return 'ログインが必要です。';
     case 'network':
       return 'ネットワークエラーが発生しました。';
     default:

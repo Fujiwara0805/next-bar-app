@@ -146,12 +146,6 @@ export default function RegisterPage() {
                 alt="NIKENME+"
                 className="w-28 h-28 sm:w-32 sm:h-32 object-contain"
               />
-              <p
-                className="mt-3 text-lg sm:text-xl font-bold tracking-tight text-center"
-                style={{ color: COLORS.deepNavy }}
-              >
-                {t('auth.login_welcome')}
-              </p>
             </motion.div>
 
             <div

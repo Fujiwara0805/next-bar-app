@@ -3,7 +3,7 @@
 // 店舗QR (店内設置のポスター) を客がLIFFで読み取った後の
 // セルフチェックイン受付エンドポイント (Phase 2-B 双方向QR)。
 //
-// 認証: LIFF id_token (Bearer)。
+// 認証: Supabase access token または LIFF id_token (Bearer)。
 // 検証: 店舗座標との Haversine 距離がジオフェンス内か (200m基準、
 //       GPS精度に応じた動的閾値)。屋内GPSでは数十m〜100m程度
 //       誤差が出る + 店舗付近の路上で読み取られるケースもあるため、
@@ -29,12 +29,21 @@ const BASE_GEOFENCE_M = 200;
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 type RequestBody = {
   storeId?: unknown;
   lat?: unknown;
   lng?: unknown;
   accuracy?: unknown;
+};
+
+type CheckInCustomer = {
+  id: string;
+  role: string | null;
+  display_name: string | null;
+  line_display_name: string | null;
+  profile_attributes: unknown;
 };
 
 function parseBody(raw: unknown): {
@@ -57,8 +66,52 @@ function parseBody(raw: unknown): {
   return { storeId: r.storeId, lat: r.lat, lng: r.lng, accuracy };
 }
 
+async function resolveCustomerFromBearer(
+  admin: ReturnType<typeof createClient<Database>>,
+  accessToken: string
+): Promise<{
+  customer: CheckInCustomer | null;
+  error?: 'unauthorized' | 'user_not_found';
+}> {
+  if (!supabaseUrl || !anonKey) return { customer: null, error: 'unauthorized' };
+
+  const anon = createClient<Database>(supabaseUrl, anonKey, {
+    global: { headers: { Authorization: `Bearer ${accessToken}` } },
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+
+  const {
+    data: { user },
+  } = await anon.auth.getUser(accessToken);
+  if (user) {
+    const { data: customer } = await admin
+      .from('users')
+      .select('id, role, display_name, line_display_name, profile_attributes')
+      .eq('id', user.id)
+      .maybeSingle();
+    return customer
+      ? { customer: customer as CheckInCustomer }
+      : { customer: null, error: 'user_not_found' };
+  }
+
+  try {
+    const verified = await verifyLineIdToken(accessToken);
+    const { data: customer } = await admin
+      .from('users')
+      .select('id, role, display_name, line_display_name, profile_attributes')
+      .eq('line_user_id', verified.sub)
+      .maybeSingle();
+    return customer
+      ? { customer: customer as CheckInCustomer }
+      : { customer: null, error: 'user_not_found' };
+  } catch (err) {
+    console.warn('[store-checkin] bearer verify failed:', (err as Error).message);
+    return { customer: null, error: 'unauthorized' };
+  }
+}
+
 export async function POST(request: NextRequest) {
-  if (!supabaseUrl || !serviceRoleKey) {
+  if (!supabaseUrl || !serviceRoleKey || !anonKey) {
     return NextResponse.json({ error: 'server_misconfigured' }, { status: 500 });
   }
 
@@ -66,7 +119,7 @@ export async function POST(request: NextRequest) {
   if (!authHeader?.startsWith('Bearer ')) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
-  const idToken = authHeader.slice(7);
+  const accessToken = authHeader.slice(7);
 
   let rawBody: unknown;
   try {
@@ -79,28 +132,19 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'invalid_payload' }, { status: 400 });
   }
 
-  // LINE id_token 検証
-  let lineUserId: string;
-  try {
-    const verified = await verifyLineIdToken(idToken);
-    lineUserId = verified.sub;
-  } catch (err) {
-    console.warn('[store-checkin] id_token verify failed:', (err as Error).message);
-    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
-  }
-
   const admin = createClient<Database>(supabaseUrl, serviceRoleKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
-  // LINE userId → users テーブルルックアップ
-  const { data: customer } = await admin
-    .from('users')
-    .select('id, role, display_name, line_display_name, profile_attributes')
-    .eq('line_user_id', lineUserId)
-    .maybeSingle();
+  const { customer, error: authError } = await resolveCustomerFromBearer(
+    admin,
+    accessToken
+  );
   if (!customer) {
-    return NextResponse.json({ error: 'user_not_found' }, { status: 404 });
+    return NextResponse.json(
+      { error: authError ?? 'unauthorized' },
+      { status: authError === 'user_not_found' ? 404 : 401 }
+    );
   }
   if (customer.role && customer.role !== 'customer' && customer.role !== 'user') {
     return NextResponse.json({ error: 'customer_only' }, { status: 403 });

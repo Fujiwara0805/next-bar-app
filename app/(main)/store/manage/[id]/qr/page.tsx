@@ -5,7 +5,7 @@
  *
  * 顧客QRページ (`/mypage/qr`) と同じ簡素なレイアウトで、店舗が掲示する
  * セルフチェックイン用 QR を表示する。PDF / 印刷 / PNG 保存に対応。
- * 顧客が LINE でスキャンすると `/liff/store-checkin?store={storeId}&v=1`
+ * 顧客がスマホでスキャンすると `/liff/store-checkin?store={storeId}&v=1`
  * へ遷移し、ジオフェンス検証を経てチェックインが完了する。
  */
 
@@ -280,13 +280,13 @@ export default function StoreQrPage() {
       const guideY = qrY + qrSize + 16;
       doc.setFontSize(13);
       doc.setTextColor(navy);
-      doc.text('Scan with LINE to check in', pageWidth / 2, guideY, {
+      doc.text('Scan to check in', pageWidth / 2, guideY, {
         align: 'center',
       });
       doc.setFontSize(9);
       doc.setTextColor(120, 120, 120);
       doc.text(
-        'Open LINE camera and scan the QR code above',
+        'Open your camera or NIKENME+ scanner',
         pageWidth / 2,
         guideY + 7,
         { align: 'center' }

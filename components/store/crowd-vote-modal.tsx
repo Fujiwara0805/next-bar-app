@@ -8,6 +8,8 @@ import { CustomModal } from '@/components/ui/custom-modal';
 import { useLanguage } from '@/lib/i18n/context';
 import { useLiff } from '@/lib/line/context';
 import { getFreshLineIdToken } from '@/lib/line/liff';
+import { useAuth } from '@/lib/auth/context';
+import { supabase } from '@/lib/supabase/client';
 import {
   CROWD_STATUSES,
   type CrowdAggregate,
@@ -47,6 +49,7 @@ const STATUS_VISUAL: Record<
 export function CrowdVoteModal({ storeId, isOpen, onClose, onSuccess }: Props) {
   const { t } = useLanguage();
   const { isLineLoggedIn } = useLiff();
+  const { user } = useAuth();
   const [submitting, setSubmitting] = useState<CrowdStatus | null>(null);
   const [cooldownUntil, setCooldownUntil] = useState<number | null>(null);
   const [aggregate, setAggregate] = useState<CrowdAggregate | null>(null);
@@ -95,14 +98,17 @@ export function CrowdVoteModal({ storeId, isOpen, onClose, onSuccess }: Props) {
       if (submitting || cooldownActive) return;
       setSubmitting(status);
       try {
-        if (!isLineLoggedIn) {
+        const { data: sessionData } = await supabase.auth.getSession();
+        let token = sessionData.session?.access_token ?? null;
+        if (!token && isLineLoggedIn) {
+          token = await getFreshLineIdToken();
+        }
+        if (!token) {
           toast.error(t('store_status.error_login_required'), {
             description: t('store_status.error_login_required_description'),
           });
           return;
         }
-        const token = await getFreshLineIdToken();
-        if (!token) return;
 
         let position: GeolocationPosition;
         try {
@@ -257,7 +263,7 @@ export function CrowdVoteModal({ storeId, isOpen, onClose, onSuccess }: Props) {
       <div className="mt-4 text-[11px]" style={{ color: 'rgba(19, 41, 75, 0.55)' }}>
         {cooldownActive ? (
           <span>{t('store_status.cooldown_note')}</span>
-        ) : !isLineLoggedIn ? (
+        ) : !user && !isLineLoggedIn ? (
           <span>{t('store_status.need_login_note')}</span>
         ) : (
           <span>{t('store_status.geofence_note')}</span>

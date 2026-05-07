@@ -3,8 +3,8 @@
 //
 // Phase 1-A 「いま空いてる？」報告ボタン用エンドポイント。
 //
-// POST: 客がLIFFで送る混雑状況の自己報告を記録する。
-//   - 認証: LIFF id_token (Bearer)
+// POST: 客が送る混雑状況の自己報告を記録する。
+//   - 認証: Supabase access token または LIFF id_token (Bearer)
 //   - Body: { reportType: 'vacant'|'open'|'busy'|'full', lat, lng, accuracy? }
 //   - 検証: ジオフェンス200m / 同一ユーザー×店舗 10分1回
 //
@@ -33,12 +33,18 @@ const RATE_LIMIT_MINUTES = 10;
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 type PostBody = {
   reportType: CrowdStatus;
   lat: number;
   lng: number;
   accuracy: number | null;
+};
+
+type CrowdCustomer = {
+  id: string;
+  role: string | null;
 };
 
 function parsePostBody(raw: unknown): PostBody | null {
@@ -79,6 +85,50 @@ async function fetchAggregateForStore(
   return aggregateCrowdReports(reports ?? [], now);
 }
 
+async function resolveCustomerFromBearer(
+  admin: ReturnType<typeof createClient<Database>>,
+  accessToken: string
+): Promise<{ customer: CrowdCustomer | null; error?: 'unauthorized' | 'user_not_found' }> {
+  if (!supabaseUrl || !anonKey) return { customer: null, error: 'unauthorized' };
+
+  const anon = createClient<Database>(supabaseUrl, anonKey, {
+    global: { headers: { Authorization: `Bearer ${accessToken}` } },
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+
+  const {
+    data: { user },
+  } = await anon.auth.getUser(accessToken);
+  if (user) {
+    const { data: customer } = await admin
+      .from('users')
+      .select('id, role')
+      .eq('id', user.id)
+      .maybeSingle();
+    return customer
+      ? { customer }
+      : { customer: null, error: 'user_not_found' };
+  }
+
+  try {
+    const verified = await verifyLineIdToken(accessToken);
+    const { data: customer } = await admin
+      .from('users')
+      .select('id, role')
+      .eq('line_user_id', verified.sub)
+      .maybeSingle();
+    return customer
+      ? { customer }
+      : { customer: null, error: 'user_not_found' };
+  } catch (err) {
+    console.warn(
+      '[crowd-report] bearer verify failed:',
+      (err as Error).message
+    );
+    return { customer: null, error: 'unauthorized' };
+  }
+}
+
 // ----------------------------------------------------------------
 // GET: 集計取得 (公開)
 // ----------------------------------------------------------------
@@ -98,13 +148,13 @@ export async function GET(
 }
 
 // ----------------------------------------------------------------
-// POST: 報告投稿 (LIFF id_token 認証)
+// POST: 報告投稿 (Supabase/LINE dual auth)
 // ----------------------------------------------------------------
 export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  if (!supabaseUrl || !serviceRoleKey) {
+  if (!supabaseUrl || !serviceRoleKey || !anonKey) {
     return NextResponse.json({ error: 'server_misconfigured' }, { status: 500 });
   }
 
@@ -112,7 +162,7 @@ export async function POST(
   if (!authHeader?.startsWith('Bearer ')) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
-  const idToken = authHeader.slice(7);
+  const accessToken = authHeader.slice(7);
 
   let rawBody: unknown;
   try {
@@ -125,31 +175,19 @@ export async function POST(
     return NextResponse.json({ error: 'invalid_payload' }, { status: 400 });
   }
 
-  // LINE id_token 検証
-  let lineUserId: string;
-  try {
-    const verified = await verifyLineIdToken(idToken);
-    lineUserId = verified.sub;
-  } catch (err) {
-    console.warn(
-      '[crowd-report] id_token verify failed:',
-      (err as Error).message
-    );
-    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
-  }
-
   const admin = createClient<Database>(supabaseUrl, serviceRoleKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
-  // ユーザー解決 (匿名扱いでも報告は受け付けるが、レート制限のため user_id を解決する)
-  const { data: customer } = await admin
-    .from('users')
-    .select('id, role')
-    .eq('line_user_id', lineUserId)
-    .maybeSingle();
+  const { customer, error: authError } = await resolveCustomerFromBearer(
+    admin,
+    accessToken
+  );
   if (!customer) {
-    return NextResponse.json({ error: 'user_not_found' }, { status: 404 });
+    return NextResponse.json(
+      { error: authError ?? 'unauthorized' },
+      { status: authError === 'user_not_found' ? 404 : 401 }
+    );
   }
   if (customer.role && customer.role !== 'customer' && customer.role !== 'user') {
     return NextResponse.json({ error: 'customer_only' }, { status: 403 });

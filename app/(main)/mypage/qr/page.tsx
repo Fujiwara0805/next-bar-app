@@ -8,7 +8,6 @@ import {
   Info,
   Loader2,
   QrCode,
-  Camera,
   ScanLine,
   X,
   AlertCircle,
@@ -331,9 +330,9 @@ export default function MyPageQrPage() {
                 <span className="font-semibold">{displayName}</span>
               </div>
 
-              <div className="mt-4 flex items-center gap-3">
+              <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
                 <div
-                  className="flex items-center gap-1.5 text-xs"
+                  className="basis-full flex items-center justify-center gap-1.5 text-xs"
                   style={{ color: 'rgba(19, 41, 75, 0.6)' }}
                 >
                   <RefreshCw className="w-3.5 h-3.5" />
@@ -356,60 +355,24 @@ export default function MyPageQrPage() {
                 >
                   {t('mypageQr.tap_to_refresh')}
                 </Button>
+                <Button
+                  size="sm"
+                  onClick={() => setScannerOpen(true)}
+                  disabled={generating}
+                  style={{
+                    background: GOLD_GRADIENT,
+                    color: NAVY,
+                    border: `1.5px solid ${BRASS}`,
+                  }}
+                  className="rounded-xl font-bold"
+                >
+                  <ScanLine className="w-4 h-4 mr-2" />
+                  {t('mypageQr.store_scan_start')}
+                </Button>
               </div>
 
               {error && <p className="mt-3 text-xs text-destructive">{error}</p>}
             </div>
-          </div>
-
-          {/* 店舗QRを読み取る (双方向化セクション) */}
-          <div
-            className="rounded-2xl p-5 mb-4 relative overflow-hidden"
-            style={{
-              background: 'white',
-              border: `1px solid ${BRASS}33`,
-              boxShadow: '0 12px 32px rgba(19, 41, 75, 0.08)',
-            }}
-          >
-            <div className="flex items-center justify-between gap-2 mb-3">
-              <div className="flex items-center gap-2">
-                <Camera className="w-4 h-4" style={{ color: COPPER }} />
-                <h3 className="font-semibold text-sm" style={{ color: NAVY }}>
-                  {t('mypageQr.store_scan_card_title')}
-                </h3>
-              </div>
-              <span
-                className="text-[10px] uppercase tracking-[0.2em] px-2 py-0.5 rounded-full"
-                style={{ background: `${BRASS}20`, color: COPPER }}
-              >
-                NEW
-              </span>
-            </div>
-            <p
-              className="text-xs mb-2"
-              style={{ color: 'rgba(19, 41, 75, 0.65)' }}
-            >
-              {t('mypageQr.store_scan_card_desc')}
-            </p>
-            <p
-              className="text-[11px] mb-3"
-              style={{ color: 'rgba(19, 41, 75, 0.5)' }}
-            >
-              {t('mypageQr.store_scan_card_note')}
-            </p>
-            <Button
-              size="sm"
-              onClick={() => setScannerOpen(true)}
-              style={{
-                background: GOLD_GRADIENT,
-                color: NAVY,
-                width: '100%',
-              }}
-              className="rounded-xl font-bold"
-            >
-              <ScanLine className="w-4 h-4 mr-2" />
-              {t('mypageQr.store_scan_start')}
-            </Button>
           </div>
 
           <div
