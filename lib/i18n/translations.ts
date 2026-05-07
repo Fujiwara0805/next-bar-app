@@ -905,7 +905,7 @@ export const translations = {
       // Contact
       contact_title: 'お問い合わせ',
       contact_subtitle: 'ご不明な点やご要望がございましたら、\nお気軽にお問い合わせください。',
-      contact_button: 'お問い合わせフォームへ',
+      contact_button: 'お問い合わせ',
       // Company
       company_title: '会社概要',
       company_name_label: '会社名',
