@@ -86,9 +86,9 @@ const LP_CARD = {
 
 const GoldDivider = () => (
   <div className="flex items-center justify-center gap-3 my-6">
-    <div className="h-px flex-1 max-w-16" style={{ background: `linear-gradient(90deg, transparent, ${LP_YELLOW}40)` }} />
+    <div className="h-px flex-1 max-w-16" style={{ backgroundColor: `${LP_YELLOW}40` }} />
     <div className="w-1.5 h-1.5 rotate-45" style={{ backgroundColor: LP_YELLOW }} />
-    <div className="h-px flex-1 max-w-16" style={{ background: `linear-gradient(90deg, ${LP_YELLOW}40, transparent)` }} />
+    <div className="h-px flex-1 max-w-16" style={{ backgroundColor: `${LP_YELLOW}40` }} />
   </div>
 );
 
@@ -409,8 +409,8 @@ export default function LandingPage() {
     <div className="min-h-[100dvh] overflow-x-hidden" style={{ background: lpPage.bg }}>
       {/* 背景装飾エフェクト */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <motion.div className="absolute w-[700px] h-[700px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(255, 198, 45, 0.12) 0%, transparent 60%)', top: '-250px', right: '-250px', filter: 'blur(80px)' }} animate={{ opacity: [0.3, 0.5, 0.3] }} transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }} />
-        <motion.div className="absolute w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(255, 255, 255, 0.06) 0%, transparent 60%)', bottom: '10%', left: '-150px', filter: 'blur(60px)' }} animate={{ opacity: [0.2, 0.35, 0.2] }} transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 3 }} />
+        <motion.div className="absolute w-[700px] h-[700px] rounded-full" style={{ backgroundColor: 'rgba(255, 197, 45, 0.08)', top: '-250px', right: '-250px', filter: 'blur(80px)' }} animate={{ opacity: [0.3, 0.5, 0.3] }} transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }} />
+        <motion.div className="absolute w-[500px] h-[500px] rounded-full" style={{ backgroundColor: 'rgba(255, 255, 255, 0.05)', bottom: '10%', left: '-150px', filter: 'blur(60px)' }} animate={{ opacity: [0.2, 0.35, 0.2] }} transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 3 }} />
       </div>
 
       {/* Toast Notification */}
@@ -603,7 +603,7 @@ export default function LandingPage() {
             />
             <div
               className="absolute top-14 left-[3.5rem] xl:left-[5.5rem] h-px w-20"
-              style={{ background: `linear-gradient(90deg, ${LP_YELLOW}, transparent)` }}
+              style={{ backgroundColor: LP_YELLOW }}
               aria-hidden
             />
 
@@ -658,7 +658,7 @@ export default function LandingPage() {
                   </Button>
                   <motion.div
                     className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
-                    style={{ background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%)' }}
+                    style={{ backgroundColor: 'rgba(255,255,255,0.18)' }}
                     animate={{ x: ['-100%', '200%'] }}
                     transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 1 }}
                   />
@@ -703,7 +703,7 @@ export default function LandingPage() {
               <div
                 className="absolute inset-0 hidden lg:block"
                 style={{
-                  background: `linear-gradient(90deg, ${LP_NAVY} 0%, rgba(19,41,75,0.55) 18%, rgba(19,41,75,0.15) 42%, rgba(19,41,75,0) 65%)`,
+                  backgroundColor: 'rgba(19,41,75,0.45)',
                 }}
                 aria-hidden
               />
@@ -711,7 +711,7 @@ export default function LandingPage() {
               <div
                 className="absolute inset-0 hidden lg:block"
                 style={{
-                  background: 'linear-gradient(to bottom, transparent 55%, rgba(19,41,75,0.35) 88%, rgba(19,41,75,0.6) 100%)',
+                  backgroundColor: 'rgba(19,41,75,0.45)',
                 }}
                 aria-hidden
               />
@@ -719,7 +719,7 @@ export default function LandingPage() {
               <div
                 className="absolute inset-0 lg:hidden"
                 style={{
-                  background: 'linear-gradient(to bottom, rgba(19,41,75,0.40) 0%, rgba(19,41,75,0.18) 38%, rgba(19,41,75,0.78) 100%)',
+                  backgroundColor: 'rgba(19,41,75,0.45)',
                 }}
                 aria-hidden
               />
@@ -729,7 +729,7 @@ export default function LandingPage() {
             <motion.div
               className="absolute top-[18%] bottom-[18%] left-0 w-px z-10 hidden lg:block"
               style={{
-                background: `linear-gradient(to bottom, transparent 0%, ${LP_YELLOW}aa 20%, ${LP_YELLOW}60 50%, ${LP_YELLOW}aa 80%, transparent 100%)`,
+                backgroundColor: `${LP_YELLOW}80`,
               }}
               initial={{ scaleY: 0, opacity: 0 }}
               animate={{ scaleY: 1, opacity: 1 }}
@@ -776,7 +776,7 @@ export default function LandingPage() {
                 </Button>
                 <motion.div
                   className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
-                  style={{ background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%)' }}
+                  style={{ backgroundColor: 'rgba(255,255,255,0.18)' }}
                   animate={{ x: ['-100%', '200%'] }}
                   transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 1 }}
                 />
@@ -823,7 +823,7 @@ export default function LandingPage() {
             </Link>
           </motion.div>
         </div>
-        <motion.div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${LP_YELLOW}40, transparent)` }} />
+        <motion.div className="absolute bottom-0 left-0 right-0 h-px" style={{ backgroundColor: `${LP_YELLOW}40` }} />
       </section>
 
 
@@ -940,7 +940,7 @@ export default function LandingPage() {
             );
           })()}
         </div>
-        <motion.div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${LP_YELLOW}40, transparent)` }} />
+        <motion.div className="absolute bottom-0 left-0 right-0 h-px" style={{ backgroundColor: `${LP_YELLOW}40` }} />
       </section>
 
       {/* 解決策・サービスの強みセクション */}
@@ -973,7 +973,7 @@ export default function LandingPage() {
             ].map(({ num, imgSrc }, index) => (
                 <motion.div key={index} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.15 }}>
                   <Card className="h-full p-8 group cursor-pointer transition-all duration-500 hover:translate-y-[-4px] relative overflow-hidden text-center" style={{ background: lpMid.elevated.bg, backdropFilter: 'blur(10px)', border: `1px solid ${lpMid.elevated.border}`, boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
-                    <motion.div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ background: `radial-gradient(circle at center, ${LP_YELLOW}10 0%, transparent 70%)` }} />
+                    <motion.div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ backgroundColor: `${LP_YELLOW}10` }} />
                     <div className="relative z-10 flex flex-col items-center">
                       <motion.div className="w-16 h-16 rounded-xl flex items-center justify-center mb-6 mx-auto overflow-hidden" style={{ background: `${LP_YELLOW}15`, border: `1px solid ${LP_YELLOW}25` }} whileHover={{ scale: 1.05 }}>
                         <img
@@ -992,7 +992,7 @@ export default function LandingPage() {
                         <span className="hidden lg:inline">{t(`landing.solution_feature${num}_desc`).replace(/\n/g, '')}</span>
                       </p>
                     </div>
-                    <motion.div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ background: `linear-gradient(90deg, ${LP_YELLOW}, #E6B020)` }} initial={{ scaleX: 0 }} whileHover={{ scaleX: 1 }} transition={{ duration: 0.3 }} />
+                    <motion.div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ backgroundColor: LP_YELLOW }} initial={{ scaleX: 0 }} whileHover={{ scaleX: 1 }} transition={{ duration: 0.3 }} />
                   </Card>
                 </motion.div>
               ))}
@@ -1042,10 +1042,10 @@ export default function LandingPage() {
                     <p className="mb-6 leading-relaxed text-sm lg:text-lg" style={{ color: lpMid.elevated.textMuted }}>{renderWithLineBreaks(t(`landing.howto_step${num}_desc`))}</p>
                     <div className="rounded-xl overflow-hidden relative" style={{ border: `1px solid ${lpMid.elevated.border}` }}>
                       <img src={images[index]} alt={stepTitle} className="w-full h-auto object-cover" />
-                      {isStep4 && (<motion.div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(45deg, transparent 0%, rgba(201, 168, 108, 0.15) 50%, transparent 100%)' }} animate={{ x: ['-100%', '200%'] }} transition={{ duration: 3, repeat: Infinity, repeatDelay: 2, ease: 'easeInOut' }} />)}
+                      {isStep4 && (<motion.div className="absolute inset-0 pointer-events-none" style={{ backgroundColor: 'rgba(255,197,45,0.12)' }} animate={{ x: ['-100%', '200%'] }} transition={{ duration: 3, repeat: Infinity, repeatDelay: 2, ease: 'easeInOut' }} />)}
                     </div>
                   </div>
-                  <motion.div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ background: `linear-gradient(90deg, ${LP_YELLOW}, #E6B020)` }} initial={{ scaleX: 0 }} whileHover={{ scaleX: 1 }} transition={{ duration: 0.3 }} />
+                  <motion.div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ backgroundColor: LP_YELLOW }} initial={{ scaleX: 0 }} whileHover={{ scaleX: 1 }} transition={{ duration: 0.3 }} />
                 </Card>
               );
             };
@@ -1102,7 +1102,7 @@ export default function LandingPage() {
                     <p className="text-xs uppercase tracking-wider mt-1 lg:text-sm" style={{ color: lpMid.subtitleOnElevated }}>{t(`landing.voice${n}_role`)}</p>
                   </div>
                 </div>
-                <motion.div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ background: `linear-gradient(90deg, ${LP_YELLOW}, #E6B020)` }} initial={{ scaleX: 0 }} whileHover={{ scaleX: 1 }} transition={{ duration: 0.3 }} />
+                <motion.div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ backgroundColor: LP_YELLOW }} initial={{ scaleX: 0 }} whileHover={{ scaleX: 1 }} transition={{ duration: 0.3 }} />
               </Card>
             );
             return (
@@ -1267,7 +1267,7 @@ export default function LandingPage() {
                 >
                   <div className="relative aspect-[4/3]">
                     <img src={store.image_urls?.[0] || ''} alt={store.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                    <div className="absolute inset-0" style={{ background: `linear-gradient(to top, #13294b 0%, transparent 60%)` }} />
+                    <div className="absolute inset-0" style={{ backgroundColor: 'rgba(19,41,75,0.65)' }} />
                     <div className="absolute bottom-3 left-3 right-3">
                       <h3 className="text-sm font-bold truncate lg:text-lg" style={{ color: '#FFFFFF', textShadow: '0 1px 6px rgba(0,0,0,0.8)' }}>{store.name}</h3>
                     </div>
@@ -1374,11 +1374,11 @@ export default function LandingPage() {
         {showLocationModal && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(10, 22, 40, 0.95)' }} onClick={() => locationPermission !== 'loading' && setShowLocationModal(false)}>
             <div className="absolute inset-0 backdrop-blur-md" style={{ backgroundColor: 'rgba(10, 22, 40, 0.5)' }} />
-            <motion.div className="absolute w-[500px] h-[500px] rounded-full pointer-events-none" style={{ background: `radial-gradient(circle, ${LP_YELLOW}15 0%, transparent 70%)`, top: '50%', left: '50%', transform: 'translate(-50%, -50%)', filter: 'blur(60px)' }} animate={{ opacity: [0.3, 0.6, 0.3], scale: [1, 1.1, 1] }} transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }} />
+            <motion.div className="absolute w-[500px] h-[500px] rounded-full pointer-events-none" style={{ backgroundColor: `${LP_YELLOW}15`, top: '50%', left: '50%', transform: 'translate(-50%, -50%)', filter: 'blur(60px)' }} animate={{ opacity: [0.3, 0.6, 0.3], scale: [1, 1.1, 1] }} transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }} />
 
               <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} transition={{ duration: 0.3 }} className="relative z-10 w-full max-w-md rounded-3xl overflow-hidden" style={{ background: lpPage.bg, border: '1px solid rgba(255, 198, 45, 0.35)', boxShadow: `${colors.shadowDeep}, 0 0 60px rgba(255, 198, 45, 0.12)` }} onClick={(e) => e.stopPropagation()}>
                 <div className="absolute inset-0 opacity-5 pointer-events-none" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }} />
-                <div className="h-1" style={{ background: `linear-gradient(90deg, transparent, ${LP_YELLOW}, transparent)` }} />
+                <div className="h-1" style={{ backgroundColor: LP_YELLOW }} />
                 <div className="p-8">
                   <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="text-center mb-6">
                     <h2 className="text-2xl font-bold mb-3 lg:text-4xl" style={{ color: lpPage.text }}>{t('modal.location_title')}</h2>
@@ -1396,7 +1396,7 @@ export default function LandingPage() {
                   )}
                   <div className="space-y-3">
                     <motion.button whileHover={locationPermission !== 'loading' ? { scale: 1.02, y: -2 } : {}} whileTap={locationPermission !== 'loading' ? { scale: 0.98 } : {}} onClick={() => locationPermission !== 'loading' && handleLocationPermission(true)} className="w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all relative overflow-hidden group lg:text-2xl" style={{ background: LP_YELLOW, color: LP_NAVY, boxShadow: '0 8px 28px rgba(255, 198, 45, 0.35)', opacity: locationPermission === 'loading' ? 0.8 : 1 }}>
-                      <motion.div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%)' }} animate={{ x: ['-100%', '200%'] }} transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 1 }} />
+                      <motion.div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ backgroundColor: 'rgba(255,255,255,0.18)' }} animate={{ x: ['-100%', '200%'] }} transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 1 }} />
                       <span className="relative z-10 flex items-center justify-center gap-2">
                         {locationPermission === 'loading' ? (
                           <><Loader2 className="w-5 h-5 animate-spin" />{t('landing.getting_location')}</>
@@ -1434,7 +1434,7 @@ export default function LandingPage() {
             <motion.div
               className="absolute w-[500px] h-[500px] rounded-full pointer-events-none"
               style={{
-                background: `radial-gradient(circle, ${LP_YELLOW}15 0%, transparent 70%)`,
+                backgroundColor: `${LP_YELLOW}15`,
                 top: '50%',
                 left: '50%',
                 transform: 'translate(-50%, -50%)',
@@ -1470,7 +1470,7 @@ export default function LandingPage() {
                 className="absolute top-3 right-3 z-20"
                 aria-label={t('common.close')}
               />
-              <div className="h-1" style={{ background: `linear-gradient(90deg, transparent, ${LP_YELLOW}, transparent)` }} />
+              <div className="h-1" style={{ backgroundColor: LP_YELLOW }} />
               <div className="p-8 pt-10">
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
@@ -1511,7 +1511,7 @@ export default function LandingPage() {
                     >
                       <motion.div
                         className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-                        style={{ background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%)' }}
+                        style={{ backgroundColor: 'rgba(255,255,255,0.18)' }}
                         animate={{ x: ['-100%', '200%'] }}
                         transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 1 }}
                       />

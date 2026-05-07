@@ -214,19 +214,19 @@ export default function LiffVacancyOptInPage() {
         <div
           className="absolute -top-40 -right-40 h-[34rem] w-[34rem] rounded-full"
           style={{
-            background: `radial-gradient(circle, ${COLORS.champagneGold}1f 0%, transparent 60%)`,
+            backgroundColor: `${COLORS.champagneGold}1f`,
           }}
         />
         <div
           className="absolute -bottom-56 -left-48 h-[34rem] w-[34rem] rounded-full"
           style={{
-            background: `radial-gradient(circle, ${COLORS.midnightBlue}33 0%, transparent 65%)`,
+            backgroundColor: `${COLORS.midnightBlue}33`,
           }}
         />
         <div
           className="absolute top-0 left-0 right-0 h-[2px]"
           style={{
-            background: `linear-gradient(90deg, transparent, ${COLORS.champagneGold}, transparent)`,
+            backgroundColor: COLORS.champagneGold,
           }}
         />
       </div>

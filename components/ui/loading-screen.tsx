@@ -72,7 +72,7 @@ export function LoadingScreen({
             animate={{ opacity: [0.3, 0.6, 0.3] }}
             transition={{ duration: 2, repeat: Infinity }}
             style={{
-              background: `radial-gradient(circle, ${colorsA.accent}40 0%, transparent 70%)`,
+              backgroundColor: `${colorsA.accent}40`,
               filter: 'blur(20px)',
             }}
           />

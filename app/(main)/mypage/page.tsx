@@ -35,10 +35,11 @@ const STAMP_ICON_URL =
 const BG_OFFWHITE = '#F7F3E9'; // cream-50
 const NAVY = '#13294b'; // Brewers Dark Navy
 const NAVY_SOFT = 'rgba(19, 41, 75, 0.08)';
-const BRASS = '#ffc62d'; // Brewers Yellow
+const BRASS = '#ffc52d'; // Brewers Yellow
 const COPPER = '#B87333'; // Copper / orange accent
-const GOLD_GRADIENT = 'linear-gradient(135deg, #ffc62d 0%, #FFD966 50%, #C9A86C 100%)';
-const NAVY_GRADIENT = 'linear-gradient(165deg, #13294b 0%, #1A3562 50%, #1F57A4 100%)';
+// グラデ廃止: フラットカラーで統一
+const GOLD_GRADIENT = '#ffc52d';
+const NAVY_GRADIENT = '#13294b';
 
 function tokyoDateString(): string {
   const now = new Date();
@@ -189,19 +190,15 @@ export default function MyPage() {
         </div>
       </header>
 
-      {/* 装飾的なアクセント */}
+      {/* 装飾的なアクセント（グラデ廃止: ほぼ透明な単色tintのみ残す） */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div
-          className="absolute -top-40 -right-32 h-[28rem] w-[28rem] rounded-full"
-          style={{
-            background: `radial-gradient(circle, ${BRASS}1f 0%, transparent 60%)`,
-          }}
+          className="absolute -top-40 -right-32 h-[28rem] w-[28rem] rounded-full opacity-10"
+          style={{ backgroundColor: BRASS }}
         />
         <div
-          className="absolute -bottom-40 -left-24 h-[26rem] w-[26rem] rounded-full"
-          style={{
-            background: `radial-gradient(circle, ${NAVY}14 0%, transparent 60%)`,
-          }}
+          className="absolute -bottom-40 -left-24 h-[26rem] w-[26rem] rounded-full opacity-[0.06]"
+          style={{ backgroundColor: NAVY }}
         />
       </div>
 
@@ -279,14 +276,14 @@ export default function MyPage() {
               <div
                 className="rounded-2xl p-5 transition-all hover:translate-y-[-2px] relative overflow-hidden"
                 style={{
-                  background: `linear-gradient(135deg, ${NAVY} 0%, #1A3562 100%)`,
+                  background: NAVY,
                   boxShadow: `0 14px 36px rgba(19, 41, 75, 0.30)`,
                   border: `1px solid ${BRASS}55`,
                 }}
               >
                 <div
-                  className="absolute -top-12 -right-12 w-32 h-32 rounded-full opacity-30"
-                  style={{ background: `radial-gradient(circle, ${BRASS}, transparent 70%)` }}
+                  className="absolute -top-12 -right-12 w-32 h-32 rounded-full opacity-20"
+                  style={{ backgroundColor: BRASS }}
                 />
                 <div className="relative flex items-center gap-4">
                   <div
@@ -364,7 +361,7 @@ export default function MyPage() {
           <div
             className="rounded-2xl mb-4 relative overflow-hidden"
             style={{
-              background: `linear-gradient(135deg, ${BRASS}14 0%, ${BRASS}06 100%)`,
+              backgroundColor: `${BRASS}14`,
               border: `1px solid ${BRASS}55`,
             }}
           >
@@ -443,7 +440,7 @@ export default function MyPage() {
                     filled
                       ? {
                           border: `2px solid ${BRASS}`,
-                          background: `linear-gradient(135deg, ${BRASS}1f 0%, ${BRASS}0a 100%)`,
+                          backgroundColor: `${BRASS}1f`,
                           boxShadow: `0 4px 12px ${BRASS}33`,
                         }
                       : {

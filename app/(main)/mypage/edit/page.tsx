@@ -31,8 +31,8 @@ const NAVY = '#13294b';
 const NAVY_SOFT = 'rgba(19, 41, 75, 0.08)';
 const BRASS = '#ffc62d';
 const COPPER = '#B87333';
-const GOLD_GRADIENT = 'linear-gradient(135deg, #ffc62d 0%, #FFD966 50%, #C9A86C 100%)';
-const NAVY_GRADIENT = 'linear-gradient(165deg, #13294b 0%, #1A3562 50%, #1F57A4 100%)';
+const GOLD_GRADIENT = '#ffc52d';
+const NAVY_GRADIENT = '#13294b';
 
 type ProfileAttributes = {
   address?: string;

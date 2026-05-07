@@ -14,8 +14,8 @@ import { motion } from 'framer-motion';
 import {
   Save,
   Loader2,
-  CircleDot,
-  MessageSquare,
+  Armchair,
+  MessageCircle,
   LogOut,
   Key,
   Info,
@@ -91,18 +91,9 @@ const GoldDivider = () => {
   const { colorsB: COLORS } = useAppMode();
   return (
   <div className="flex items-center justify-center gap-3 my-4">
-    <div
-      className="h-px flex-1"
-      style={{ background: `linear-gradient(90deg, transparent, ${COLORS.champagneGold}40)` }}
-    />
-    <div
-      className="w-1.5 h-1.5 rotate-45"
-      style={{ backgroundColor: COLORS.champagneGold }}
-    />
-    <div
-      className="h-px flex-1"
-      style={{ background: `linear-gradient(90deg, ${COLORS.champagneGold}40, transparent)` }}
-    />
+    <div className="h-px flex-1" style={{ backgroundColor: `${COLORS.champagneGold}40` }} />
+    <div className="w-1.5 h-1.5 rotate-45" style={{ backgroundColor: COLORS.champagneGold }} />
+    <div className="h-px flex-1" style={{ backgroundColor: `${COLORS.champagneGold}40` }} />
   </div>
   );
 };
@@ -715,7 +706,7 @@ export default function StoreUpdatePage() {
                     className="w-full rounded-xl font-bold shadow-md border-0 hover:opacity-95 [&_svg]:stroke-[currentColor]"
                     style={{
                       background: COLORS.goldGradient,
-                      color: COLORS.charcoal,
+                      color: COLORS.deepNavy,
                     }}
                   >
                     <Edit className="w-4 h-4 mr-1.5 shrink-0" strokeWidth={2} />
@@ -731,7 +722,7 @@ export default function StoreUpdatePage() {
                     className="w-full rounded-xl font-bold shadow-md border-0 hover:opacity-95 [&_svg]:stroke-[currentColor]"
                     style={{
                       background: COLORS.goldGradient,
-                      color: COLORS.charcoal,
+                      color: COLORS.deepNavy,
                     }}
                   >
                     <Key className="w-4 h-4 mr-1.5 shrink-0" strokeWidth={2} />
@@ -747,7 +738,7 @@ export default function StoreUpdatePage() {
                     className="w-full rounded-xl font-bold shadow-md border-0 hover:opacity-95 [&_svg]:stroke-[currentColor]"
                     style={{
                       background: COLORS.goldGradient,
-                      color: COLORS.charcoal,
+                      color: COLORS.deepNavy,
                     }}
                   >
                     <Megaphone className="w-4 h-4 mr-1.5 shrink-0" strokeWidth={2} />
@@ -803,7 +794,7 @@ export default function StoreUpdatePage() {
                     border: `1px solid rgba(201, 168, 108, 0.15)`,
                   }}
                 >
-                  <SectionHeader icon={CircleDot} title="空席状況" />
+                  <SectionHeader icon={Armchair} title="空席状況" />
 
                   <RadioGroup
                     value={vacancyStatus}
@@ -966,7 +957,7 @@ export default function StoreUpdatePage() {
                     border: `1px solid rgba(201, 168, 108, 0.15)`,
                   }}
                 >
-                  <SectionHeader icon={MessageSquare} title="一言メッセージ" />
+                  <SectionHeader icon={MessageCircle} title="一言メッセージ" />
 
                   <div className="space-y-2">
                     <Label 

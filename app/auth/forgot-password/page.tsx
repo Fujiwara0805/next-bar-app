@@ -74,13 +74,13 @@ export default function ForgotPasswordPage() {
         <div
           className="absolute -top-48 -left-48 h-[44rem] w-[44rem] rounded-full"
           style={{
-            background: `radial-gradient(circle, ${COLORS.champagneGold}1f 0%, transparent 60%)`,
+            backgroundColor: `${COLORS.champagneGold}1f`,
           }}
         />
         <div
           className="absolute -bottom-56 -right-40 h-[44rem] w-[44rem] rounded-full"
           style={{
-            background: `radial-gradient(circle, ${COLORS.royalNavy}26 0%, transparent 60%)`,
+            backgroundColor: `${COLORS.royalNavy}26`,
           }}
         />
       </div>

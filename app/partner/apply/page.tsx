@@ -61,7 +61,7 @@ function GoldDivider() {
     <div className="flex items-center gap-3 my-6">
       <div
         className="flex-1 h-px"
-        style={{ background: `linear-gradient(to right, transparent, ${COLORS.champagneGold}40, transparent)` }}
+        style={{ backgroundColor: `${COLORS.champagneGold}40` }}
       />
       <div
         className="w-1.5 h-1.5 rounded-full"
@@ -69,7 +69,7 @@ function GoldDivider() {
       />
       <div
         className="flex-1 h-px"
-        style={{ background: `linear-gradient(to right, transparent, ${COLORS.champagneGold}40, transparent)` }}
+        style={{ backgroundColor: `${COLORS.champagneGold}40` }}
       />
     </div>
   );
@@ -889,7 +889,7 @@ export default function PartnerApplyPage() {
   const { colorsB: COLORS } = useAppMode();
   const partnerApplyPageGradient = useMemo(
     () =>
-      `linear-gradient(165deg, ${COLORS.deepNavy} 0%, ${COLORS.deepNavy} 50%, ${COLORS.midnightBlue} 100%)`,
+      COLORS.deepNavy,
     [COLORS.deepNavy, COLORS.midnightBlue]
   );
 

@@ -97,7 +97,7 @@ const GoldDivider = () => {
   <div className="flex items-center justify-center gap-3 my-6">
     <div
       className="h-px flex-1"
-      style={{ background: `linear-gradient(90deg, transparent, ${COLORS.champagneGold}40)` }}
+      style={{ backgroundColor: `${COLORS.champagneGold}40` }}
     />
     <div
       className="w-1.5 h-1.5 rotate-45"
@@ -105,7 +105,7 @@ const GoldDivider = () => {
     />
     <div
       className="h-px flex-1"
-      style={{ background: `linear-gradient(90deg, ${COLORS.champagneGold}40, transparent)` }}
+      style={{ backgroundColor: `${COLORS.champagneGold}40` }}
     />
   </div>
   );
@@ -138,7 +138,7 @@ export default function NewStorePageWrapper() {
   return (
     <Suspense
       fallback={
-        <div className="flex items-center justify-center h-screen" style={{ background: 'linear-gradient(165deg, #0A1628 0%, #162447 50%, #1F4068 100%)' }}>
+        <div className="flex items-center justify-center h-screen" style={{ background: '#13294b' }}>
           <Loader2 className="w-10 h-10 animate-spin" style={{ color: '#C9A86C' }} />
         </div>
       }

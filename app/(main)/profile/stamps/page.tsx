@@ -38,8 +38,8 @@ const BG_OFFWHITE = '#F7F3E9';
 const NAVY = '#13294b';
 const BRASS = '#ffc62d';
 const COPPER = '#B87333';
-const GOLD_GRADIENT = 'linear-gradient(135deg, #ffc62d 0%, #FFD966 50%, #C9A86C 100%)';
-const NAVY_GRADIENT = 'linear-gradient(165deg, #13294b 0%, #1A3562 50%, #1F57A4 100%)';
+const GOLD_GRADIENT = '#ffc52d';
+const NAVY_GRADIENT = '#13294b';
 
 type CheckIn = {
   id: string;
@@ -370,7 +370,7 @@ export default function StampsPage() {
                     filled
                       ? {
                           border: `2px solid ${BRASS}`,
-                          background: `linear-gradient(135deg, ${BRASS}1f 0%, ${BRASS}0a 100%)`,
+                          backgroundColor: `${BRASS}1f`,
                           boxShadow: `0 4px 12px ${BRASS}33`,
                         }
                       : {

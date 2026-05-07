@@ -16,7 +16,7 @@ import { useLanguage } from '@/lib/i18n/context';
 import { useAppMode } from '@/lib/app-mode-context';
 
 const LOGO_URL =
-  'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761355092/%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png';
+  'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1777620739/a7ec37de-d4b1-46ff-8639-f2d49f567279_kym3yo.png';
 
 const LINE_BRAND_ICON_URL =
   'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1776852523/LINE_Brand_icon_zfypmz.png';
@@ -196,15 +196,7 @@ export function LoginForm() {
           {/* Dark overlay for readability */}
           <div
             className="absolute inset-0"
-            style={{
-              background: `linear-gradient(135deg, rgba(10,22,40,0.88) 0%, rgba(10,22,40,0.7) 45%, rgba(19,41,75,0.82) 100%)`,
-            }}
-          />
-          <div
-            className="absolute inset-0"
-            style={{
-              background: `radial-gradient(circle at 20% 0%, ${COLORS.champagneGold}22 0%, transparent 55%)`,
-            }}
+            style={{ backgroundColor: 'rgba(10,22,40,0.78)' }}
           />
         </div>
 
@@ -320,25 +312,19 @@ export function LoginForm() {
         </motion.div>
       </aside>
 
-      {/* Subtle decorative accents on off-white (right side / mobile) */}
+      {/* 装飾アクセント（グラデ廃止: 単色tintのみ） */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden lg:hidden">
         <div
-          className="absolute -top-48 -left-48 h-[44rem] w-[44rem] rounded-full"
-          style={{
-            background: `radial-gradient(circle, ${COLORS.champagneGold}1f 0%, transparent 60%)`,
-          }}
+          className="absolute -top-48 -left-48 h-[44rem] w-[44rem] rounded-full opacity-10"
+          style={{ backgroundColor: COLORS.champagneGold }}
         />
         <div
-          className="absolute -bottom-56 -right-40 h-[44rem] w-[44rem] rounded-full"
-          style={{
-            background: `radial-gradient(circle, ${COLORS.royalNavy}26 0%, transparent 60%)`,
-          }}
+          className="absolute -bottom-56 -right-40 h-[44rem] w-[44rem] rounded-full opacity-10"
+          style={{ backgroundColor: COLORS.royalNavy }}
         />
         <div
           className="absolute top-0 left-0 right-0 h-[2px]"
-          style={{
-            background: `linear-gradient(90deg, transparent, ${COLORS.champagneGold}, transparent)`,
-          }}
+          style={{ backgroundColor: COLORS.champagneGold }}
         />
       </div>
 

@@ -412,7 +412,7 @@ export default function LiffCouponPage() {
             className="p-6 rounded-2xl text-center mb-4"
             style={{
               background:
-                'linear-gradient(135deg, #FDFBF7 0%, #F5F1EB 100%)',
+                '#FDFBF7',
               border: '2px solid rgba(255, 198, 45, 0.4)',
             }}
           >
@@ -514,7 +514,7 @@ export default function LiffCouponPage() {
               className="w-full mt-2 rounded-xl"
               style={{
                 background:
-                  'linear-gradient(135deg, #ffc62d 0%, #FFD966 50%, #C9A86C 100%)',
+                  '#ffc52d',
                 color: '#13294b',
               }}
             >
@@ -565,7 +565,7 @@ function LiffFrame({ children }: { children: React.ReactNode }) {
     <div
       className="min-h-screen safe-top pb-16"
       style={{
-        background: 'linear-gradient(180deg, #0B2447 0%, #152C5B 100%)',
+        background: '#13294b',
         color: '#F5F3EC',
       }}
     >

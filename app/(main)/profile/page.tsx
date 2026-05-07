@@ -16,10 +16,11 @@ import { LoadingScreen } from '@/components/ui/loading-screen';
 
 const BG_OFFWHITE = '#F7F3E9';
 const NAVY = '#13294b';
-const BRASS = '#ffc62d';
+const BRASS = '#ffc52d';
 const COPPER = '#B87333';
-const GOLD_GRADIENT = 'linear-gradient(135deg, #ffc62d 0%, #FFD966 50%, #C9A86C 100%)';
-const NAVY_GRADIENT = 'linear-gradient(165deg, #13294b 0%, #1A3562 50%, #1F57A4 100%)';
+// グラデ廃止: フラットカラーで統一
+const GOLD_GRADIENT = '#ffc52d';
+const NAVY_GRADIENT = '#13294b';
 
 export default function ProfilePage() {
   const router = useRouter();

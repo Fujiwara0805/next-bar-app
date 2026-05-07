@@ -198,7 +198,7 @@ const GoldDivider = () => {
       <div
         className="h-px flex-1 max-w-16"
         style={{
-          background: `linear-gradient(90deg, transparent, ${COLORS.champagneGold}40)`
+          backgroundColor: `${COLORS.champagneGold}40`
         }}
       />
       <div
@@ -208,7 +208,7 @@ const GoldDivider = () => {
       <div
         className="h-px flex-1 max-w-16"
         style={{
-          background: `linear-gradient(90deg, ${COLORS.champagneGold}40, transparent)`
+          backgroundColor: `${COLORS.champagneGold}40`
         }}
       />
     </div>
@@ -244,7 +244,7 @@ const LuxuryIcon = ({ className, style }: LuxuryIconProps) => (
 // ============================================
 export function ConciergeModal({ isOpen, onClose, onComplete }: ConciergeModalProps) {
   const { colorsB: COLORS } = useAppMode();
-  const marbleTexture = 'linear-gradient(135deg, rgba(255,255,255,0.03) 0%, transparent 50%), linear-gradient(225deg, rgba(201,168,108,0.05) 0%, transparent 50%)';
+  const marbleTexture = 'rgba(255,255,255,0.02)';
   const { t } = useLanguage();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, QuestionOption>>({});

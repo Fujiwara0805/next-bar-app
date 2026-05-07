@@ -603,9 +603,7 @@ function StoreListContent() {
             onClick={() => setShowConcierge(true)}
             className="w-full py-3 px-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all"
             style={{
-              background: isConciergeActive
-                ? `linear-gradient(135deg, ${COLORS.champagneGold} 0%, ${COLORS.antiqueGold} 100%)`
-                : `linear-gradient(135deg, ${COLORS.deepNavy} 0%, ${COLORS.deepNavy} 100%)`,
+              background: isConciergeActive ? COLORS.champagneGold : COLORS.deepNavy,
               color: isConciergeActive ? COLORS.deepNavy : COLORS.champagneGold,
               border: `1px solid ${COLORS.champagneGold}66`,
               boxShadow: `0 4px 15px ${COLORS.champagneGold}40`,
@@ -649,7 +647,7 @@ function StoreListContent() {
                 animate={{ opacity: 1, y: 0 }}
                 className="mb-6 p-4 rounded-xl text-center"
                 style={{
-                  background: `linear-gradient(135deg, ${COLORS.champagneGold}26 0%, ${COLORS.antiqueGold}1A 100%)`,
+                  backgroundColor: `${COLORS.champagneGold}26`,
                   border: `1px solid ${COLORS.champagneGold}4D`,
                 }}
               >
@@ -698,7 +696,7 @@ function StoreListContent() {
                             transition={{ delay: index * 0.1 + 0.2 }}
                             className="absolute top-2 right-2 z-10 px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5"
                             style={{
-                              background: `linear-gradient(135deg, ${COLORS.champagneGold} 0%, ${COLORS.platinum} 50%, ${COLORS.antiqueGold} 100%)`,
+                              background: COLORS.champagneGold,
                               color: COLORS.deepNavy,
                               boxShadow: `0 4px 12px ${COLORS.champagneGold}66`,
                             }}
@@ -961,7 +959,7 @@ function StoreListContent() {
 
 function StoreListLoading() {
   return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(165deg, #0A1628 0%, #162447 50%, #1F4068 100%)' }}>
+    <div className="min-h-screen flex items-center justify-center" style={{ background: '#13294b' }}>
       <div className="text-center">
         <motion.div
           animate={{ rotate: 360 }}

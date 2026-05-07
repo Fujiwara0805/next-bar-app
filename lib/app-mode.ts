@@ -103,19 +103,20 @@ export const BAR_COLORS_A: ColorsShapeA = {
   primary: '#1F57A4',                 // Brewers Blue
   charcoal: '#2D3436',
   warmGray: '#636E72',
-  accent: '#ffc62d',                  // Brewers Yellow
-  accentLight: '#FFD966',             // Light Yellow
-  accentDark: '#C9A86C',              // Dark Gold
+  accent: '#ffc52d',                  // Brewers Yellow (flat)
+  accentLight: '#ffc52d',
+  accentDark: '#ffc52d',
   text: '#FDFBF7',                    // Off-white
   textMuted: 'rgba(253, 251, 247, 0.7)',
   textSubtle: 'rgba(253, 251, 247, 0.5)',
-  luxuryGradient: 'linear-gradient(165deg, #13294b 0%, #1A3562 50%, #1F57A4 100%)',
-  goldGradient: 'linear-gradient(135deg, #ffc62d 0%, #FFD966 50%, #C9A86C 100%)',
-  cardGradient: 'linear-gradient(145deg, #FDFBF7 0%, #F5F1EB 100%)',
-  borderGold: 'rgba(255, 198, 45, 0.3)',
-  borderSubtle: 'rgba(255, 198, 45, 0.15)',
-  shadowGold: '0 8px 30px rgba(255, 198, 45, 0.3)',
-  shadowDeep: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+  // グラデーションは廃止。フラットカラーで統一。
+  luxuryGradient: '#13294b',
+  goldGradient: '#ffc52d',
+  cardGradient: '#FDFBF7',
+  borderGold: 'rgba(255, 197, 45, 0.3)',
+  borderSubtle: 'rgba(255, 197, 45, 0.15)',
+  shadowGold: '0 4px 12px rgba(19, 41, 75, 0.08)',
+  shadowDeep: '0 8px 24px rgba(0, 0, 0, 0.12)',
   error: '#EF4444',
   errorBg: 'rgba(239, 68, 68, 0.15)',
   errorBorder: 'rgba(239, 68, 68, 0.3)',
@@ -125,36 +126,38 @@ export const BAR_COLORS_B: ColorsShapeB = {
   deepNavy: '#13294b',              // Brewers Dark Navy
   midnightBlue: '#1F57A4',          // Brewers Blue
   royalNavy: '#86BFE8',             // Brewers Light Blue
-  champagneGold: '#ffc62d',         // Brewers Yellow
-  paleGold: '#FFD966',              // Light Yellow
-  antiqueGold: '#C9A86C',           // Dark Gold
+  champagneGold: '#ffc52d',         // Brewers Yellow (flat)
+  paleGold: '#ffc52d',
+  antiqueGold: '#ffc52d',
   charcoal: '#2D3436',
   warmGray: '#636E72',
   platinum: '#DFE6E9',
   ivory: '#FDFBF7',
-  luxuryGradient: 'linear-gradient(165deg, #13294b 0%, #1A3562 50%, #1F57A4 100%)',
-  goldGradient: 'linear-gradient(135deg, #ffc62d 0%, #FFD966 50%, #C9A86C 100%)',
-  cardGradient: 'linear-gradient(145deg, #FDFBF7 0%, #F5F1EB 100%)',
+  // グラデーションは廃止。フラットカラーで統一。
+  luxuryGradient: '#13294b',
+  goldGradient: '#ffc52d',
+  cardGradient: '#FDFBF7',
 };
 
 export const BAR_PANEL_DARK: PanelDarkTheme = {
   background: '#13294b',
   surface: '#1F57A4',
-  accent: '#ffc62d',
-  accentLight: '#FFD966',
+  accent: '#ffc52d',
+  accentLight: '#ffc52d',
   text: '#FDFBF7',
   textMuted: 'rgba(253, 251, 247, 0.7)',
   textSubtle: 'rgba(253, 251, 247, 0.5)',
-  borderGold: 'rgba(255, 198, 45, 0.3)',
-  borderSubtle: 'rgba(255, 198, 45, 0.15)',
-  shadowGold: '0 8px 30px rgba(255, 198, 45, 0.3)',
-  goldGradient: 'linear-gradient(135deg, #ffc62d 0%, #FFD966 50%, #C9A86C 100%)',
+  borderGold: 'rgba(255, 197, 45, 0.3)',
+  borderSubtle: 'rgba(255, 197, 45, 0.15)',
+  shadowGold: '0 4px 12px rgba(19, 41, 75, 0.08)',
+  // グラデ廃止: フラットイエロー
+  goldGradient: '#ffc52d',
 };
 
 export const BAR_PANEL_LIGHT: PanelLightTheme = {
   background: '#FFFFFF',
   surface: '#FDFBF7',
-  accent: '#ffc62d',
+  accent: '#ffc52d',
   text: '#13294b',
   textMuted: '#636E72',
   textSubtle: '#9BA4A9',

@@ -115,22 +115,16 @@ export default function RegisterPage() {
     >
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div
-          className="absolute -top-48 -left-48 h-[44rem] w-[44rem] rounded-full"
-          style={{
-            background: `radial-gradient(circle, ${COLORS.champagneGold}1f 0%, transparent 60%)`,
-          }}
+          className="absolute -top-48 -left-48 h-[44rem] w-[44rem] rounded-full opacity-10"
+          style={{ backgroundColor: COLORS.champagneGold }}
         />
         <div
-          className="absolute -bottom-56 -right-40 h-[44rem] w-[44rem] rounded-full"
-          style={{
-            background: `radial-gradient(circle, ${COLORS.royalNavy}26 0%, transparent 60%)`,
-          }}
+          className="absolute -bottom-56 -right-40 h-[44rem] w-[44rem] rounded-full opacity-10"
+          style={{ backgroundColor: COLORS.royalNavy }}
         />
         <div
           className="absolute top-0 left-0 right-0 h-[2px]"
-          style={{
-            background: `linear-gradient(90deg, transparent, ${COLORS.champagneGold}, transparent)`,
-          }}
+          style={{ backgroundColor: COLORS.champagneGold }}
         />
       </div>
       <div className="relative mx-auto flex w-full max-w-2xl px-4 sm:px-6 min-h-[100dvh] items-center justify-center py-10">

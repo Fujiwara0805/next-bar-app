@@ -17,8 +17,9 @@ import {
   Navigation,
   MessageCirclePlus,
   Gauge,
-  CheckCircle2,
-  Flame,
+  User as UserIcon,
+  Users as UsersIcon,
+  UsersRound,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CROWD_STATUSES, type CrowdStatus } from '@/lib/crowd/aggregate';
@@ -35,11 +36,54 @@ import { CrowdVoteModal } from '@/components/store/crowd-vote-modal';
 
 type Store = Database['public']['Tables']['stores']['Row'];
 
-// AI 集計（直近30分の客投票）の status をアイコン化
-function CrowdStatusIcon({ status }: { status: CrowdStatus }) {
-  if (status === 'vacant') return <CheckCircle2 className="w-5 h-5" style={{ color: '#16a34a' }} />;
-  if (status === 'wait') return <Clock className="w-5 h-5" style={{ color: '#f59e0b' }} />;
-  return <Flame className="w-5 h-5" style={{ color: '#dc2626' }} />;
+// 客投票のヒストグラム: 3カテゴリの投票数を縦バーで表示し、最多得票を強調表示
+type CrowdCounts = Partial<Record<CrowdStatus, number>>;
+function CrowdVoteHistogram({
+  counts,
+  leading,
+  textColor,
+}: {
+  counts: CrowdCounts;
+  leading: CrowdStatus | null;
+  textColor: string;
+}) {
+  const items: Array<{ status: CrowdStatus; color: string; Icon: React.ElementType }> = [
+    { status: 'vacant', color: '#16a34a', Icon: UserIcon },
+    { status: 'wait', color: '#f59e0b', Icon: UsersIcon },
+    { status: 'full', color: '#dc2626', Icon: UsersRound },
+  ];
+  const max = Math.max(1, ...items.map((i) => counts[i.status] ?? 0));
+  return (
+    <div className="flex items-end gap-1.5">
+      {items.map(({ status, color, Icon }) => {
+        const c = counts[status] ?? 0;
+        const isLead = leading === status && c > 0;
+        const barHeight = Math.max(6, Math.round((c / max) * 22));
+        return (
+          <div key={status} className="flex flex-col items-center gap-0.5">
+            <Icon
+              className="w-3.5 h-3.5"
+              style={{ color, opacity: isLead ? 1 : 0.45 }}
+            />
+            <div
+              className="w-3 rounded-sm"
+              style={{
+                height: `${barHeight}px`,
+                background: color,
+                opacity: isLead ? 1 : 0.35,
+              }}
+            />
+            <span
+              className="text-[9px] leading-none font-semibold"
+              style={{ color: isLead ? color : textColor, opacity: isLead ? 1 : 0.6 }}
+            >
+              {c}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
 }
 
 interface StoreDetailPanelProps {
@@ -69,6 +113,7 @@ export function StoreDetailPanel({
   const [showReservationModal, setShowReservationModal] = useState(false);
   const [voteModalOpen, setVoteModalOpen] = useState(false);
   const [aiStatus, setAiStatus] = useState<CrowdStatus | null>(null);
+  const [voteCounts, setVoteCounts] = useState<CrowdCounts>({});
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -91,8 +136,11 @@ export function StoreDetailPanel({
         const agg = json?.aggregate;
         if (!agg || (agg.totalReports ?? 0) <= 0) {
           setAiStatus(null);
+          setVoteCounts({});
           return;
         }
+        const counts = (agg.rawCounts ?? {}) as CrowdCounts;
+        setVoteCounts(counts);
         // isValid (3票以上) なら集計のステータスをそのまま採用。
         // 1〜2票の段階でも leading 投票を可視化したいので rawCounts から最多を抽出。
         if (agg.status) {
@@ -100,7 +148,6 @@ export function StoreDetailPanel({
         } else {
           let lead: CrowdStatus | null = null;
           let maxCount = 0;
-          const counts = agg.rawCounts ?? {};
           for (const s of CROWD_STATUSES) {
             const c = counts[s] ?? 0;
             if (c > maxCount) {
@@ -400,7 +447,7 @@ export function StoreDetailPanel({
                 )}
 
                 <div className="flex items-center gap-2 pt-1 flex-wrap">
-                  {/* 店舗側設定の空席アイコン */}
+                  {/* 1) 店舗側設定の空席アイコン */}
                   <img
                     src={getVacancyIcon(effectiveStatus)}
                     alt={getVacancyLabel(effectiveStatus)}
@@ -410,21 +457,30 @@ export function StoreDetailPanel({
                     {getVacancyLabel(effectiveStatus)}
                   </span>
 
-                  {/* AI 集計アイコン（投票が valid な場合のみ）: 空席アイコンの横に縦並びで表示 */}
-                  {aiStatus && effectiveStatus !== 'closed' && (
-                    <div className="flex flex-col items-center ml-1">
-                      <span className="text-[9px] font-medium leading-none mb-0.5" style={{ color: theme.textMuted }}>
-                        {t('store_status.ai_aggregated_label')}
-                      </span>
-                      <CrowdStatusIcon status={aiStatus} />
-                    </div>
-                  )}
-
+                  {/* 2) 残席数 */}
                   {effectiveStatus === 'vacant' && store.vacant_seats != null && store.vacant_seats > 0 && (
                     <span className="text-sm font-bold px-2 py-0.5 rounded-lg bg-success/10 text-success">
                       {t('store_detail.vacant_seats').replace('{count}', String(store.vacant_seats))}
                     </span>
                   )}
+
+                  {/* 3) 空席投票結果ヒストグラム（投票が1件以上ある場合のみ） */}
+                  {aiStatus && effectiveStatus !== 'closed' && (
+                    <div className="flex flex-col items-start ml-1">
+                      <span
+                        className="text-[9px] font-medium leading-none mb-1"
+                        style={{ color: theme.textMuted }}
+                      >
+                        {t('store_status.ai_aggregated_label')}
+                      </span>
+                      <CrowdVoteHistogram
+                        counts={voteCounts}
+                        leading={aiStatus}
+                        textColor={theme.textMuted}
+                      />
+                    </div>
+                  )}
+
                   {effectiveStatus === 'closed' && (() => {
                     const sbh = store.structured_business_hours as BusinessHours | null;
                     if (isTodayClosedDay(sbh)) {

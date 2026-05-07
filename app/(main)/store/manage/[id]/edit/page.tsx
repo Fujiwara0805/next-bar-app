@@ -93,18 +93,12 @@ const GoldDivider = () => {
   const { colorsB: COLORS } = useAppMode();
   return (
   <div className="flex items-center justify-center gap-3 my-6">
-    <div 
-      className="h-px flex-1"
-      style={{ background: `linear-gradient(90deg, transparent, ${COLORS.champagneGold}40)` }}
-    />
-    <div 
+    <div className="h-px flex-1" style={{ backgroundColor: `${COLORS.champagneGold}40` }} />
+    <div
       className="w-1.5 h-1.5 rotate-45"
       style={{ backgroundColor: COLORS.champagneGold }}
     />
-    <div 
-      className="h-px flex-1"
-      style={{ background: `linear-gradient(90deg, ${COLORS.champagneGold}40, transparent)` }}
-    />
+    <div className="h-px flex-1" style={{ backgroundColor: `${COLORS.champagneGold}40` }} />
   </div>
   );
 };
@@ -569,7 +563,7 @@ export default function StoreEditPage() {
         const fileExt = file.name.split('.').pop();
         const fileName = `${params.id}/${Date.now()}_${i}.${fileExt}`;
 
-        const { data, error } = await supabase.storage
+        const { error } = await supabase.storage
           .from('store-images')
           .upload(fileName, file, {
             cacheControl: '3600',

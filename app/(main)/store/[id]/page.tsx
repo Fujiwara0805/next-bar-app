@@ -170,18 +170,9 @@ const GOLD = '#C9A86C';
 const STORE_LINK_NAVY = '#13294b';
 const GoldDivider = () => (
   <div className="flex items-center justify-center gap-3 my-4">
-    <div
-      className="h-px flex-1 max-w-12"
-      style={{ background: `linear-gradient(90deg, transparent, ${GOLD}30)` }}
-    />
-    <div
-      className="w-1 h-1 rotate-45"
-      style={{ backgroundColor: GOLD }}
-    />
-    <div
-      className="h-px flex-1 max-w-12"
-      style={{ background: `linear-gradient(90deg, ${GOLD}30, transparent)` }}
-    />
+    <div className="h-px flex-1 max-w-12" style={{ backgroundColor: `${GOLD}30` }} />
+    <div className="w-1 h-1 rotate-45" style={{ backgroundColor: GOLD }} />
+    <div className="h-px flex-1 max-w-12" style={{ backgroundColor: `${GOLD}30` }} />
   </div>
 );
 

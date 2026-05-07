@@ -286,7 +286,7 @@ export function BusinessHoursModal({
           disabled={disabled}
           className="flex-1 rounded-xl text-white"
           style={{
-            background: `linear-gradient(135deg, ${COLORS.champagneGold}, #B8956E)`,
+            backgroundColor: COLORS.champagneGold,
           }}
         >
           保存

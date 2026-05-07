@@ -60,7 +60,10 @@ async function authorize(
   if (!store) {
     return { error: NextResponse.json({ error: 'store_not_found' }, { status: 404 }) };
   }
-  if (store.owner_id !== user.id) {
+  // 認可: 1) 運営オーナー  2) admin ロール  3) 店舗アカウント本体 (auth.id === stores.id)
+  const isOwner = store.owner_id === user.id;
+  const isStoreSelf = store.id === user.id;
+  if (!isOwner && !isStoreSelf) {
     const { data: me } = await admin
       .from('users')
       .select('role')

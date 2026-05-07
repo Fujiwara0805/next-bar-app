@@ -32,9 +32,21 @@ export async function subscribeToPush(storeId: string): Promise<boolean> {
 
     const subJson = subscription.toJSON();
 
+    // Supabase セッションの access_token を Bearer で渡す（サーバ側で店舗本体/オーナー認証）
+    const { supabase } = await import('@/lib/supabase/client');
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData.session?.access_token;
+    if (!token) {
+      console.warn('Push subscribe: no session token');
+      return false;
+    }
+
     const response = await fetch('/api/push/subscribe', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
       body: JSON.stringify({
         storeId,
         endpoint: subJson.endpoint,

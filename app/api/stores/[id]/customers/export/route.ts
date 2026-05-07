@@ -76,8 +76,10 @@ export async function GET(
     return NextResponse.json({ error: 'store_not_found' }, { status: 404 });
   }
 
+  // 認可: 1) 運営オーナー  2) admin ロール  3) 店舗アカウント本体 (auth.id === stores.id)
   const isOwner = store.owner_id === operator.id;
-  if (!isOwner) {
+  const isStoreSelf = store.id === operator.id;
+  if (!isOwner && !isStoreSelf) {
     const { data: operatorRow } = await admin
       .from('users')
       .select('role')

@@ -247,7 +247,7 @@ export function ImageLightbox({
             transition={{ delay: 0.1 }}
             className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between p-4 safe-top"
             style={{
-              background: 'linear-gradient(to bottom, rgba(10, 22, 40, 0.9), transparent)',
+              backgroundColor: 'rgba(10, 22, 40, 0.7)',
             }}
           >
             {/* 画像カウンター */}

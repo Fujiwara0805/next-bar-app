@@ -528,7 +528,7 @@ export function SponsorReportsTab({ sponsorId }: Props) {
                         className="h-full rounded-full transition-all duration-500"
                         style={{
                           width: `${(slot.impressions / maxImp) * 100}%`,
-                          background: `linear-gradient(90deg, ${C.info}, ${C.accent})`,
+                          backgroundColor: C.accent,
                         }}
                       />
                     </div>

@@ -71,7 +71,7 @@ const GoldDivider = ({ className = '' }: { className?: string }) => {
     <div className={`flex items-center justify-center gap-3 my-6 ${className}`}>
       <div
         className="h-px flex-1 max-w-16"
-        style={{ background: `linear-gradient(90deg, transparent, ${colors.accent}40)` }}
+        style={{ backgroundColor: `${colors.accent}40` }}
       />
       <div
         className="w-1.5 h-1.5 rotate-45"
@@ -79,7 +79,7 @@ const GoldDivider = ({ className = '' }: { className?: string }) => {
       />
       <div
         className="h-px flex-1 max-w-16"
-        style={{ background: `linear-gradient(90deg, ${colors.accent}40, transparent)` }}
+        style={{ backgroundColor: `${colors.accent}40` }}
       />
     </div>
   );
@@ -261,7 +261,7 @@ export default function AdLandingPage() {
         <motion.div 
           className="absolute w-[700px] h-[700px] rounded-full" 
           style={{ 
-            background: `radial-gradient(circle, ${colors.accent}10 0%, transparent 60%)`, 
+            backgroundColor: `${colors.accent}10`, 
             top: '-250px', 
             right: '-250px', 
             filter: 'blur(80px)' 
@@ -272,7 +272,7 @@ export default function AdLandingPage() {
         <motion.div 
           className="absolute w-[500px] h-[500px] rounded-full" 
           style={{ 
-            background: `radial-gradient(circle, ${colors.surfaceLight}20 0%, transparent 60%)`, 
+            backgroundColor: `${colors.surfaceLight}20`, 
             bottom: '10%', 
             left: '-150px', 
             filter: 'blur(60px)' 
@@ -301,13 +301,13 @@ export default function AdLandingPage() {
           <div 
             className="absolute inset-0" 
             style={{ 
-              background: `radial-gradient(ellipse at 50% 40%, rgba(253,251,247,0.12) 0%, transparent 50%), radial-gradient(ellipse at center bottom, ${colors.background}EE 0%, ${colors.background} 70%)` 
+              backgroundColor: colors.background 
             }} 
           />
           <div 
             className="absolute inset-0" 
             style={{ 
-              background: `linear-gradient(to bottom, ${colors.background}40 0%, ${colors.background}90 50%, ${colors.background} 100%)` 
+              backgroundColor: `${colors.background}90` 
             }} 
           />
         </motion.div>
@@ -351,7 +351,7 @@ export default function AdLandingPage() {
                   animate={{ opacity: [0.3, 0.6, 0.3] }} 
                   transition={{ duration: 4, repeat: Infinity }} 
                   style={{ 
-                    background: `radial-gradient(circle, ${colors.accent}40 0%, transparent 70%)`, 
+                    backgroundColor: `${colors.accent}40`, 
                     filter: 'blur(40px)' 
                   }} 
                 />
@@ -468,7 +468,7 @@ export default function AdLandingPage() {
         {/* セクション下部のゴールドライン */}
         <motion.div 
           className="absolute bottom-0 left-0 right-0 h-px" 
-          style={{ background: `linear-gradient(90deg, transparent, ${colors.accent}60, transparent)` }} 
+          style={{ backgroundColor: `${colors.accent}60` }} 
           initial={{ scaleX: 0 }} 
           whileInView={{ scaleX: 1 }} 
           viewport={{ once: true }} 
@@ -610,7 +610,7 @@ export default function AdLandingPage() {
 
         <motion.div 
           className="absolute bottom-0 left-0 right-0 h-px" 
-          style={{ background: `linear-gradient(90deg, transparent, ${colors.accent}40, transparent)` }} 
+          style={{ backgroundColor: `${colors.accent}40` }} 
         />
       </section>
 
@@ -658,7 +658,7 @@ export default function AdLandingPage() {
                     <motion.div 
                       className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" 
                       style={{ 
-                        background: `radial-gradient(circle at top right, ${colors.accent}12 0%, transparent 70%)` 
+                        backgroundColor: `${colors.accent}12` 
                       }} 
                     />
                     <div className="relative z-10 pr-14 sm:pr-16">
@@ -779,7 +779,7 @@ export default function AdLandingPage() {
 
         <motion.div 
           className="absolute bottom-0 left-0 right-0 h-px" 
-          style={{ background: `linear-gradient(90deg, transparent, ${colors.accent}40, transparent)` }} 
+          style={{ backgroundColor: `${colors.accent}40` }} 
         />
       </section>
 
@@ -788,7 +788,7 @@ export default function AdLandingPage() {
       ======================================== */}
       <section 
         className="relative py-16 sm:py-20 md:py-32 px-4 overflow-hidden"
-        style={{ background: `linear-gradient(180deg, ${colors.surface} 0%, ${colors.background} 100%)` }}
+        style={{ backgroundColor: colors.surface }}
       >
         <div className="container mx-auto max-w-4xl">
           <SectionTitle 
@@ -808,7 +808,7 @@ export default function AdLandingPage() {
                 <div 
                   className="p-6 sm:p-8 h-full"
                   style={{ 
-                    background: `linear-gradient(135deg, rgba(201, 168, 108, 0.15) 0%, rgba(232, 213, 183, 0.1) 100%)`,
+                    backgroundColor: 'rgba(255, 197, 45, 0.12)',
                     border: `2px solid ${colors.accent}`,
                     borderRadius: '1rem',
                   }}
@@ -986,7 +986,7 @@ export default function AdLandingPage() {
         <div 
           className="absolute inset-0 z-0" 
           style={{ 
-            background: `radial-gradient(ellipse at center, ${colors.accent}15 0%, transparent 50%)` 
+            backgroundColor: `${colors.accent}15` 
           }} 
         />
         <div 
@@ -1096,7 +1096,7 @@ export default function AdLandingPage() {
           
           <div 
             className="h-px my-6 sm:my-8"
-            style={{ background: `linear-gradient(90deg, transparent, ${colors.accent}30, transparent)` }}
+            style={{ backgroundColor: `${colors.accent}30` }}
           />
           
           <div className="text-center">
@@ -1155,7 +1155,7 @@ export default function AdLandingPage() {
         <div 
           className="p-4"
           style={{ 
-            background: `linear-gradient(to top, ${colors.background} 0%, ${colors.background}E6 50%, transparent 100%)`,
+            backgroundColor: colors.background,
           }}
         >
           <motion.a
