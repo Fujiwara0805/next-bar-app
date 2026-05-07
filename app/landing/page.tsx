@@ -9,7 +9,6 @@ import {
   X,
   FileText,
   Shield,
-  ShieldCheck,
   HelpCircle,
   Globe,
   Radio,
@@ -26,8 +25,6 @@ import {
   Scale,
   LogIn,
   Loader2,
-  Camera,
-  Armchair,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -957,16 +954,35 @@ export default function LandingPage() {
           </motion.div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
-              { num: 1, Icon: Camera },      // 雰囲気がわかる: 画像で店舗を確認
-              { num: 2, Icon: Armchair },    // 空席がわかる: リアルタイム座席状況
-              { num: 3, Icon: ShieldCheck }, // 安心できる: 料金・客層情報の透明性
-            ].map(({ num, Icon }, index) => (
+              // 雰囲気がわかる / 空席がわかる / 安心できる の3アイコンを Cloudinary 画像化（`f_auto,q_auto` 最適化）。
+              {
+                num: 1,
+                imgSrc:
+                  'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1778062912/ChatGPT_Image_2026%E5%B9%B45%E6%9C%886%E6%97%A5_18_30_59_bww8dp.png',
+              },
+              {
+                num: 2,
+                imgSrc:
+                  'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1778062912/ChatGPT_Image_2026%E5%B9%B45%E6%9C%886%E6%97%A5_18_34_45_erfmyp.png',
+              },
+              {
+                num: 3,
+                imgSrc:
+                  'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1778062911/ChatGPT_Image_2026%E5%B9%B45%E6%9C%886%E6%97%A5_18_40_04_d7a9hj.png',
+              },
+            ].map(({ num, imgSrc }, index) => (
                 <motion.div key={index} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.15 }}>
                   <Card className="h-full p-8 group cursor-pointer transition-all duration-500 hover:translate-y-[-4px] relative overflow-hidden text-center" style={{ background: lpMid.elevated.bg, backdropFilter: 'blur(10px)', border: `1px solid ${lpMid.elevated.border}`, boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
                     <motion.div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ background: `radial-gradient(circle at center, ${LP_YELLOW}10 0%, transparent 70%)` }} />
                     <div className="relative z-10 flex flex-col items-center">
-                      <motion.div className="w-16 h-16 rounded-xl flex items-center justify-center mb-6 mx-auto" style={{ background: `${LP_YELLOW}15`, border: `1px solid ${LP_YELLOW}25` }} whileHover={{ scale: 1.05 }}>
-                        <Icon className="w-7 h-7" style={{ color: LP_YELLOW }} />
+                      <motion.div className="w-16 h-16 rounded-xl flex items-center justify-center mb-6 mx-auto overflow-hidden" style={{ background: `${LP_YELLOW}15`, border: `1px solid ${LP_YELLOW}25` }} whileHover={{ scale: 1.05 }}>
+                        <img
+                          src={imgSrc}
+                          alt={t(`landing.solution_feature${num}_title`)}
+                          loading="lazy"
+                          decoding="async"
+                          className="w-full h-full object-contain"
+                        />
                       </motion.div>
                       <h3 className="text-xl font-bold mb-2 lg:text-3xl" style={{ color: lpMid.elevated.text }}>{t(`landing.solution_feature${num}_title`)}</h3>
                       <p className="text-xs uppercase tracking-wider mb-4 font-medium lg:text-base" style={{ color: lpMid.subtitleOnElevated }}>{t(`landing.solution_feature${num}_title_en`)}</p>
