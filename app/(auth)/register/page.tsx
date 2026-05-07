@@ -161,9 +161,6 @@ export default function RegisterPage() {
                 <h1 className="text-2xl font-bold tracking-tight" style={{ color: COLORS.deepNavy }}>
                   {t('auth.customer_signup_title')}
                 </h1>
-                <p className="text-sm mt-2 leading-relaxed" style={{ color: COLORS.warmGray }}>
-                  {t('auth.customer_signup_subtitle')}
-                </p>
               </div>
 
               {errorMessage && (

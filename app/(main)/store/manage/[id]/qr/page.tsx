@@ -20,6 +20,13 @@ import {
   Info,
   Sparkles,
   ImageDown,
+  ScanLine,
+  X,
+  AlertCircle,
+  CheckCircle2,
+  User,
+  Ticket,
+  Clock,
 } from 'lucide-react';
 import QRCode from 'qrcode';
 import { toast } from 'sonner';
@@ -31,6 +38,7 @@ import { CloseCircleButton } from '@/components/ui/close-circle-button';
 import { LoadingScreen } from '@/components/ui/loading-screen';
 
 const POSTER_VERSION = '1';
+const SCANNER_REGION_ID = 'store-qr-customer-scanner-region';
 
 const BG_OFFWHITE = '#F7F3E9';
 const NAVY = '#13294b';
@@ -40,6 +48,23 @@ const GOLD_GRADIENT =
   '#ffc52d';
 const NAVY_GRADIENT =
   '#13294b';
+
+type ScannerState = 'idle' | 'starting' | 'scanning' | 'paused' | 'error';
+
+type CheckInResult = {
+  storeId: string;
+  storeName: string;
+  userId: string;
+  userDisplayName: string;
+  isNewStamp: boolean;
+  windowStoreCount: number;
+  lotteryThreshold: number;
+  lotteryMax: number;
+  canEnterLottery: boolean;
+  hasLotteryEntry: boolean;
+  visitDate: string;
+  windowHours: number;
+};
 
 function resolveSiteUrl(): string {
   const env =
@@ -120,7 +145,14 @@ export default function StoreQrPage() {
   const [generating, setGenerating] = useState(true);
   const [downloading, setDownloading] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
+  const [scannerOpen, setScannerOpen] = useState(false);
+  const [scannerState, setScannerState] = useState<ScannerState>('idle');
+  const [scannerError, setScannerError] = useState<string>('');
+  const [scanResult, setScanResult] = useState<CheckInResult | null>(null);
+  const [scanResultError, setScanResultError] = useState<string | null>(null);
   const printRef = useRef<HTMLDivElement>(null);
+  const scannerRef = useRef<any>(null);
+  const scannerLockRef = useRef(false);
 
   // ページ背景を顧客QRと揃える
   useEffect(() => {
@@ -237,6 +269,153 @@ export default function StoreQrPage() {
       toast.error(t('store_qr.png_save_failed'));
     }
   }, [qrDataUrl, storeId, t]);
+
+  const stopScanner = useCallback(async () => {
+    const scanner = scannerRef.current;
+    if (!scanner) return;
+    try {
+      if (scanner.getState && scanner.getState() === 2) {
+        await scanner.stop();
+      }
+      await scanner.clear();
+    } catch {
+      // ignore teardown errors
+    }
+    scannerRef.current = null;
+  }, []);
+
+  const closeScanner = useCallback(async () => {
+    await stopScanner();
+    scannerLockRef.current = false;
+    setScannerOpen(false);
+    setScannerState('idle');
+    setScannerError('');
+    setScanResult(null);
+    setScanResultError(null);
+  }, [stopScanner]);
+
+  const submitCheckIn = useCallback(
+    async (payload: { u: string; t: number; s: string }) => {
+      try {
+        const { data: sessionData } = await supabase.auth.getSession();
+        const token = sessionData.session?.access_token;
+        if (!token) {
+          setScanResultError(t('storeScan.error.unauthorized'));
+          return;
+        }
+        const res = await fetch(`/api/stores/${storeId}/check-in-scan`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(payload),
+        });
+        const json = await res.json();
+        if (!res.ok) {
+          const key = `storeScan.error.${json?.error ?? 'unknown'}`;
+          const translated = t(key);
+          setScanResultError(
+            translated === key ? t('storeScan.error.unknown') : translated
+          );
+          return;
+        }
+        setScanResult(json as CheckInResult);
+      } catch (err) {
+        console.error('[store/qr] scan submit error', err);
+        setScanResultError(t('storeScan.error.unknown'));
+      }
+    },
+    [storeId, t]
+  );
+
+  const handleDecodedText = useCallback(
+    (decoded: string) => {
+      if (scannerLockRef.current) return;
+      try {
+        const url = new URL(decoded, window.location.origin);
+        if (!url.pathname.replace(/\/$/, '').endsWith('/c')) {
+          setScannerError(t('storeScan.invalid_qr'));
+          return;
+        }
+        const u = url.searchParams.get('u');
+        const tParam = url.searchParams.get('t');
+        const s = url.searchParams.get('s');
+        if (!u || !tParam || !s || !/^\d+$/.test(tParam)) {
+          setScannerError(t('storeScan.invalid_qr'));
+          return;
+        }
+        scannerLockRef.current = true;
+        setScannerState('paused');
+        setScannerError('');
+        stopScanner();
+        submitCheckIn({ u, t: Number(tParam), s });
+      } catch {
+        setScannerError(t('storeScan.invalid_qr'));
+      }
+    },
+    [stopScanner, submitCheckIn, t]
+  );
+
+  const startScanner = useCallback(async () => {
+    if (scannerRef.current) return;
+    setScannerState('starting');
+    setScannerError('');
+    try {
+      const mod = await import('html5-qrcode');
+      const Html5Qrcode = mod.Html5Qrcode;
+      const scanner = new Html5Qrcode(SCANNER_REGION_ID);
+      scannerRef.current = scanner;
+      const config = {
+        fps: 10,
+        qrbox: { width: 240, height: 240 },
+        aspectRatio: 1.0,
+      };
+      try {
+        await scanner.start(
+          { facingMode: { exact: 'environment' } } as MediaTrackConstraints,
+          config,
+          handleDecodedText,
+          () => {}
+        );
+      } catch {
+        await scanner.start(
+          { facingMode: 'environment' },
+          config,
+          handleDecodedText,
+          () => {}
+        );
+      }
+      setScannerState('scanning');
+    } catch (err) {
+      console.error('[store/qr] scanner start error', err);
+      setScannerState('error');
+      setScannerError(t('storeScan.camera_error'));
+    }
+  }, [handleDecodedText, t]);
+
+  const handleScannerRetry = useCallback(async () => {
+    await stopScanner();
+    scannerLockRef.current = false;
+    setScannerState('idle');
+    setScannerError('');
+    setScanResult(null);
+    setScanResultError(null);
+    startScanner();
+  }, [startScanner, stopScanner]);
+
+  useEffect(() => {
+    if (!scannerOpen) return;
+    scannerLockRef.current = false;
+    setScannerState('idle');
+    setScannerError('');
+    setScanResult(null);
+    setScanResultError(null);
+    startScanner();
+    return () => {
+      stopScanner();
+    };
+  }, [scannerOpen, startScanner, stopScanner]);
 
   const handleDownloadPdf = useCallback(async () => {
     if (!qrDataUrl) return;
@@ -484,6 +663,17 @@ export default function StoreQrPage() {
               {t('store_qr.save_png')}
             </Button>
           </div>
+          <div className="mb-5 print:hidden">
+            <Button
+              onClick={() => setScannerOpen(true)}
+              size="lg"
+              className="rounded-xl font-bold w-full"
+              style={{ background: GOLD_GRADIENT, color: NAVY }}
+            >
+              <ScanLine className="w-4 h-4 mr-2" />
+              {t('store_qr.scan_customer_qr')}
+            </Button>
+          </div>
 
           {/* 使い方ガイド */}
           <div
@@ -548,6 +738,224 @@ export default function StoreQrPage() {
           }
         }
       `}</style>
+
+      {scannerOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center print:hidden"
+          style={{ background: 'rgba(10, 10, 10, 0.92)' }}
+        >
+          <div className="w-full max-w-md mx-auto px-4">
+            <div className="flex items-center justify-between mb-4 px-1">
+              <h3 className="text-base font-semibold text-white">
+                {t('storeScan.title')}
+              </h3>
+              <button
+                type="button"
+                onClick={closeScanner}
+                className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center"
+                aria-label={t('common.close')}
+              >
+                <X className="w-5 h-5 text-white" />
+              </button>
+            </div>
+
+            {!scanResult && !scanResultError && (
+              <>
+                <div
+                  className="aspect-square w-full rounded-2xl overflow-hidden relative"
+                  style={{ background: '#0a0a0a' }}
+                >
+                  <div id={SCANNER_REGION_ID} className="w-full h-full" />
+
+                  {scannerState === 'scanning' && (
+                    <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                      <div className="relative w-60 h-60">
+                        <div
+                          className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 rounded-tl-lg"
+                          style={{ borderColor: BRASS }}
+                        />
+                        <div
+                          className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 rounded-tr-lg"
+                          style={{ borderColor: BRASS }}
+                        />
+                        <div
+                          className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 rounded-bl-lg"
+                          style={{ borderColor: BRASS }}
+                        />
+                        <div
+                          className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 rounded-br-lg"
+                          style={{ borderColor: BRASS }}
+                        />
+                        <motion.div
+                          className="absolute left-0 right-0 h-[2px]"
+                          style={{ background: BRASS }}
+                          animate={{ top: ['5%', '95%', '5%'] }}
+                          transition={{ duration: 2.4, repeat: Infinity, ease: 'linear' }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {scannerState === 'starting' && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/70">
+                      <Loader2 className="w-10 h-10 mb-3 animate-spin text-white/70" />
+                      <p className="text-sm text-white/80">
+                        {t('storeScan.starting')}
+                      </p>
+                    </div>
+                  )}
+
+                  {scannerState === 'error' && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 p-6 text-center">
+                      <AlertCircle className="w-10 h-10 mb-3 text-destructive" />
+                      <p className="text-sm text-white/80 mb-4">
+                        {scannerError || t('storeScan.camera_error')}
+                      </p>
+                      <Button size="sm" variant="secondary" onClick={handleScannerRetry}>
+                        {t('storeScan.retry')}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+
+                {scannerState === 'scanning' && (
+                  <div className="mt-4 flex items-center justify-center gap-2 text-sm text-white/80">
+                    <ScanLine className="w-4 h-4" />
+                    <span>{t('storeScan.point_to_qr')}</span>
+                  </div>
+                )}
+
+                {scannerError && scannerState === 'scanning' && (
+                  <div className="mt-3 flex items-start gap-2 text-xs bg-red-500/15 border border-red-500/40 rounded-lg p-3 text-white/90">
+                    <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                    <span>{scannerError}</span>
+                  </div>
+                )}
+              </>
+            )}
+
+            {scanResult && (
+              <div className="rounded-2xl bg-white p-6 shadow-lg">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center bg-green-500/10">
+                  <CheckCircle2 className="w-8 h-8 text-green-600" />
+                </div>
+                <h2 className="text-xl font-bold text-center mb-1" style={{ color: NAVY }}>
+                  {scanResult.isNewStamp
+                    ? t('storeScan.new_stamp')
+                    : t('storeScan.already_stamped')}
+                </h2>
+                <p className="text-xs text-center mb-4" style={{ color: 'rgba(19, 41, 75, 0.6)' }}>
+                  {scanResult.storeName}
+                </p>
+
+                <div className="rounded-xl p-4 mb-4 flex items-center gap-3 bg-black/[0.03]">
+                  <User className="w-5 h-5" style={{ color: COPPER }} />
+                  <div>
+                    <div className="text-xs font-medium" style={{ color: 'rgba(19, 41, 75, 0.6)' }}>
+                      {t('storeScan.customer_label')}
+                    </div>
+                    <div className="text-base font-bold" style={{ color: NAVY }}>
+                      {scanResult.userDisplayName}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 mb-5">
+                  <div className="rounded-xl p-3 bg-black/[0.03]">
+                    <div className="text-xs mb-1" style={{ color: 'rgba(19, 41, 75, 0.6)' }}>
+                      {t('storeScan.progress_label')}
+                    </div>
+                    <div className="text-2xl font-bold" style={{ color: NAVY }}>
+                      {scanResult.windowStoreCount}
+                      <span className="text-sm ml-1" style={{ color: 'rgba(19, 41, 75, 0.6)' }}>
+                        / {scanResult.lotteryThreshold}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="rounded-xl p-3 flex items-center bg-black/[0.03]">
+                    <div className="flex items-start gap-2">
+                      {scanResult.hasLotteryEntry ? (
+                        <Ticket className="w-5 h-5 mt-0.5 text-green-600" />
+                      ) : scanResult.canEnterLottery ? (
+                        <Ticket className="w-5 h-5 mt-0.5" style={{ color: COPPER }} />
+                      ) : (
+                        <Clock className="w-5 h-5 mt-0.5" style={{ color: 'rgba(19, 41, 75, 0.55)' }} />
+                      )}
+                      <div className="text-xs font-semibold leading-tight" style={{ color: NAVY }}>
+                        {scanResult.hasLotteryEntry
+                          ? t('storeScan.lottery_entered')
+                          : scanResult.canEnterLottery
+                          ? t('storeScan.lottery_ready')
+                          : t('storeScan.more_stores').replace(
+                              '{n}',
+                              String(
+                                Math.max(
+                                  0,
+                                  scanResult.lotteryThreshold - scanResult.windowStoreCount
+                                )
+                              )
+                            )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <Button
+                    onClick={handleScannerRetry}
+                    size="lg"
+                    className="flex-1 rounded-xl font-bold"
+                    style={{ background: GOLD_GRADIENT, color: NAVY }}
+                  >
+                    <ScanLine className="w-4 h-4 mr-2" />
+                    {t('storeScan.scan_next')}
+                  </Button>
+                  <Button
+                    onClick={closeScanner}
+                    size="lg"
+                    variant="outline"
+                    className="rounded-xl font-bold"
+                  >
+                    {t('storeScan.done')}
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {!scanResult && scanResultError && (
+              <div className="rounded-2xl bg-white p-6 shadow-lg">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center bg-destructive/10">
+                  <AlertCircle className="w-8 h-8 text-destructive" />
+                </div>
+                <h2 className="text-lg font-bold text-center mb-2" style={{ color: NAVY }}>
+                  {t('storeScan.error_title')}
+                </h2>
+                <p className="text-sm text-center mb-5" style={{ color: 'rgba(19, 41, 75, 0.65)' }}>
+                  {scanResultError}
+                </p>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={handleScannerRetry}
+                    size="lg"
+                    className="flex-1 rounded-xl font-bold"
+                    style={{ background: GOLD_GRADIENT, color: NAVY }}
+                  >
+                    {t('storeScan.retry')}
+                  </Button>
+                  <Button
+                    onClick={closeScanner}
+                    size="lg"
+                    variant="outline"
+                    className="rounded-xl font-bold"
+                  >
+                    {t('storeScan.done')}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

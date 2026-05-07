@@ -18,7 +18,6 @@ import {
   MessageCircle,
   LogOut,
   Key,
-  Info,
   Edit,
   Trash2,
   User,
@@ -37,8 +36,6 @@ import {
   Megaphone,
   QrCode,
   Camera,
-  ChevronDown,
-  ChevronUp,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CloseCircleButton } from '@/components/ui/close-circle-button';
@@ -181,7 +178,6 @@ export default function StoreUpdatePage() {
   
   // 臨時休業中かどうかを表示するためのstate
   const [isManualClosed, setIsManualClosed] = useState(false);
-  const [closedNoteOpen, setClosedNoteOpen] = useState(false);
 
   const fetchStore = useCallback(async () => {
     // 認証情報が揃っていない場合は早期リターン
@@ -845,53 +841,6 @@ export default function StoreUpdatePage() {
                     })}
                   </RadioGroup>
 
-                  {/* 閉店選択時の注意書き（トグル） */}
-                  {vacancyStatus === 'closed' && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      className="mt-4 rounded-xl overflow-hidden"
-                      style={{
-                        backgroundColor: 'rgba(201, 168, 108, 0.08)',
-                        border: `1px solid rgba(201, 168, 108, 0.2)`,
-                      }}
-                    >
-                      <button
-                        type="button"
-                        onClick={() => setClosedNoteOpen((prev) => !prev)}
-                        className="w-full flex items-center justify-between p-4 text-left transition-colors hover:bg-[rgba(201,168,108,0.04)]"
-                        aria-expanded={closedNoteOpen}
-                      >
-                        <div className="flex items-center gap-2">
-                          <Info className="w-5 h-5 flex-shrink-0" style={{ color: COLORS.champagneGold }} />
-                          <span className="text-sm font-bold" style={{ color: COLORS.deepNavy }}>
-                            閉店について
-                          </span>
-                        </div>
-                        {closedNoteOpen ? (
-                          <ChevronUp className="w-4 h-4" style={{ color: COLORS.warmGray }} />
-                        ) : (
-                          <ChevronDown className="w-4 h-4" style={{ color: COLORS.warmGray }} />
-                        )}
-                      </button>
-                      {closedNoteOpen && (
-                        <motion.div
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: 'auto' }}
-                          exit={{ opacity: 0, height: 0 }}
-                          className="px-4 pb-4"
-                        >
-                          <ul
-                            className="text-sm list-disc list-inside space-y-1 pl-7"
-                            style={{ color: COLORS.charcoal }}
-                          >
-                            <li>12時間後に自動的に解除されます</li>
-                            <li>営業を再開するには、他のステータスを選択してください</li>
-                          </ul>
-                        </motion.div>
-                      )}
-                    </motion.div>
-                  )}
                 </Card>
 
                 {/* 空席数入力（空席ありの場合のみ表示） */}
