@@ -845,7 +845,7 @@ export const translations = {
       voice1_author: 'Y.Kさん',
       voice1_role: '20代・会社員',
       voice1_illustration: 'https://loosedrawing.com/assets/media/illustrations/png/792.png',
-      voice2_text: '一人の時、同性やカップルでお店を探している時に、入店する前にお店の雰囲気をアプリから確認できることが良い点です。雰囲気がわかるので、初めてのお店でも安心して選べます。',
+      voice2_text: '一人の時や友達、カップルでお店を探している時に、入店する前にお店の雰囲気をアプリから確認できることが良い点です。雰囲気がわかるので、初めてのお店でも安心して選べます。',
       voice2_author: 'M.Sさん',
       voice2_role: '30代・カップル',
       voice2_illustration: 'https://loosedrawing.com/assets/media/illustrations/png/903.png',
@@ -1059,9 +1059,9 @@ export const translations = {
         ].join(', '),
       },
       landing: {
-        title: '一次会のあとは NIKENME+｜加盟店の空席をリアルタイム表示｜公式',
+        title: '一次会前後のお店探しはにけんめぷらす｜加盟店の空席をリアルタイム表示｜公式',
         description: '加盟店のバー・スナック・居酒屋・ダイニングの空席状況をリアルタイムで地図に表示する公式マップサービス。二軒目・はしご酒・デート・一人飲み・女子会・出張・観光に最適。大分・福岡を起点に全国へ拡大中。ログイン不要・完全無料。NIKENME+(にけんめぷらす)。',
-        og_title: '一次会のあとは NIKENME+｜空席リアルタイム飲食店マップ',
+        og_title: '一次会前後のお店探しはにけんめぷらす｜空席リアルタイム飲食店マップ',
         og_description: '加盟店のバー・スナック・居酒屋の空席を地図で即チェック。二軒目・デート・一人飲み・出張に。ログイン不要・完全無料。',
       },
       map: {

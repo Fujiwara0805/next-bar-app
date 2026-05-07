@@ -15,7 +15,7 @@ import { useAppMode } from '@/lib/app-mode-context';
 import { toast } from 'sonner';
 
 const LOGO_URL =
-  'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761355092/%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png';
+  'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1777620739/a7ec37de-d4b1-46ff-8639-f2d49f567279_kym3yo.png';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -144,7 +144,7 @@ export default function RegisterPage() {
               <img
                 src={LOGO_URL}
                 alt="NIKENME+"
-                className="w-24 h-24 sm:w-28 sm:h-28 object-contain"
+                className="w-28 h-28 sm:w-32 sm:h-32 object-contain"
               />
               <p
                 className="mt-3 text-lg sm:text-xl font-bold tracking-tight text-center"

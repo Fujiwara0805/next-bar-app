@@ -975,7 +975,11 @@ export default function LandingPage() {
                   <Card className="h-full p-8 group cursor-pointer transition-all duration-500 hover:translate-y-[-4px] relative overflow-hidden text-center" style={{ background: lpMid.elevated.bg, backdropFilter: 'blur(10px)', border: `1px solid ${lpMid.elevated.border}`, boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
                     <motion.div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ backgroundColor: `${LP_YELLOW}10` }} />
                     <div className="relative z-10 flex flex-col items-center">
-                      <motion.div className="w-16 h-16 rounded-xl flex items-center justify-center mb-6 mx-auto overflow-hidden" style={{ background: `${LP_YELLOW}15`, border: `1px solid ${LP_YELLOW}25` }} whileHover={{ scale: 1.05 }}>
+                      <motion.div
+                        className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl flex items-center justify-center mb-6 mx-auto overflow-hidden"
+                        style={{ background: `${LP_YELLOW}15`, border: `1px solid ${LP_YELLOW}25` }}
+                        whileHover={{ scale: 1.05 }}
+                      >
                         <img
                           src={imgSrc}
                           alt={t(`landing.solution_feature${num}_title`)}

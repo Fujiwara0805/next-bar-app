@@ -346,7 +346,7 @@ export function LoginForm() {
               <img
                 src={LOGO_URL}
                 alt="NIKENME+"
-                className="w-24 h-24 sm:w-28 sm:h-28 object-contain"
+                className="w-28 h-28 sm:w-32 sm:h-32 object-contain"
               />
               <p
                 className="mt-3 text-lg sm:text-xl font-bold tracking-tight text-center"
