@@ -10,6 +10,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '@/lib/supabase/types';
+import {
+  CUSTOMER_IDENTITY_SELECT,
+  expandCustomerIdentityUsers,
+  resolveCanonicalCustomerId,
+} from '@/lib/customer-identity';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -88,7 +93,19 @@ export async function GET(
     return NextResponse.json({ customers: [] satisfies StoreCustomerRow[] });
   }
 
-  // user_id 単位で集計
+  const rawUserIds = Array.from(new Set(checkIns.map((row) => row.user_id)));
+
+  // ユーザー属性取得。端末IDで紐づくメール/LINEアカウントも追加取得し、
+  // 顧客一覧では同一人物として集計する。
+  const { data: initialUsersRows } = await admin
+    .from('users')
+    .select(CUSTOMER_IDENTITY_SELECT)
+    .in('id', rawUserIds);
+
+  const identityUsers = await expandCustomerIdentityUsers(admin, initialUsersRows ?? []);
+  const userMap = new Map((identityUsers ?? []).map((u) => [u.id, u]));
+
+  // 正規化した顧客ID単位で集計
   type Aggregate = {
     visits: string[];
     first: string;
@@ -96,9 +113,10 @@ export async function GET(
   };
   const grouped = new Map<string, Aggregate>();
   for (const row of checkIns) {
-    const cur = grouped.get(row.user_id);
+    const customerId = resolveCanonicalCustomerId(identityUsers, row.user_id);
+    const cur = grouped.get(customerId);
     if (!cur) {
-      grouped.set(row.user_id, {
+      grouped.set(customerId, {
         visits: [row.checked_in_at],
         first: row.checked_in_at,
         last: row.checked_in_at,
@@ -111,14 +129,6 @@ export async function GET(
   }
 
   const userIds = Array.from(grouped.keys());
-
-  // ユーザー属性取得
-  const { data: usersRows } = await admin
-    .from('users')
-    .select('id, display_name, line_display_name, avatar_url, line_picture_url, line_user_id, profile_attributes')
-    .in('id', userIds);
-
-  const userMap = new Map((usersRows ?? []).map((u) => [u.id, u]));
 
   const now = Date.now();
   const thirtyDaysAgo = now - 30 * 24 * 60 * 60 * 1000;

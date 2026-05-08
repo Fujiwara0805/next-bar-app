@@ -38,6 +38,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
+const CUSTOMER_DEVICE_ID_KEY = 'nikenme:customer-device-id';
 
 function setAuthCookies(accountType: AccountType, storeId?: string) {
   const secure = window.location.protocol === 'https:' ? '; Secure' : '';
@@ -56,6 +57,76 @@ function clearAuthCookies() {
 
 function accountTypeForRole(role: UserRow['role']): AccountType {
   return role === 'admin' ? 'platform' : 'customer';
+}
+
+function getOrCreateCustomerDeviceId(): string | null {
+  try {
+    if (typeof window === 'undefined') return null;
+    const existing = localStorage.getItem(CUSTOMER_DEVICE_ID_KEY);
+    if (existing && /^[A-Za-z0-9_-]{16,80}$/.test(existing)) {
+      return existing;
+    }
+    const generated =
+      typeof crypto !== 'undefined' && 'randomUUID' in crypto
+        ? crypto.randomUUID()
+        : `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 18)}`;
+    localStorage.setItem(CUSTOMER_DEVICE_ID_KEY, generated);
+    return generated;
+  } catch {
+    return null;
+  }
+}
+
+function getCustomerDeviceIds(profileAttributes: unknown): string[] {
+  if (
+    !profileAttributes ||
+    typeof profileAttributes !== 'object' ||
+    Array.isArray(profileAttributes)
+  ) {
+    return [];
+  }
+  const raw = (profileAttributes as { customer_device_ids?: unknown }).customer_device_ids;
+  if (!Array.isArray(raw)) return [];
+  return Array.from(
+    new Set(
+      raw.filter(
+        (id): id is string =>
+          typeof id === 'string' && /^[A-Za-z0-9_-]{16,80}$/.test(id)
+      )
+    )
+  );
+}
+
+async function attachCustomerDeviceIdToProfile(userRow: UserRow): Promise<UserRow> {
+  if (accountTypeForRole(userRow.role) !== 'customer') return userRow;
+
+  const deviceId = getOrCreateCustomerDeviceId();
+  if (!deviceId) return userRow;
+
+  const attrs =
+    userRow.profile_attributes &&
+    typeof userRow.profile_attributes === 'object' &&
+    !Array.isArray(userRow.profile_attributes)
+      ? (userRow.profile_attributes as Record<string, unknown>)
+      : {};
+  const currentIds = getCustomerDeviceIds(attrs);
+  if (currentIds.includes(deviceId)) return userRow;
+
+  const nextAttrs = {
+    ...attrs,
+    customer_device_ids: [deviceId, ...currentIds].slice(0, 5),
+  };
+  const { data } = await supabase
+    .from('users')
+    .update({
+      profile_attributes: nextAttrs,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', userRow.id)
+    .select('*')
+    .maybeSingle();
+
+  return data ?? { ...userRow, profile_attributes: nextAttrs };
 }
 
 /**
@@ -188,8 +259,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .maybeSingle();
 
       if (userRow) {
+        const effectiveUserRow = await attachCustomerDeviceIdToProfile(userRow);
         const nextAccountType = accountTypeForRole(userRow.role);
-        setProfile(userRow);
+        setProfile(effectiveUserRow);
         setAccountType(nextAccountType);
         setStore(null);
         setAuthCookies(nextAccountType);

@@ -16,6 +16,13 @@ import {
   snapshotPreInsertWindow,
   aggregatePostInsert,
 } from '@/lib/check-in/aggregate';
+import {
+  CUSTOMER_IDENTITY_SELECT,
+  fetchCustomersByDeviceId,
+  normalizeCustomerDeviceId,
+  pickCanonicalCustomer,
+  type CustomerIdentityUser,
+} from '@/lib/customer-identity';
 import type { Database } from '@/lib/supabase/types';
 
 export const dynamic = 'force-dynamic';
@@ -97,7 +104,7 @@ export async function POST(
 
   const { data: customer } = await admin
     .from('users')
-    .select('id, display_name, line_display_name, role')
+    .select(CUSTOMER_IDENTITY_SELECT)
     .eq('id', payload.u)
     .maybeSingle();
   if (!customer) {
@@ -107,11 +114,29 @@ export async function POST(
     return NextResponse.json({ error: 'customer_only' }, { status: 403 });
   }
 
+  const deviceId = normalizeCustomerDeviceId(payload.d);
+  let resolvedCustomer = customer as CustomerIdentityUser;
+  if (deviceId) {
+    const linkedCustomers = await fetchCustomersByDeviceId(admin, deviceId);
+    resolvedCustomer =
+      pickCanonicalCustomer(
+        [customer as CustomerIdentityUser, ...linkedCustomers],
+        customer.id
+      ) ?? resolvedCustomer;
+  }
+  if (
+    resolvedCustomer.role &&
+    resolvedCustomer.role !== 'customer' &&
+    resolvedCustomer.role !== 'user'
+  ) {
+    return NextResponse.json({ error: 'customer_only' }, { status: 403 });
+  }
+
   const now = new Date();
-  const pre = await snapshotPreInsertWindow(admin, customer.id, store.id, now);
+  const pre = await snapshotPreInsertWindow(admin, resolvedCustomer.id, store.id, now);
 
   const { error: insertErr } = await admin.from('store_check_ins').insert({
-    user_id: customer.id,
+    user_id: resolvedCustomer.id,
     store_id: store.id,
     source: 'qr_scan',
   });
@@ -124,19 +149,19 @@ export async function POST(
 
   const aggregate = await aggregatePostInsert(
     admin,
-    customer.id,
+    resolvedCustomer.id,
     pre.cutoffIso,
     pre.wasAlreadyStamped,
     now
   );
 
   const userDisplayName =
-    customer.line_display_name || customer.display_name || 'ゲスト';
+    resolvedCustomer.line_display_name || resolvedCustomer.display_name || 'ゲスト';
 
   return NextResponse.json({
     storeId: store.id,
     storeName: store.name,
-    userId: customer.id,
+    userId: resolvedCustomer.id,
     userDisplayName,
     ...aggregate,
   });

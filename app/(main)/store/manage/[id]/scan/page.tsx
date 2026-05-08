@@ -103,7 +103,7 @@ export default function StoreScanPage() {
   }, []);
 
   const submitCheckIn = useCallback(
-    async (payload: { u: string; t: number; s: string }) => {
+    async (payload: { u: string; t: number; s: string; d?: string }) => {
       try {
         const { data: sessionData } = await supabase.auth.getSession();
         const token = sessionData.session?.access_token;
@@ -151,6 +151,7 @@ export default function StoreScanPage() {
         const u = url.searchParams.get('u');
         const tParam = url.searchParams.get('t');
         const s = url.searchParams.get('s');
+        const d = url.searchParams.get('d') ?? undefined;
         if (!u || !tParam || !s || !/^\d+$/.test(tParam)) {
           setErrorMsg(t('storeScan.invalid_qr'));
           return;
@@ -159,7 +160,7 @@ export default function StoreScanPage() {
         setState('paused');
         stopScanner();
         setErrorMsg('');
-        submitCheckIn({ u, t: Number(tParam), s });
+        submitCheckIn({ u, t: Number(tParam), s, d });
       } catch {
         setErrorMsg(t('storeScan.invalid_qr'));
       }

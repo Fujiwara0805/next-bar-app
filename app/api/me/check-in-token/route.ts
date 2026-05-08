@@ -7,6 +7,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { buildCustomerCheckInToken } from '@/lib/qr/signature';
+import {
+  attachCustomerDeviceId,
+  normalizeCustomerDeviceId,
+} from '@/lib/customer-identity';
 import type { Database } from '@/lib/supabase/types';
 
 export const dynamic = 'force-dynamic';
@@ -14,9 +18,10 @@ export const runtime = 'nodejs';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 export async function POST(request: NextRequest) {
-  if (!supabaseUrl || !anonKey) {
+  if (!supabaseUrl || !anonKey || !serviceRoleKey) {
     return NextResponse.json({ error: 'server_misconfigured' }, { status: 500 });
   }
 
@@ -74,8 +79,23 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
 
+  let deviceId: string | null = null;
   try {
-    const token = buildCustomerCheckInToken(user.id);
+    const body = await request.json();
+    deviceId = normalizeCustomerDeviceId(body?.deviceId);
+  } catch {
+    deviceId = null;
+  }
+
+  try {
+    if (deviceId) {
+      const admin = createClient<Database>(supabaseUrl, serviceRoleKey, {
+        auth: { autoRefreshToken: false, persistSession: false },
+      });
+      await attachCustomerDeviceId(admin, user.id, deviceId);
+    }
+
+    const token = buildCustomerCheckInToken(user.id, Date.now(), deviceId ?? undefined);
     return NextResponse.json(token);
   } catch (err) {
     console.error('[me/check-in-token] sign error', err);

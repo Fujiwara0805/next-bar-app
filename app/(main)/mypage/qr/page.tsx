@@ -22,6 +22,7 @@ import { LoadingScreen } from '@/components/ui/loading-screen';
 
 const REFRESH_INTERVAL_SEC = 90;
 const SCANNER_REGION_ID = 'mypage-qr-scanner-region';
+const CUSTOMER_DEVICE_ID_KEY = 'nikenme:customer-device-id';
 
 const BG_OFFWHITE = '#F7F3E9';
 const NAVY = '#13294b';
@@ -29,6 +30,19 @@ const BRASS = '#ffc62d';
 const COPPER = '#B87333';
 const GOLD_GRADIENT = '#ffc52d';
 const NAVY_GRADIENT = '#13294b';
+
+function getCustomerDeviceId(): string {
+  const existing = localStorage.getItem(CUSTOMER_DEVICE_ID_KEY);
+  if (existing && /^[A-Za-z0-9_-]{16,80}$/.test(existing)) {
+    return existing;
+  }
+  const generated =
+    typeof crypto !== 'undefined' && 'randomUUID' in crypto
+      ? crypto.randomUUID()
+      : `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 18)}`;
+  localStorage.setItem(CUSTOMER_DEVICE_ID_KEY, generated);
+  return generated;
+}
 
 export default function MyPageQrPage() {
   const router = useRouter();
@@ -109,16 +123,21 @@ export default function MyPageQrPage() {
       }
       const res = await fetch('/api/me/check-in-token', {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ deviceId: getCustomerDeviceId() }),
       });
       if (!res.ok) {
         throw new Error('generate_failed');
       }
-      const json = (await res.json()) as { u: string; t: number; s: string };
+      const json = (await res.json()) as { u: string; t: number; s: string; d?: string };
       const url = new URL('/c', resolveSiteUrl());
       url.searchParams.set('u', json.u);
       url.searchParams.set('t', String(json.t));
       url.searchParams.set('s', json.s);
+      if (json.d) url.searchParams.set('d', json.d);
       const dataUrl = await QRCode.toDataURL(url.toString(), {
         errorCorrectionLevel: 'M',
         margin: 2,

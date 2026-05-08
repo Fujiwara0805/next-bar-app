@@ -3,8 +3,9 @@ import { createHmac, timingSafeEqual } from 'crypto';
 /**
  * QR署名ユーティリティ（Phase 11 以降: 顧客マイページQR方式）
  *
- * QR URL形式: `${SITE_URL}/c?u={userId}&t={unixSec}&s={hmac16B_b64url}`
- *   s = base64url( HMAC_SHA256(secret, `${userId}|${unixSec}`).slice(0, 16) )
+ * QR URL形式: `${SITE_URL}/c?u={userId}&t={unixSec}&s={hmac16B_b64url}&d={deviceId}`
+ *   s = base64url( HMAC_SHA256(secret, `${userId}|${unixSec}|${deviceId}`).slice(0, 16) )
+ * `d` は任意。古い `u/t/s` だけのQRも検証できる。
  *
  * 顧客がマイページでQRを表示、店舗スタッフがスキャンする。
  * `t` を含めてローテートすることでスクショ使い回しを抑止。
@@ -30,11 +31,11 @@ function fromBase64Url(s: string): Buffer {
   return Buffer.from(s.replace(/-/g, '+').replace(/_/g, '/') + pad, 'base64');
 }
 
-export type CustomerCheckInPayload = { u: string; t: number; s: string };
+export type CustomerCheckInPayload = { u: string; t: number; s: string; d?: string };
 
-function signCustomerPayload(userId: string, unixSec: number): string {
+function signCustomerPayload(userId: string, unixSec: number, deviceId?: string): string {
   const mac = createHmac('sha256', getSecret())
-    .update(`${userId}|${unixSec}`)
+    .update(deviceId ? `${userId}|${unixSec}|${deviceId}` : `${userId}|${unixSec}`)
     .digest()
     .subarray(0, SIG_BYTES);
   return toBase64Url(mac);
@@ -42,23 +43,26 @@ function signCustomerPayload(userId: string, unixSec: number): string {
 
 export function buildCustomerCheckInToken(
   userId: string,
-  nowMs: number = Date.now()
+  nowMs: number = Date.now(),
+  deviceId?: string
 ): CustomerCheckInPayload {
   const t = Math.floor(nowMs / 1000);
-  const s = signCustomerPayload(userId, t);
-  return { u: userId, t, s };
+  const s = signCustomerPayload(userId, t, deviceId);
+  return deviceId ? { u: userId, t, s, d: deviceId } : { u: userId, t, s };
 }
 
 export function buildCustomerCheckInUrl(
   baseUrl: string,
   userId: string,
-  nowMs: number = Date.now()
+  nowMs: number = Date.now(),
+  deviceId?: string
 ): string {
-  const { u, t, s } = buildCustomerCheckInToken(userId, nowMs);
+  const { u, t, s, d } = buildCustomerCheckInToken(userId, nowMs, deviceId);
   const url = new URL('/c', baseUrl);
   url.searchParams.set('u', u);
   url.searchParams.set('t', String(t));
   url.searchParams.set('s', s);
+  if (d) url.searchParams.set('d', d);
   return url.toString();
 }
 
@@ -73,7 +77,7 @@ export function verifyCustomerCheckInToken(
 ): VerifyCustomerResult {
   try {
     const expected = createHmac('sha256', getSecret())
-      .update(`${payload.u}|${payload.t}`)
+      .update(payload.d ? `${payload.u}|${payload.t}|${payload.d}` : `${payload.u}|${payload.t}`)
       .digest()
       .subarray(0, SIG_BYTES);
     const given = fromBase64Url(payload.s);
@@ -101,6 +105,7 @@ export function parseCustomerCheckInPayload(
   const r = raw as Record<string, unknown>;
   const u = typeof r.u === 'string' ? r.u : null;
   const s = typeof r.s === 'string' ? r.s : null;
+  const d = typeof r.d === 'string' ? r.d : undefined;
   const t =
     typeof r.t === 'number'
       ? r.t
@@ -108,5 +113,5 @@ export function parseCustomerCheckInPayload(
       ? Number(r.t)
       : null;
   if (!u || !s || t === null) return null;
-  return { u, t, s };
+  return d ? { u, t, s, d } : { u, t, s };
 }

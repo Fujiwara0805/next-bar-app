@@ -7,6 +7,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '@/lib/supabase/types';
+import {
+  CUSTOMER_IDENTITY_SELECT,
+  expandCustomerIdentityUsers,
+  isRealCustomerEmail,
+  resolveCanonicalCustomerId,
+} from '@/lib/customer-identity';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -96,14 +102,25 @@ export async function GET(
     .eq('store_id', params.id)
     .order('checked_in_at', { ascending: true });
 
+  const rawUserIds = Array.from(new Set((checkIns ?? []).map((row) => row.user_id)));
+
+  const { data: initialUsersRows } = await admin
+    .from('users')
+    .select(CUSTOMER_IDENTITY_SELECT)
+    .in('id', rawUserIds.length ? rawUserIds : ['00000000-0000-0000-0000-000000000000']);
+
+  const identityUsers = await expandCustomerIdentityUsers(admin, initialUsersRows ?? []);
+  const userMap = new Map((identityUsers ?? []).map((u) => [u.id, u]));
+
   const grouped = new Map<
     string,
     { count: number; first: string; last: string; visits: string[] }
   >();
   for (const row of checkIns ?? []) {
-    const cur = grouped.get(row.user_id);
+    const customerId = resolveCanonicalCustomerId(identityUsers, row.user_id);
+    const cur = grouped.get(customerId);
     if (!cur) {
-      grouped.set(row.user_id, {
+      grouped.set(customerId, {
         count: 1,
         first: row.checked_in_at,
         last: row.checked_in_at,
@@ -118,12 +135,6 @@ export async function GET(
   }
 
   const userIds = Array.from(grouped.keys());
-
-  const { data: usersRows } = await admin
-    .from('users')
-    .select('id, display_name, line_display_name, line_user_id, email, profile_attributes')
-    .in('id', userIds.length ? userIds : ['00000000-0000-0000-0000-000000000000']);
-  const userMap = new Map((usersRows ?? []).map((u) => [u.id, u]));
 
   const now = Date.now();
   const thirtyDaysAgo = now - 30 * 24 * 60 * 60 * 1000;
@@ -162,11 +173,10 @@ export async function GET(
     const visit30d = agg.visits.filter(
       (t) => new Date(t).getTime() >= thirtyDaysAgo
     ).length;
-    const isLineEmail = (u?.email || '').endsWith('@line.nikenme.local');
     return [
       u?.line_display_name || u?.display_name || '（名前未設定）',
       uid,
-      isLineEmail ? '' : u?.email || '',
+      isRealCustomerEmail(u?.email) ? u?.email || '' : '',
       u?.line_user_id ? '連携済' : '未連携',
       attrs.address || '',
       attrs.age || '',

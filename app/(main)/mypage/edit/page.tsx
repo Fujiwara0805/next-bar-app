@@ -201,7 +201,14 @@ export default function MyPageEdit() {
       return;
     }
 
-    const cleanAttributes: ProfileAttributes = {
+    const existingAttributes =
+      profile?.profile_attributes &&
+      typeof profile.profile_attributes === 'object' &&
+      !Array.isArray(profile.profile_attributes)
+        ? (profile.profile_attributes as Record<string, unknown>)
+        : {};
+    const cleanAttributes = {
+      ...existingAttributes,
       address: trimmedAddress,
       age: trimmedAge,
       occupation: trimmedOccupation,
