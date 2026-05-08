@@ -60,6 +60,20 @@ function fmtDate(iso: string | null | undefined): string {
   return d.toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' });
 }
 
+function contentDispositionCsvFilename(storeName: string | null | undefined): string {
+  const date = new Date().toISOString().split('T')[0];
+  const displayName = (storeName || 'store')
+    .replace(/[\\/:*?"<>|]/g, '_')
+    .replace(/\s+/g, '_')
+    .slice(0, 80);
+  const utf8Filename = `customers_${displayName}_${date}.csv`;
+  const fallbackFilename = `customers_${date}.csv`;
+
+  return `attachment; filename="${fallbackFilename}"; filename*=UTF-8''${encodeURIComponent(
+    utf8Filename
+  )}`;
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -90,11 +104,15 @@ export async function GET(
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
-  const { data: store } = await admin
+  const { data: store, error: storeErr } = await admin
     .from('stores')
     .select('id, name, owner_id')
     .eq('id', params.id)
     .maybeSingle();
+  if (storeErr) {
+    console.error('[customers/export] fetch store error', storeErr);
+    return jsonNoStore({ error: 'fetch_failed' }, { status: 500 });
+  }
   if (!store) {
     return jsonNoStore({ error: 'store_not_found' }, { status: 404 });
   }
@@ -113,18 +131,29 @@ export async function GET(
     }
   }
 
-  const { data: checkIns } = await admin
+  const { data: checkIns, error: ciErr } = await admin
     .from('store_check_ins')
     .select('user_id, checked_in_at')
     .eq('store_id', params.id)
     .order('checked_in_at', { ascending: true });
+  if (ciErr) {
+    console.error('[customers/export] fetch check-ins error', ciErr);
+    return jsonNoStore({ error: 'fetch_failed' }, { status: 500 });
+  }
 
   const rawUserIds = Array.from(new Set((checkIns ?? []).map((row) => row.user_id)));
 
-  const { data: initialUsersRows } = await admin
+  const { data: initialUsersRows, error: usersErr } = await admin
     .from('users')
     .select(CUSTOMER_IDENTITY_SELECT)
-    .in('id', rawUserIds.length ? rawUserIds : ['00000000-0000-0000-0000-000000000000']);
+    .in(
+      'id',
+      rawUserIds.length ? rawUserIds : ['00000000-0000-0000-0000-000000000000']
+    );
+  if (usersErr) {
+    console.error('[customers/export] fetch users error', usersErr);
+    return jsonNoStore({ error: 'fetch_failed' }, { status: 500 });
+  }
 
   const userMap = new Map((initialUsersRows ?? []).map((u) => [u.id, u]));
 
@@ -215,14 +244,12 @@ export async function GET(
   ].join('\n');
 
   const BOM = '﻿';
-  const date = new Date().toISOString().split('T')[0];
-  const safeStoreName = (store.name || 'store').replace(/[^A-Za-z0-9一-龯ぁ-んァ-ヶー]/g, '_');
 
   return new NextResponse(BOM + csvContent, {
     headers: {
       ...NO_STORE_HEADERS,
       'Content-Type': 'text/csv; charset=utf-8',
-      'Content-Disposition': `attachment; filename="customers_${safeStoreName}_${date}.csv"`,
+      'Content-Disposition': contentDispositionCsvFilename(store.name),
     },
   });
 }

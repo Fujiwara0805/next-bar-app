@@ -1,6 +1,6 @@
 {
-  "name": "NIKENME+ (にけんめぷらす)",
-  "short_name": "NIKENME+",
+  "name": "にけんめぷらす",
+  "short_name": "にけんめぷらす",
   "description": "大分のバー・カフェの空席情報マップ",
   "start_url": "/",
   "display": "standalone",

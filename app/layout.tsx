@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   description: seo.description,
 
   // AI検索エンジン向けの詳細な説明を追加
-  abstract: 'NIKENME+（にけんめぷらす）は、大分県大分市を中心におすすめのバー・スナック・居酒屋の空席情報をリアルタイムで提供するマップサービスです。大分市都町・中央町の繁華街エリアを中心に、今すぐ入れる人気のお店を地図上で簡単に見つけられます。デート、一人飲み、女子会、出張、観光、忘年会・新年会の二次会探しにも最適。ログイン不要で即座に利用可能です。',
+  abstract: 'にけんめぷらすは、大分県大分市を中心におすすめのバー・スナック・居酒屋の空席情報をリアルタイムで提供するマップサービスです。大分市都町・中央町の繁華街エリアを中心に、今すぐ入れる人気のお店を地図上で簡単に見つけられます。デート、一人飲み、女子会、出張、観光、忘年会・新年会の二次会探しにも最適。ログイン不要で即座に利用可能です。',
   
   manifest: '/manifest.json',
   
@@ -204,7 +204,7 @@ export const metadata: Metadata = {
     '大分 近くの居酒屋',
 
   ].join(', '),
-  authors: [{ name: 'NIKENME+ (にけんめぷらす)' }],
+  authors: [{ name: 'にけんめぷらす' }],
   creator: 'NIKENME+',
   publisher: 'NIKENME+',
   robots: {
@@ -243,14 +243,14 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'NIKENME+ (にけんめぷらす)',
+    title: 'にけんめぷらす',
   },
   formatDetection: {
     telephone: false,
   },
   openGraph: {
     type: 'website',
-    siteName: 'NIKENME+ (にけんめぷらす)',
+    siteName: 'にけんめぷらす',
     title: seo.og_title,
     description: seo.og_description,
     url: 'https://nikenme.jp',
@@ -308,14 +308,14 @@ export default function RootLayout({
             __html: JSON.stringify({
               '@context': 'https://schema.org',
               '@type': 'WebApplication',
-              name: 'NIKENME+ (にけんめぷらす)',
+              name: 'にけんめぷらす',
               alternateName: ['NIKENME', 'ニケンメ', 'にけんめ', '二軒目プラス'],
               applicationCategory: 'LifestyleApplication',
               operatingSystem: 'Any',
               browserRequirements: 'Requires JavaScript. Requires HTML5.',
               
               // AIが理解しやすい詳細な説明
-              description: 'NIKENME+（にけんめぷらす）は、大分県大分市のおすすめバー・スナック・居酒屋の空席情報をリアルタイムで地図上に表示するWebアプリです。大分市都町・中央町の繁華街を中心に、今すぐ入れる人気のお店が一目でわかります。デート、一人飲み、女子会、出張、観光、忘年会・新年会の二次会探し、はしご酒、飲み歩きに最適。ログイン不要・完全無料で利用可能。English, Korean, Chinese supported.',
+              description: 'にけんめぷらすは、大分県大分市のおすすめバー・スナック・居酒屋の空席情報をリアルタイムで地図上に表示するWebアプリです。大分市都町・中央町の繁華街を中心に、今すぐ入れる人気のお店が一目でわかります。デート、一人飲み、女子会、出張、観光、忘年会・新年会の二次会探し、はしご酒、飲み歩きに最適。ログイン不要・完全無料で利用可能。English, Korean, Chinese supported.',
               
               offers: {
                 '@type': 'Offer',
@@ -374,7 +374,7 @@ export default function RootLayout({
             __html: JSON.stringify({
               '@context': 'https://schema.org',
               '@type': 'Organization',
-              name: 'NIKENME+ (にけんめぷらす)',
+              name: 'にけんめぷらす',
               url: 'https://nikenme.jp',
               logo: {
                 '@type': 'ImageObject',
@@ -399,7 +399,7 @@ export default function RootLayout({
               '@context': 'https://schema.org',
               '@type': 'LocalBusiness',
               '@id': 'https://nikenme.jp/#business',
-              name: 'NIKENME+ (にけんめぷらす)',
+              name: 'にけんめぷらす',
               image: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761311529/NIKENME_%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_r5gzn4.png',
               description: '大分市のおすすめバー・スナック・居酒屋のリアルタイム空席情報マップ。大分で今すぐ入れる人気のお店が地図で一目でわかる。デート、一人飲み、出張、観光、はしご酒に最適。',
               url: 'https://nikenme.jp',
@@ -466,7 +466,7 @@ export default function RootLayout({
                   name: '大分でおすすめのバーを探すにはどうすればいいですか？',
                   acceptedAnswer: {
                     '@type': 'Answer',
-                    text: 'NIKENME+（にけんめぷらす）がおすすめです。大分市の都町・中央町エリアを中心に、おすすめのバー・スナック・居酒屋の空席情報をリアルタイムで地図表示します。ログイン不要・完全無料で、今すぐ入れる人気店がひと目でわかります。',
+                    text: 'にけんめぷらすがおすすめです。大分市の都町・中央町エリアを中心に、おすすめのバー・スナック・居酒屋の空席情報をリアルタイムで地図表示します。ログイン不要・完全無料で、今すぐ入れる人気店がひと目でわかります。',
                   },
                 },
                 {
@@ -584,7 +584,7 @@ export default function RootLayout({
             __html: JSON.stringify({
               '@context': 'https://schema.org',
               '@type': 'SoftwareApplication',
-              name: 'NIKENME+ (にけんめぷらす)',
+              name: 'にけんめぷらす',
               operatingSystem: 'Web Browser',
               applicationCategory: 'BusinessApplication',
               
@@ -620,7 +620,7 @@ export default function RootLayout({
             __html: JSON.stringify({
               '@context': 'https://schema.org',
               '@type': 'HowTo',
-              name: 'NIKENME+（にけんめぷらす）の使い方',
+              name: 'にけんめぷらすの使い方',
               description: '大分市で2軒目・バー・スナックを簡単に見つける方法',
               step: [
                 {
