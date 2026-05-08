@@ -36,52 +36,52 @@ import { CrowdVoteModal } from '@/components/store/crowd-vote-modal';
 
 type Store = Database['public']['Tables']['stores']['Row'];
 
-// 客投票のヒストグラム: 3カテゴリの投票数を縦バーで表示し、最多得票を強調表示
 type CrowdCounts = Partial<Record<CrowdStatus, number>>;
-function CrowdVoteHistogram({
+
+function CrowdVoteSummary({
   counts,
   leading,
-  textColor,
+  title,
 }: {
   counts: CrowdCounts;
   leading: CrowdStatus | null;
-  textColor: string;
+  title: string;
 }) {
-  const items: Array<{ status: CrowdStatus; color: string; Icon: React.ElementType }> = [
-    { status: 'vacant', color: '#16a34a', Icon: UserIcon },
-    { status: 'wait', color: '#f59e0b', Icon: UsersIcon },
-    { status: 'full', color: '#dc2626', Icon: UsersRound },
+  const items: Array<{ status: CrowdStatus; color: string; mutedColor: string; Icon: React.ElementType }> = [
+    { status: 'vacant', color: '#22c55e', mutedColor: 'rgba(34, 197, 94, 0.5)', Icon: UserIcon },
+    { status: 'wait', color: '#ffc52d', mutedColor: 'rgba(255, 197, 45, 0.5)', Icon: UsersIcon },
+    { status: 'full', color: '#ef4444', mutedColor: 'rgba(239, 68, 68, 0.5)', Icon: UsersRound },
   ];
-  const max = Math.max(1, ...items.map((i) => counts[i.status] ?? 0));
+
   return (
-    <div className="flex items-end gap-1.5">
-      {items.map(({ status, color, Icon }) => {
-        const c = counts[status] ?? 0;
-        const isLead = leading === status && c > 0;
-        const barHeight = Math.max(6, Math.round((c / max) * 22));
-        return (
-          <div key={status} className="flex flex-col items-center gap-0.5">
-            <Icon
-              className="w-3.5 h-3.5"
-              style={{ color, opacity: isLead ? 1 : 0.45 }}
-            />
-            <div
-              className="w-3 rounded-sm"
-              style={{
-                height: `${barHeight}px`,
-                background: color,
-                opacity: isLead ? 1 : 0.35,
-              }}
-            />
-            <span
-              className="text-[9px] leading-none font-semibold"
-              style={{ color: isLead ? color : textColor, opacity: isLead ? 1 : 0.6 }}
-            >
-              {c}
-            </span>
-          </div>
-        );
-      })}
+    <div className="flex items-center justify-center gap-2 pb-1">
+      <p className="text-[10px] font-bold leading-none tracking-normal text-white/60">
+        {title}
+      </p>
+      <div className="flex items-center justify-center gap-1.5 rounded-lg bg-white/[0.07] px-2.5 py-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+        {items.map(({ status, color, mutedColor, Icon }, index) => {
+          const c = counts[status] ?? 0;
+          const isLead = leading === status && c > 0;
+          return (
+            <div key={status} className="flex items-center gap-1.5">
+              {index > 0 && <div className="h-3.5 w-px bg-white/[0.18]" />}
+              <div className="flex min-w-[28px] items-center justify-center gap-1">
+                <Icon
+                  className="h-3.5 w-3.5"
+                  strokeWidth={2.4}
+                  style={{ color: isLead ? color : mutedColor }}
+                />
+                <span
+                  className="text-xs font-extrabold leading-none"
+                  style={{ color: isLead ? color : 'rgba(253, 251, 247, 0.78)' }}
+                >
+                  {c}
+                </span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -295,6 +295,7 @@ export function StoreDetailPanel({
 
   // テーマ切替
   const theme = isExpanded ? lightTheme : darkTheme;
+  const voteSummaryTitle = t('store_status.ai_aggregated_label');
 
   return (
     <motion.div
@@ -308,14 +309,15 @@ export function StoreDetailPanel({
     >
       {/* ===== メインパネル ===== */}
       <motion.div
-        className="flex flex-col overflow-hidden rounded-t-3xl"
+        className="flex flex-col overflow-hidden rounded-t-[2rem]"
         animate={{
           height: isExpanded ? expandedHeight : 'auto',
           backgroundColor: isExpanded ? '#F7F3E9' /* cream-50 */ : darkTheme.background,
         }}
         transition={{ type: 'spring', stiffness: 260, damping: 28 }}
         style={{
-          borderTop: `1px solid ${darkTheme.borderGold}`,
+          borderTop: `1px solid ${isExpanded ? darkTheme.borderGold : 'rgba(255,255,255,0.18)'}`,
+          boxShadow: isExpanded ? 'none' : '0 -18px 50px rgba(0, 0, 0, 0.35)',
         }}
         drag={isExpanded ? undefined : 'x'}
         dragConstraints={{ left: 0, right: 0 }}
@@ -337,25 +339,27 @@ export function StoreDetailPanel({
         >
           <div className="flex items-center gap-2">
             {!isExpanded && (
-              <ChevronLeft className="w-4 h-4 opacity-40" style={{ color: darkTheme.accent }} />
+              <ChevronLeft className="w-4 h-4 opacity-50" strokeWidth={3} style={{ color: darkTheme.accent }} />
             )}
             <div
               className="w-10 h-1 rounded-full"
               style={{ background: isExpanded ? 'rgba(0,0,0,0.15)' : `${darkTheme.accent}50` }}
             />
             {!isExpanded && (
-              <ChevronRight className="w-4 h-4 opacity-40" style={{ color: darkTheme.accent }} />
+              <ChevronRight className="w-4 h-4 opacity-50" strokeWidth={3} style={{ color: darkTheme.accent }} />
             )}
           </div>
           {!isExpanded && (
-            <motion.p
+            <motion.div
               initial={{ opacity: 0 }}
-              animate={{ opacity: 0.5 }}
-              className="text-[10px] mt-0.5"
-              style={{ color: darkTheme.textMuted }}
+              animate={{ opacity: 1 }}
             >
-              {t('map.swipe_up_hint')}
-            </motion.p>
+              <CrowdVoteSummary
+                counts={voteCounts}
+                leading={aiStatus}
+                title={voteSummaryTitle}
+              />
+            </motion.div>
           )}
         </motion.div>
 
@@ -386,7 +390,10 @@ export function StoreDetailPanel({
 
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-2">
-                  <h3 className="font-bold text-lg line-clamp-1" style={{ color: theme.text }}>
+                  <h3
+                    className="font-bold text-lg line-clamp-1"
+                    style={{ color: theme.text }}
+                  >
                     {store.name}
                   </h3>
                   <CloseCircleButton
@@ -462,23 +469,6 @@ export function StoreDetailPanel({
                     <span className="text-sm font-bold px-2 py-0.5 rounded-lg bg-success/10 text-success">
                       {t('store_detail.vacant_seats').replace('{count}', String(store.vacant_seats))}
                     </span>
-                  )}
-
-                  {/* 3) 空席投票結果ヒストグラム（投票が1件以上ある場合のみ） */}
-                  {aiStatus && effectiveStatus !== 'closed' && (
-                    <div className="flex flex-col items-start ml-1">
-                      <span
-                        className="text-[9px] font-medium leading-none mb-1"
-                        style={{ color: theme.textMuted }}
-                      >
-                        {t('store_status.ai_aggregated_label')}
-                      </span>
-                      <CrowdVoteHistogram
-                        counts={voteCounts}
-                        leading={aiStatus}
-                        textColor={theme.textMuted}
-                      />
-                    </div>
                   )}
 
                   {effectiveStatus === 'closed' && (() => {
