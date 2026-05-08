@@ -846,22 +846,20 @@ export default function StoreDetailPage() {
                 return (
                   <div className="flex gap-2 mb-3 items-center flex-wrap">
                     <motion.div
-                      className="flex items-center gap-2 rounded-xl px-4 py-2"
-                      style={{
-                        backgroundColor: 'rgba(10, 22, 40, 0.05)',
-                        border: `1px solid rgba(10, 22, 40, 0.1)`,
-                      }}
+                      className="flex items-center gap-2 pt-1 flex-wrap"
                       initial={{ opacity: 0, scale: 0.9 }}
                       animate={{ opacity: 1, scale: 1 }}
                     >
-                      <img
-                        src={getVacancyIcon(effectiveStatus)}
-                        alt={getVacancyLabel(effectiveStatus)}
-                        className="w-8 h-8 object-contain"
-                      />
-                      <span className="text-lg font-bold" style={{ color: COLORS.deepNavy }}>
-                        {getVacancyLabel(effectiveStatus)}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <img
+                          src={getVacancyIcon(effectiveStatus)}
+                          alt={getVacancyLabel(effectiveStatus)}
+                          className="w-6 h-6 object-contain"
+                        />
+                        <span className="text-lg font-bold" style={{ color: COLORS.deepNavy }}>
+                          {getVacancyLabel(effectiveStatus)}
+                        </span>
+                      </div>
                       {effectiveStatus === 'vacant' && store.vacant_seats != null && store.vacant_seats > 0 && (
                         <span className="text-sm font-bold px-2 py-0.5 rounded-lg" style={{
                           backgroundColor: 'rgba(34, 197, 94, 0.1)',
