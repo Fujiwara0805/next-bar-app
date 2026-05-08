@@ -35,7 +35,6 @@ import {
   Building2,
   Megaphone,
   QrCode,
-  Camera,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CloseCircleButton } from '@/components/ui/close-circle-button';
@@ -672,20 +671,11 @@ export default function StoreUpdatePage() {
                 <div className="flex items-center gap-3 mt-2 flex-wrap">
                   <button
                     type="button"
-                    onClick={() => router.push(`/store/manage/${store.id}/scan`)}
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold transition-opacity hover:opacity-80"
-                    style={{ color: COLORS.deepNavy }}
-                  >
-                    <Camera className="w-3.5 h-3.5" />
-                    {t('store_manage.scan_qr')}
-                  </button>
-                  <button
-                    type="button"
                     onClick={() => router.push(`/store/manage/${store.id}/qr`)}
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold transition-opacity hover:opacity-80"
+                    className="inline-flex items-center gap-2 text-sm font-semibold transition-opacity hover:opacity-80"
                     style={{ color: COLORS.deepNavy }}
                   >
-                    <QrCode className="w-3.5 h-3.5" />
+                    <QrCode className="w-4 h-4 shrink-0" />
                     {t('store_qr.title')}
                   </button>
                 </div>

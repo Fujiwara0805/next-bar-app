@@ -14,10 +14,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import {
   Download,
-  Printer,
   Loader2,
   QrCode,
-  Info,
   Sparkles,
   ImageDown,
   ScanLine,
@@ -246,10 +244,6 @@ export default function StoreQrPage() {
       cancelled = true;
     };
   }, [authChecked, checkInUrl]);
-
-  const handlePrint = useCallback(() => {
-    window.print();
-  }, []);
 
   const downloadQrAsPng = useCallback(async () => {
     if (!qrDataUrl) return;
@@ -614,7 +608,7 @@ export default function StoreQrPage() {
             </div>
           </div>
 
-          {/* アクションボタン */}
+          {/* アクションボタン: PDF出力 + QR画像で保存 (横並び) */}
           <div className="grid grid-cols-2 gap-3 mb-3 print:hidden">
             <Button
               onClick={handleDownloadPdf}
@@ -631,28 +625,11 @@ export default function StoreQrPage() {
               {t('store_qr.pdf_download')}
             </Button>
             <Button
-              onClick={handlePrint}
-              disabled={generating || !qrDataUrl}
-              size="lg"
-              variant="outline"
-              className="rounded-xl font-bold"
-              style={{
-                background: 'white',
-                color: NAVY,
-                border: `1.5px solid ${BRASS}60`,
-              }}
-            >
-              <Printer className="w-4 h-4 mr-2" />
-              {t('store_qr.print')}
-            </Button>
-          </div>
-          <div className="mb-5 print:hidden">
-            <Button
               onClick={downloadQrAsPng}
               disabled={generating || !qrDataUrl}
               size="lg"
               variant="outline"
-              className="rounded-xl font-bold w-full"
+              className="rounded-xl font-bold"
               style={{
                 background: 'white',
                 color: NAVY,
@@ -673,31 +650,6 @@ export default function StoreQrPage() {
               <ScanLine className="w-4 h-4 mr-2" />
               {t('store_qr.scan_customer_qr')}
             </Button>
-          </div>
-
-          {/* 使い方ガイド */}
-          <div
-            className="rounded-2xl p-5 mb-3 print:hidden"
-            style={{
-              background: 'white',
-              border: `1px solid ${BRASS}33`,
-              boxShadow: '0 12px 32px rgba(19, 41, 75, 0.08)',
-            }}
-          >
-            <div className="flex items-center gap-2 mb-3">
-              <Info className="w-4 h-4" style={{ color: COPPER }} />
-              <h3 className="font-semibold text-sm" style={{ color: NAVY }}>
-                {t('store_qr.how_to_use_title')}
-              </h3>
-            </div>
-            <ol
-              className="text-sm space-y-2 list-decimal ml-5"
-              style={{ color: 'rgba(19, 41, 75, 0.75)' }}
-            >
-              <li>{t('store_qr.how_to_use_1')}</li>
-              <li>{t('store_qr.how_to_use_2')}</li>
-              <li>{t('store_qr.how_to_use_3')}</li>
-            </ol>
           </div>
 
           {/* セキュリティ注意事項 */}

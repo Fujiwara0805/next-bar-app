@@ -9,7 +9,6 @@ import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import {
-  QrCode,
   Ticket,
   Megaphone,
   ScanLine,
@@ -72,12 +71,6 @@ export default function StoreEngagementMenuPage() {
   }, [user, storeId, accountType]);
 
   const items = [
-    {
-      href: `/store/manage/${storeId}/scan`,
-      icon: QrCode,
-      title: 'スキャン',
-      description: '顧客が表示するQRを読み取ってチェックインを記録',
-    },
     {
       href: `/store/manage/${storeId}/customers`,
       icon: Users,
