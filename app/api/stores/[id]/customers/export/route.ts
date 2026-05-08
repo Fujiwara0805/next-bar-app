@@ -9,17 +9,34 @@ import { createClient } from '@supabase/supabase-js';
 import type { Database } from '@/lib/supabase/types';
 import {
   CUSTOMER_IDENTITY_SELECT,
-  expandCustomerIdentityUsers,
   isRealCustomerEmail,
-  resolveCanonicalCustomerId,
 } from '@/lib/customer-identity';
 
 export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
 export const runtime = 'nodejs';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+const NO_STORE_HEADERS = {
+  'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+  Pragma: 'no-cache',
+  Expires: '0',
+  'CDN-Cache-Control': 'no-store',
+  'Vercel-CDN-Cache-Control': 'no-store',
+};
+
+function jsonNoStore(body: unknown, init?: ResponseInit) {
+  return NextResponse.json(body, {
+    ...init,
+    headers: {
+      ...NO_STORE_HEADERS,
+      ...(init?.headers ?? {}),
+    },
+  });
+}
 
 const GENDER_LABEL: Record<string, string> = {
   female: '女性',
@@ -48,12 +65,12 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   if (!supabaseUrl || !serviceRoleKey || !anonKey) {
-    return NextResponse.json({ error: 'server_misconfigured' }, { status: 500 });
+    return jsonNoStore({ error: 'server_misconfigured' }, { status: 500 });
   }
 
   const authHeader = request.headers.get('authorization');
   if (!authHeader?.startsWith('Bearer ')) {
-    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+    return jsonNoStore({ error: 'unauthorized' }, { status: 401 });
   }
   const accessToken = authHeader.slice(7);
 
@@ -66,7 +83,7 @@ export async function GET(
     error: userErr,
   } = await anon.auth.getUser(accessToken);
   if (userErr || !operator) {
-    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+    return jsonNoStore({ error: 'unauthorized' }, { status: 401 });
   }
 
   const admin = createClient<Database>(supabaseUrl, serviceRoleKey, {
@@ -79,7 +96,7 @@ export async function GET(
     .eq('id', params.id)
     .maybeSingle();
   if (!store) {
-    return NextResponse.json({ error: 'store_not_found' }, { status: 404 });
+    return jsonNoStore({ error: 'store_not_found' }, { status: 404 });
   }
 
   // 認可: 1) 運営オーナー  2) admin ロール  3) 店舗アカウント本体 (auth.id === stores.id)
@@ -92,7 +109,7 @@ export async function GET(
       .eq('id', operator.id)
       .maybeSingle();
     if (operatorRow?.role !== 'admin') {
-      return NextResponse.json({ error: 'forbidden' }, { status: 403 });
+      return jsonNoStore({ error: 'forbidden' }, { status: 403 });
     }
   }
 
@@ -109,15 +126,14 @@ export async function GET(
     .select(CUSTOMER_IDENTITY_SELECT)
     .in('id', rawUserIds.length ? rawUserIds : ['00000000-0000-0000-0000-000000000000']);
 
-  const identityUsers = await expandCustomerIdentityUsers(admin, initialUsersRows ?? []);
-  const userMap = new Map((identityUsers ?? []).map((u) => [u.id, u]));
+  const userMap = new Map((initialUsersRows ?? []).map((u) => [u.id, u]));
 
   const grouped = new Map<
     string,
     { count: number; first: string; last: string; visits: string[] }
   >();
   for (const row of checkIns ?? []) {
-    const customerId = resolveCanonicalCustomerId(identityUsers, row.user_id);
+    const customerId = row.user_id;
     const cur = grouped.get(customerId);
     if (!cur) {
       grouped.set(customerId, {
@@ -204,6 +220,7 @@ export async function GET(
 
   return new NextResponse(BOM + csvContent, {
     headers: {
+      ...NO_STORE_HEADERS,
       'Content-Type': 'text/csv; charset=utf-8',
       'Content-Disposition': `attachment; filename="customers_${safeStoreName}_${date}.csv"`,
     },

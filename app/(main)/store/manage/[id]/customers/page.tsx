@@ -103,8 +103,13 @@ export default function StoreCustomersPage() {
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData.session?.access_token;
       if (!token) throw new Error('session_missing');
-      const res = await fetch(`/api/stores/${storeId}/customers`, {
-        headers: { Authorization: `Bearer ${token}` },
+      const res = await fetch(`/api/stores/${storeId}/customers?t=${Date.now()}`, {
+        cache: 'no-store',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Cache-Control': 'no-cache',
+          Pragma: 'no-cache',
+        },
       });
       if (!res.ok) {
         throw new Error(`fetch_failed:${res.status}`);
@@ -113,6 +118,7 @@ export default function StoreCustomersPage() {
       setCustomers(json.customers ?? []);
     } catch (err) {
       console.error('[customers] fetch error', err);
+      setCustomers([]);
       toast.error('顧客データの取得に失敗しました', { position: 'top-center' });
     } finally {
       setLoading(false);
@@ -129,8 +135,13 @@ export default function StoreCustomersPage() {
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData.session?.access_token;
       if (!token) throw new Error('session_missing');
-      const res = await fetch(`/api/stores/${storeId}/customers/export`, {
-        headers: { Authorization: `Bearer ${token}` },
+      const res = await fetch(`/api/stores/${storeId}/customers/export?t=${Date.now()}`, {
+        cache: 'no-store',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Cache-Control': 'no-cache',
+          Pragma: 'no-cache',
+        },
       });
       if (!res.ok) throw new Error(`export_failed:${res.status}`);
       const blob = await res.blob();

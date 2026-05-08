@@ -10,13 +10,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '@/lib/supabase/types';
-import {
-  CUSTOMER_IDENTITY_SELECT,
-  expandCustomerIdentityUsers,
-  resolveCanonicalCustomerId,
-} from '@/lib/customer-identity';
+import { CUSTOMER_IDENTITY_SELECT } from '@/lib/customer-identity';
 
 export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
 export const runtime = 'nodejs';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -25,17 +22,35 @@ const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 import type { StoreCustomerRow, ProfileAttrs } from '@/lib/types/store-customer';
 
+const NO_STORE_HEADERS = {
+  'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+  Pragma: 'no-cache',
+  Expires: '0',
+  'CDN-Cache-Control': 'no-store',
+  'Vercel-CDN-Cache-Control': 'no-store',
+};
+
+function jsonNoStore(body: unknown, init?: ResponseInit) {
+  return NextResponse.json(body, {
+    ...init,
+    headers: {
+      ...NO_STORE_HEADERS,
+      ...(init?.headers ?? {}),
+    },
+  });
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   if (!supabaseUrl || !serviceRoleKey || !anonKey) {
-    return NextResponse.json({ error: 'server_misconfigured' }, { status: 500 });
+    return jsonNoStore({ error: 'server_misconfigured' }, { status: 500 });
   }
 
   const authHeader = request.headers.get('authorization');
   if (!authHeader?.startsWith('Bearer ')) {
-    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+    return jsonNoStore({ error: 'unauthorized' }, { status: 401 });
   }
   const accessToken = authHeader.slice(7);
 
@@ -48,7 +63,7 @@ export async function GET(
     error: userErr,
   } = await anon.auth.getUser(accessToken);
   if (userErr || !operator) {
-    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+    return jsonNoStore({ error: 'unauthorized' }, { status: 401 });
   }
 
   const admin = createClient<Database>(supabaseUrl, serviceRoleKey, {
@@ -61,7 +76,7 @@ export async function GET(
     .eq('id', params.id)
     .maybeSingle();
   if (!store) {
-    return NextResponse.json({ error: 'store_not_found' }, { status: 404 });
+    return jsonNoStore({ error: 'store_not_found' }, { status: 404 });
   }
 
   // 認可: 1) 運営オーナー  2) admin ロール  3) 店舗アカウント本体 (auth.id === stores.id)
@@ -74,7 +89,7 @@ export async function GET(
       .eq('id', operator.id)
       .maybeSingle();
     if (operatorRow?.role !== 'admin') {
-      return NextResponse.json({ error: 'forbidden' }, { status: 403 });
+      return jsonNoStore({ error: 'forbidden' }, { status: 403 });
     }
   }
 
@@ -86,26 +101,25 @@ export async function GET(
     .order('checked_in_at', { ascending: true });
   if (ciErr) {
     console.error('[customers] fetch check-ins error', ciErr);
-    return NextResponse.json({ error: 'fetch_failed' }, { status: 500 });
+    return jsonNoStore({ error: 'fetch_failed' }, { status: 500 });
   }
 
   if (!checkIns || checkIns.length === 0) {
-    return NextResponse.json({ customers: [] satisfies StoreCustomerRow[] });
+    return jsonNoStore({ customers: [] satisfies StoreCustomerRow[] });
   }
 
   const rawUserIds = Array.from(new Set(checkIns.map((row) => row.user_id)));
 
-  // ユーザー属性取得。端末IDで紐づくメール/LINEアカウントも追加取得し、
-  // 顧客一覧では同一人物として集計する。
+  // ユーザー属性取得。端末IDでの統合はせず、チェックインした user_id のみを表示する。
   const { data: initialUsersRows } = await admin
     .from('users')
     .select(CUSTOMER_IDENTITY_SELECT)
     .in('id', rawUserIds);
 
-  const identityUsers = await expandCustomerIdentityUsers(admin, initialUsersRows ?? []);
-  const userMap = new Map((identityUsers ?? []).map((u) => [u.id, u]));
+  const userMap = new Map((initialUsersRows ?? []).map((u) => [u.id, u]));
 
-  // 正規化した顧客ID単位で集計
+  // store_check_ins.user_id 単位で集計する。
+  // 同一端末でも、LINEログインとメールログインは別顧客として扱う。
   type Aggregate = {
     visits: string[];
     first: string;
@@ -113,7 +127,7 @@ export async function GET(
   };
   const grouped = new Map<string, Aggregate>();
   for (const row of checkIns) {
-    const customerId = resolveCanonicalCustomerId(identityUsers, row.user_id);
+    const customerId = row.user_id;
     const cur = grouped.get(customerId);
     if (!cur) {
       grouped.set(customerId, {
@@ -151,7 +165,7 @@ export async function GET(
       user_id: uid,
       display_name:
         u?.line_display_name || u?.display_name || '（名前未設定）',
-      avatar_url: u?.avatar_url || u?.line_picture_url || null,
+      avatar_url: u?.line_picture_url || u?.avatar_url || null,
       line_linked: !!u?.line_user_id,
       visit_count,
       first_visit_at: agg.first,
@@ -168,5 +182,5 @@ export async function GET(
       new Date(b.last_visit_at).getTime() - new Date(a.last_visit_at).getTime()
   );
 
-  return NextResponse.json({ customers });
+  return jsonNoStore({ customers });
 }
