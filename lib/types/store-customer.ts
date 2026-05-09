@@ -16,4 +16,16 @@ export type StoreCustomerRow = {
   visit_count_30d: number;
   visits_per_week: number;
   attributes: ProfileAttrs;
+  memo: StoreCustomerMemo | null;
+};
+
+export type StoreCustomerMemo = {
+  id: string;
+  store_id: string;
+  user_id: string;
+  order_notes: string | null;
+  preference_notes: string | null;
+  conversation_notes: string | null;
+  updated_at: string;
+  updated_by: string | null;
 };

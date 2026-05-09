@@ -20,7 +20,11 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-import type { StoreCustomerRow, ProfileAttrs } from '@/lib/types/store-customer';
+import type {
+  StoreCustomerMemo,
+  StoreCustomerRow,
+  ProfileAttrs,
+} from '@/lib/types/store-customer';
 
 const NO_STORE_HEADERS = {
   'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
@@ -144,6 +148,23 @@ export async function GET(
 
   const userIds = Array.from(grouped.keys());
 
+  let memoMap = new Map<string, StoreCustomerMemo>();
+  const { data: memoRows, error: memoErr } = await (admin as any)
+    .from('store_customer_notes')
+    .select(
+      'id, store_id, user_id, order_notes, preference_notes, conversation_notes, updated_at, updated_by'
+    )
+    .eq('store_id', params.id)
+    .in('user_id', userIds);
+  if (memoErr && memoErr.code !== '42P01') {
+    console.warn('[customers] fetch memo warning', memoErr);
+  }
+  if (!memoErr && memoRows) {
+    memoMap = new Map(
+      (memoRows as StoreCustomerMemo[]).map((memo) => [memo.user_id, memo])
+    );
+  }
+
   const now = Date.now();
   const thirtyDaysAgo = now - 30 * 24 * 60 * 60 * 1000;
 
@@ -173,6 +194,7 @@ export async function GET(
       visit_count_30d,
       visits_per_week,
       attributes: attrs,
+      memo: memoMap.get(uid) ?? null,
     };
   });
 

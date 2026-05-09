@@ -181,6 +181,35 @@ export async function GET(
 
   const userIds = Array.from(grouped.keys());
 
+  const { data: memoRows, error: memoErr } = await (admin as any)
+    .from('store_customer_notes')
+    .select('user_id, order_notes, preference_notes, conversation_notes')
+    .eq('store_id', params.id)
+    .in(
+      'user_id',
+      userIds.length ? userIds : ['00000000-0000-0000-0000-000000000000']
+    );
+  if (memoErr && memoErr.code !== '42P01') {
+    console.warn('[customers/export] fetch memo warning', memoErr);
+  }
+  const memoMap = new Map<
+    string,
+    {
+      order_notes: string | null;
+      preference_notes: string | null;
+      conversation_notes: string | null;
+    }
+  >(
+    memoErr
+      ? []
+      : ((memoRows ?? []) as {
+          user_id: string;
+          order_notes: string | null;
+          preference_notes: string | null;
+          conversation_notes: string | null;
+        }[]).map((memo) => [memo.user_id, memo])
+  );
+
   const now = Date.now();
   const thirtyDaysAgo = now - 30 * 24 * 60 * 60 * 1000;
 
@@ -205,6 +234,9 @@ export async function GET(
     '週あたり来店頻度',
     '初回来店日時',
     '最終来店日時',
+    '注文履歴メモ',
+    '好みメモ',
+    '接客メモ',
   ];
 
   const rows = userIds.map((uid) => {
@@ -218,6 +250,7 @@ export async function GET(
     const visit30d = agg.visits.filter(
       (t) => new Date(t).getTime() >= thirtyDaysAgo
     ).length;
+    const memo = memoMap.get(uid);
     return [
       u?.line_display_name || u?.display_name || '（名前未設定）',
       uid,
@@ -232,6 +265,9 @@ export async function GET(
       perWeek,
       fmtDate(agg.first),
       fmtDate(agg.last),
+      memo?.order_notes || '',
+      memo?.preference_notes || '',
+      memo?.conversation_notes || '',
     ];
   });
 

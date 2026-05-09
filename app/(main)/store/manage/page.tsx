@@ -6,6 +6,7 @@ import {
   Plus, Store as StoreIcon, Edit, Trash2, Loader2, Mail,
   Search, ChevronLeft, ChevronRight, Users, Armchair,
   LayoutDashboard, FileText, Handshake, BarChart3, RefreshCw,
+  CalendarDays,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -80,6 +81,7 @@ export default function StoreManagePage() {
   const [customerCount, setCustomerCount] = useState(0);
   const [sponsorCount, setSponsorCount] = useState(0);
   const [pendingApps, setPendingApps] = useState(0);
+  const [eventCount, setEventCount] = useState(0);
 
   useEffect(() => {
     if (accountType === 'store' && store) {
@@ -109,14 +111,16 @@ export default function StoreManagePage() {
 
   const fetchDashboardCounts = async () => {
     try {
-      const [customerRes, sponsorRes, appRes] = await Promise.all([
+      const [customerRes, sponsorRes, appRes, eventRes] = await Promise.all([
         supabase.from('users').select('id', { count: 'exact', head: true }).eq('role', 'customer'),
         supabase.from('sponsors').select('id', { count: 'exact', head: true }).eq('is_active', true),
         supabase.from('store_applications').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+        (supabase as any).from('platform_events').select('id', { count: 'exact', head: true }).eq('status', 'published'),
       ]);
       setCustomerCount(customerRes.count || 0);
       setSponsorCount(sponsorRes.count || 0);
       setPendingApps(appRes.count || 0);
+      setEventCount(eventRes.count || 0);
     } catch {}
   };
 
@@ -342,8 +346,9 @@ export default function StoreManagePage() {
         <AdminKpiGrid>
           <AdminKpiCard icon={StoreIcon} label="店舗数" value={stores.length} subLabel="登録済み店舗" gradient={getKpiGradient('gold')} href="/store/manage" index={0} />
           <AdminKpiCard icon={Users} label="顧客数" value={customerCount} subLabel="登録ユーザー" gradient={getKpiGradient('teal')} href="/store/manage/customers" index={1} />
-          <AdminKpiCard icon={Handshake} label="スポンサー数" value={sponsorCount} subLabel="アクティブ契約" gradient={getKpiGradient('purple')} href="/store/manage/sponsors" index={2} />
-          <AdminKpiCard icon={FileText} label="申込" value={pendingApps} subLabel="未処理の申込" gradient={getKpiGradient('rose')} href="/store/manage/applications" index={3} badge={pendingApps > 0 ? 'NEW' : undefined} />
+          <AdminKpiCard icon={CalendarDays} label="イベント" value={eventCount} subLabel="公開中" gradient={getKpiGradient('blue')} href="/store/manage/events" index={2} />
+          <AdminKpiCard icon={Handshake} label="スポンサー数" value={sponsorCount} subLabel="アクティブ契約" gradient={getKpiGradient('purple')} href="/store/manage/sponsors" index={3} />
+          <AdminKpiCard icon={FileText} label="申込" value={pendingApps} subLabel="未処理の申込" gradient={getKpiGradient('rose')} href="/store/manage/applications" index={4} badge={pendingApps > 0 ? 'NEW' : undefined} />
         </AdminKpiGrid>
 
         {/* Quick Actions */}
@@ -352,15 +357,16 @@ export default function StoreManagePage() {
             <h2 className="text-sm font-bold tracking-wide" style={{ color: C.text }}>
               クイックアクション
             </h2>
-            <span className="text-xs" style={{ color: C.textSubtle }}>6件のアクション</span>
+            <span className="text-xs" style={{ color: C.textSubtle }}>7件のアクション</span>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             <AdminQuickAction icon={StoreIcon} label="店舗管理" subLabel="店舗の一覧・編集" href="/store/manage" index={0} />
             <AdminQuickAction icon={Users} label="顧客管理" subLabel="登録ユーザーの一覧" href="/store/manage/customers" index={1} />
             <AdminQuickAction icon={FileText} label="申込管理" subLabel="加盟店申込の管理" href="/store/manage/applications" index={2} />
-            <AdminQuickAction icon={Handshake} label="スポンサー管理" subLabel="スポンサー契約の管理" href="/store/manage/sponsors" index={3} />
-            <AdminQuickAction icon={BarChart3} label="レポート" subLabel="広告パフォーマンス分析" href="/store/manage/sponsors" index={4} />
-            <AdminQuickAction icon={RefreshCw} label="集計実行" subLabel="日次レポート集計" href="/store/manage/sponsors" index={5} />
+            <AdminQuickAction icon={CalendarDays} label="イベント管理" subLabel="地域イベントの追加" href="/store/manage/events" index={3} />
+            <AdminQuickAction icon={Handshake} label="スポンサー管理" subLabel="スポンサー契約の管理" href="/store/manage/sponsors" index={4} />
+            <AdminQuickAction icon={BarChart3} label="レポート" subLabel="広告パフォーマンス分析" href="/store/manage/sponsors" index={5} />
+            <AdminQuickAction icon={RefreshCw} label="集計実行" subLabel="日次レポート集計" href="/store/manage/sponsors" index={6} />
           </div>
         </section>
 

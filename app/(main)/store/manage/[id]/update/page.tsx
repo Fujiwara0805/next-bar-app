@@ -35,6 +35,10 @@ import {
   Building2,
   Megaphone,
   QrCode,
+  CalendarDays,
+  Map,
+  FileText,
+  PartyPopper,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CloseCircleButton } from '@/components/ui/close-circle-button';
@@ -52,6 +56,7 @@ import { PushNotificationManager } from '@/components/push-notification-manager'
 import { useAppMode } from '@/lib/app-mode-context';
 import { useLanguage } from '@/lib/i18n/context';
 import type { Database } from '@/lib/supabase/types';
+import type { StoreEventParticipation, StoreEventRow } from '@/lib/types/platform-event';
 
 type Store = Database['public']['Tables']['stores']['Row'];
 type StoreUpdate = Database['public']['Tables']['stores']['Update'];
@@ -93,6 +98,19 @@ const GoldDivider = () => {
   </div>
   );
 };
+
+function fmtEventDate(iso: string | null): string {
+  if (!iso) return '未設定';
+  const date = new Date(iso);
+  if (!Number.isFinite(date.getTime())) return '未設定';
+  return date.toLocaleString('ja-JP', {
+    timeZone: 'Asia/Tokyo',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
 
 export default function StoreUpdatePage() {
   const { colorsB: COLORS } = useAppMode();
@@ -174,6 +192,9 @@ export default function StoreUpdatePage() {
   const [reservations, setReservations] = useState<QuickReservation[]>([]);
   const [loadingReservations, setLoadingReservations] = useState(false);
   const [activeTab, setActiveTab] = useState('status');
+  const [storeEvents, setStoreEvents] = useState<StoreEventRow[]>([]);
+  const [loadingStoreEvents, setLoadingStoreEvents] = useState(false);
+  const [savingEventId, setSavingEventId] = useState<string | null>(null);
   
   // 臨時休業中かどうかを表示するためのstate
   const [isManualClosed, setIsManualClosed] = useState(false);
@@ -284,6 +305,29 @@ export default function StoreUpdatePage() {
     }
   }, [params.id]);
 
+  const fetchStoreEvents = useCallback(async () => {
+    if (!params.id) return;
+    setLoadingStoreEvents(true);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      if (!token) return;
+      const res = await fetch(`/api/stores/${params.id}/events`, {
+        cache: 'no-store',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) return;
+      const json = await res.json();
+      const rows = (json.events ?? []) as StoreEventRow[];
+      setStoreEvents(rows);
+    } catch (error) {
+      console.warn('[store/update] fetch events warning', error);
+      setStoreEvents([]);
+    } finally {
+      setLoadingStoreEvents(false);
+    }
+  }, [params.id]);
+
   // 認証状態のチェック
   useEffect(() => {
     // accountTypeがまだ未確定（undefined）の場合は待機
@@ -312,8 +356,60 @@ export default function StoreUpdatePage() {
     if (accountType === 'platform' || accountType === 'store') {
       fetchStore();
       fetchReservations();
+      fetchStoreEvents();
     }
-  }, [authChecked, user, accountType, params.id, fetchStore, fetchReservations]);
+  }, [authChecked, user, accountType, params.id, fetchStore, fetchReservations, fetchStoreEvents]);
+
+  const updateEventParticipation = async (
+    eventId: string,
+    isParticipating: boolean
+  ) => {
+    if (!params.id) return;
+    setSavingEventId(eventId);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      if (!token) throw new Error('session_missing');
+      const res = await fetch(`/api/stores/${params.id}/events`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          event_id: eventId,
+          is_participating: isParticipating,
+          notes: null,
+        }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        if (json?.error === 'table_missing') {
+          toast.error('イベント参加設定用テーブルが未作成です', {
+            description: 'docs/database-events-and-customer-notes.sql を適用してください',
+            position: 'top-center',
+          });
+          return;
+        }
+        throw new Error(json?.error ?? `save_failed:${res.status}`);
+      }
+      const participation = json.participation as StoreEventParticipation;
+      setStoreEvents((prev) =>
+        prev.map((event) =>
+          event.id === eventId ? { ...event, participation } : event
+        )
+      );
+      toast.success(isParticipating ? 'イベント参加をONにしました' : 'イベント参加をOFFにしました', {
+        position: 'top-center',
+        duration: 1200,
+      });
+    } catch (error) {
+      console.error('[store/update] save event participation error', error);
+      toast.error('イベント参加設定の保存に失敗しました', { position: 'top-center' });
+    } finally {
+      setSavingEventId(null);
+    }
+  };
 
   const handleStatusSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -773,6 +869,103 @@ export default function StoreUpdatePage() {
             {/* 店舗状況タブ */}
             <TabsContent value="status">
               <form onSubmit={handleStatusSubmit} className="space-y-6">
+                {(loadingStoreEvents || storeEvents.length > 0) && (
+                  <Card
+                    className="p-6 rounded-2xl shadow-lg"
+                    style={{
+                      background: '#FFFFFF',
+                      border: `1px solid rgba(201, 168, 108, 0.15)`,
+                    }}
+                  >
+                    <SectionHeader icon={CalendarDays} title="イベント参加設定" />
+                    {loadingStoreEvents ? (
+                      <div className="flex items-center gap-2 text-sm" style={{ color: COLORS.warmGray }}>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        イベントを確認中...
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {storeEvents.map((event) => {
+                          const participating = !!event.participation?.is_participating;
+                          const saving = savingEventId === event.id;
+                          return (
+                            <div
+                              key={event.id}
+                              className="rounded-xl p-4"
+                              style={{
+                                background: participating
+                                  ? 'rgba(201, 168, 108, 0.10)'
+                                  : 'rgba(0, 0, 0, 0.02)',
+                                border: `1px solid ${
+                                  participating
+                                    ? 'rgba(201, 168, 108, 0.35)'
+                                    : 'rgba(0, 0, 0, 0.06)'
+                                }`,
+                              }}
+                            >
+                              <div className="flex items-start gap-3">
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <PartyPopper className="w-5 h-5 shrink-0" style={{ color: '#13294b' }} />
+                                    <p className="text-lg font-bold leading-tight" style={{ color: COLORS.deepNavy }}>
+                                      {event.title}
+                                    </p>
+                                  </div>
+                                  <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm font-semibold" style={{ color: COLORS.warmGray }}>
+                                    <span className="inline-flex items-center gap-1.5">
+                                      <CalendarDays className="w-4 h-4 shrink-0" style={{ color: '#13294b' }} />
+                                      {fmtEventDate(event.start_at)} - {fmtEventDate(event.end_at)}
+                                    </span>
+                                    {event.area_label && (
+                                      <span className="inline-flex items-center gap-1.5">
+                                        <Map className="w-4 h-4 shrink-0" style={{ color: '#13294b' }} />
+                                        {event.area_label}
+                                      </span>
+                                    )}
+                                  </div>
+                                  {event.description && (
+                                    <div className="mt-3 flex items-start gap-2">
+                                      <FileText className="w-4 h-4 mt-0.5 shrink-0" style={{ color: '#13294b' }} />
+                                      <p className="text-sm leading-relaxed line-clamp-3" style={{ color: COLORS.charcoal }}>
+                                        {event.description}
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-2 shrink-0">
+                                  {saving && <Loader2 className="w-4 h-4 animate-spin" style={{ color: '#13294b' }} />}
+                                  <button
+                                    type="button"
+                                    disabled={saving}
+                                    onClick={() =>
+                                      updateEventParticipation(event.id, !participating)
+                                    }
+                                    aria-pressed={participating}
+                                    aria-label={participating ? 'イベント参加中' : 'イベント未参加'}
+                                    className="relative inline-flex h-9 w-[72px] items-center rounded-full px-1.5 transition-opacity disabled:opacity-60"
+                                    style={{
+                                      background: participating ? '#13294b' : '#fffaf0',
+                                      border: `1px solid ${participating ? '#13294b' : 'rgba(19, 41, 75, 0.18)'}`,
+                                    }}
+                                  >
+                                    <span
+                                      className="absolute h-6 w-6 rounded-full transition-all"
+                                      style={{
+                                        background: participating ? '#ffc52d' : '#13294b',
+                                        left: participating ? 'calc(100% - 30px)' : '6px',
+                                      }}
+                                    />
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </Card>
+                )}
+
                 <Card 
                   className="p-6 rounded-2xl shadow-lg"
                   style={{ 

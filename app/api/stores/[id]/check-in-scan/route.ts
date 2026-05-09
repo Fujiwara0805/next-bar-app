@@ -18,6 +18,7 @@ import {
 } from '@/lib/check-in/aggregate';
 import { CUSTOMER_IDENTITY_SELECT } from '@/lib/customer-identity';
 import type { Database } from '@/lib/supabase/types';
+import type { ProfileAttrs, StoreCustomerMemo } from '@/lib/types/store-customer';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -134,11 +135,41 @@ export async function POST(
   const userDisplayName =
     customer.line_display_name || customer.display_name || 'ゲスト';
 
+  const { data: customerCheckIns } = await admin
+    .from('store_check_ins')
+    .select('checked_in_at')
+    .eq('store_id', store.id)
+    .eq('user_id', customer.id)
+    .order('checked_in_at', { ascending: false });
+
+  const { data: memoRow, error: memoErr } = await (admin as any)
+    .from('store_customer_notes')
+    .select(
+      'id, store_id, user_id, order_notes, preference_notes, conversation_notes, updated_at, updated_by'
+    )
+    .eq('store_id', store.id)
+    .eq('user_id', customer.id)
+    .maybeSingle();
+  if (memoErr && memoErr.code !== '42P01' && memoErr.code !== 'PGRST116') {
+    console.warn('[check-in-scan] fetch memo warning', memoErr);
+  }
+
   return NextResponse.json({
     storeId: store.id,
     storeName: store.name,
     userId: customer.id,
     userDisplayName,
+    customer: {
+      user_id: customer.id,
+      display_name: userDisplayName,
+      avatar_url: customer.line_picture_url || customer.avatar_url || null,
+      line_linked: !!customer.line_user_id,
+      visit_count: customerCheckIns?.length ?? 1,
+      last_visit_at: customerCheckIns?.[0]?.checked_in_at ?? now.toISOString(),
+      previous_visit_at: customerCheckIns?.[1]?.checked_in_at ?? null,
+      attributes: (customer.profile_attributes ?? {}) as ProfileAttrs,
+      memo: memoErr ? null : ((memoRow ?? null) as StoreCustomerMemo | null),
+    },
     ...aggregate,
   });
 }

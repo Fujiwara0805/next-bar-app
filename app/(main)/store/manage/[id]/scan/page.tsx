@@ -13,6 +13,9 @@ import {
   Ticket,
   Clock,
   Sparkles,
+  Calendar,
+  StickyNote,
+  MessageCircle,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth/context';
 import { useLanguage } from '@/lib/i18n/context';
@@ -37,9 +40,42 @@ type CheckInResult = {
   hasLotteryEntry: boolean;
   visitDate: string;
   windowHours: number;
+  customer?: {
+    user_id: string;
+    display_name: string;
+    avatar_url: string | null;
+    line_linked: boolean;
+    visit_count: number;
+    last_visit_at: string;
+    previous_visit_at: string | null;
+    attributes: {
+      address?: string;
+      age?: string;
+      occupation?: string;
+      gender?: string;
+    };
+    memo: {
+      order_notes: string | null;
+      preference_notes: string | null;
+      conversation_notes: string | null;
+    } | null;
+  };
 };
 
 const QR_REGION_ID = 'store-scan-qr-region';
+
+function fmtDate(iso: string | null | undefined): string {
+  if (!iso) return '—';
+  const date = new Date(iso);
+  if (!Number.isFinite(date.getTime())) return '—';
+  return date.toLocaleString('ja-JP', {
+    timeZone: 'Asia/Tokyo',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
 
 export default function StoreScanPage() {
   const params = useParams();
@@ -413,22 +449,91 @@ export default function StoreScanPage() {
                 className="rounded-xl p-4 mb-4 flex items-center gap-3"
                 style={{ background: 'rgba(201, 168, 108, 0.08)' }}
               >
-                <User className="w-5 h-5" style={{ color: COLORS.champagneGold }} />
-                <div>
+                {result.customer?.avatar_url ? (
+                  <img
+                    src={result.customer.avatar_url}
+                    alt=""
+                    className="w-11 h-11 rounded-full object-cover"
+                  />
+                ) : (
+                  <User className="w-5 h-5" style={{ color: COLORS.champagneGold }} />
+                )}
+                <div className="min-w-0">
                   <div
                     className="text-xs font-medium"
                     style={{ color: COLORS.warmGray }}
                   >
                     {t('storeScan.customer_label')}
                   </div>
-                  <div
-                    className="text-base font-bold"
-                    style={{ color: COLORS.deepNavy }}
-                  >
-                    {result.userDisplayName}
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div
+                      className="text-base font-bold truncate"
+                      style={{ color: COLORS.deepNavy }}
+                    >
+                      {result.userDisplayName}
+                    </div>
+                    {result.customer?.line_linked && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ background: 'rgba(0, 195, 0, 0.12)', color: '#16a34a' }}>
+                        <MessageCircle className="w-3 h-3" />
+                        LINE
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
+
+              {result.customer && (
+                <div
+                  className="rounded-xl p-4 mb-4 space-y-3"
+                  style={{ background: 'rgba(19, 41, 75, 0.04)' }}
+                >
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <p className="text-[11px] font-bold" style={{ color: COLORS.warmGray }}>この店舗の来店回数</p>
+                      <p className="text-xl font-bold" style={{ color: COLORS.deepNavy }}>{result.customer.visit_count}回</p>
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-bold" style={{ color: COLORS.warmGray }}>前回来店</p>
+                      <p className="text-sm font-bold flex items-center gap-1" style={{ color: COLORS.deepNavy }}>
+                        <Calendar className="w-3.5 h-3.5" />
+                        {fmtDate(result.customer.previous_visit_at)}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-xs" style={{ color: COLORS.charcoal }}>
+                    <span>エリア: <strong>{result.customer.attributes.address || '—'}</strong></span>
+                    <span>年代: <strong>{result.customer.attributes.age || '—'}</strong></span>
+                    <span>職業: <strong>{result.customer.attributes.occupation || '—'}</strong></span>
+                    <span>性別: <strong>{result.customer.attributes.gender || '—'}</strong></span>
+                  </div>
+                  {result.customer.memo && (
+                    <div className="pt-3 border-t space-y-2" style={{ borderColor: 'rgba(19, 41, 75, 0.08)' }}>
+                      <p className="text-[11px] font-bold flex items-center gap-1" style={{ color: COLORS.warmGray }}>
+                        <StickyNote className="w-3.5 h-3.5" />
+                        店舗メモ
+                      </p>
+                      {[
+                        ['注文', result.customer.memo.order_notes],
+                        ['好み', result.customer.memo.preference_notes],
+                        ['接客', result.customer.memo.conversation_notes],
+                      ].filter(([, text]) => Boolean(text)).slice(0, 3).map(([label, text]) => (
+                        <p key={label} className="text-xs leading-relaxed" style={{ color: COLORS.charcoal }}>
+                          <span className="font-bold">{label}: </span>{text}
+                        </p>
+                      ))}
+                    </div>
+                  )}
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    className="w-full rounded-xl font-bold"
+                    onClick={() => router.push(`/store/manage/${storeId}/customers`)}
+                  >
+                    顧客データで詳しく見る
+                  </Button>
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-3 mb-5">
                 <div

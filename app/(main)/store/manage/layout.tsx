@@ -5,7 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard, Users, ClipboardList, Megaphone,
-  LogOut, Menu, X,
+  LogOut, Menu, X, CalendarDays,
 } from 'lucide-react';
 import { AdminThemeProvider, useAdminTheme } from '@/lib/admin-theme-context';
 import { AdminThemeToggle } from '@/components/admin/admin-theme-toggle';
@@ -19,6 +19,7 @@ const NAV_ITEMS = [
   { href: '/store/manage', icon: LayoutDashboard, label: 'Dashboard', exact: true },
   { href: '/store/manage/customers', icon: Users, label: '顧客管理' },
   { href: '/store/manage/applications', icon: ClipboardList, label: '申し込み管理' },
+  { href: '/store/manage/events', icon: CalendarDays, label: 'イベント' },
   { href: '/store/manage/sponsors', icon: Megaphone, label: 'スポンサー' },
 ];
 
