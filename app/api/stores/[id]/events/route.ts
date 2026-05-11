@@ -94,19 +94,41 @@ export async function PATCH(
     return NextResponse.json({ error: 'invalid_payload' }, { status: 400 });
   }
 
-  const { data, error } = await (auth.ctx.admin as any)
+  const payload = {
+    event_id: raw.event_id,
+    store_id: params.id,
+    is_participating: raw.is_participating,
+    notes: nullableString(raw.notes),
+    updated_by: auth.ctx.operatorId,
+    updated_at: new Date().toISOString(),
+  };
+
+  const { data: existing, error: findError } = await (auth.ctx.admin as any)
     .from('store_event_participations')
-    .upsert(
-      {
-        event_id: raw.event_id,
-        store_id: params.id,
-        is_participating: raw.is_participating,
-        notes: nullableString(raw.notes),
-        updated_by: auth.ctx.operatorId,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: 'event_id,store_id' }
-    )
+    .select('id')
+    .eq('event_id', raw.event_id)
+    .eq('store_id', params.id)
+    .limit(1)
+    .maybeSingle();
+
+  if (findError) {
+    if (findError.code === '42P01') {
+      return NextResponse.json({ error: 'table_missing' }, { status: 501 });
+    }
+    console.error('[store-events] find participation error', findError);
+    return NextResponse.json({ error: 'save_failed' }, { status: 500 });
+  }
+
+  const mutation = existing?.id
+    ? (auth.ctx.admin as any)
+        .from('store_event_participations')
+        .update(payload)
+        .eq('id', existing.id)
+    : (auth.ctx.admin as any)
+        .from('store_event_participations')
+        .insert(payload);
+
+  const { data, error } = await mutation
     .select('*')
     .single();
 

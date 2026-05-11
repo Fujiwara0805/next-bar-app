@@ -48,8 +48,13 @@ import { checkIsOpenFromStructuredHours } from '@/lib/structured-business-hours'
 import type { BusinessHours } from '@/lib/supabase/types';
 import { SponsorMapIcon } from '@/components/sponsors/sponsor-map-icon';
 import { UserPushSubscription } from '@/components/user-push-subscription';
+import {
+  attachActiveEvents,
+  fetchActiveStoreParticipations,
+  type EventAwareStore,
+} from '@/lib/types/active-store-event';
 
-type Store = Database['public']['Tables']['stores']['Row'];
+type Store = EventAwareStore;
 
 // ============================================================================
 // 環境変数・デバッグ設定
@@ -267,7 +272,10 @@ function useStores(): UseStoresReturn {
 
         if (!isMountedRef.current) return;
 
-        const storesData = (data as Store[]) || [];
+        const storesData = attachActiveEvents(
+          ((data as Database['public']['Tables']['stores']['Row'][]) || []),
+          await fetchActiveStoreParticipations()
+        ) as Store[];
 
         debugLog('Fetched stores', { count: storesData.length });
 
@@ -482,6 +490,7 @@ function MapPageContent() {
   const [isNavigating, setIsNavigating] = useState(false);
   const [selectedStoreIndex, setSelectedStoreIndex] = useState(0);
   const [isUpdatingOpenStatus, setIsUpdatingOpenStatus] = useState(false);
+  const eventOnly = searchParams?.get('event') === 'true';
 
   const { location: userLocation, refreshLocation } = useOptimizedLocation();
   const { stores, isLoading, error, retryCount, fetchStores, refreshStores } = useStores();
@@ -820,7 +829,8 @@ function MapPageContent() {
 
   // Viewport内の店舗のみをフィルタリング（メモ化）
   const filteredStores = useMemo(() => {
-    const viewportStores = filterStoresByViewport(stores, currentBounds);
+    const viewportStores = filterStoresByViewport(stores, currentBounds)
+      .filter((store) => !eventOnly || !!store.active_event);
     return viewportStores.map(store => {
       const sbh = store.structured_business_hours as BusinessHours | null;
       if (!sbh) return store;
@@ -834,7 +844,7 @@ function MapPageContent() {
       }
       return store;
     });
-  }, [stores, currentBounds]);
+  }, [stores, currentBounds, eventOnly]);
 
   // stores から最新データを導出（IDのみ保持し、表示はstoresから取得）
   const selectedStore = useMemo(() => {
@@ -1044,7 +1054,7 @@ function MapPageContent() {
                 className="flex flex-col items-center"
               >
                 <Button
-                  onClick={() => router.push('/store-list')}
+                  onClick={() => router.push(eventOnly ? '/store-list?event=true' : '/store-list')}
                   className="flex flex-col items-center justify-center gap-1 px-3 py-2 touch-manipulation active:scale-95 rounded-xl"
                   style={{
                     background: colors.background,

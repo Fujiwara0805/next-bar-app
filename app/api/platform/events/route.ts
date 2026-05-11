@@ -30,6 +30,24 @@ function nullableString(value: unknown, max = 2000): string | null {
 
 function nullableIso(value: unknown): string | null {
   if (typeof value !== 'string' || !value.trim()) return null;
+  const trimmed = value.trim();
+  const dateOnlyMatch = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (dateOnlyMatch) {
+    const [, year, month, day] = dateOnlyMatch;
+    return new Date(Date.UTC(Number(year), Number(month) - 1, Number(day), -9, 0, 0, 0)).toISOString();
+  }
+  const date = new Date(value);
+  return Number.isFinite(date.getTime()) ? date.toISOString() : null;
+}
+
+function nullableEndIso(value: unknown): string | null {
+  if (typeof value !== 'string' || !value.trim()) return null;
+  const trimmed = value.trim();
+  const dateOnlyMatch = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (dateOnlyMatch) {
+    const [, year, month, day] = dateOnlyMatch;
+    return new Date(Date.UTC(Number(year), Number(month) - 1, Number(day), 14, 59, 59, 999)).toISOString();
+  }
   const date = new Date(value);
   return Number.isFinite(date.getTime()) ? date.toISOString() : null;
 }
@@ -47,7 +65,7 @@ function parsePayload(raw: EventPayload) {
     description: nullableString(raw.description, 4000),
     area_label: nullableString(raw.area_label, 120),
     start_at: nullableIso(raw.start_at),
-    end_at: nullableIso(raw.end_at),
+    end_at: nullableEndIso(raw.end_at),
     image_url: nullableString(raw.image_url, 1000),
     external_url: nullableString(raw.external_url, 1000),
     status,

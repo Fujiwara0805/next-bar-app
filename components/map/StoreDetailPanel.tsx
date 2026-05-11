@@ -20,6 +20,7 @@ import {
   User as UserIcon,
   Users as UsersIcon,
   UsersRound,
+  Ticket,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CROWD_STATUSES, type CrowdStatus } from '@/lib/crowd/aggregate';
@@ -31,10 +32,11 @@ import { InstantReservationButton } from '@/components/instant-reservation-butto
 import { getTodayOpenTime, isTodayClosedDay, checkIsOpenFromStructuredHours } from '@/lib/structured-business-hours';
 import { sendGAEvent } from '@/lib/analytics';
 import { useAppMode } from '@/lib/app-mode-context';
-import type { Database, BusinessHours } from '@/lib/supabase/types';
+import type { BusinessHours } from '@/lib/supabase/types';
 import { CrowdVoteModal } from '@/components/store/crowd-vote-modal';
+import type { EventAwareStore } from '@/lib/types/active-store-event';
 
-type Store = Database['public']['Tables']['stores']['Row'];
+type Store = EventAwareStore;
 
 type CrowdCounts = Partial<Record<CrowdStatus, number>>;
 
@@ -294,7 +296,16 @@ export function StoreDetailPanel({
     : 700;
 
   // テーマ切替
-  const theme = isExpanded ? lightTheme : darkTheme;
+  const isEventStore = !!store.active_event;
+  const eventCompactTheme = {
+    ...darkTheme,
+    text: '#13294b',
+    textMuted: '#13294b',
+    textSubtle: 'rgba(19, 41, 75, 0.72)',
+    accent: '#13294b',
+    borderGold: 'rgba(19, 41, 75, 0.25)',
+  };
+  const theme = isEventStore && !isExpanded ? eventCompactTheme : (isExpanded ? lightTheme : darkTheme);
   const voteSummaryTitle = t('store_status.ai_aggregated_label');
 
   return (
@@ -312,11 +323,11 @@ export function StoreDetailPanel({
         className="flex flex-col overflow-hidden rounded-t-[2rem]"
         animate={{
           height: isExpanded ? expandedHeight : 'auto',
-          backgroundColor: isExpanded ? '#F7F3E9' /* cream-50 */ : darkTheme.background,
+          backgroundColor: isExpanded ? '#F7F3E9' /* cream-50 */ : (isEventStore ? '#ffc52d' : darkTheme.background),
         }}
         transition={{ type: 'spring', stiffness: 260, damping: 28 }}
         style={{
-          borderTop: `1px solid ${isExpanded ? darkTheme.borderGold : 'rgba(255,255,255,0.18)'}`,
+          borderTop: `1px solid ${isExpanded ? darkTheme.borderGold : (isEventStore ? 'rgba(19, 41, 75, 0.25)' : 'rgba(255,255,255,0.18)')}`,
           boxShadow: isExpanded ? 'none' : '0 -18px 50px rgba(0, 0, 0, 0.35)',
         }}
         drag={isExpanded ? undefined : 'x'}
@@ -343,7 +354,7 @@ export function StoreDetailPanel({
             )}
             <div
               className="w-10 h-1 rounded-full"
-              style={{ background: isExpanded ? 'rgba(0,0,0,0.15)' : `${darkTheme.accent}50` }}
+              style={{ background: isExpanded ? 'rgba(0,0,0,0.15)' : (isEventStore ? 'rgba(19, 41, 75, 0.35)' : `${darkTheme.accent}50`) }}
             />
             {!isExpanded && (
               <ChevronRight className="w-4 h-4 opacity-50" strokeWidth={3} style={{ color: darkTheme.accent }} />
@@ -382,7 +393,7 @@ export function StoreDetailPanel({
               ) : (
                 <div
                   className="w-24 h-24 rounded-xl flex items-center justify-center flex-shrink-0"
-                  style={{ background: isExpanded ? '#EEE8DA' /* cream tint */ : darkTheme.background }}
+                  style={{ background: isExpanded ? '#EEE8DA' /* cream tint */ : (isEventStore ? '#f4b800' : darkTheme.background) }}
                 >
                   <Building2 className="w-12 h-12" style={{ color: theme.textMuted }} />
                 </div>
@@ -408,6 +419,16 @@ export function StoreDetailPanel({
                   />
                 </div>
 
+                {isEventStore && store.active_event && (
+                  <div
+                    className="mb-2 inline-flex max-w-full items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold"
+                    style={{ background: '#13294b', color: '#ffc52d' }}
+                  >
+                    <Ticket className="h-3.5 w-3.5 shrink-0" />
+                    <span className="truncate">イベント参加店舗 / {store.active_event.title}</span>
+                  </div>
+                )}
+
                 {store.google_rating && (
                   <div className="flex items-center gap-2 -mt-2">
                     <div className="flex items-center gap-0.5">
@@ -421,10 +442,10 @@ export function StoreDetailPanel({
                           }`}
                           style={{
                             fill: star <= Math.round(store.google_rating!)
-                              ? darkTheme.accent
+                              ? theme.accent
                               : 'transparent',
                             color: star <= Math.round(store.google_rating!)
-                              ? darkTheme.accent
+                              ? theme.accent
                               : theme.textSubtle,
                           }}
                         />

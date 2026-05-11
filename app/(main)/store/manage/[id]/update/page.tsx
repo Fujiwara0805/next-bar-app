@@ -103,12 +103,10 @@ function fmtEventDate(iso: string | null): string {
   if (!iso) return '未設定';
   const date = new Date(iso);
   if (!Number.isFinite(date.getTime())) return '未設定';
-  return date.toLocaleString('ja-JP', {
+  return date.toLocaleDateString('ja-JP', {
     timeZone: 'Asia/Tokyo',
     month: '2-digit',
     day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
   });
 }
 

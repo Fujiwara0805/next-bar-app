@@ -32,8 +32,13 @@ import { ConciergeModal } from '@/components/concierge-modal';
 import { getTodayOpenTime, isTodayClosedDay, checkIsOpenFromStructuredHours as checkIsOpenFromStructuredHoursClient } from '@/lib/structured-business-hours';
 import { useOptimizedLocation } from '@/lib/hooks/useOptimizedLocation';
 import { SponsorCampaignBanner } from '@/components/sponsors/sponsor-campaign-banner';
+import {
+  attachActiveEvents,
+  fetchActiveStoreParticipations,
+  type EventAwareStore,
+} from '@/lib/types/active-store-event';
 
-type Store = Database['public']['Tables']['stores']['Row'];
+type Store = EventAwareStore;
 
 // ============================================
 // カラーパレット定義
@@ -120,6 +125,7 @@ function StoreListContent() {
   const { location: userLocation } = useOptimizedLocation();
   const [vacantOnly, setVacantOnly] = useState(false);
   const [openNowOnly, setOpenNowOnly] = useState(false);
+  const [eventOnly, setEventOnly] = useState(false);
   const [showFilterMenu, setShowFilterMenu] = useState(false);
   
   const [showConcierge, setShowConcierge] = useState(false);
@@ -186,7 +192,7 @@ function StoreListContent() {
   const isOpenUpdatedRef = useRef(false);
   const isInitializedRef = useRef(false);
 
-  const activeFilterCount = [vacantOnly, openNowOnly].filter(Boolean).length;
+  const activeFilterCount = [vacantOnly, openNowOnly, eventOnly].filter(Boolean).length;
 
   const updateUrlParams = useCallback((params: Record<string, string | null>) => {
     if (typeof window === 'undefined') return;
@@ -209,10 +215,12 @@ function StoreListContent() {
     
     const vacant = searchParams.get('vacant') === 'true';
     const openNow = searchParams.get('open') === 'true';
+    const event = searchParams.get('event') === 'true';
     const concierge = searchParams.get('concierge');
 
     setVacantOnly(vacant);
     setOpenNowOnly(openNow);
+    setEventOnly(event);
 
     if (concierge) {
       try {
@@ -416,6 +424,10 @@ function StoreListContent() {
       result = result.filter(store => isStoreCurrentlyOpen(store));
     }
 
+    if (eventOnly) {
+      result = result.filter(store => !!store.active_event);
+    }
+
     if (isConciergeActive && conciergeFilters.length > 0) {
       result = result.filter(store => {
         if (!store.facilities || store.facilities.length === 0) return false;
@@ -434,7 +446,7 @@ function StoreListContent() {
 
     setFilteredStores(result);
     resetDisplayCount();
-  }, [stores, vacantOnly, openNowOnly, conciergeFilters, isConciergeActive, resetDisplayCount]);
+  }, [stores, vacantOnly, openNowOnly, eventOnly, conciergeFilters, isConciergeActive, resetDisplayCount]);
 
   useEffect(() => {
     if (!isInitializedRef.current) return;
@@ -442,9 +454,10 @@ function StoreListContent() {
     updateUrlParams({
       vacant: vacantOnly ? 'true' : null,
       open: openNowOnly ? 'true' : null,
+      event: eventOnly ? 'true' : null,
       concierge: isConciergeActive && conciergeFilters.length > 0 ? conciergeFilters.join(',') : null,
     });
-  }, [vacantOnly, openNowOnly, isConciergeActive, conciergeFilters, updateUrlParams]);
+  }, [vacantOnly, openNowOnly, eventOnly, isConciergeActive, conciergeFilters, updateUrlParams]);
 
   const fetchStoresOnly = async () => {
     if (!userLocation) return;
@@ -457,7 +470,10 @@ function StoreListContent() {
 
       if (error) throw error;
       
-      const storeData: Store[] = data || [];
+      const storeData = attachActiveEvents(
+        (data || []) as Database['public']['Tables']['stores']['Row'][],
+        await fetchActiveStoreParticipations()
+      );
 
       if (storeData.length > 0) {
         const sortedStores = [...storeData].sort((a, b) => {
@@ -559,11 +575,13 @@ function StoreListContent() {
   const clearAllFilters = useCallback(() => {
     setVacantOnly(false);
     setOpenNowOnly(false);
+    setEventOnly(false);
     clearConciergeFilter();
     if (typeof window !== 'undefined') {
       const url = new URL(window.location.href);
       url.searchParams.delete('vacant');
       url.searchParams.delete('open');
+      url.searchParams.delete('event');
       url.searchParams.delete('concierge');
       window.history.replaceState({}, '', url.toString());
     }
@@ -585,6 +603,7 @@ function StoreListContent() {
     const statuses: string[] = [];
     if (vacantOnly) statuses.push(t('store_list.vacant'));
     if (openNowOnly) statuses.push(t('store_list.open'));
+    if (eventOnly) statuses.push('イベント参加店舗');
     if (isConciergeActive) statuses.push(t('store_list.concierge_active'));
     return statuses.length > 0 ? `（${statuses.join('・')}）` : '';
   };
@@ -615,7 +634,7 @@ function StoreListContent() {
           
           <div className="flex items-center justify-between mt-3">
             <p className="text-sm font-bold" style={{ color: COLORS.warmGray }}>{filteredStores.length}{t('store_list.results_count')}</p>
-            {(vacantOnly || openNowOnly || isConciergeActive) && (
+            {(vacantOnly || openNowOnly || eventOnly || isConciergeActive) && (
               <button onClick={clearAllFilters} className="text-sm font-bold hover:underline flex items-center gap-1" style={{ color: COLORS.royalNavy }}>
                 <X className="w-3 h-3" />
                 {t('store_list.filter_clear')}
@@ -631,9 +650,9 @@ function StoreListContent() {
         ) : filteredStores.length === 0 ? (
           <div className="text-center py-12">
             <p className="font-bold" style={{ color: COLORS.warmGray }}>
-              {(isConciergeActive || vacantOnly || openNowOnly) ? t('store_list.no_matching_stores') : t('store_list.no_stores')}
+              {(isConciergeActive || vacantOnly || openNowOnly || eventOnly) ? t('store_list.no_matching_stores') : t('store_list.no_stores')}
             </p>
-            {(vacantOnly || openNowOnly || isConciergeActive) && (
+            {(vacantOnly || openNowOnly || eventOnly || isConciergeActive) && (
               <button onClick={clearAllFilters} className="mt-4 font-bold hover:underline" style={{ color: COLORS.champagneGold }}>
                 {t('store_list.show_all_stores')}
               </button>
@@ -666,6 +685,7 @@ function StoreListContent() {
               <AnimatePresence mode="popLayout">
                 {visibleStores.map((store, index) => {
                   const matchScore = getMatchScore(store);
+                  const isEventStore = !!store.active_event;
                   
                   return (
                     <motion.div
@@ -682,7 +702,11 @@ function StoreListContent() {
                       }}
                     >
                       <Card
-                        className={`p-4 hover:shadow-lg transition-shadow h-full bg-popover relative overflow-hidden ${isConciergeActive ? 'ring-2 ring-brass-500/30' : ''}`}
+                        className={`p-4 hover:shadow-lg transition-shadow h-full relative overflow-hidden ${isConciergeActive ? 'ring-2 ring-brass-500/30' : ''}`}
+                        style={{
+                          background: isEventStore ? COLORS.champagneGold : undefined,
+                          borderColor: isEventStore ? `${COLORS.deepNavy}33` : undefined,
+                        }}
                       >
                         {navigatingTo === store.id && (
                           <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/60 backdrop-blur-[1px] rounded-xl">
@@ -705,6 +729,15 @@ function StoreListContent() {
                             <span>No.{index + 1}</span>
                           </motion.div>
                         )}
+                        {isEventStore && (
+                          <div
+                            className="absolute top-2 left-2 z-10 flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold"
+                            style={{ background: COLORS.deepNavy, color: COLORS.champagneGold }}
+                          >
+                            <Ticket className="h-3.5 w-3.5" />
+                            イベント参加店舗
+                          </div>
+                        )}
 
                         <div className="flex gap-3 h-full">
                           {store.image_urls && store.image_urls.length > 0 && (
@@ -718,20 +751,32 @@ function StoreListContent() {
                           
                           <div className="flex-1 min-w-0 flex flex-col">
                             <div className="flex-1">
-                              <h3 className={`text-lg font-bold truncate ${isConciergeActive ? 'pr-20' : ''}`} style={{ color: COLORS.deepNavy }}>
+                              <h3 className={`text-lg font-bold truncate ${isConciergeActive ? 'pr-20' : ''} ${isEventStore ? 'pt-6' : ''}`} style={{ color: COLORS.deepNavy }}>
                                 {store.name}
                               </h3>
+                              {isEventStore && store.active_event && (
+                                <p className="text-xs font-bold truncate" style={{ color: COLORS.deepNavy }}>
+                                  {store.active_event.title}
+                                </p>
+                              )}
                               
                               {store.google_rating && (
                                 <div className="flex items-center gap-2 -mt-1 mb-1">
                                   <div className="flex items-center gap-0.5">
                                     {[1, 2, 3, 4, 5].map((star) => (
-                                      <Star key={star} className={`w-4 h-4 ${star <= Math.round(store.google_rating!) ? 'fill-brass-500 text-brass-500' : 'fill-muted text-muted'}`} />
+                                      <Star
+                                        key={star}
+                                        className={`w-4 h-4 ${star <= Math.round(store.google_rating!) ? 'fill-brass-500 text-brass-500' : 'fill-muted text-muted'}`}
+                                        style={isEventStore ? {
+                                          fill: star <= Math.round(store.google_rating!) ? COLORS.deepNavy : 'transparent',
+                                          color: COLORS.deepNavy,
+                                        } : undefined}
+                                      />
                                     ))}
                                   </div>
-                                  <span className="text-sm font-bold" style={{ color: COLORS.charcoal }}>{store.google_rating.toFixed(1)}</span>
+                                  <span className="text-sm font-bold" style={{ color: isEventStore ? COLORS.deepNavy : COLORS.charcoal }}>{store.google_rating.toFixed(1)}</span>
                                   {store.google_reviews_count && (
-                                    <span className="text-xs" style={{ color: COLORS.warmGray }}>{t('store_list.reviews_count').replace('{count}', store.google_reviews_count.toLocaleString())}</span>
+                                    <span className="text-xs" style={{ color: isEventStore ? COLORS.deepNavy : COLORS.warmGray }}>{t('store_list.reviews_count').replace('{count}', store.google_reviews_count.toLocaleString())}</span>
                                   )}
                                 </div>
                               )}
@@ -749,7 +794,7 @@ function StoreListContent() {
                                   ? t('store_list.walking_time_hours').replace('{hours}', (minutes / 60).toFixed(1)).replace('{distance}', distanceText)
                                   : t('store_list.walking_time').replace('{minutes}', String(minutes)).replace('{distance}', distanceText);
                                 return (
-                                  <p className="text-sm font-bold" style={{ color: COLORS.warmGray }}>
+                                  <p className="text-sm font-bold" style={{ color: isEventStore ? COLORS.deepNavy : COLORS.warmGray }}>
                                     {text}
                                   </p>
                                 );
@@ -895,6 +940,15 @@ function StoreListContent() {
                       </button>
 
                       <button
+                        onClick={() => setEventOnly(!eventOnly)}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${eventOnly ? 'bg-brass-500/20 text-brass-500' : ('hover:bg-cream-50/10 text-white')}`}
+                      >
+                        <Ticket className="w-5 h-5" />
+                        <span className="font-bold text-sm flex-1 text-left">イベント参加店舗</span>
+                        {eventOnly && <Check className="w-4 h-4 text-brass-500" />}
+                      </button>
+
+                      <button
                         onClick={() => setVacantOnly(!vacantOnly)}
                         className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${vacantOnly ? 'bg-success/20 text-success' : ('hover:bg-cream-50/10 text-white')}`}
                       >
@@ -909,13 +963,14 @@ function StoreListContent() {
                         onClick={() => {
                           setVacantOnly(false);
                           setOpenNowOnly(false);
+                          setEventOnly(false);
                           setShowFilterMenu(false);
                         }}
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${!vacantOnly && !openNowOnly ? 'bg-brass-500/20 text-brass-500' : ('hover:bg-cream-50/10 text-white')}`}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${!vacantOnly && !openNowOnly && !eventOnly ? 'bg-brass-500/20 text-brass-500' : ('hover:bg-cream-50/10 text-white')}`}
                       >
                         <span className="w-5 h-5 flex items-center justify-center text-lg">🍺</span>
                         <span className="font-bold text-sm flex-1 text-left">{t('store_list.filter_show_all')}</span>
-                        {!vacantOnly && !openNowOnly && <Check className="w-4 h-4 text-brass-500" />}
+                        {!vacantOnly && !openNowOnly && !eventOnly && <Check className="w-4 h-4 text-brass-500" />}
                       </button>
                     </div>
                   </div>

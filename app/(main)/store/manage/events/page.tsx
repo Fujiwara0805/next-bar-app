@@ -1,15 +1,18 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   CalendarDays,
   CheckCircle2,
   Edit,
+  ImageIcon,
   Loader2,
   Plus,
   Search,
   Trash2,
+  Upload,
+  X,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAdminTheme } from '@/lib/admin-theme-context';
@@ -47,24 +50,26 @@ const emptyForm: FormState = {
   status: 'draft',
 };
 
-function toLocalInputValue(iso: string | null): string {
+function toDateInputValue(iso: string | null): string {
   if (!iso) return '';
   const date = new Date(iso);
   if (!Number.isFinite(date.getTime())) return '';
-  const offsetMs = date.getTimezoneOffset() * 60 * 1000;
-  return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
+  return new Intl.DateTimeFormat('sv-SE', {
+    timeZone: 'Asia/Tokyo',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(date);
 }
 
 function fmt(iso: string | null): string {
   if (!iso) return '未設定';
   const date = new Date(iso);
   if (!Number.isFinite(date.getTime())) return '未設定';
-  return date.toLocaleString('ja-JP', {
+  return date.toLocaleDateString('ja-JP', {
     timeZone: 'Asia/Tokyo',
     month: '2-digit',
     day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
   });
 }
 
@@ -84,6 +89,8 @@ export default function PlatformEventsPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<PlatformEvent | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const imageInputRef = useRef<HTMLInputElement | null>(null);
 
   const fetchEvents = async () => {
     setLoading(true);
@@ -140,13 +147,54 @@ export default function PlatformEventsPage() {
       organizer_name: event.organizer_name ?? '',
       description: event.description ?? '',
       area_label: event.area_label ?? '',
-      start_at: toLocalInputValue(event.start_at),
-      end_at: toLocalInputValue(event.end_at),
+      start_at: toDateInputValue(event.start_at),
+      end_at: toDateInputValue(event.end_at),
       image_url: event.image_url ?? '',
       external_url: event.external_url ?? '',
       status: event.status,
     });
     setFormOpen(true);
+  };
+
+  const uploadEventImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      toast.error('画像ファイルを選択してください');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('画像は10MB以下にしてください');
+      return;
+    }
+
+    setUploadingImage(true);
+    try {
+      const fileExt = file.name.split('.').pop() || 'jpg';
+      const fileName = `event-images/${crypto.randomUUID()}/${Date.now()}.${fileExt}`;
+      const { error } = await supabase.storage
+        .from('store-images')
+        .upload(fileName, file, { cacheControl: '3600', upsert: false });
+      if (error) throw error;
+
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from('store-images').getPublicUrl(fileName);
+
+      setForm((prev) => ({ ...prev, image_url: publicUrl }));
+      toast.success('画像をアップロードしました');
+    } catch (err) {
+      console.error('[events] image upload error', err);
+      toast.error('画像のアップロードに失敗しました');
+    } finally {
+      setUploadingImage(false);
+      if (imageInputRef.current) imageInputRef.current.value = '';
+    }
+  };
+
+  const clearEventImage = () => {
+    setForm((prev) => ({ ...prev, image_url: '' }));
+    if (imageInputRef.current) imageInputRef.current.value = '';
   };
 
   const saveEvent = async () => {
@@ -360,10 +408,60 @@ export default function PlatformEventsPage() {
           </div>
           <Textarea placeholder="イベント説明" value={form.description} onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))} className="min-h-[100px]" />
           <div className="grid grid-cols-2 gap-2">
-            <Input type="datetime-local" value={form.start_at} onChange={(e) => setForm((prev) => ({ ...prev, start_at: e.target.value }))} />
-            <Input type="datetime-local" value={form.end_at} onChange={(e) => setForm((prev) => ({ ...prev, end_at: e.target.value }))} />
+            <Input type="date" value={form.start_at} onChange={(e) => setForm((prev) => ({ ...prev, start_at: e.target.value }))} />
+            <Input type="date" value={form.end_at} onChange={(e) => setForm((prev) => ({ ...prev, end_at: e.target.value }))} />
           </div>
-          <Input placeholder="画像URL" value={form.image_url} onChange={(e) => setForm((prev) => ({ ...prev, image_url: e.target.value }))} />
+          <div className="space-y-2">
+            {form.image_url ? (
+              <div className="relative overflow-hidden rounded-lg border" style={{ borderColor: '#d6c19a' }}>
+                <img src={form.image_url} alt="イベント画像" className="h-36 w-full object-cover" />
+                <button
+                  type="button"
+                  onClick={clearEventImage}
+                  className="absolute right-2 top-2 rounded-full p-1.5"
+                  style={{ background: 'rgba(19, 41, 75, 0.9)', color: '#ffc52d' }}
+                  aria-label="画像を削除"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => imageInputRef.current?.click()}
+                disabled={uploadingImage}
+                className="flex h-28 w-full flex-col items-center justify-center gap-2 rounded-lg border border-dashed text-sm font-bold disabled:opacity-60"
+                style={{ borderColor: '#d6c19a', color: '#13294b', background: '#fffaf0' }}
+              >
+                {uploadingImage ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  <ImageIcon className="h-5 w-5" />
+                )}
+                イベント画像をアップロード
+              </button>
+            )}
+            <div className="flex gap-2">
+              <Input placeholder="画像URL" value={form.image_url} onChange={(e) => setForm((prev) => ({ ...prev, image_url: e.target.value }))} />
+              <Button
+                type="button"
+                onClick={() => imageInputRef.current?.click()}
+                disabled={uploadingImage}
+                variant="outline"
+                className="shrink-0"
+              >
+                {uploadingImage ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+              </Button>
+            </div>
+            <input
+              ref={imageInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={uploadEventImage}
+              disabled={uploadingImage}
+            />
+          </div>
           <Input placeholder="外部URL" value={form.external_url} onChange={(e) => setForm((prev) => ({ ...prev, external_url: e.target.value }))} />
           <select
             value={form.status}
