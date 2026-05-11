@@ -47,6 +47,8 @@ type Store = EventAwareStore;
 
 const CONCIERGE_RECOMMENDATION_LIMIT = 3;
 const IS_OPEN_UPDATE_RADIUS_KM = 2.0;
+const EVENT_CARD_BG = '#ffc52d';
+const EVENT_CARD_FG = '#13294b';
 
 // 初回ロード時の is_open 更新APIの呼び出しを、ユーザーごとに毎回叩かないためのクールダウン
 // （同じエリア周辺で短時間に何度も更新しても体感は変わりにくい一方、API/DB負荷が跳ねるため）
@@ -702,10 +704,10 @@ function StoreListContent() {
                       }}
                     >
                       <Card
-                        className={`p-4 hover:shadow-lg transition-shadow h-full relative overflow-hidden ${isConciergeActive ? 'ring-2 ring-brass-500/30' : ''}`}
+                        className={`p-4 hover:shadow-lg transition-shadow h-full bg-popover relative overflow-hidden ${isConciergeActive ? 'ring-2 ring-brass-500/30' : ''}`}
                         style={{
-                          background: isEventStore ? COLORS.champagneGold : undefined,
-                          borderColor: isEventStore ? `${COLORS.deepNavy}33` : undefined,
+                          background: isEventStore ? EVENT_CARD_BG : undefined,
+                          borderColor: isEventStore ? `${EVENT_CARD_FG}33` : undefined,
                         }}
                       >
                         {navigatingTo === store.id && (
@@ -729,16 +731,6 @@ function StoreListContent() {
                             <span>No.{index + 1}</span>
                           </motion.div>
                         )}
-                        {isEventStore && (
-                          <div
-                            className="absolute top-2 left-2 z-10 flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold"
-                            style={{ background: COLORS.deepNavy, color: COLORS.champagneGold }}
-                          >
-                            <Ticket className="h-3.5 w-3.5" />
-                            イベント参加店舗
-                          </div>
-                        )}
-
                         <div className="flex gap-3 h-full">
                           {store.image_urls && store.image_urls.length > 0 && (
                             <motion.img
@@ -751,14 +743,9 @@ function StoreListContent() {
                           
                           <div className="flex-1 min-w-0 flex flex-col">
                             <div className="flex-1">
-                              <h3 className={`text-lg font-bold truncate ${isConciergeActive ? 'pr-20' : ''} ${isEventStore ? 'pt-6' : ''}`} style={{ color: COLORS.deepNavy }}>
+                              <h3 className={`text-lg font-bold truncate ${isConciergeActive ? 'pr-20' : ''}`} style={{ color: isEventStore ? EVENT_CARD_FG : COLORS.deepNavy }}>
                                 {store.name}
                               </h3>
-                              {isEventStore && store.active_event && (
-                                <p className="text-xs font-bold truncate" style={{ color: COLORS.deepNavy }}>
-                                  {store.active_event.title}
-                                </p>
-                              )}
                               
                               {store.google_rating && (
                                 <div className="flex items-center gap-2 -mt-1 mb-1">
@@ -768,15 +755,15 @@ function StoreListContent() {
                                         key={star}
                                         className={`w-4 h-4 ${star <= Math.round(store.google_rating!) ? 'fill-brass-500 text-brass-500' : 'fill-muted text-muted'}`}
                                         style={isEventStore ? {
-                                          fill: star <= Math.round(store.google_rating!) ? COLORS.deepNavy : 'transparent',
-                                          color: COLORS.deepNavy,
+                                          fill: star <= Math.round(store.google_rating!) ? EVENT_CARD_FG : 'transparent',
+                                          color: EVENT_CARD_FG,
                                         } : undefined}
                                       />
                                     ))}
                                   </div>
-                                  <span className="text-sm font-bold" style={{ color: isEventStore ? COLORS.deepNavy : COLORS.charcoal }}>{store.google_rating.toFixed(1)}</span>
+                                  <span className="text-sm font-bold" style={{ color: isEventStore ? EVENT_CARD_FG : COLORS.charcoal }}>{store.google_rating.toFixed(1)}</span>
                                   {store.google_reviews_count && (
-                                    <span className="text-xs" style={{ color: isEventStore ? COLORS.deepNavy : COLORS.warmGray }}>{t('store_list.reviews_count').replace('{count}', store.google_reviews_count.toLocaleString())}</span>
+                                    <span className="text-xs" style={{ color: isEventStore ? EVENT_CARD_FG : COLORS.warmGray }}>{t('store_list.reviews_count').replace('{count}', store.google_reviews_count.toLocaleString())}</span>
                                   )}
                                 </div>
                               )}
@@ -794,7 +781,7 @@ function StoreListContent() {
                                   ? t('store_list.walking_time_hours').replace('{hours}', (minutes / 60).toFixed(1)).replace('{distance}', distanceText)
                                   : t('store_list.walking_time').replace('{minutes}', String(minutes)).replace('{distance}', distanceText);
                                 return (
-                                  <p className="text-sm font-bold" style={{ color: isEventStore ? COLORS.deepNavy : COLORS.warmGray }}>
+                                  <p className="text-sm font-bold" style={{ color: isEventStore ? EVENT_CARD_FG : COLORS.warmGray }}>
                                     {text}
                                   </p>
                                 );
@@ -805,11 +792,11 @@ function StoreListContent() {
                                 return (
                               <motion.div className="flex items-center gap-2 pt-1 flex-wrap" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}>
                                 <img src={getVacancyIcon(effectiveStatus)} alt={getVacancyLabel(effectiveStatus)} className="w-6 h-6 object-contain" />
-                                <span className="text-lg font-bold" style={{ color: COLORS.deepNavy }}>{getVacancyLabel(effectiveStatus)}</span>
+                                <span className="text-lg font-bold" style={{ color: isEventStore ? EVENT_CARD_FG : COLORS.deepNavy }}>{getVacancyLabel(effectiveStatus)}</span>
                                 {effectiveStatus === 'vacant' && store.vacant_seats != null && store.vacant_seats > 0 && (
                                   <span className="text-sm font-bold px-2 py-0.5 rounded-lg" style={{
-                                    backgroundColor: 'rgba(34, 197, 94, 0.1)',
-                                    color: '#16a34a',
+                                    backgroundColor: isEventStore ? `${EVENT_CARD_FG}1A` : 'rgba(34, 197, 94, 0.1)',
+                                    color: isEventStore ? EVENT_CARD_FG : '#16a34a',
                                   }}>
                                     {t('store_detail.vacant_seats').replace('{count}', String(store.vacant_seats))}
                                   </span>
@@ -819,8 +806,8 @@ function StoreListContent() {
                                   if (isTodayClosedDay(sbh)) {
                                     return (
                                       <span className="text-sm font-bold px-2 py-0.5 rounded-lg" style={{
-                                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                                        color: '#ef4444',
+                                        backgroundColor: isEventStore ? `${EVENT_CARD_FG}1A` : 'rgba(239, 68, 68, 0.1)',
+                                        color: isEventStore ? EVENT_CARD_FG : '#ef4444',
                                       }}>
                                         {t('store_list.regular_holiday')}
                                       </span>
@@ -830,8 +817,8 @@ function StoreListContent() {
                                   if (!openTime) return null;
                                   return (
                                     <span className="text-sm font-bold px-2 py-0.5 rounded-lg" style={{
-                                      backgroundColor: 'rgba(34, 197, 94, 0.1)',
-                                      color: '#16a34a',
+                                      backgroundColor: isEventStore ? `${EVENT_CARD_FG}1A` : 'rgba(34, 197, 94, 0.1)',
+                                      color: isEventStore ? EVENT_CARD_FG : '#16a34a',
                                     }}>
                                       {t('store_list.opens_at').replace('{time}', openTime)}
                                     </span>
@@ -842,11 +829,14 @@ function StoreListContent() {
                               })()}
                               
                               {store.status_message && (
-                                <p className="text-sm font-bold line-clamp-2 pt-1" style={{ color: COLORS.deepNavy }}>{store.status_message}</p>
+                                <p className="text-sm font-bold line-clamp-2 pt-1" style={{ color: isEventStore ? EVENT_CARD_FG : COLORS.deepNavy }}>{store.status_message}</p>
                               )}
 
                               {isConciergeActive && matchScore > 0 && (
-                                <p className="text-xs mt-2 px-2 py-1 rounded-md inline-block" style={{ backgroundColor: `${COLORS.champagneGold}1A`, color: COLORS.antiqueGold }}>
+                                <p className="text-xs mt-2 px-2 py-1 rounded-md inline-block" style={{
+                                  backgroundColor: isEventStore ? `${EVENT_CARD_FG}1A` : `${COLORS.champagneGold}1A`,
+                                  color: isEventStore ? EVENT_CARD_FG : COLORS.antiqueGold,
+                                }}>
                                   {t('store_list.items_match').replace('{count}', String(matchScore))}
                                 </p>
                               )}
