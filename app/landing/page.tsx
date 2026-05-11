@@ -693,36 +693,10 @@ export default function LandingPage() {
                     className="absolute inset-0 bg-cover bg-center bg-no-repeat"
                     style={{
                       backgroundImage: `url('${heroImages[heroImageIndex]}')`,
-                      filter: 'brightness(1.08) saturate(1.05)',
                     }}
                   />
                 </motion.div>
               </AnimatePresence>
-
-              {/* PC: 左側 Navy パネル → 画像へ自然にフェード (右へ透明化) */}
-              <div
-                className="absolute inset-0 hidden lg:block"
-                style={{
-                  backgroundColor: 'rgba(19,41,75,0.45)',
-                }}
-                aria-hidden
-              />
-              {/* PC: 下部のビネット（次セクションへの繋ぎ） */}
-              <div
-                className="absolute inset-0 hidden lg:block"
-                style={{
-                  backgroundColor: 'rgba(19,41,75,0.45)',
-                }}
-                aria-hidden
-              />
-              {/* Mobile: 全体に乗せる overlay（テキスト可読性） */}
-              <div
-                className="absolute inset-0 lg:hidden"
-                style={{
-                  backgroundColor: 'rgba(19,41,75,0.45)',
-                }}
-                aria-hidden
-              />
             </motion.div>
 
             {/* PC: 左パネルと画像を繋ぐ細い縦のゴールドアクセントライン */}

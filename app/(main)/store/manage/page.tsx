@@ -115,7 +115,7 @@ export default function StoreManagePage() {
         supabase.from('users').select('id', { count: 'exact', head: true }).eq('role', 'customer'),
         supabase.from('sponsors').select('id', { count: 'exact', head: true }).eq('is_active', true),
         supabase.from('store_applications').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
-        (supabase as any).from('platform_events').select('id', { count: 'exact', head: true }).eq('status', 'published'),
+        (supabase as any).from('platform_events').select('id', { count: 'exact', head: true }),
       ]);
       setCustomerCount(customerRes.count || 0);
       setSponsorCount(sponsorRes.count || 0);
@@ -346,7 +346,7 @@ export default function StoreManagePage() {
         <AdminKpiGrid>
           <AdminKpiCard icon={StoreIcon} label="店舗数" value={stores.length} subLabel="登録済み店舗" gradient={getKpiGradient('gold')} href="/store/manage" index={0} />
           <AdminKpiCard icon={Users} label="顧客数" value={customerCount} subLabel="登録ユーザー" gradient={getKpiGradient('teal')} href="/store/manage/customers" index={1} />
-          <AdminKpiCard icon={CalendarDays} label="イベント" value={eventCount} subLabel="公開中" gradient={getKpiGradient('blue')} href="/store/manage/events" index={2} />
+          <AdminKpiCard icon={CalendarDays} label="イベント" value={eventCount} subLabel="全イベント" gradient={getKpiGradient('blue')} href="/store/manage/events" index={2} />
           <AdminKpiCard icon={Handshake} label="スポンサー数" value={sponsorCount} subLabel="アクティブ契約" gradient={getKpiGradient('purple')} href="/store/manage/sponsors" index={3} />
           <AdminKpiCard icon={FileText} label="申込" value={pendingApps} subLabel="未処理の申込" gradient={getKpiGradient('rose')} href="/store/manage/applications" index={4} badge={pendingApps > 0 ? 'NEW' : undefined} />
         </AdminKpiGrid>

@@ -11,7 +11,6 @@ import {
   Plus,
   Search,
   Trash2,
-  Upload,
   X,
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -441,18 +440,6 @@ export default function PlatformEventsPage() {
                 イベント画像をアップロード
               </button>
             )}
-            <div className="flex gap-2">
-              <Input placeholder="画像URL" value={form.image_url} onChange={(e) => setForm((prev) => ({ ...prev, image_url: e.target.value }))} />
-              <Button
-                type="button"
-                onClick={() => imageInputRef.current?.click()}
-                disabled={uploadingImage}
-                variant="outline"
-                className="shrink-0"
-              >
-                {uploadingImage ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-              </Button>
-            </div>
             <input
               ref={imageInputRef}
               type="file"
