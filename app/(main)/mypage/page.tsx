@@ -22,6 +22,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { CloseCircleButton } from '@/components/ui/close-circle-button';
 import { LoadingScreen } from '@/components/ui/loading-screen';
+import { useAppMode } from '@/lib/app-mode-context';
 import { toast } from 'sonner';
 
 const LOTTERY_STORE_THRESHOLD = 3;
@@ -32,7 +33,6 @@ const STAMP_ICON_URL =
   'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761355092/%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png';
 
 // Brewers Navy + Brass + Copper パレット（StoreDetailPanel と統一）
-const BG_OFFWHITE = '#F7F3E9'; // cream-50
 const NAVY = '#13294b'; // Brewers Dark Navy
 const NAVY_SOFT = 'rgba(19, 41, 75, 0.08)';
 const BRASS = '#ffc52d'; // Brewers Yellow
@@ -51,25 +51,27 @@ export default function MyPage() {
   const router = useRouter();
   const { user, profile, accountType, signOut, loading: authLoading } = useAuth();
   const { t } = useLanguage();
+  const { colorsB: COLORS } = useAppMode();
+  const pageBackground = COLORS.cardGradient;
 
   const [windowStoreCount, setWindowStoreCount] = useState(0);
   const [hasTodayEntry, setHasTodayEntry] = useState(false);
   const [loading, setLoading] = useState(true);
   const [stampHelpOpen, setStampHelpOpen] = useState(false);
 
-  // 背景をオフホワイトで上書き
+  // 背景をログイン画面と同じベースカラーで上書き
   useEffect(() => {
     const root = document.documentElement;
     const body = document.body;
     const prevRoot = root.style.background;
     const prevBody = body.style.background;
-    root.style.background = BG_OFFWHITE;
-    body.style.background = BG_OFFWHITE;
+    root.style.background = pageBackground;
+    body.style.background = pageBackground;
     return () => {
       root.style.background = prevRoot;
       body.style.background = prevBody;
     };
-  }, []);
+  }, [pageBackground]);
 
   useEffect(() => {
     if (authLoading) return;
@@ -166,7 +168,7 @@ export default function MyPage() {
   return (
     <div
       className="min-h-screen pb-24 relative"
-      style={{ background: BG_OFFWHITE }}
+      style={{ background: pageBackground }}
     >
       {/* ヘッダー（店舗管理画面と同じビジュアル言語） */}
       <header
@@ -189,18 +191,6 @@ export default function MyPage() {
           </div>
         </div>
       </header>
-
-      {/* 装飾的なアクセント（グラデ廃止: ほぼ透明な単色tintのみ残す） */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div
-          className="absolute -top-40 -right-32 h-[28rem] w-[28rem] rounded-full opacity-10"
-          style={{ backgroundColor: BRASS }}
-        />
-        <div
-          className="absolute -bottom-40 -left-24 h-[26rem] w-[26rem] rounded-full opacity-[0.06]"
-          style={{ backgroundColor: NAVY }}
-        />
-      </div>
 
       <div className="relative max-w-md mx-auto px-4 py-6">
         <motion.div
@@ -252,7 +242,7 @@ export default function MyPage() {
                 aria-label={t('mypage.edit')}
               >
                 <span
-                  className="inline-flex items-center justify-center w-9 h-9 rounded-full"
+                  className="inline-flex items-center justify-center w-9 h-9 rounded-lg"
                   style={{
                     background: `${BRASS}18`,
                     border: `1px solid ${BRASS}50`,
@@ -274,23 +264,23 @@ export default function MyPage() {
           {isProfileComplete ? (
             <Link href="/mypage/qr" className="block mb-4">
               <div
-                className="rounded-2xl p-5 transition-all hover:translate-y-[-2px] relative overflow-hidden"
+                className="rounded-2xl p-5 transition-all hover:translate-y-[-2px] relative overflow-hidden bg-white"
                 style={{
-                  background: NAVY,
-                  boxShadow: `0 14px 36px rgba(19, 41, 75, 0.30)`,
-                  border: `1px solid ${BRASS}55`,
+                  boxShadow:
+                    '0 18px 48px rgba(19, 41, 75, 0.12), 0 4px 12px rgba(19, 41, 75, 0.06)',
+                  border: `1px solid ${BRASS}33`,
                 }}
               >
                 <div
-                  className="absolute -top-12 -right-12 w-32 h-32 rounded-full opacity-20"
-                  style={{ backgroundColor: BRASS }}
+                  className="absolute top-0 left-0 right-0 h-[3px]"
+                  style={{ background: GOLD_GRADIENT }}
                 />
                 <div className="relative flex items-center gap-4">
                   <div
                     className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0"
                     style={{
-                      background: GOLD_GRADIENT,
-                      boxShadow: `0 6px 16px ${BRASS}55`,
+                      background: `${BRASS}18`,
+                      border: `1px solid ${BRASS}44`,
                     }}
                   >
                     <QrCode className="w-7 h-7" style={{ color: NAVY }} />
@@ -298,18 +288,27 @@ export default function MyPage() {
                   <div className="flex-1">
                     <h2
                       className="font-bold text-base mb-0.5"
-                      style={{ color: '#FDFBF7' }}
+                      style={{ color: NAVY }}
                     >
                       {t('mypage.qr_cta_title')}
                     </h2>
                     <p
                       className="text-xs"
-                      style={{ color: 'rgba(253, 251, 247, 0.75)' }}
+                      style={{ color: 'rgba(19, 41, 75, 0.62)' }}
                     >
                       {t('mypage.qr_cta_desc')}
                     </p>
                   </div>
-                  <ChevronRight className="w-5 h-5" style={{ color: BRASS }} />
+                  <span
+                    className="inline-flex h-10 w-10 items-center justify-center rounded-xl"
+                    style={{
+                      background: NAVY,
+                      color: BRASS,
+                      boxShadow: '0 6px 18px rgba(19, 41, 75, 0.22)',
+                    }}
+                  >
+                    <ChevronRight className="w-5 h-5" />
+                  </span>
                 </div>
               </div>
             </Link>
@@ -373,7 +372,7 @@ export default function MyPage() {
               aria-controls="stamp-help-body"
             >
               <div
-                className="flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center overflow-hidden"
+                className="flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center overflow-hidden"
                 style={{ background: `${BRASS}28`, border: `1px solid ${BRASS}66` }}
               >
                 <img
