@@ -40,6 +40,10 @@ import { newsTranslations } from '@/lib/news-data';
 import { SponsorModal } from '@/components/sponsors/sponsor-modal';
 import { SponsorCtaButton } from '@/components/sponsors/sponsor-cta-button';
 import { SponsorProvider, useSponsor } from '@/lib/sponsors/context';
+import {
+  fetchActiveStoreParticipations,
+  type ActiveStoreEvent,
+} from '@/lib/types/active-store-event';
 
 // ============================================
 // 統一カラーパレット
@@ -193,6 +197,7 @@ export default function LandingPage() {
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
   const [areaGuideSlide, setAreaGuideSlide] = useState(0);
   const [concernsSlide, setConcernsSlide] = useState(0);
+  const [activeEvents, setActiveEvents] = useState<ActiveStoreEvent[]>([]);
   const locationAttemptRef = useRef(false);
 
   const renderWithLineBreaks = (text: string) => {
@@ -296,6 +301,22 @@ export default function LandingPage() {
       } catch (error) { console.error('Error fetching partner stores:', error); }
     };
     fetchPartnerStores();
+  }, []);
+
+  useEffect(() => {
+    const fetchActiveEvents = async () => {
+      try {
+        const participations = await fetchActiveStoreParticipations();
+        const eventMap = new Map<string, ActiveStoreEvent>();
+        participations.forEach((p) => {
+          if (!eventMap.has(p.event.id)) eventMap.set(p.event.id, p.event);
+        });
+        setActiveEvents(Array.from(eventMap.values()));
+      } catch (error) {
+        console.error('Error fetching active events:', error);
+      }
+    };
+    fetchActiveEvents();
   }, []);
 
   useEffect(() => {
@@ -799,6 +820,74 @@ export default function LandingPage() {
         </div>
         <motion.div className="absolute bottom-0 left-0 right-0 h-px" style={{ backgroundColor: `${LP_YELLOW}40` }} />
       </section>
+
+      {/* イベントセクション（参加店舗があるイベントのみ表示） */}
+      {activeEvents.length > 0 && (
+        <section className="relative py-8 md:py-16 px-4 overflow-hidden" style={{ background: lpMid.page.bg }}>
+          <div className="container mx-auto max-w-3xl">
+            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-8">
+              <GoldDivider />
+              <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-3 lg:text-base" style={{ color: lpMid.page.text }}>
+                {t('landing.events_subtitle')}
+              </span>
+              <h2 className="text-2xl sm:text-3xl font-bold lg:text-4xl flex items-center justify-center gap-2" style={{ color: lpMid.page.text }}>
+                <span aria-hidden>🎉</span>
+                {t('landing.events_title')}
+              </h2>
+            </motion.div>
+            <div className="space-y-4">
+              {activeEvents.map((event, index) => (
+                <motion.button
+                  key={event.id}
+                  type="button"
+                  initial={{ opacity: 0, y: 10 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.05 }}
+                  whileHover={{ scale: 1.01 }}
+                  whileTap={{ scale: 0.99 }}
+                  onClick={() => router.push('/store-list?event=true')}
+                  className="w-full text-left rounded-2xl overflow-hidden block"
+                  style={{
+                    background: LP_YELLOW,
+                    border: `1px solid ${LP_NAVY}33`,
+                    boxShadow: `0 6px 20px ${LP_NAVY}1f`,
+                  }}
+                  aria-label={`${event.title} - ${t('landing.events_view_stores')}`}
+                >
+                  {event.image_url && (
+                    <div className="aspect-[16/9] w-full overflow-hidden" style={{ background: `${LP_NAVY}10` }}>
+                      <img
+                        src={event.image_url}
+                        alt={event.title}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+                  <div className="p-4 sm:p-5 flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-base sm:text-lg font-bold truncate lg:text-xl" style={{ color: LP_NAVY }}>
+                        {event.title}
+                      </p>
+                      <p className="text-xs sm:text-sm font-medium mt-1 inline-flex items-center gap-1" style={{ color: LP_NAVY }}>
+                        {t('landing.events_view_stores')} <ChevronRight className="w-4 h-4" />
+                      </p>
+                    </div>
+                    <span
+                      className="shrink-0 inline-flex w-10 h-10 rounded-full items-center justify-center text-xl leading-none"
+                      style={{ background: LP_NAVY, border: `2px solid ${LP_YELLOW}` }}
+                      aria-hidden
+                    >
+                      🎉
+                    </span>
+                  </div>
+                </motion.button>
+              ))}
+            </div>
+          </div>
+          <motion.div className="absolute bottom-0 left-0 right-0 h-px" style={{ backgroundColor: `${LP_YELLOW}40` }} />
+        </section>
+      )}
 
 
       {/* 課題提起セクション */}

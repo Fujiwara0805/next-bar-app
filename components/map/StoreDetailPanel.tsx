@@ -407,16 +407,33 @@ export function StoreDetailPanel({
                   >
                     {store.name}
                   </h3>
-                  <CloseCircleButton
-                    type="button"
-                    size="sm"
-                    className="flex-shrink-0"
-                    aria-label={t('common.close')}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onClose();
-                    }}
-                  />
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    {isEventStore && !isExpanded && (
+                      <motion.span
+                        initial={{ scale: 0, rotate: -20 }}
+                        animate={{ scale: 1, rotate: 0 }}
+                        transition={{ type: 'spring', stiffness: 320, damping: 18 }}
+                        className="inline-flex w-8 h-8 rounded-full items-center justify-center text-base leading-none"
+                        style={{
+                          background: '#13294b',
+                          boxShadow: '0 4px 12px rgba(19, 41, 75, 0.45)',
+                          border: '2px solid #ffc52d',
+                        }}
+                        aria-label="イベント参加店舗"
+                      >
+                        🎉
+                      </motion.span>
+                    )}
+                    <CloseCircleButton
+                      type="button"
+                      size="sm"
+                      aria-label={t('common.close')}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onClose();
+                      }}
+                    />
+                  </div>
                 </div>
 
                 {isEventStore && store.active_event && (

@@ -731,6 +731,22 @@ function StoreListContent() {
                             <span>No.{index + 1}</span>
                           </motion.div>
                         )}
+                        {isEventStore && !isConciergeActive && (
+                          <motion.div
+                            initial={{ scale: 0, rotate: -20 }}
+                            animate={{ scale: 1, rotate: 0 }}
+                            transition={{ type: 'spring', stiffness: 320, damping: 18, delay: index * 0.05 + 0.1 }}
+                            className="absolute top-2 right-2 z-10 w-9 h-9 rounded-full flex items-center justify-center text-lg leading-none"
+                            style={{
+                              background: EVENT_CARD_FG,
+                              boxShadow: `0 4px 12px ${EVENT_CARD_FG}55`,
+                              border: `2px solid ${EVENT_CARD_BG}`,
+                            }}
+                            aria-label="イベント参加店舗"
+                          >
+                            🎉
+                          </motion.div>
+                        )}
                         <div className="flex gap-3 h-full">
                           {store.image_urls && store.image_urls.length > 0 && (
                             <motion.img

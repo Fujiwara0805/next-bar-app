@@ -887,6 +887,10 @@ export const translations = {
       news_item2: '新規加盟店が追加されました。',
       news_item3: 'NIKENME+ 正式リリースしました。',
       news_view_all: 'すべてのお知らせを見る',
+      // Events
+      events_title: '開催中のイベント',
+      events_subtitle: 'EVENTS',
+      events_view_stores: '参加店舗を見る',
       // FAQ
       faq_title: 'よくある質問',
       faq_subtitle: 'NIKENME+に関するよくある質問をまとめました',
@@ -2395,6 +2399,10 @@ export const translations = {
       news_item2: 'New partner stores have joined.',
       news_item3: 'NIKENME+ officially launched.',
       news_view_all: 'View all news',
+      // Events
+      events_title: 'Live Events',
+      events_subtitle: 'EVENTS',
+      events_view_stores: 'See participating stores',
       // FAQ
       faq_title: 'Frequently Asked Questions',
       faq_subtitle: 'Common questions about NIKENME+',
@@ -3831,6 +3839,10 @@ export const translations = {
       news_item2: '캠페인 참여 매장이 추가되었습니다.',
       news_item3: 'NIKENME+가 정식 출시되었습니다.',
       news_view_all: '모든 공지사항 보기',
+      // Events
+      events_title: '진행 중인 이벤트',
+      events_subtitle: 'EVENTS',
+      events_view_stores: '참여 매장 보기',
       // FAQ
       faq_title: '자주 묻는 질문',
       faq_subtitle: 'NIKENME+에 관한 자주 묻는 질문을 정리했습니다',
@@ -5263,6 +5275,10 @@ export const translations = {
       news_item2: '新增活动参与店铺。',
       news_item3: 'NIKENME+ 正式上线。',
       news_view_all: '查看全部公告',
+      // Events
+      events_title: '正在举办的活动',
+      events_subtitle: 'EVENTS',
+      events_view_stores: '查看参与店铺',
       // FAQ
       faq_title: '常见问题',
       faq_subtitle: '关于NIKENME+的常见问题汇总',
