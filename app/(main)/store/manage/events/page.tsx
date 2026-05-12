@@ -79,7 +79,7 @@ function statusBadge(status: PlatformEventStatus) {
 }
 
 export default function PlatformEventsPage() {
-  const { colors: C, isDark } = useAdminTheme();
+  const { colors: C } = useAdminTheme();
   const [events, setEvents] = useState<PlatformEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -454,7 +454,7 @@ export default function PlatformEventsPage() {
             value={form.status}
             onChange={(e) => setForm((prev) => ({ ...prev, status: e.target.value as PlatformEventStatus }))}
             className="w-full h-10 rounded-md border px-3 text-sm"
-            style={{ background: isDark ? '#fff' : '#fff', color: '#13294b' }}
+            style={{ background: '#fff', color: '#13294b' }}
           >
             <option value="draft">下書き</option>
             <option value="published">公開中</option>

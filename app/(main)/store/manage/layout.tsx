@@ -8,12 +8,11 @@ import {
   LogOut, Menu, X, CalendarDays,
 } from 'lucide-react';
 import { AdminThemeProvider, useAdminTheme } from '@/lib/admin-theme-context';
-import { AdminThemeToggle } from '@/components/admin/admin-theme-toggle';
 import { useAuth } from '@/lib/auth/context';
 import { LoadingScreen } from '@/components/ui/loading-screen';
 import { toast } from 'sonner';
 
-const LOGO_URL = 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761355092/%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png';
+const LOGO_URL = 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1777620739/a7ec37de-d4b1-46ff-8639-f2d49f567279_kym3yo.png';
 
 const NAV_ITEMS = [
   { href: '/store/manage', icon: LayoutDashboard, label: 'Dashboard', exact: true },
@@ -88,9 +87,6 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
 
       {/* Bottom */}
       <div className="px-3 pb-4 space-y-2" style={{ borderTop: `1px solid ${C.border}`, paddingTop: '12px' }}>
-        <div className="px-3 py-1">
-          <AdminThemeToggle />
-        </div>
         <button
           onClick={handleSignOut}
           className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all"
@@ -105,7 +101,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
 }
 
 function ManageLayoutInner({ children }: { children: React.ReactNode }) {
-  const { colors: C, isDark } = useAdminTheme();
+  const { colors: C } = useAdminTheme();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
@@ -114,8 +110,7 @@ function ManageLayoutInner({ children }: { children: React.ReactNode }) {
       <aside
         className="hidden md:flex md:flex-col md:w-[240px] md:flex-shrink-0 fixed inset-y-0 left-0 z-40"
         style={{
-          // Dark: Navy 濃い面 / Light: 白
-          background: isDark ? '#0F1F3A' : '#ffffff',
+          background: '#ffffff',
           borderRight: `1px solid ${C.border}`,
         }}
       >
@@ -163,7 +158,7 @@ function ManageLayoutInner({ children }: { children: React.ReactNode }) {
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
               className="md:hidden fixed inset-y-0 left-0 z-50 w-[260px]"
               style={{
-                background: isDark ? '#0F1F3A' : '#ffffff',
+                background: '#ffffff',
                 borderRight: `1px solid ${C.border}`,
               }}
             >

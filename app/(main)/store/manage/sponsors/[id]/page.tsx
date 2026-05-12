@@ -6,7 +6,6 @@ import { ArrowLeft, Loader2, Building2, FileText, Layers, BarChart3 } from 'luci
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useAdminTheme } from '@/lib/admin-theme-context';
-import { AdminThemeToggle } from '@/components/admin/admin-theme-toggle';
 import { useAuth } from '@/lib/auth/context';
 import { getSponsorById } from '@/lib/actions/sponsor';
 import { SponsorBasicInfoTab } from '@/components/admin/sponsor-basic-info-tab';
@@ -25,7 +24,7 @@ const TABS = [
 type TabId = (typeof TABS)[number]['id'];
 
 export default function SponsorDetailPage() {
-  const { colors: C, isDark } = useAdminTheme();
+  const { colors: C } = useAdminTheme();
   const { id } = useParams<{ id: string }>();
   const { profile, accountType } = useAuth();
 
@@ -75,7 +74,7 @@ export default function SponsorDetailPage() {
       <div
         className="sticky top-0 z-30 backdrop-blur-xl"
         style={{
-          background: isDark ? 'rgba(15,23,42,0.85)' : 'rgba(248,250,252,0.85)',
+          background: 'rgba(248,250,252,0.85)',
           borderBottom: `1px solid ${C.border}`,
         }}
       >
@@ -113,7 +112,6 @@ export default function SponsorDetailPage() {
               </div>
             </div>
           </div>
-          <AdminThemeToggle />
         </div>
       </div>
 

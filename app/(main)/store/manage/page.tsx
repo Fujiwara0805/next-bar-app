@@ -63,7 +63,7 @@ function formatStoreAreaLabel(address: string | null | undefined): string {
 }
 
 export default function StoreManagePage() {
-  const { colors: C, isDark } = useAdminTheme();
+  const { colors: C } = useAdminTheme();
   const router = useRouter();
   const { user, profile, accountType, store, signOut } = useAuth();
   const { t } = useLanguage();
@@ -442,7 +442,7 @@ export default function StoreManagePage() {
               return (
                 <div className="relative">
                   {isNavigating && (
-                    <div className="absolute inset-0 z-10 flex items-center justify-center rounded-xl" style={{ background: isDark ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.7)' }}>
+                    <div className="absolute inset-0 z-10 flex items-center justify-center rounded-xl" style={{ background: 'rgba(255,255,255,0.7)' }}>
                       <Loader2 className="w-6 h-6 animate-spin" style={{ color: C.accent }} />
                     </div>
                   )}
@@ -524,7 +524,7 @@ export default function StoreManagePage() {
             </p>
           )}
           <div className="flex gap-3 pt-2">
-            <Button variant="outline" className="flex-1 font-semibold rounded-lg" onClick={() => setDeleteDialogOpen(false)} disabled={deleting} style={{ borderColor: 'rgba(19, 41, 75, 0.2)', color: '#13294b' }}>{t('common.cancel')}</Button>
+            <Button variant="outline" className="flex-1 font-semibold rounded-lg" onClick={() => setDeleteDialogOpen(false)} disabled={deleting} style={{ background: '#ffffff', borderColor: 'rgba(19, 41, 75, 0.2)', color: '#13294b' }}>{t('common.cancel')}</Button>
             <Button className="flex-1 font-semibold rounded-lg" onClick={handleDeleteConfirm} disabled={deleting} style={{ background: C.danger, color: '#fff' }}>
               {deleting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t('store_manage.deleting')}</> : <><Trash2 className="w-4 h-4 mr-2" />{t('common.delete')}</>}
             </Button>
@@ -541,7 +541,7 @@ export default function StoreManagePage() {
               <p className="text-sm mt-1" style={{ color: 'rgba(19, 41, 75, 0.7)' }}>{storeToResetPassword.email}</p>
             </div>
             <div className="flex gap-3">
-              <Button variant="outline" className="flex-1 font-semibold rounded-lg" onClick={() => setResetPasswordModalOpen(false)} disabled={sendingResetEmail} style={{ borderColor: 'rgba(19, 41, 75, 0.2)', color: '#13294b' }}>{t('common.cancel')}</Button>
+              <Button variant="outline" className="flex-1 font-semibold rounded-lg" onClick={() => setResetPasswordModalOpen(false)} disabled={sendingResetEmail} style={{ background: '#ffffff', borderColor: 'rgba(19, 41, 75, 0.2)', color: '#13294b' }}>{t('common.cancel')}</Button>
               <Button className="flex-1 font-semibold rounded-lg" onClick={handlePasswordResetConfirm} disabled={sendingResetEmail} style={{ background: C.info, color: '#fff' }}>
                 {sendingResetEmail ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />送信中...</> : <><Mail className="w-4 h-4 mr-2" />送信</>}
               </Button>

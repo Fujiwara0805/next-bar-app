@@ -312,7 +312,7 @@ export default function ApplicationsManagePage() {
           )}
           <div className="flex gap-3 pt-2">
             <Button variant="outline" className="flex-1 font-semibold rounded-lg" onClick={() => setRejectModalOpen(false)} disabled={rejecting}
-              style={{ borderColor: C.border, color: C.textMuted }}>
+              style={{ background: '#ffffff', borderColor: C.border, color: C.textMuted }}>
               キャンセル
             </Button>
             <Button className="flex-1 font-semibold rounded-lg" onClick={handleRejectConfirm} disabled={rejecting}
@@ -345,7 +345,7 @@ export default function ApplicationsManagePage() {
           )}
           <div className="flex gap-3 pt-2">
             <Button variant="outline" className="flex-1 font-semibold rounded-lg" onClick={() => setCompleteModalOpen(false)} disabled={completing}
-              style={{ borderColor: C.border, color: C.textMuted }}>
+              style={{ background: '#ffffff', borderColor: C.border, color: C.textMuted }}>
               キャンセル
             </Button>
             <Button className="flex-1 font-semibold rounded-lg" onClick={handleCompleteConfirm} disabled={completing}

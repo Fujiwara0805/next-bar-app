@@ -23,7 +23,7 @@ import { AdminStatusBadge } from '@/components/admin/admin-status-badge';
 const ITEMS_PER_PAGE = 10;
 
 export default function SponsorsPage() {
-  const { colors: C, isDark } = useAdminTheme();
+  const { colors: C } = useAdminTheme();
   const router = useRouter();
   const { user, profile, accountType } = useAuth();
 
@@ -396,7 +396,7 @@ export default function SponsorsPage() {
             <label className="text-xs font-semibold" style={labelStyle}>有効</label>
             <button type="button" onClick={() => setFormValues((v) => ({ ...v, is_active: !v.is_active }))}
               className="relative w-10 h-5 rounded-full transition-colors"
-              style={{ background: formValues.is_active ? C.accent : (isDark ? '#374151' : '#d1d5db') }}>
+              style={{ background: formValues.is_active ? C.accent : '#d1d5db' }}>
               <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform ${formValues.is_active ? 'translate-x-5' : ''}`} />
             </button>
           </div>
