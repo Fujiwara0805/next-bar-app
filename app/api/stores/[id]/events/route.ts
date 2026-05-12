@@ -94,12 +94,18 @@ export async function PATCH(
     return NextResponse.json({ error: 'invalid_payload' }, { status: 400 });
   }
 
+  // updated_by は public.users.id への FK。
+  // 店舗アカウント (operatorRole が null) は public.users に行を持たないため
+  // operator が admin の場合のみセットし、それ以外は null にする。
+  const updatedBy =
+    auth.ctx.operatorRole === 'admin' ? auth.ctx.operatorId : null;
+
   const payload = {
     event_id: raw.event_id,
     store_id: params.id,
     is_participating: raw.is_participating,
     notes: nullableString(raw.notes),
-    updated_by: auth.ctx.operatorId,
+    updated_by: updatedBy,
     updated_at: new Date().toISOString(),
   };
 

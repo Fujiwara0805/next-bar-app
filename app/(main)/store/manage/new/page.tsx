@@ -716,51 +716,25 @@ function NewStorePage() {
         throw new Error('セッションが見つかりません。再度ログインしてください。');
       }
 
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: email.trim(),
-        password,
-        options: {
-          data: {
-            store_name: name.trim(),
-            account_type: 'store',
-          }
-        }
-      });
-
-      if (authError) {
-        console.error('Auth error:', authError);
-        
-        if (authError.message.includes('already registered') || authError.message.includes('User already registered')) {
-          throw new Error(`このメールアドレス（${email}）は既に使用されています。別のメールアドレスを使用してください。`);
-        }
-        
-        throw new Error(`認証アカウントの作成に失敗: ${authError.message}`);
-      }
-
-      if (!authData.user) {
-        throw new Error('認証アカウントの作成に失敗しました');
-      }
-
-      const newStoreUserId = authData.user.id;
-
-      if (currentSession) {
-        await supabase.auth.setSession({
-          access_token: currentSession.access_token,
-          refresh_token: currentSession.refresh_token,
-        });
-      }
-
       // 営業時間から開店状態を判定
       const isCurrentlyOpen = checkIsOpenFromStructuredHours(structuredBusinessHours);
       const initialIsOpen = isCurrentlyOpen === true;
       const initialVacancyStatus = initialIsOpen ? 'open' : 'closed';
 
-      const { error: storeError } = await supabase
-        .from('stores')
-        .insert({
-          id: newStoreUserId,
-          owner_id: user.id,
+      // サーバーサイドで auth ユーザー作成 + stores 挿入を一括実行する。
+      // クライアントの supabase.auth.signUp は新規ユーザーのセッションを
+      // 一瞬発火させ、AuthContext の onAuthStateChange レースで
+      // 管理者の認証 Cookie (account-type / store-id) を上書きして
+      // 無限リダイレクトを引き起こすため、必ず API 経由で作成する。
+      const createRes = await fetch('/api/platform/stores', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${currentSession.access_token}`,
+        },
+        body: JSON.stringify({
           email: email.trim(),
+          password,
           name: name.trim(),
           description: description.trim() || null,
           address: address.trim(),
@@ -778,17 +752,23 @@ function NewStorePage() {
           store_category: storeCategory,
           is_open: initialIsOpen,
           vacancy_status: initialVacancyStatus,
-          male_ratio: 0,
-          female_ratio: 0,
           image_urls: imageUrls,
           google_place_id: googlePlaceId,
           google_rating: googleRating,
           google_reviews_count: googleReviewsCount,
-        } as any);
+        }),
+      });
 
-      if (storeError) {
-        console.error('Store error:', storeError);
-        throw new Error(`店舗情報の登録に失敗: ${storeError.message}`);
+      const createJson = await createRes.json().catch(() => ({}));
+      if (!createRes.ok) {
+        if (createJson?.error === 'email_already_registered') {
+          throw new Error(`このメールアドレス（${email}）は既に使用されています。別のメールアドレスを使用してください。`);
+        }
+        if (createJson?.error === 'unauthorized' || createJson?.error === 'forbidden') {
+          throw new Error('権限がありません。再度ログインしてください。');
+        }
+        const msg = typeof createJson?.message === 'string' ? createJson.message : '店舗の登録に失敗しました';
+        throw new Error(msg);
       }
 
       // 申し込みステータスを承認済みに更新
