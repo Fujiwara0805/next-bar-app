@@ -422,6 +422,16 @@ export default function StoreUpdatePage() {
     setLoading(true);
 
     try {
+      const token = session?.access_token;
+      if (!token) {
+        toast.error('セッションが切れています', {
+          position: 'top-center',
+          duration: 3000,
+          className: 'bg-gray-100'
+        });
+        return;
+      }
+
       const isClosed = vacancyStatus === 'closed';
       const now = new Date().toISOString();
       
@@ -455,7 +465,10 @@ export default function StoreUpdatePage() {
 
       const response = await fetch(`/api/stores/${params.id}/vacancy-status`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify(updateData),
       });
 

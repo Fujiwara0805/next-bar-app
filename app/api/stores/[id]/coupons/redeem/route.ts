@@ -178,6 +178,17 @@ export async function POST(
     );
   }
 
+  // LINE Harness にタグ同期 (failsafe)
+  if (issue.line_user_id) {
+    try {
+      const { assignTag, setMetadata } = await import('@/lib/line-harness/client');
+      void assignTag(issue.line_user_id, 'coupon_used');
+      void setMetadata(issue.line_user_id, 'last_coupon_redeemed_at', redeemedAt);
+    } catch (err) {
+      console.warn('[coupons-redeem] line-harness sync skipped', err);
+    }
+  }
+
   return NextResponse.json({
     ok: true,
     issueId: issue.id,

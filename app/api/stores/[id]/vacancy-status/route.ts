@@ -12,18 +12,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { sendPushToNearbyUsers } from '@/lib/push/server';
 import { filterVacancyTargets, isMessagingConfigured, multicast } from '@/lib/line/messaging';
+import { assertStoreAccess, resolveManageAuth } from '@/lib/api/manage-auth';
 
 const DEFAULT_LINE_VACANCY_RADIUS_KM = 1.0;
 const VACANCY_THROTTLE_HOURS = 0.5; // 1ユーザー30分1通まで
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseServiceKey) {
-  throw new Error('Missing Supabase environment variables');
-}
-
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 // 有効なvacancy_statusの値
 const VALID_VACANCY_STATUSES = ['vacant', 'open', 'full', 'closed'] as const;
@@ -43,7 +38,18 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    if (!supabaseUrl || !supabaseServiceKey) {
+      return NextResponse.json({ error: 'server_misconfigured' }, { status: 500 });
+    }
+
     const { id: storeId } = await params;
+    const auth = await resolveManageAuth(request);
+    if (!auth.ok) return auth.response;
+
+    const forbidden = await assertStoreAccess(auth.ctx, storeId);
+    if (forbidden) return forbidden;
+
+    const supabase = auth.ctx.admin;
     const body = await request.json();
     const {
       vacancy_status,
@@ -240,7 +246,14 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
+    if (!supabaseUrl || !supabaseServiceKey) {
+      return NextResponse.json({ error: 'server_misconfigured' }, { status: 500 });
+    }
+
     const storeId = params.id;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
 
     const { data: store, error } = await supabase
       .from('stores')

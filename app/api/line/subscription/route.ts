@@ -202,5 +202,20 @@ export async function PATCH(request: NextRequest) {
     console.error('[line/subscription] upsert failed', error);
     return NextResponse.json({ error: 'update_failed' }, { status: 500 });
   }
+
+  // LINE Harness にオプトイン状態のタグを同期 (failsafe)
+  if (typeof body.optIn === 'boolean') {
+    try {
+      const { assignTag, removeTag } = await import('@/lib/line-harness/client');
+      if (body.optIn) {
+        void assignTag(lineUserId, 'vacancy_optin');
+      } else {
+        void removeTag(lineUserId, 'vacancy_optin');
+      }
+    } catch (err) {
+      console.warn('[line/subscription] line-harness sync skipped', err);
+    }
+  }
+
   return NextResponse.json({ ok: true, subscription: toPayload(data) });
 }

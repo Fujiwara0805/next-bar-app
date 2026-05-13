@@ -82,7 +82,9 @@ export async function POST(
   if (!store) {
     return NextResponse.json({ error: 'store_not_found' }, { status: 404 });
   }
-  if (store.owner_id !== user.id) {
+  const isOwner = store.owner_id === user.id;
+  const isStoreSelf = store.id === user.id;
+  if (!isOwner && !isStoreSelf) {
     const { data: me } = await admin
       .from('users')
       .select('role')
@@ -142,12 +144,43 @@ export async function POST(
       store.longitude as number,
       radiusKm ?? DEFAULT_RADIUS_KM
     );
-  } else {
+  } else if (targetAudience === 'all_oa') {
     const { data: subscribers } = await admin
       .from('line_oa_subscribers')
       .select('line_user_id')
       .is('unfollowed_at', null);
     targetIds = (subscribers ?? []).map((s) => s.line_user_id);
+  } else {
+    const { data: checkIns } = await admin
+      .from('store_check_ins')
+      .select('user_id')
+      .eq('store_id', storeId);
+    const userIds = Array.from(
+      new Set((checkIns ?? []).map((row) => row.user_id).filter(Boolean))
+    );
+
+    if (userIds.length > 0) {
+      const { data: linkedUsers } = await admin
+        .from('users')
+        .select('line_user_id')
+        .in('id', userIds);
+      const linkedLineIds = Array.from(
+        new Set(
+          (linkedUsers ?? [])
+            .map((row) => row.line_user_id)
+            .filter((id): id is string => Boolean(id))
+        )
+      );
+
+      if (linkedLineIds.length > 0) {
+        const { data: subscribers } = await admin
+          .from('line_oa_subscribers')
+          .select('line_user_id')
+          .in('line_user_id', linkedLineIds)
+          .is('unfollowed_at', null);
+        targetIds = (subscribers ?? []).map((s) => s.line_user_id);
+      }
+    }
   }
 
   // 1ユーザーあたり発行数上限

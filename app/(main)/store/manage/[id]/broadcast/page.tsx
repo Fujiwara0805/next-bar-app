@@ -16,6 +16,9 @@ import {
   CheckCircle2,
   UserRound,
   MapPin,
+  AlertCircle,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -39,6 +42,7 @@ type StoreMessageRow = {
   sent_count: number;
   failed_count: number;
   status: string;
+  error_message: string | null;
   created_at: string;
 };
 
@@ -180,6 +184,8 @@ function StoreBroadcastPageInner() {
   const [sending, setSending] = useState(false);
   const [history, setHistory] = useState<StoreMessageRow[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
+  const [historyFilter, setHistoryFilter] = useState<'all' | 'problem'>('all');
+  const [expandedErrorId, setExpandedErrorId] = useState<string | null>(null);
 
   const [analytics, setAnalytics] = useState<AnalyticsPayload | null>(null);
   const [loadingAnalytics, setLoadingAnalytics] = useState(true);
@@ -600,7 +606,58 @@ function StoreBroadcastPageInner() {
                     border: `1px solid rgba(201, 168, 108, 0.15)`,
                   }}
                 >
-                  <SectionHeader icon={Radio} title={t('broadcast.history_title')} />
+                  <div className="flex items-center justify-between mb-4">
+                    <SectionHeader icon={Radio} title={t('broadcast.history_title')} />
+                    {history.length > 0 && (
+                      <div className="flex gap-1">
+                        <button
+                          type="button"
+                          onClick={() => setHistoryFilter('all')}
+                          className="text-[10px] px-2 py-1 rounded-full font-bold transition"
+                          style={{
+                            background:
+                              historyFilter === 'all' ? COLORS.deepNavy : 'transparent',
+                            color: historyFilter === 'all' ? '#fff' : COLORS.warmGray,
+                            border: `1px solid ${
+                              historyFilter === 'all' ? COLORS.deepNavy : 'rgba(0,0,0,0.1)'
+                            }`,
+                          }}
+                        >
+                          {t('broadcast.filter_all') || 'すべて'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setHistoryFilter('problem')}
+                          className="text-[10px] px-2 py-1 rounded-full font-bold transition flex items-center gap-1"
+                          style={{
+                            background:
+                              historyFilter === 'problem' ? '#B3453F' : 'transparent',
+                            color: historyFilter === 'problem' ? '#fff' : '#B3453F',
+                            border: `1px solid ${
+                              historyFilter === 'problem' ? '#B3453F' : 'rgba(179, 69, 63, 0.3)'
+                            }`,
+                          }}
+                        >
+                          <AlertCircle className="w-2.5 h-2.5" />
+                          {t('broadcast.filter_problem') || '問題あり'}
+                          {' '}
+                          {history.filter(
+                            (h) => h.status === 'failed' || h.status === 'partial'
+                          ).length > 0 && (
+                            <span>
+                              (
+                              {
+                                history.filter(
+                                  (h) => h.status === 'failed' || h.status === 'partial'
+                                ).length
+                              }
+                              )
+                            </span>
+                          )}
+                        </button>
+                      </div>
+                    )}
+                  </div>
                   {loadingHistory ? (
                     <div className="flex justify-center py-6">
                       <Loader2
@@ -616,49 +673,116 @@ function StoreBroadcastPageInner() {
                       {t('broadcast.history_empty')}
                     </p>
                   ) : (
-                    <ul className="space-y-3">
-                      {history.map((m) => (
-                        <li
-                          key={m.id}
-                          className="pb-3 last:pb-0"
-                          style={{
-                            borderBottom: '1px solid rgba(201, 168, 108, 0.15)',
-                          }}
-                        >
-                          <div
-                            className="flex items-center justify-between text-xs mb-1"
-                            style={{ color: COLORS.warmGray }}
-                          >
-                            <span>{new Date(m.created_at).toLocaleString('ja-JP')}</span>
-                            <span className="font-semibold">
-                              {t(`broadcast.status_${m.status}`) || m.status}
-                            </span>
-                          </div>
+                    (() => {
+                      const filtered =
+                        historyFilter === 'problem'
+                          ? history.filter(
+                              (m) => m.status === 'failed' || m.status === 'partial'
+                            )
+                          : history;
+                      if (filtered.length === 0) {
+                        return (
                           <p
-                            className="text-sm whitespace-pre-wrap font-medium"
-                            style={{ color: COLORS.deepNavy }}
-                          >
-                            {m.body}
-                          </p>
-                          <div
-                            className="flex items-center gap-3 mt-1 text-xs"
+                            className="text-xs text-center py-6 font-medium"
                             style={{ color: COLORS.warmGray }}
                           >
-                            <span>{t(`broadcast.kind_${m.kind}`) || m.kind}</span>
-                            <span>
-                              {t(`broadcast.target_${m.target_audience}`) || m.target_audience}
-                              {m.target_radius_km ? ` (${m.target_radius_km}km)` : ''}
-                            </span>
-                            <span>
-                              {t('broadcast.delivered_count').replace(
-                                '{n}',
-                                String(m.sent_count)
-                              )}
-                            </span>
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
+                            {t('broadcast.history_no_problem') || '問題のある配信はありません'}
+                          </p>
+                        );
+                      }
+                      return (
+                        <ul className="space-y-3">
+                          {filtered.map((m) => {
+                            const hasProblem = m.status === 'failed' || m.status === 'partial';
+                            const isExpanded = expandedErrorId === m.id;
+                            return (
+                              <li
+                                key={m.id}
+                                className="pb-3 last:pb-0 rounded-lg p-3 -mx-1"
+                                style={{
+                                  borderBottom: '1px solid rgba(201, 168, 108, 0.15)',
+                                  background: hasProblem
+                                    ? 'rgba(220, 38, 38, 0.04)'
+                                    : 'transparent',
+                                }}
+                              >
+                                <div className="flex items-center justify-between text-xs mb-1">
+                                  <span style={{ color: COLORS.warmGray }}>
+                                    {new Date(m.created_at).toLocaleString('ja-JP')}
+                                  </span>
+                                  <StatusBadge status={m.status} t={t} />
+                                </div>
+                                <p
+                                  className="text-sm whitespace-pre-wrap font-medium"
+                                  style={{ color: COLORS.deepNavy }}
+                                >
+                                  {m.body}
+                                </p>
+                                <div
+                                  className="flex items-center flex-wrap gap-3 mt-1 text-xs"
+                                  style={{ color: COLORS.warmGray }}
+                                >
+                                  <span>{t(`broadcast.kind_${m.kind}`) || m.kind}</span>
+                                  <span>
+                                    {t(`broadcast.target_${m.target_audience}`) ||
+                                      m.target_audience}
+                                    {m.target_radius_km ? ` (${m.target_radius_km}km)` : ''}
+                                  </span>
+                                  <span className="font-semibold">
+                                    {t('broadcast.delivered_count').replace(
+                                      '{n}',
+                                      String(m.sent_count)
+                                    )}
+                                  </span>
+                                  {m.failed_count > 0 && (
+                                    <span
+                                      className="font-semibold"
+                                      style={{ color: '#B3453F' }}
+                                    >
+                                      {(t('broadcast.failed_count') || '失敗 {n} 件').replace(
+                                        '{n}',
+                                        String(m.failed_count)
+                                      )}
+                                    </span>
+                                  )}
+                                </div>
+                                {hasProblem && m.error_message && (
+                                  <div className="mt-2">
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        setExpandedErrorId(isExpanded ? null : m.id)
+                                      }
+                                      className="inline-flex items-center gap-1 text-[11px] font-semibold"
+                                      style={{ color: '#B3453F' }}
+                                    >
+                                      {isExpanded ? (
+                                        <ChevronUp className="w-3 h-3" />
+                                      ) : (
+                                        <ChevronDown className="w-3 h-3" />
+                                      )}
+                                      {t('broadcast.show_error') || 'エラー詳細'}
+                                    </button>
+                                    {isExpanded && (
+                                      <pre
+                                        className="mt-1 p-2 rounded-md text-[10px] whitespace-pre-wrap break-words"
+                                        style={{
+                                          background: 'rgba(220, 38, 38, 0.08)',
+                                          color: '#B3453F',
+                                          border: '1px solid rgba(220, 38, 38, 0.2)',
+                                        }}
+                                      >
+                                        {m.error_message}
+                                      </pre>
+                                    )}
+                                  </div>
+                                )}
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      );
+                    })()
                   )}
                 </Card>
               </div>
@@ -1109,6 +1233,37 @@ function StoreBroadcastPageInner() {
         </motion.div>
       </div>
     </div>
+  );
+}
+
+function StatusBadge({
+  status,
+  t,
+}: {
+  status: string;
+  t: (key: string) => string;
+}) {
+  const config = (() => {
+    if (status === 'failed') {
+      return { bg: 'rgba(220, 38, 38, 0.12)', color: '#B3453F' };
+    }
+    if (status === 'partial') {
+      return { bg: 'rgba(245, 158, 11, 0.15)', color: '#B47514' };
+    }
+    if (status === 'sent') {
+      return { bg: 'rgba(34, 197, 94, 0.12)', color: '#1F7A3F' };
+    }
+    return { bg: 'rgba(99, 110, 114, 0.15)', color: '#4D5567' };
+  })();
+  return (
+    <span
+      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold"
+      style={{ background: config.bg, color: config.color }}
+    >
+      {status === 'failed' && <AlertCircle className="w-2.5 h-2.5" />}
+      {status === 'sent' && <CheckCircle2 className="w-2.5 h-2.5" />}
+      {t(`broadcast.status_${status}`) || status}
+    </span>
   );
 }
 
