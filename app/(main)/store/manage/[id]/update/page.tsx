@@ -193,6 +193,7 @@ export default function StoreUpdatePage() {
   const [storeEvents, setStoreEvents] = useState<StoreEventRow[]>([]);
   const [loadingStoreEvents, setLoadingStoreEvents] = useState(false);
   const [savingEventId, setSavingEventId] = useState<string | null>(null);
+  const [eventInfoOpen, setEventInfoOpen] = useState(false);
   
   // 臨時休業中かどうかを表示するためのstate
   const [isManualClosed, setIsManualClosed] = useState(false);
@@ -357,6 +358,12 @@ export default function StoreUpdatePage() {
       fetchStoreEvents();
     }
   }, [authChecked, user, accountType, params.id, fetchStore, fetchReservations, fetchStoreEvents]);
+
+  useEffect(() => {
+    if (storeEvents.length === 0) {
+      setEventInfoOpen(false);
+    }
+  }, [storeEvents.length]);
 
   const updateEventParticipation = async (
     eventId: string,
@@ -867,102 +874,120 @@ export default function StoreUpdatePage() {
             {/* 店舗状況タブ */}
             <TabsContent value="status">
               <form onSubmit={handleStatusSubmit} className="space-y-6">
-                {(loadingStoreEvents || storeEvents.length > 0) && (
-                  <Card
-                    className="p-6 rounded-2xl shadow-lg"
-                    style={{
-                      background: '#FFFFFF',
-                      border: `1px solid rgba(201, 168, 108, 0.15)`,
-                    }}
-                  >
-                    <SectionHeader icon={CalendarDays} title="イベント参加設定" />
-                    {loadingStoreEvents ? (
-                      <div className="flex items-center gap-2 text-sm" style={{ color: COLORS.warmGray }}>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        イベントを確認中...
+                <Card
+                  className="p-6 rounded-2xl shadow-lg"
+                  style={{
+                    background: '#FFFFFF',
+                    border: `1px solid rgba(19, 41, 75, 0.12)`,
+                  }}
+                >
+                  <div className="mb-4 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div
+                        className="p-2 rounded-lg"
+                        style={{
+                          background: COLORS.goldGradient,
+                          boxShadow: '0 2px 8px rgba(255, 200, 44, 0.22)',
+                        }}
+                      >
+                        <CalendarDays className="w-4 h-4" style={{ color: COLORS.deepNavy }} />
                       </div>
-                    ) : (
-                      <div className="space-y-4">
-                        {storeEvents.map((event) => {
-                          const participating = !!event.participation?.is_participating;
-                          const saving = savingEventId === event.id;
-                          return (
-                            <div
-                              key={event.id}
-                              className="rounded-xl p-4"
-                              style={{
-                                background: participating
-                                  ? 'rgba(201, 168, 108, 0.10)'
-                                  : 'rgba(0, 0, 0, 0.02)',
-                                border: `1px solid ${
-                                  participating
-                                    ? 'rgba(201, 168, 108, 0.35)'
-                                    : 'rgba(0, 0, 0, 0.06)'
-                                }`,
-                              }}
-                            >
-                              <div className="flex items-start gap-3">
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex flex-wrap items-center gap-2">
-                                    <PartyPopper className="w-5 h-5 shrink-0" style={{ color: '#13294b' }} />
-                                    <p className="text-lg font-bold leading-tight" style={{ color: COLORS.deepNavy }}>
-                                      {event.title}
-                                    </p>
-                                  </div>
-                                  <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm font-semibold" style={{ color: COLORS.warmGray }}>
-                                    <span className="inline-flex items-center gap-1.5">
-                                      <CalendarDays className="w-4 h-4 shrink-0" style={{ color: '#13294b' }} />
-                                      {fmtEventDate(event.start_at)} - {fmtEventDate(event.end_at)}
-                                    </span>
-                                    {event.area_label && (
-                                      <span className="inline-flex items-center gap-1.5">
-                                        <Map className="w-4 h-4 shrink-0" style={{ color: '#13294b' }} />
-                                        {event.area_label}
-                                      </span>
-                                    )}
-                                  </div>
-                                  {event.description && (
-                                    <div className="mt-3 flex items-start gap-2">
-                                      <FileText className="w-4 h-4 mt-0.5 shrink-0" style={{ color: '#13294b' }} />
-                                      <p className="text-sm leading-relaxed line-clamp-3" style={{ color: COLORS.charcoal }}>
-                                        {event.description}
-                                      </p>
-                                    </div>
-                                  )}
-                                </div>
-                                <div className="flex items-center gap-2 shrink-0">
-                                  {saving && <Loader2 className="w-4 h-4 animate-spin" style={{ color: '#13294b' }} />}
-                                  <button
-                                    type="button"
-                                    disabled={saving}
-                                    onClick={() =>
-                                      updateEventParticipation(event.id, !participating)
-                                    }
-                                    aria-pressed={participating}
-                                    aria-label={participating ? 'イベント参加中' : 'イベント未参加'}
-                                    className="relative inline-flex h-9 w-[72px] items-center rounded-full px-1.5 transition-opacity disabled:opacity-60"
-                                    style={{
-                                      background: participating ? '#13294b' : '#fffaf0',
-                                      border: `1px solid ${participating ? '#13294b' : 'rgba(19, 41, 75, 0.18)'}`,
-                                    }}
-                                  >
-                                    <span
-                                      className="absolute h-6 w-6 rounded-full transition-all"
-                                      style={{
-                                        background: participating ? '#ffc82c' : '#13294b',
-                                        left: participating ? 'calc(100% - 30px)' : '6px',
-                                      }}
-                                    />
-                                  </button>
-                                </div>
-                              </div>
+                      <h2 className="text-lg font-bold" style={{ color: COLORS.deepNavy }}>
+                        イベント参加設定
+                      </h2>
+                    </div>
+                    <button
+                      type="button"
+                      disabled={loadingStoreEvents || storeEvents.length === 0}
+                      onClick={() => setEventInfoOpen((open) => !open)}
+                      aria-pressed={eventInfoOpen}
+                      aria-label={eventInfoOpen ? 'イベント情報を閉じる' : 'イベント情報を開く'}
+                      className="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full px-0.5 transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
+                      style={{
+                        background: eventInfoOpen ? '#13294b' : '#F7F3E9',
+                        border: `1px solid ${eventInfoOpen ? '#13294b' : 'rgba(19, 41, 75, 0.18)'}`,
+                      }}
+                    >
+                      <span
+                        className="absolute h-5 w-5 rounded-full transition-all"
+                        style={{
+                          background: eventInfoOpen ? '#ffc82c' : '#13294b',
+                          left: eventInfoOpen ? 'calc(100% - 22px)' : '2px',
+                        }}
+                      />
+                    </button>
+                  </div>
+                  {loadingStoreEvents ? (
+                    <div className="flex items-center gap-2 text-sm" style={{ color: COLORS.warmGray }}>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      イベントを確認中...
+                    </div>
+                  ) : storeEvents.length === 0 ? (
+                    <div
+                      className="rounded-xl p-4 text-sm font-semibold"
+                      style={{
+                        background: 'rgba(19, 41, 75, 0.04)',
+                        border: '1px solid rgba(19, 41, 75, 0.08)',
+                        color: COLORS.warmGray,
+                      }}
+                    >
+                      現在参加設定できるイベントはありません。
+                    </div>
+                  ) : !eventInfoOpen ? (
+                    <div
+                      className="rounded-xl p-4 text-sm font-semibold"
+                      style={{
+                        background: 'rgba(19, 41, 75, 0.04)',
+                        border: '1px solid rgba(19, 41, 75, 0.08)',
+                        color: COLORS.warmGray,
+                      }}
+                    >
+                      トグルをONにするとイベント情報を表示します。
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {storeEvents.map((event) => {
+                        return (
+                          <div
+                            key={event.id}
+                            className="rounded-xl p-4"
+                            style={{
+                              background: 'rgba(19, 41, 75, 0.03)',
+                              border: '1px solid rgba(19, 41, 75, 0.08)',
+                            }}
+                          >
+                            <div className="flex items-center gap-2">
+                              <PartyPopper className="w-5 h-5 shrink-0" style={{ color: '#13294b' }} />
+                              <p className="min-w-0 flex-1 text-base font-bold leading-tight" style={{ color: COLORS.deepNavy }}>
+                                {event.title}
+                              </p>
                             </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </Card>
-                )}
+                            <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm font-semibold" style={{ color: COLORS.warmGray }}>
+                              <span className="inline-flex items-center gap-1.5">
+                                <CalendarDays className="w-4 h-4 shrink-0" style={{ color: '#13294b' }} />
+                                {fmtEventDate(event.start_at)} - {fmtEventDate(event.end_at)}
+                              </span>
+                              {event.area_label && (
+                                <span className="inline-flex items-center gap-1.5">
+                                  <Map className="w-4 h-4 shrink-0" style={{ color: '#13294b' }} />
+                                  {event.area_label}
+                                </span>
+                              )}
+                            </div>
+                            {event.description && (
+                              <div className="mt-3 flex items-start gap-2">
+                                <FileText className="w-4 h-4 mt-0.5 shrink-0" style={{ color: '#13294b' }} />
+                                <p className="text-sm leading-relaxed line-clamp-3" style={{ color: COLORS.charcoal }}>
+                                  {event.description}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </Card>
 
                 <Card 
                   className="p-6 rounded-2xl shadow-lg"
