@@ -139,7 +139,7 @@ export default function NewStorePageWrapper() {
     <Suspense
       fallback={
         <div className="flex items-center justify-center h-screen" style={{ background: '#13294b' }}>
-          <Loader2 className="w-10 h-10 animate-spin" style={{ color: '#C9A86C' }} />
+          <Loader2 className="w-10 h-10 animate-spin" style={{ color: '#ffc82c' }} />
         </div>
       }
     >
@@ -1486,7 +1486,7 @@ function NewStorePage() {
                   required
                   disabled={loading}
                   placeholder="store@example.com"
-                  className="w-full px-4 py-3 rounded-xl bg-white/10 border-2 border-white/20 text-white placeholder:text-white/80 focus:border-[#C9A86C] focus:ring-2 focus:ring-[#C9A86C]/20 transition-all duration-200"
+                  className="w-full px-4 py-3 rounded-xl bg-white/10 border-2 border-white/20 text-white placeholder:text-white/80 focus:border-[#335280] focus:ring-2 focus:ring-[#335280]/20 transition-all duration-200"
                   style={{ fontSize: '16px' }}
                 />
                 <p className="text-xs" style={{ color: COLORS.platinum }}>
@@ -1511,7 +1511,7 @@ function NewStorePage() {
                   required
                   minLength={6}
                   disabled={loading}
-                  className="w-full px-4 py-3 rounded-xl bg-white/10 border-2 border-white/20 text-white placeholder:text-white/80 focus:border-[#C9A86C] focus:ring-2 focus:ring-[#C9A86C]/20 transition-all duration-200"
+                  className="w-full px-4 py-3 rounded-xl bg-white/10 border-2 border-white/20 text-white placeholder:text-white/80 focus:border-[#335280] focus:ring-2 focus:ring-[#335280]/20 transition-all duration-200"
                   style={{ fontSize: '16px' }}
                 />
                 <p className="text-xs" style={{ color: COLORS.platinum }}>

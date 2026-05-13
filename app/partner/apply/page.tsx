@@ -173,7 +173,7 @@ function RequiredBadge() {
   return (
     <span
       className="text-[10px] ml-1.5 px-1.5 py-0.5 rounded font-semibold"
-      style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#EF4444' }}
+      style={{ background: 'rgba(179, 69, 63, 0.1)', color: '#B3453F' }}
     >
       必須
     </span>
@@ -365,7 +365,7 @@ function Step2BusinessInfo({
             {PAYMENT_METHOD_OPTIONS.map((method) => (
               <label
                 key={method}
-                className="flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all duration-200 hover:border-[#C9A86C]/40"
+                className="flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all duration-200 hover:border-[#ffc82c]/40"
                 style={{
                   background: values.paymentMethods.includes(method)
                     ? `${COLORS.champagneGold}08`
@@ -429,7 +429,7 @@ function Step3Facilities({
               {category.items.map((item: string) => (
                 <label
                   key={item}
-                  className="flex items-center gap-2.5 p-3 rounded-xl border-2 cursor-pointer transition-all duration-200 hover:border-[#C9A86C]/40"
+                  className="flex items-center gap-2.5 p-3 rounded-xl border-2 cursor-pointer transition-all duration-200 hover:border-[#ffc82c]/40"
                   style={{
                     background: values.facilities.includes(item)
                       ? `${COLORS.champagneGold}08`
@@ -573,7 +573,7 @@ function Step4ImagesAccount({
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="w-full p-6 rounded-xl border-2 border-dashed transition-all duration-200 hover:border-[#C9A86C] flex flex-col items-center gap-2 group"
+              className="w-full p-6 rounded-xl border-2 border-dashed transition-all duration-200 hover:border-[#ffc82c] flex flex-col items-center gap-2 group"
               style={{ borderColor: '#d1d5db' }}
             >
               <div

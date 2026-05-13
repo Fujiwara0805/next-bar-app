@@ -120,7 +120,7 @@ export function SponsorCtaButton() {
               onClick={handleClick}
               className="relative flex items-center gap-2 px-5 py-3 rounded-full shadow-lg font-bold text-sm no-underline"
               style={{
-                backgroundColor: ad.cta_color || '#C9A86C',
+                backgroundColor: ad.cta_color || '#ffc82c',
                 color: (ad.display_config as any)?.cta_text_color || '#FFFFFF',
                 willChange: 'transform',
               }}

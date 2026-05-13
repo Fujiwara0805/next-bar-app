@@ -375,7 +375,7 @@ export default function StoreManagePage() {
           {[
             { label: '開店', count: vacancyCounts.open, color: C.success },
             { label: '閉店', count: vacancyCounts.closed, color: C.textSubtle },
-            { label: '空席有', count: vacancyCounts.vacant, color: C.warning || '#f59e0b' },
+            { label: '空席有', count: vacancyCounts.vacant, color: C.warning || '#C49A33' },
             { label: '満席', count: vacancyCounts.full, color: C.danger },
           ].map((s) => (
             <div

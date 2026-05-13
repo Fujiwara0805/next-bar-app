@@ -309,7 +309,7 @@ export default function LiffCouponPage() {
             {store?.name && (
               <div
                 className="flex items-center gap-1.5 text-xs mb-2"
-                style={{ color: '#636E72' }}
+                style={{ color: '#4D5567' }}
               >
                 <StoreIcon className="w-3 h-3" />
                 <span>{store.name}</span>
@@ -336,14 +336,14 @@ export default function LiffCouponPage() {
             {coupon.body && (
               <p
                 className="text-sm leading-relaxed mb-3 whitespace-pre-wrap"
-                style={{ color: '#2D3436' }}
+                style={{ color: '#141821' }}
               >
                 {coupon.body}
               </p>
             )}
             <div
               className="flex items-center gap-1.5 text-xs"
-              style={{ color: isExpired ? '#dc2626' : '#636E72' }}
+              style={{ color: isExpired ? '#B3453F' : '#4D5567' }}
             >
               <Calendar className="w-3 h-3" />
               <span>
@@ -362,7 +362,7 @@ export default function LiffCouponPage() {
                 className="mt-3 p-3 rounded-xl text-xs"
                 style={{
                   background: 'rgba(19, 41, 75, 0.04)',
-                  color: '#2D3436',
+                  color: '#141821',
                 }}
               >
                 <p className="font-bold mb-1">利用条件</p>
@@ -383,7 +383,7 @@ export default function LiffCouponPage() {
           >
             <CheckCircle2
               className="w-10 h-10 mx-auto mb-2"
-              style={{ color: '#636E72' }}
+              style={{ color: '#4D5567' }}
             />
             <p
               className="text-base font-bold mb-1"
@@ -412,13 +412,13 @@ export default function LiffCouponPage() {
             className="p-6 rounded-2xl text-center mb-4"
             style={{
               background:
-                '#FDFBF7',
+                '#F7F3E9',
               border: '2px solid rgba(255, 198, 45, 0.4)',
             }}
           >
             <p
               className="text-xs font-semibold mb-2"
-              style={{ color: '#636E72' }}
+              style={{ color: '#4D5567' }}
             >
               店舗スタッフにこちらのコードをお伝えください
             </p>
@@ -439,7 +439,7 @@ export default function LiffCouponPage() {
               onClick={handleCopyCode}
               className="mt-3 rounded-xl"
               style={{
-                borderColor: 'rgba(201, 168, 108, 0.4)',
+                borderColor: 'rgba(255, 200, 44, 0.4)',
                 color: '#13294b',
                 background: '#FFFFFF',
               }}
@@ -514,7 +514,7 @@ export default function LiffCouponPage() {
               className="w-full mt-2 rounded-xl"
               style={{
                 background:
-                  '#ffc52d',
+                  '#ffc82c',
                 color: '#13294b',
               }}
             >

@@ -47,7 +47,7 @@ type Store = EventAwareStore;
 
 const CONCIERGE_RECOMMENDATION_LIMIT = 3;
 const IS_OPEN_UPDATE_RADIUS_KM = 2.0;
-const EVENT_CARD_BG = '#ffc52d';
+const EVENT_CARD_BG = '#ffc82c';
 const EVENT_CARD_FG = '#13294b';
 
 // 初回ロード時の is_open 更新APIの呼び出しを、ユーザーごとに毎回叩かないためのクールダウン
@@ -812,7 +812,7 @@ function StoreListContent() {
                                 {effectiveStatus === 'vacant' && store.vacant_seats != null && store.vacant_seats > 0 && (
                                   <span className="text-sm font-bold px-2 py-0.5 rounded-lg" style={{
                                     backgroundColor: isEventStore ? `${EVENT_CARD_FG}1A` : 'rgba(34, 197, 94, 0.1)',
-                                    color: isEventStore ? EVENT_CARD_FG : '#16a34a',
+                                    color: isEventStore ? EVENT_CARD_FG : '#3E8E6B',
                                   }}>
                                     {t('store_detail.vacant_seats').replace('{count}', String(store.vacant_seats))}
                                   </span>
@@ -834,7 +834,7 @@ function StoreListContent() {
                                   return (
                                     <span className="text-sm font-bold px-2 py-0.5 rounded-lg" style={{
                                       backgroundColor: isEventStore ? `${EVENT_CARD_FG}1A` : 'rgba(34, 197, 94, 0.1)',
-                                      color: isEventStore ? EVENT_CARD_FG : '#16a34a',
+                                      color: isEventStore ? EVENT_CARD_FG : '#3E8E6B',
                                     }}>
                                       {t('store_list.opens_at').replace('{time}', openTime)}
                                     </span>
@@ -1026,9 +1026,9 @@ function StoreListLoading() {
           animate={{ rotate: 360 }}
           transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
         >
-          <Sparkles className="w-10 h-10 mx-auto mb-2" style={{ color: '#C9A86C' }} />
+          <Sparkles className="w-10 h-10 mx-auto mb-2" style={{ color: '#ffc82c' }} />
         </motion.div>
-        <p className="text-sm font-bold" style={{ color: '#FDFBF7' }}>読み込み中...</p>
+        <p className="text-sm font-bold" style={{ color: '#F7F3E9' }}>読み込み中...</p>
       </div>
     </div>
   );

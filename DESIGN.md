@@ -10,7 +10,7 @@
 - **デザイン方針**: 夜の街をスマートに楽しむための、上質で安心感のあるナイトライフUI。暗すぎず、軽すぎず、「大人の回遊体験」を自然に後押しする。
 - **密度**: 顧客向け画面は余白を広めに取り、視認性と操作のしやすさを優先。店舗・運営画面は情報密度をやや高め、一覧性と業務効率を重視する。
 - **キーワード**: 上質、安心、夜の街、スマート、直感的、温かみ、信頼感、回遊性。
-- **特徴**: 深いネイビーを基調に、ブラスイエローをCTAやハイライトに使用。オフホワイトで温かみを出し、飲食店・夜の街・観光の雰囲気を過度に派手にせず表現する。
+- **特徴**: Brewer Navy `#13294b` をメイン基調に、ブラスイエローをCTAやハイライトに使用。オフホワイトで温かみを出し、飲食店・夜の街・観光の雰囲気を過度に派手にせず表現する。
 - **適用範囲**: 顧客向けLP、店舗検索、マップ、マイページ、チェックイン、空席通知、店舗管理、運営管理、LIFF画面。
 
 ---
@@ -27,10 +27,10 @@
 
 | Token | HEX | HSL | Role |
 |---|---:|---:|---|
-| Brewer Navy 950 | `#071022` | `216 60% 7%` | 最も深い背景、モーダル背面、夜の奥行き |
-| Brewer Navy 900 | `#0B1930` | `216 60% 11%` | ダーク基調の背景 |
-| Brewer Navy 800 | `#10233D` | `216 55% 15%` | ダークカード、セクション背景 |
-| Brewer Navy 700 | `#13294b` | `216 60% 18%` | ブランドPrimary、ボタン、強調 |
+| Brewer Navy 950 | `#071022` | `216 60% 7%` | 最も深いモーダル背面、夜の奥行き |
+| Brewer Navy 900 | `#0B1930` | `216 60% 11%` | Active、オーバーレイ、最深部の補助色 |
+| Brewer Navy 800 | `#10233D` | `216 55% 15%` | サブカード、深いセクション背景 |
+| Brewer Navy 700 | `#13294b` | `216 60% 18%` | ブランドPrimary、メイン背景、ボタン、ヘッダー、店舗カード |
 | Brewer Navy 600 | `#20385F` | `216 50% 25%` | Hover、Active、補助アクセント |
 | Brewer Navy 500 | `#335280` | `216 45% 35%` | Link、Focus Ring、情報要素 |
 | Brewer Navy 300 | `#90A4C1` | `216 35% 65%` | ダーク背景上の副次テキスト |
@@ -68,8 +68,8 @@
 
 ### Surface & Borders
 
-- **Dark Background** (`#0B1930`): 顧客向けダーク基調画面の背景。
-- **Dark Card** (`#10233D`): ダーク基調画面のカード背景。
+- **Dark Background** (`#13294b`): 顧客向けダーク基調画面・マップ店舗カード・アイコン面のメイン背景。
+- **Dark Card** (`#20385F`): ダーク基調画面のカード背景・浮遊パネル。より深い階層のみ `#10233D` を使用。
 - **Light Background** (`#F7F8FA`): 運営・店舗ダッシュボードなどのライト背景。
 - **Surface White** (`#FFFFFF`): 入力欄、管理画面カード、ポップオーバー。
 - **Border** (`#DCE1EB`): ライト画面の区切り線。
@@ -215,7 +215,7 @@ font-feature-settings: "palt" 1;
 - Text: `#F7F3E9`
 - Border: 1px solid `#13294b`
 - Hover: `#20385F`
-- Active: `#0B1930`
+- Active: `#20385F`
 - Border Radius: 8px
 - Font Size: 14px〜16px
 - Font Weight: 700
@@ -223,7 +223,7 @@ font-feature-settings: "palt" 1;
 
 **Secondary（Brass）**
 - Background: `#ffc82c`
-- Text: `#0B1930`
+- Text: `#13294b`
 - Border: 1px solid `#ffc82c`
 - Hover: `#ffdf85`
 - Active: `#C49A33`
@@ -294,7 +294,7 @@ font-feature-settings: "palt" 1;
 
 **Brand Badge**
 - Background: `#ffc82c`
-- Text: `#0B1930`
+- Text: `#13294b`
 - Border Radius: 999px
 - Font Size: 12px
 - Font Weight: 700
@@ -313,7 +313,7 @@ font-feature-settings: "palt" 1;
 ### Navigation
 
 **Dark Header**
-- Background: `#0B1930`
+- Background: `#13294b`
 - Text: `#F7F3E9`
 - Active: `#ffc82c`
 - Border Bottom: `rgba(255,255,255,0.08)`
@@ -434,20 +434,20 @@ font-feature-settings: "palt" 1;
 
 @layer base {
   :root {
-    --background: var(--bn-900);
+    --background: var(--bn-700);
     --foreground: var(--cream-50);
 
     --card: var(--bn-800);
     --card-foreground: var(--cream-50);
 
     --popover: 0 0% 100%;
-    --popover-foreground: var(--bn-900);
+    --popover-foreground: var(--bn-700);
 
     --primary: var(--bn-700);
     --primary-foreground: var(--cream-50);
 
     --secondary: var(--brass-500);
-    --secondary-foreground: var(--bn-900);
+    --secondary-foreground: var(--bn-700);
 
     --muted: 220 17% 95%;
     --muted-foreground: 221 14% 35%;
@@ -464,19 +464,19 @@ font-feature-settings: "palt" 1;
 
   .theme-light {
     --background: 220 20% 98%;
-    --foreground: var(--bn-900);
+    --foreground: var(--bn-700);
 
     --card: 0 0% 100%;
-    --card-foreground: var(--bn-900);
+    --card-foreground: var(--bn-700);
 
     --popover: 0 0% 100%;
-    --popover-foreground: var(--bn-900);
+    --popover-foreground: var(--bn-700);
 
     --primary: var(--bn-700);
     --primary-foreground: var(--cream-50);
 
     --secondary: var(--brass-500);
-    --secondary-foreground: var(--bn-900);
+    --secondary-foreground: var(--bn-700);
 
     --muted: 220 17% 95%;
     --muted-foreground: 221 14% 35%;
@@ -530,7 +530,7 @@ colors: {
 - 新規コードで `bg-blue-500` / `text-yellow-400` など Tailwind デフォルトパレット直指定を使わない。
 - `style={{ color: "#xxxxxx" }}` のようなインラインカラー指定を使わない。
 - `bg-white` / `text-black` の生指定を原則避ける。`bg-background` / `text-foreground` / `bg-card` を使う。
-- Brass Yellowの上に白文字を置かない。コントラスト不足になりやすいため、`#0B1930` 系の濃色を使用する。
+- Brass Yellowの上に白文字を置かない。コントラスト不足になりやすいため、`#13294b` 系の濃色を使用する。
 
 ---
 
@@ -599,8 +599,8 @@ colors: {
 
 ```txt
 Primary Color: #13294b
-Primary Dark Background: #0B1930
-Primary Card: #10233D
+Primary Dark Background: #13294b
+Primary Card: #20385F
 Secondary / Accent Yellow: #ffc82c
 Cream Foreground: #F7F3E9
 Text Dark: #141821
@@ -638,8 +638,8 @@ Spacing: 4px単位
 ```txt
 NIKENME+ の顧客向け店舗検索画面を作成してください。
 - ブランドカラー: Brewer Navy #13294b、Brass Yellow #ffc82c、Cream #F7F3E9
-- 背景: #0B1930 を基調に、カードは #10233D
-- CTA: 背景 #ffc82c、文字 #0B1930、角丸8px、太字
+- 背景: #13294b を基調に、カードは #20385F
+- CTA: 背景 #ffc82c、文字 #13294b、角丸8px、太字
 - テキスト: ダーク背景上は #F7F3E9、補助テキストは #90A4C1
 - カード: 角丸16px、薄いボーダー、夜の街らしい上質な雰囲気
 - 空席状態: 空席あり/残りわずか/満席を色とテキストの両方で表現

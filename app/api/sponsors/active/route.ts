@@ -186,7 +186,7 @@ export async function GET(request: Request) {
         background_image_url: row.background_image_url,
         cta_text: row.cta_text,
         cta_url: row.cta_url,
-        cta_color: row.cta_color || '#C9A86C',
+        cta_color: row.cta_color || '#ffc82c',
         icon_url: row.icon_url,
         icon_position: (row.icon_position as unknown as { top: string; left: string }) || { top: '16px', left: '16px' },
         icon_size: row.icon_size || 48,

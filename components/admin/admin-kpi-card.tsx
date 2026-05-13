@@ -26,7 +26,7 @@ const KPI_GRADIENTS = {
     purple: '#13294b',   // Navy flat
     amber: '#B87333',    // Copper flat
     rose: '#B87333',     // Copper flat
-    green: '#16a34a',
+    green: '#3E8E6B',
     slate: '#4D5567',
 } as const;
 

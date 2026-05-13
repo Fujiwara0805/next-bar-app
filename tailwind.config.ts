@@ -15,9 +15,19 @@ const config: Config = {
           'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
       },
       borderRadius: {
+        dialog: '1.5rem',
+        floating: '1.25rem',
+        card: '1rem',
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
+      },
+      boxShadow: {
+        card: 'var(--shadow-card)',
+        'dark-card': 'var(--shadow-dark-card)',
+        floating: 'var(--shadow-floating)',
+        popup: 'var(--shadow-popup)',
+        glow: 'var(--shadow-glow)',
       },
       colors: {
         background: 'hsl(var(--background) / <alpha-value>)',

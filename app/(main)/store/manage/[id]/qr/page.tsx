@@ -40,10 +40,10 @@ const SCANNER_REGION_ID = 'store-qr-customer-scanner-region';
 
 const BG_OFFWHITE = '#F7F3E9';
 const NAVY = '#13294b';
-const BRASS = '#ffc62d';
+const BRASS = '#ffc82c';
 const COPPER = '#B87333';
 const GOLD_GRADIENT =
-  '#ffc52d';
+  '#ffc82c';
 const NAVY_GRADIENT =
   '#13294b';
 
@@ -425,7 +425,7 @@ export default function StoreQrPage() {
 
       const pageWidth = 210;
       const navy = '#13294b';
-      const gold = '#C9A86C';
+      const gold = '#ffc82c';
 
       doc.setFillColor(201, 168, 108);
       doc.rect(0, 0, pageWidth, 4, 'F');
@@ -509,7 +509,7 @@ export default function StoreQrPage() {
         <div className="relative flex items-center justify-center p-4 max-w-md mx-auto">
           <h1
             className="text-lg font-light tracking-[0.2em]"
-            style={{ color: '#FDFBF7' }}
+            style={{ color: '#F7F3E9' }}
           >
             {t('store_qr.header_title')}
           </h1>

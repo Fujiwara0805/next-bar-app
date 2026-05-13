@@ -121,7 +121,7 @@ export default function StoreUpdatePage() {
       value: 'vacant',
       label: '空席有',
       description: 'すぐに入店できます',
-      color: '#16a34a',
+      color: '#3E8E6B',
       bgColor: 'rgba(34, 197, 94, 0.08)',
       borderColor: 'rgba(34, 197, 94, 0.3)',
       icon: CheckCircle2,
@@ -130,7 +130,7 @@ export default function StoreUpdatePage() {
       value: 'full',
       label: '満席',
       description: '現在満席です',
-      color: '#dc2626',
+      color: '#B3453F',
       bgColor: 'rgba(239, 68, 68, 0.08)',
       borderColor: 'rgba(239, 68, 68, 0.3)',
       icon: XCircle,
@@ -949,7 +949,7 @@ export default function StoreUpdatePage() {
                                     <span
                                       className="absolute h-6 w-6 rounded-full transition-all"
                                       style={{
-                                        background: participating ? '#ffc52d' : '#13294b',
+                                        background: participating ? '#ffc82c' : '#13294b',
                                         left: participating ? 'calc(100% - 30px)' : '6px',
                                       }}
                                     />
@@ -1065,7 +1065,7 @@ export default function StoreUpdatePage() {
                           }}
                           placeholder="例: 5"
                           disabled={loading}
-                          className="rounded-xl border-2 font-medium transition-all duration-200 focus:border-[#C9A86C] focus:ring-2 focus:ring-[#C9A86C]/20"
+                          className="rounded-xl border-2 font-medium transition-all duration-200 focus:border-[#335280] focus:ring-2 focus:ring-[#335280]/20"
                           style={{
                             fontSize: '16px',
                             borderColor: 'rgba(201, 168, 108, 0.3)',
@@ -1104,7 +1104,7 @@ export default function StoreUpdatePage() {
                       placeholder="例: 本日のおすすめは生ビール半額です！"
                       rows={4}
                       maxLength={200}
-                      className="rounded-xl border-2 font-medium transition-all duration-200 focus:border-[#C9A86C] focus:ring-2 focus:ring-[#C9A86C]/20"
+                      className="rounded-xl border-2 font-medium transition-all duration-200 focus:border-[#335280] focus:ring-2 focus:ring-[#335280]/20"
                       style={{ 
                         fontSize: '16px',
                         borderColor: 'rgba(201, 168, 108, 0.3)',
@@ -1207,13 +1207,13 @@ export default function StoreUpdatePage() {
                         },
                         confirmed: { 
                           label: '承認', 
-                          color: '#16a34a', 
+                          color: '#3E8E6B', 
                           bgColor: 'rgba(34, 197, 94, 0.08)', 
                           icon: <CheckCircle2 className="w-4 h-4" /> 
                         },
                         rejected: { 
                           label: '拒否', 
-                          color: '#dc2626', 
+                          color: '#B3453F', 
                           bgColor: 'rgba(239, 68, 68, 0.08)', 
                           icon: <XCircle className="w-4 h-4" /> 
                         },
@@ -1428,7 +1428,7 @@ export default function StoreUpdatePage() {
                 style={{ 
                   borderColor: 'rgba(99, 110, 114, 0.3)',
                   backgroundColor: '#FFFFFF',
-                  color: '#dc2626',
+                  color: '#B3453F',
                 }}
                 onClick={handleSignOut}
               >

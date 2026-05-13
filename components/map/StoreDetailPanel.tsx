@@ -51,7 +51,7 @@ function CrowdVoteSummary({
 }) {
   const items: Array<{ status: CrowdStatus; color: string; mutedColor: string; Icon: React.ElementType }> = [
     { status: 'vacant', color: '#22c55e', mutedColor: 'rgba(34, 197, 94, 0.5)', Icon: UserIcon },
-    { status: 'wait', color: '#ffc52d', mutedColor: 'rgba(255, 197, 45, 0.5)', Icon: UsersIcon },
+    { status: 'wait', color: '#ffc82c', mutedColor: 'rgba(255, 200, 44, 0.5)', Icon: UsersIcon },
     { status: 'full', color: '#ef4444', mutedColor: 'rgba(239, 68, 68, 0.5)', Icon: UsersRound },
   ];
 
@@ -323,7 +323,7 @@ export function StoreDetailPanel({
         className="flex flex-col overflow-hidden rounded-t-[2rem]"
         animate={{
           height: isExpanded ? expandedHeight : 'auto',
-          backgroundColor: isExpanded ? '#F7F3E9' /* cream-50 */ : (isEventStore ? '#ffc52d' : darkTheme.background),
+          backgroundColor: isExpanded ? '#F7F3E9' /* cream-50 */ : (isEventStore ? '#ffc82c' : darkTheme.background),
         }}
         transition={{ type: 'spring', stiffness: 260, damping: 28 }}
         style={{
@@ -417,7 +417,7 @@ export function StoreDetailPanel({
                         style={{
                           background: '#13294b',
                           boxShadow: '0 4px 12px rgba(19, 41, 75, 0.45)',
-                          border: '2px solid #ffc52d',
+                          border: '2px solid #ffc82c',
                         }}
                         aria-label="イベント参加店舗"
                       >
@@ -439,7 +439,7 @@ export function StoreDetailPanel({
                 {isEventStore && store.active_event && (
                   <div
                     className="mb-2 inline-flex max-w-full items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold"
-                    style={{ background: '#13294b', color: '#ffc52d' }}
+                    style={{ background: '#13294b', color: '#ffc82c' }}
                   >
                     <Ticket className="h-3.5 w-3.5 shrink-0" />
                     <span className="truncate">イベント参加店舗 / {store.active_event.title}</span>

@@ -31,17 +31,17 @@ const STATUS_VISUAL: Record<
 > = {
   vacant: {
     Icon: User,
-    color: '#16a34a',
+    color: '#3E8E6B',
     bg: 'rgba(34, 197, 94, 0.10)',
   },
   wait: {
     Icon: Users,
-    color: '#f59e0b',
+    color: '#C49A33',
     bg: 'rgba(245, 158, 11, 0.12)',
   },
   full: {
     Icon: UsersRound,
-    color: '#dc2626',
+    color: '#B3453F',
     bg: 'rgba(220, 38, 38, 0.10)',
   },
 };

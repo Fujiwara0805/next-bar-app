@@ -352,7 +352,7 @@ export default function SponsorsPage() {
             <label className="block text-xs font-semibold mb-1" style={labelStyle}>企業名 <span style={{ color: C.danger }}>*</span></label>
             <input type="text" value={formValues.company_name}
               onChange={(e) => setFormValues((v) => ({ ...v, company_name: e.target.value }))}
-              className="w-full px-3 py-2.5 rounded-lg text-sm outline-none transition-colors focus:ring-2 focus:ring-[#C9A86C]/30"
+              className="w-full px-3 py-2.5 rounded-lg text-sm outline-none transition-colors focus:ring-2 focus:ring-[#335280]/30"
               style={inputStyle} placeholder="株式会社〇〇" />
           </div>
           <div className="grid grid-cols-2 gap-3">
@@ -360,14 +360,14 @@ export default function SponsorsPage() {
               <label className="block text-xs font-semibold mb-1" style={labelStyle}>担当者名</label>
               <input type="text" value={formValues.contact_name}
                 onChange={(e) => setFormValues((v) => ({ ...v, contact_name: e.target.value }))}
-                className="w-full px-3 py-2.5 rounded-lg text-sm outline-none transition-colors focus:ring-2 focus:ring-[#C9A86C]/30"
+                className="w-full px-3 py-2.5 rounded-lg text-sm outline-none transition-colors focus:ring-2 focus:ring-[#335280]/30"
                 style={inputStyle} />
             </div>
             <div>
               <label className="block text-xs font-semibold mb-1" style={labelStyle}>電話番号</label>
               <input type="text" value={formValues.contact_phone}
                 onChange={(e) => setFormValues((v) => ({ ...v, contact_phone: e.target.value }))}
-                className="w-full px-3 py-2.5 rounded-lg text-sm outline-none transition-colors focus:ring-2 focus:ring-[#C9A86C]/30"
+                className="w-full px-3 py-2.5 rounded-lg text-sm outline-none transition-colors focus:ring-2 focus:ring-[#335280]/30"
                 style={inputStyle} />
             </div>
           </div>
@@ -375,21 +375,21 @@ export default function SponsorsPage() {
             <label className="block text-xs font-semibold mb-1" style={labelStyle}>メールアドレス</label>
             <input type="email" value={formValues.contact_email}
               onChange={(e) => setFormValues((v) => ({ ...v, contact_email: e.target.value }))}
-              className="w-full px-3 py-2.5 rounded-lg text-sm outline-none transition-colors focus:ring-2 focus:ring-[#C9A86C]/30"
+              className="w-full px-3 py-2.5 rounded-lg text-sm outline-none transition-colors focus:ring-2 focus:ring-[#335280]/30"
               style={inputStyle} placeholder="example@company.com" />
           </div>
           <div>
             <label className="block text-xs font-semibold mb-1" style={labelStyle}>WebサイトURL</label>
             <input type="url" value={formValues.website_url}
               onChange={(e) => setFormValues((v) => ({ ...v, website_url: e.target.value }))}
-              className="w-full px-3 py-2.5 rounded-lg text-sm outline-none transition-colors focus:ring-2 focus:ring-[#C9A86C]/30"
+              className="w-full px-3 py-2.5 rounded-lg text-sm outline-none transition-colors focus:ring-2 focus:ring-[#335280]/30"
               style={inputStyle} placeholder="https://example.com" />
           </div>
           <div>
             <label className="block text-xs font-semibold mb-1" style={labelStyle}>備考</label>
             <textarea value={formValues.notes}
               onChange={(e) => setFormValues((v) => ({ ...v, notes: e.target.value }))}
-              className="w-full px-3 py-2.5 rounded-lg text-sm outline-none transition-colors resize-none focus:ring-2 focus:ring-[#C9A86C]/30"
+              className="w-full px-3 py-2.5 rounded-lg text-sm outline-none transition-colors resize-none focus:ring-2 focus:ring-[#335280]/30"
               style={inputStyle} rows={3} />
           </div>
           <div className="flex items-center justify-between py-1">

@@ -5,11 +5,10 @@ import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 /**
- * NIKENME+ カラーパレット準拠: ネイビー系のライトトーン円 ＋ ディープネイビーの×
- *（deepNavy #0A1628 由来の薄いブルーグレー / hover・active でも背景は変えない）
+ * NIKENME+ DESIGN.md準拠: Brewer Navy 100 の円 + Brewer Navy 900 の×。
  */
 const CIRCLE_BG =
-  'bg-[#E4E9F2] hover:bg-[#E4E9F2] active:bg-[#E4E9F2] data-[state=open]:bg-[#E4E9F2] text-[#0A1628]';
+  'bg-brewer-100 hover:bg-brewer-100 active:bg-brewer-100 data-[state=open]:bg-brewer-100 text-brewer-900';
 
 /** 既定よりモバイルのみ1段小さく、sm 以上は従来サイズ */
 const sizeStyles = {
@@ -36,7 +35,7 @@ export const CloseCircleButton = React.forwardRef<
       'inline-flex shrink-0 items-center justify-center rounded-full',
       CIRCLE_BG,
       'transition-none',
-      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1F4068]/35 focus-visible:ring-offset-0',
+      'focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/25 focus-visible:ring-offset-0',
       'touch-manipulation [-webkit-tap-highlight-color:transparent]',
       sizeStyles[size],
       className,

@@ -643,7 +643,7 @@ function StoreCouponsPageInner() {
                       className="absolute -top-2 -right-2 rounded-full p-0.5"
                       style={{
                         background: '#FFFFFF',
-                        color: '#dc2626',
+                        color: '#B3453F',
                         border: '1px solid rgba(0,0,0,0.1)',
                       }}
                     >
@@ -1061,7 +1061,7 @@ function StoreCouponsPageInner() {
                   step={0.5}
                   value={distributeRadius}
                   onChange={(e) => setDistributeRadius(Number(e.target.value))}
-                  className="w-full mt-2 accent-[#C9A86C]"
+                  className="w-full mt-2 accent-[#ffc82c]"
                 />
               </div>
             )}
@@ -1199,7 +1199,7 @@ function CouponCard({
           </div>
           <div
             className="flex items-center gap-2 text-[10px] mt-0.5"
-            style={{ color: isExpired ? '#dc2626' : COLORS.warmGray }}
+            style={{ color: isExpired ? '#B3453F' : COLORS.warmGray }}
           >
             <Calendar className="w-3 h-3" />
             <span>

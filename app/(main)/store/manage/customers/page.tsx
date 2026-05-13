@@ -298,7 +298,7 @@ export default function CustomersPage() {
               <p className="text-xs font-semibold mb-1" style={{ color: '#13294b', opacity: 0.7 }}>LINE連携</p>
               {selected.line_user_id ? (
                 <div className="flex items-center gap-2">
-                  <MessageCircle className="w-4 h-4" style={{ color: '#16a34a' }} />
+                  <MessageCircle className="w-4 h-4" style={{ color: '#3E8E6B' }} />
                   <span className="font-semibold" style={{ color: '#13294b' }}>連携済 {selected.line_display_name ? `(${selected.line_display_name})` : ''}</span>
                 </div>
               ) : (

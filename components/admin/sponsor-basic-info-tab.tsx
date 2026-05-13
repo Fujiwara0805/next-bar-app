@@ -69,7 +69,7 @@ export function SponsorBasicInfoTab({ sponsor, onUpdate }: Props) {
             type="text"
             value={form.company_name}
             onChange={(e) => setForm((v) => ({ ...v, company_name: e.target.value }))}
-            className="w-full px-3 py-2 rounded-lg text-sm outline-none transition-colors focus:ring-2 focus:ring-[#C9A86C]/30"
+            className="w-full px-3 py-2 rounded-lg text-sm outline-none transition-colors focus:ring-2 focus:ring-[#335280]/30"
             style={inputStyle}
           />
         </Field>
@@ -78,7 +78,7 @@ export function SponsorBasicInfoTab({ sponsor, onUpdate }: Props) {
             type="text"
             value={form.contact_name}
             onChange={(e) => setForm((v) => ({ ...v, contact_name: e.target.value }))}
-            className="w-full px-3 py-2 rounded-lg text-sm outline-none transition-colors focus:ring-2 focus:ring-[#C9A86C]/30"
+            className="w-full px-3 py-2 rounded-lg text-sm outline-none transition-colors focus:ring-2 focus:ring-[#335280]/30"
             style={inputStyle}
           />
         </Field>
@@ -87,7 +87,7 @@ export function SponsorBasicInfoTab({ sponsor, onUpdate }: Props) {
             type="email"
             value={form.contact_email}
             onChange={(e) => setForm((v) => ({ ...v, contact_email: e.target.value }))}
-            className="w-full px-3 py-2 rounded-lg text-sm outline-none transition-colors focus:ring-2 focus:ring-[#C9A86C]/30"
+            className="w-full px-3 py-2 rounded-lg text-sm outline-none transition-colors focus:ring-2 focus:ring-[#335280]/30"
             style={inputStyle}
           />
         </Field>
@@ -96,7 +96,7 @@ export function SponsorBasicInfoTab({ sponsor, onUpdate }: Props) {
             type="text"
             value={form.contact_phone}
             onChange={(e) => setForm((v) => ({ ...v, contact_phone: e.target.value }))}
-            className="w-full px-3 py-2 rounded-lg text-sm outline-none transition-colors focus:ring-2 focus:ring-[#C9A86C]/30"
+            className="w-full px-3 py-2 rounded-lg text-sm outline-none transition-colors focus:ring-2 focus:ring-[#335280]/30"
             style={inputStyle}
           />
         </Field>
@@ -105,7 +105,7 @@ export function SponsorBasicInfoTab({ sponsor, onUpdate }: Props) {
             type="url"
             value={form.website_url}
             onChange={(e) => setForm((v) => ({ ...v, website_url: e.target.value }))}
-            className="w-full px-3 py-2 rounded-lg text-sm outline-none transition-colors focus:ring-2 focus:ring-[#C9A86C]/30"
+            className="w-full px-3 py-2 rounded-lg text-sm outline-none transition-colors focus:ring-2 focus:ring-[#335280]/30"
             style={inputStyle}
             placeholder="https://example.com"
           />
@@ -135,7 +135,7 @@ export function SponsorBasicInfoTab({ sponsor, onUpdate }: Props) {
         <textarea
           value={form.notes}
           onChange={(e) => setForm((v) => ({ ...v, notes: e.target.value }))}
-          className="w-full px-3 py-2 rounded-lg text-sm outline-none transition-colors resize-none focus:ring-2 focus:ring-[#C9A86C]/30"
+          className="w-full px-3 py-2 rounded-lg text-sm outline-none transition-colors resize-none focus:ring-2 focus:ring-[#335280]/30"
           style={inputStyle}
           rows={4}
         />

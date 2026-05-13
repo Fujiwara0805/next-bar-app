@@ -135,7 +135,7 @@ const ImageWithLoading = ({
               className="w-8 h-8 rounded-full border-2"
               style={{ 
                 borderColor: 'rgba(201, 168, 108, 0.2)',
-                borderTopColor: '#C9A86C',
+                borderTopColor: '#ffc82c',
               }}
               animate={{ rotate: 360 }}
               transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
@@ -168,7 +168,7 @@ const ImageWithLoading = ({
 /**
  * ゴールド装飾ディバイダー
  */
-const GOLD = '#C9A86C';
+const GOLD = '#ffc82c';
 /** リンク・強調テキスト用ダークネイビー（ライトブルー系の代替） */
 const STORE_LINK_NAVY = '#13294b';
 const GoldDivider = () => (
@@ -881,7 +881,7 @@ export default function StoreDetailPage() {
                       {effectiveStatus === 'vacant' && store.vacant_seats != null && store.vacant_seats > 0 && (
                         <span className="text-sm font-bold px-2 py-0.5 rounded-lg" style={{
                           backgroundColor: 'rgba(34, 197, 94, 0.1)',
-                          color: '#16a34a',
+                          color: '#3E8E6B',
                         }}>
                           {t('store_detail.vacant_seats').replace('{count}', String(store.vacant_seats))}
                         </span>
@@ -903,7 +903,7 @@ export default function StoreDetailPage() {
                         return (
                           <span className="text-sm font-bold px-2 py-0.5 rounded-lg" style={{
                             backgroundColor: 'rgba(34, 197, 94, 0.1)',
-                            color: '#16a34a',
+                            color: '#3E8E6B',
                           }}>
                             {t('store_detail.opens_at').replace('{time}', openTime)}
                           </span>
@@ -1382,7 +1382,7 @@ export default function StoreDetailPage() {
                         women: { bg: 'rgba(201, 168, 108, 0.08)', border: 'rgba(201, 168, 108, 0.15)', text: COLORS.antiqueGold, badgeBg: 'rgba(201, 168, 108, 0.15)', badgeBorder: 'rgba(201, 168, 108, 0.25)' },
                         women_family: { bg: 'rgba(201, 168, 108, 0.08)', border: 'rgba(201, 168, 108, 0.15)', text: COLORS.antiqueGold, badgeBg: 'rgba(201, 168, 108, 0.15)', badgeBorder: 'rgba(201, 168, 108, 0.25)' },
                         workspace: { bg: 'rgba(59, 130, 246, 0.08)', border: 'rgba(59, 130, 246, 0.15)', text: '#2563eb', badgeBg: 'rgba(59, 130, 246, 0.15)', badgeBorder: 'rgba(59, 130, 246, 0.25)' },
-                        pricing: { bg: 'rgba(34, 197, 94, 0.08)', border: 'rgba(34, 197, 94, 0.15)', text: '#16a34a', badgeBg: 'rgba(34, 197, 94, 0.15)', badgeBorder: 'rgba(34, 197, 94, 0.25)' },
+                        pricing: { bg: 'rgba(62, 142, 107, 0.08)', border: 'rgba(62, 142, 107, 0.15)', text: '#3E8E6B', badgeBg: 'rgba(62, 142, 107, 0.15)', badgeBorder: 'rgba(62, 142, 107, 0.25)' },
                       };
                       const allCatItems = Object.values(cats).flatMap(c => [...c.items]);
                       // 初めての方歓迎、女性バーテンダー在籍も含める（DB既存データ対応）

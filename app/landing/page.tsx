@@ -67,7 +67,7 @@ const DEFAULT_LOCATION = {
 };
 
 const LP_NAVY = '#13294b';
-const LP_YELLOW = '#ffc62d';
+const LP_YELLOW = '#ffc82c';
 
 // LINE公式アカウント 友だち追加URL（Basic ID @621uzlfv → @ を %40 にURLエンコード）
 const LINE_OA_FRIEND_URL = 'https://line.me/R/ti/p/%40621uzlfv';
@@ -81,7 +81,7 @@ const LP_ON_NAVY = {
 } as const;
 /** Company以外のセクション上のカード（オフホワイト） */
 const LP_CARD = {
-  bg: '#FDFBF7',
+  bg: '#F7F3E9',
   text: '#13294b',
   textMuted: '#4A5568',
   textSubtle: '#718096',

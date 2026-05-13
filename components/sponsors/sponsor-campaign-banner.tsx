@@ -74,7 +74,7 @@ export function SponsorCampaignBanner() {
 
           {/* フォールバック背景 */}
           <div
-            className="fallback-bg absolute inset-0 bg-gradient-to-br from-[#1A2E4A] via-[#162447] to-[#0A1628]"
+            className="fallback-bg absolute inset-0 bg-gradient-to-br from-[#13294b] via-[#20385F] to-[#13294b]"
             style={{ display: ad.image_url ? 'none' : 'block' }}
           />
 
@@ -105,8 +105,8 @@ export function SponsorCampaignBanner() {
                 whileHover={{ scale: 1.1 }}
                 className="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center transition-shadow"
                 style={{
-                  backgroundColor: ad.cta_color || '#C9A86C',
-                  boxShadow: `0 2px 12px ${ad.cta_color || '#C9A86C'}88`,
+                  backgroundColor: ad.cta_color || '#ffc82c',
+                  boxShadow: `0 0 32px ${ad.cta_color || '#ffc82c'}38`,
                 }}
               >
                 <svg

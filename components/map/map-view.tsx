@@ -685,13 +685,13 @@ function DirectionPermissionDialog({
 // ============================================================================
 
 const luxuryMapStyles: google.maps.MapTypeStyle[] = [
-  // ベース背景: オフホワイト（ブルワーズ風ライトベース）
-  { elementType: 'geometry', stylers: [{ color: '#FDFBF7' }] },
+  // ベース背景: Cream Off-white
+  { elementType: 'geometry', stylers: [{ color: '#F7F3E9' }] },
   { elementType: 'labels.icon', stylers: [{ visibility: 'off' }] },
 
   // ラベル文字をダークネイビー系に
   { elementType: 'labels.text.fill', stylers: [{ color: '#13294b' }] },
-  { elementType: 'labels.text.stroke', stylers: [{ color: '#FDFBF7' }, { weight: 2.5 }] },
+  { elementType: 'labels.text.stroke', stylers: [{ color: '#F7F3E9' }, { weight: 2.5 }] },
 
   // 行政区域: ダークネイビー
   { featureType: 'administrative', elementType: 'geometry', stylers: [{ color: '#13294b' }, { weight: 0.8 }] },
@@ -708,19 +708,19 @@ const luxuryMapStyles: google.maps.MapTypeStyle[] = [
   {
     featureType: 'administrative.neighborhood',
     elementType: 'labels.text.fill',
-    stylers: [{ color: '#1F57A4' }],
+    stylers: [{ color: '#335280' }],
   },
 
-  // POI: ブルワーズブルー
+  // POI: Brewer Navy 500
   {
     featureType: 'poi',
     elementType: 'labels.text.fill',
-    stylers: [{ color: '#1F57A4' }],
+    stylers: [{ color: '#335280' }],
   },
   {
     featureType: 'poi',
     elementType: 'labels.text.stroke',
-    stylers: [{ color: '#FDFBF7' }, { weight: 2 }],
+    stylers: [{ color: '#F7F3E9' }, { weight: 2 }],
   },
   {
     featureType: 'poi.business',
@@ -741,28 +741,28 @@ const luxuryMapStyles: google.maps.MapTypeStyle[] = [
 
   // 道路: 白ベース
   { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#FFFFFF' }] },
-  { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#E8E4DF' }] },
+  { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#DCE1EB' }] },
   {
     featureType: 'road',
     elementType: 'labels.text.fill',
-    stylers: [{ color: '#636E72' }]
+    stylers: [{ color: '#4D5567' }]
   },
   {
     featureType: 'road',
     elementType: 'labels.text.stroke',
-    stylers: [{ color: '#FDFBF7' }, { weight: 3 }]
+    stylers: [{ color: '#F7F3E9' }, { weight: 3 }]
   },
 
   // 高速道路: イエローアクセント
   {
     featureType: 'road.highway',
     elementType: 'geometry',
-    stylers: [{ color: '#FFF4D6' }]
+    stylers: [{ color: '#ffdf85' }]
   },
   {
     featureType: 'road.highway',
     elementType: 'geometry.stroke',
-    stylers: [{ color: '#ffc72d' }, { weight: 0.8 }]
+    stylers: [{ color: '#ffc82c' }, { weight: 0.8 }]
   },
   {
     featureType: 'road.highway',
@@ -779,37 +779,37 @@ const luxuryMapStyles: google.maps.MapTypeStyle[] = [
   {
     featureType: 'road.arterial',
     elementType: 'labels.text.fill',
-    stylers: [{ color: '#636E72' }]
+    stylers: [{ color: '#4D5567' }]
   },
 
   // 地方道路
   {
     featureType: 'road.local',
     elementType: 'geometry',
-    stylers: [{ color: '#F5F2ED' }]
+    stylers: [{ color: '#EEF0F4' }]
   },
   {
     featureType: 'road.local',
     elementType: 'labels.text.fill',
-    stylers: [{ color: '#9BA4A9' }]
+    stylers: [{ color: '#8D95A6' }]
   },
 
   // 交通機関: ネイビーアクセント
-  { featureType: 'transit', elementType: 'geometry', stylers: [{ color: '#E8E4DF' }] },
+  { featureType: 'transit', elementType: 'geometry', stylers: [{ color: '#DCE1EB' }] },
   { featureType: 'transit', elementType: 'labels', stylers: [{ visibility: 'off' }] },
   {
     featureType: 'transit.station',
     elementType: 'labels.text.fill',
-    stylers: [{ color: '#1F57A4' }]
+    stylers: [{ color: '#335280' }]
   },
 
-  // 水域: ライトブルー
-  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#86BFE8' }] },
+  // 水域: Brewer Navy 100
+  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#E1E8F3' }] },
   { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#13294b' }] },
 
   // 景観: オフホワイト
-  { featureType: 'landscape.man_made', elementType: 'geometry', stylers: [{ color: '#FDFBF7' }] },
-  { featureType: 'landscape.natural', elementType: 'geometry', stylers: [{ color: '#F5F2ED' }] },
+  { featureType: 'landscape.man_made', elementType: 'geometry', stylers: [{ color: '#F7F3E9' }] },
+  { featureType: 'landscape.natural', elementType: 'geometry', stylers: [{ color: '#EEF0F4' }] },
 ];
 
 // ============================================================================
@@ -967,7 +967,7 @@ export function MapView({
         gestureHandling: 'greedy',
         clickableIcons: false,
         styles: luxuryMapStyles,
-        backgroundColor: '#142A48',
+        backgroundColor: '#13294b',
       });
 
       mapInstanceRef.current = map;
@@ -1013,7 +1013,7 @@ export function MapView({
     if (mapInstanceRef.current && mapReady) {
       mapInstanceRef.current.setOptions({
         styles: luxuryMapStyles,
-        backgroundColor: '#142A48',
+        backgroundColor: '#13294b',
       });
     }
   }, [mapReady]);

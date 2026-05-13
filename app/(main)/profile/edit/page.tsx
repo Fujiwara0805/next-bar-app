@@ -121,9 +121,9 @@ export default function ProfileEditPage() {
 
   const BG_OFFWHITE = '#F7F3E9';
   const NAVY = '#13294b';
-  const BRASS = '#ffc62d';
+  const BRASS = '#ffc82c';
   const COPPER = '#B87333';
-  const GOLD_GRADIENT = '#ffc52d';
+  const GOLD_GRADIENT = '#ffc82c';
   const NAVY_GRADIENT = '#13294b';
 
   return (
@@ -136,12 +136,12 @@ export default function ProfileEditPage() {
           <button
             onClick={() => router.back()}
             className="flex items-center gap-1.5 text-sm font-medium transition-opacity hover:opacity-80"
-            style={{ color: '#FDFBF7' }}
+            style={{ color: '#F7F3E9' }}
           >
             <ArrowLeft className="w-4 h-4" />
             {t('common.back')}
           </button>
-          <h1 className="text-lg font-light tracking-[0.2em]" style={{ color: '#FDFBF7' }}>
+          <h1 className="text-lg font-light tracking-[0.2em]" style={{ color: '#F7F3E9' }}>
             {t('profileEdit.title')}
           </h1>
           <div className="w-12" />

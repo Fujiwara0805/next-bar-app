@@ -31,7 +31,7 @@ const HERO_IMAGES = [
   'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772501860/drew-beamer-bTN-zKFy9uA-unsplash_kmcnyo.jpg',
 ];
 
-const LP_NAVY = '#0A1628';
+const LP_NAVY = '#13294b';
 
 export function LoginForm() {
   const { colorsB: COLORS } = useAppMode();

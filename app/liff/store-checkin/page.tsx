@@ -308,7 +308,7 @@ function StoreCheckinInner() {
                 className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center"
                 style={{ background: 'rgba(34, 197, 94, 0.12)' }}
               >
-                <CheckCircle2 className="w-8 h-8" style={{ color: '#16a34a' }} />
+                <CheckCircle2 className="w-8 h-8" style={{ color: '#3E8E6B' }} />
               </motion.div>
 
               <h2
@@ -379,7 +379,7 @@ function StoreCheckinInner() {
                     {result.hasLotteryEntry ? (
                       <Ticket
                         className="w-5 h-5 mt-0.5"
-                        style={{ color: '#16a34a' }}
+                        style={{ color: '#3E8E6B' }}
                       />
                     ) : result.canEnterLottery ? (
                       <Ticket

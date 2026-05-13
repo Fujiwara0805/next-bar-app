@@ -35,10 +35,10 @@ const STAMP_ICON_URL =
 // Brewers Navy + Brass + Copper パレット（StoreDetailPanel と統一）
 const NAVY = '#13294b'; // Brewers Dark Navy
 const NAVY_SOFT = 'rgba(19, 41, 75, 0.08)';
-const BRASS = '#ffc52d'; // Brewers Yellow
+const BRASS = '#ffc82c'; // Brass Yellow
 const COPPER = '#B87333'; // Copper / orange accent
 // グラデ廃止: フラットカラーで統一
-const GOLD_GRADIENT = '#ffc52d';
+const GOLD_GRADIENT = '#ffc82c';
 const NAVY_GRADIENT = '#13294b';
 
 function tokyoDateString(): string {
@@ -179,7 +179,7 @@ export default function MyPage() {
         }}
       >
         <div className="relative flex items-center justify-center p-4 max-w-md mx-auto">
-          <h1 className="text-lg font-light tracking-[0.2em]" style={{ color: '#FDFBF7' }}>
+          <h1 className="text-lg font-light tracking-[0.2em]" style={{ color: '#F7F3E9' }}>
             {t('mypage.title')}
           </h1>
           <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -551,7 +551,7 @@ export default function MyPage() {
               style={{
                 background: 'white',
                 border: '1px solid rgba(220, 38, 38, 0.35)',
-                color: '#dc2626',
+                color: '#B3453F',
               }}
             >
               <LogOut className="w-4 h-4 mr-2" />

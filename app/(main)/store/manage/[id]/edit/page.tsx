@@ -908,7 +908,7 @@ export default function StoreEditPage() {
                   Google Mapsから店舗情報を自動取得できます
                 </p>
                 {googlePlaceId ? (
-                  <p className="text-xs flex items-center gap-1" style={{ color: '#16a34a' }}>
+                  <p className="text-xs flex items-center gap-1" style={{ color: '#3E8E6B' }}>
                     ✓ Google Place ID: {googlePlaceId}
                     {googleRating != null && ` | 評価: ⭐${googleRating}`}
                     {googleReviewsCount != null && ` (${googleReviewsCount}件)`}

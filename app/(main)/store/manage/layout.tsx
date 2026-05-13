@@ -47,12 +47,12 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
       {/* Logo */}
       <div className="px-5 py-6 flex items-center gap-2.5" style={{ borderBottom: `1px solid ${C.border}` }}>
         <img src={LOGO_URL} alt="NIKENME+" className="w-7 h-7 rounded-lg" />
-        <span className="text-sm font-semibold tracking-tight" style={{ color: C.text }}>
+        <span className="text-sm font-bold tracking-tight" style={{ color: C.text }}>
           NIKENME+
         </span>
         <span
-          className="ml-auto text-[9px] font-medium px-1.5 py-0.5 rounded"
-          style={{ background: C.accentBg, color: C.accent }}
+          className="ml-auto text-[9px] font-bold tracking-[0.08em] px-1.5 py-0.5 rounded-full"
+          style={{ background: '#ffc82c', color: '#13294b' }}
         >
           Admin
         </span>
@@ -69,16 +69,16 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
                 router.push(item.href);
                 onNavigate?.();
               }}
-              className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all group"
+              className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-[13px] font-bold transition-all group"
               style={{
-                background: active ? C.accentBg : 'transparent',
-                color: active ? C.accent : C.textMuted,
+                background: active ? '#13294b' : 'transparent',
+                color: active ? '#F7F3E9' : C.textMuted,
               }}
             >
               <item.icon className="w-4 h-4 flex-shrink-0" />
               <span className="flex-1 text-left">{item.label}</span>
               {active && (
-                <div className="w-1.5 h-1.5 rounded-full" style={{ background: C.accent }} />
+                <div className="w-1.5 h-1.5 rounded-full" style={{ background: '#ffc82c' }} />
               )}
             </button>
           );
@@ -105,7 +105,7 @@ function ManageLayoutInner({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen flex" style={{ background: C.bg }}>
+    <div className="theme-light min-h-screen flex" style={{ background: C.bg }}>
       {/* Desktop Sidebar */}
       <aside
         className="hidden md:flex md:flex-col md:w-[240px] md:flex-shrink-0 fixed inset-y-0 left-0 z-40"
@@ -121,7 +121,7 @@ function ManageLayoutInner({ children }: { children: React.ReactNode }) {
       <div
         className="md:hidden fixed top-0 left-0 right-0 z-40 flex items-center px-4 py-3"
         style={{
-          background: C.bg + 'ee',
+          background: 'rgba(255, 255, 255, 0.92)',
           borderBottom: `1px solid ${C.border}`,
           backdropFilter: 'blur(12px)',
         }}

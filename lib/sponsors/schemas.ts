@@ -101,7 +101,7 @@ export const creativeFormSchema = z.object({
     .refine((val) => !val || /^https?:\/\/.+/.test(val), {
       message: 'https://で始まるURLを入力してください',
     }),
-  cta_color: z.string().default('#C9A86C'),
+  cta_color: z.string().default('#ffc82c'),
   icon_url: z.string().optional().or(z.literal('')),
   icon_position: z
     .object({

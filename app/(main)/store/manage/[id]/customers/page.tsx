@@ -504,7 +504,7 @@ export default function StoreCustomersPage() {
                       {c.line_linked && (
                         <span
                           className="text-[10px] font-semibold px-1.5 py-0.5 rounded flex-shrink-0"
-                          style={{ background: 'rgba(0, 195, 0, 0.12)', color: '#16a34a' }}
+                          style={{ background: 'rgba(62, 142, 107, 0.12)', color: '#3E8E6B' }}
                         >
                           LINE
                         </span>
@@ -576,7 +576,7 @@ export default function StoreCustomersPage() {
                 <p className="text-xs font-semibold opacity-70">LINE連携</p>
                 {selected.line_linked ? (
                   <span className="font-semibold flex items-center gap-1">
-                    <MessageCircle className="w-4 h-4" style={{ color: '#16a34a' }} />
+                    <MessageCircle className="w-4 h-4" style={{ color: '#3E8E6B' }} />
                     連携済
                   </span>
                 ) : (

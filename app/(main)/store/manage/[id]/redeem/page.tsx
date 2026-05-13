@@ -236,7 +236,7 @@ function StoreRedeemPageInner() {
                   className="w-16 h-16 rounded-full flex items-center justify-center"
                   style={{ background: 'rgba(34, 197, 94, 0.12)' }}
                 >
-                  <CheckCircle2 className="w-10 h-10" style={{ color: '#16a34a' }} />
+                  <CheckCircle2 className="w-10 h-10" style={{ color: '#3E8E6B' }} />
                 </div>
               </motion.div>
               <h2

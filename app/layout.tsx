@@ -1,6 +1,6 @@
 import './globals.css';
 import type { Metadata, Viewport } from 'next';
-import { Inter } from 'next/font/google';
+import { Noto_Sans_JP } from 'next/font/google';
 import { AuthProvider } from '@/lib/auth/context';
 import { LanguageProvider } from '@/lib/i18n/context';
 import { LiffProvider } from '@/lib/line/context';
@@ -9,7 +9,12 @@ import { Toaster } from '@/components/ui/sonner';
 import { GoogleAnalytics } from '@/components/analytics/GoogleAnalytics';
 import { translations } from '@/lib/i18n/translations';
 
-const inter = Inter({ subsets: ['latin'] });
+const notoSansJp = Noto_Sans_JP({
+  subsets: ['latin'],
+  weight: ['400', '500', '700'],
+  variable: '--font-noto-sans-jp',
+  display: 'swap',
+});
 const seo = translations.ja.seo.root;
 
 export const metadata: Metadata = {
@@ -299,7 +304,7 @@ export default function RootLayout({
         <link rel="icon" type="image/png" sizes="48x48" href="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_48/v1777620612/ChatGPT_Image_2026%E5%B9%B45%E6%9C%881%E6%97%A5_16_25_22_wopehc.png" />
         <link rel="apple-touch-icon" sizes="180x180" href="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_144,c_pad,w_180,h_180,b_white/v1777620612/ChatGPT_Image_2026%E5%B9%B45%E6%9C%881%E6%97%A5_16_25_22_wopehc.png" />
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#3b82f6" />
+        <meta name="theme-color" content="#13294b" />
         
         {/* 構造化データ (JSON-LD) - より詳細な情報を追加 */}
         <script
@@ -653,7 +658,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={inter.className}>
+      <body className={notoSansJp.variable}>
         <GoogleAnalytics />
         <LanguageProvider>
           <LiffProvider>

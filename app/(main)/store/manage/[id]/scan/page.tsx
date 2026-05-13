@@ -427,7 +427,7 @@ export default function StoreScanPage() {
                 className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center"
                 style={{ background: 'rgba(34, 197, 94, 0.12)' }}
               >
-                <CheckCircle2 className="w-8 h-8" style={{ color: '#16a34a' }} />
+                <CheckCircle2 className="w-8 h-8" style={{ color: '#3E8E6B' }} />
               </motion.div>
 
               <h2
@@ -473,7 +473,7 @@ export default function StoreScanPage() {
                       {result.userDisplayName}
                     </div>
                     {result.customer?.line_linked && (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ background: 'rgba(0, 195, 0, 0.12)', color: '#16a34a' }}>
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ background: 'rgba(62, 142, 107, 0.12)', color: '#3E8E6B' }}>
                         <MessageCircle className="w-3 h-3" />
                         LINE
                       </span>
@@ -565,7 +565,7 @@ export default function StoreScanPage() {
                 >
                   <div className="flex items-start gap-2">
                     {result.hasLotteryEntry ? (
-                      <Ticket className="w-5 h-5 mt-0.5" style={{ color: '#16a34a' }} />
+                      <Ticket className="w-5 h-5 mt-0.5" style={{ color: '#3E8E6B' }} />
                     ) : result.canEnterLottery ? (
                       <Ticket className="w-5 h-5 mt-0.5" style={{ color: COLORS.champagneGold }} />
                     ) : (

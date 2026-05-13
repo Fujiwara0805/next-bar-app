@@ -26,9 +26,9 @@ const CUSTOMER_DEVICE_ID_KEY = 'nikenme:customer-device-id';
 
 const BG_OFFWHITE = '#F7F3E9';
 const NAVY = '#13294b';
-const BRASS = '#ffc62d';
+const BRASS = '#ffc82c';
 const COPPER = '#B87333';
-const GOLD_GRADIENT = '#ffc52d';
+const GOLD_GRADIENT = '#ffc82c';
 const NAVY_GRADIENT = '#13294b';
 
 function getCustomerDeviceId(): string {
@@ -270,7 +270,7 @@ export default function MyPageQrPage() {
         style={{ background: NAVY_GRADIENT, borderBottom: `1px solid ${BRASS}33` }}
       >
         <div className="relative flex items-center justify-center p-4 max-w-md mx-auto">
-          <h1 className="text-lg font-light tracking-[0.2em]" style={{ color: '#FDFBF7' }}>
+          <h1 className="text-lg font-light tracking-[0.2em]" style={{ color: '#F7F3E9' }}>
             {t('mypageQr.title')}
           </h1>
           <div className="absolute right-3 top-1/2 -translate-y-1/2">

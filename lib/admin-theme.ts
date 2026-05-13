@@ -37,40 +37,35 @@ export interface AdminThemeColors {
   infoBg: string;
 }
 
-// Brewer Navy + Yellow ブランドカラー (DESIGN.md 準拠)
-// Navy: #13294b / Yellow: #ffc62d / Off-white (cream): #F7F3E9
-//
-// ルール（ライト基調）:
-//   - オフホワイト背景 → text = Navy(#13294b) (アクセントのみ Yellow)
-//   - イエロー背景 → text = Navy(#13294b)
+// Brewer Navy + Brass Yellow ブランドカラー (DESIGN.md 準拠)
+// 管理画面はライト背景・白カード・ボーダー中心で情報密度を確保する。
 export const ADMIN_LIGHT_COLORS: AdminThemeColors = {
-  bg: '#F7F3E9', // オフホワイト(Cream) 基調
-  bgCard: '#ffffff',
-  bgCardHover: '#F0E9D6',
-  bgInput: '#F0E9D6',
-  bgElevated: '#ffffff',
+  bg: '#F7F8FA',
+  bgCard: '#FFFFFF',
+  bgCardHover: '#F7F3E9',
+  bgInput: '#FFFFFF',
+  bgElevated: '#FFFFFF',
 
-  text: '#13294b', // Brewer Navy
-  textMuted: '#2E4267', // Navy 70%
-  textSubtle: '#5A6E8E', // Navy 50%
+  text: '#141821',
+  textMuted: '#4D5567',
+  textSubtle: '#8D95A6',
 
-  // オフホワイト背景上のアクセント = Navy
   accent: '#13294b',
-  accentLight: '#2E4267',
-  accentBg: 'rgba(19,41,75,0.10)',
-  accentForeground: '#F7F3E9', // Navy背景上のテキスト = オフホワイト
+  accentLight: '#335280',
+  accentBg: 'rgba(19, 41, 75, 0.08)',
+  accentForeground: '#F7F3E9',
 
-  border: 'rgba(19,41,75,0.16)',
-  borderSubtle: 'rgba(19,41,75,0.08)',
+  border: '#DCE1EB',
+  borderSubtle: '#EEF0F4',
 
-  success: '#16a34a',
-  successBg: 'rgba(22,163,74,0.10)',
-  warning: '#b4861c',
-  warningBg: 'rgba(255,198,45,0.18)',
-  danger: '#dc2626',
-  dangerBg: 'rgba(220,38,38,0.08)',
-  info: '#13294b',
-  infoBg: 'rgba(19,41,75,0.08)',
+  success: '#3E8E6B',
+  successBg: 'rgba(62, 142, 107, 0.12)',
+  warning: '#C49A33',
+  warningBg: 'rgba(196, 154, 51, 0.14)',
+  danger: '#B3453F',
+  dangerBg: 'rgba(179, 69, 63, 0.10)',
+  info: '#3B5A87',
+  infoBg: 'rgba(59, 90, 135, 0.10)',
 };
 
 export function getAdminColors(): AdminThemeColors {

@@ -60,7 +60,7 @@ export function SponsorMapIcon() {
           />
         ) : (
           <div
-            className="rounded-xl shadow-lg bg-gradient-to-br from-[#C9A86C] to-[#A88B5A] flex items-center justify-center text-white font-bold text-xs"
+            className="rounded-xl shadow-lg bg-gradient-to-br from-[#ffc82c] to-[#B87333] flex items-center justify-center text-white font-bold text-xs"
             style={{ width: size, height: size }}
           >
             {icon.company_name.charAt(0)}

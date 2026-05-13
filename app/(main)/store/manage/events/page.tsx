@@ -418,7 +418,7 @@ export default function PlatformEventsPage() {
                   type="button"
                   onClick={clearEventImage}
                   className="absolute right-2 top-2 rounded-full p-1.5"
-                  style={{ background: 'rgba(19, 41, 75, 0.9)', color: '#ffc52d' }}
+                  style={{ background: 'rgba(19, 41, 75, 0.9)', color: '#ffc82c' }}
                   aria-label="画像を削除"
                 >
                   <X className="h-4 w-4" />

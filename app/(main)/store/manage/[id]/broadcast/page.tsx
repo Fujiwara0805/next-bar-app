@@ -526,7 +526,7 @@ function StoreBroadcastPageInner() {
                             step={0.5}
                             value={radiusKm}
                             onChange={(e) => setRadiusKm(Number(e.target.value))}
-                            className="w-full accent-[#C9A86C]"
+                            className="w-full accent-[#ffc82c]"
                           />
                         </div>
                       )}
@@ -549,7 +549,7 @@ function StoreBroadcastPageInner() {
                         onChange={(e) => setBody(e.target.value.slice(0, MAX_LEN))}
                         placeholder={t('broadcast.body_placeholder')}
                         rows={5}
-                        className="w-full rounded-xl border-2 px-3 py-2 text-sm resize-y font-medium transition-all duration-200 focus:border-[#C9A86C] focus:ring-2 focus:ring-[#C9A86C]/20 focus:outline-none"
+                        className="w-full rounded-xl border-2 px-3 py-2 text-sm resize-y font-medium transition-all duration-200 focus:border-[#335280] focus:ring-2 focus:ring-[#335280]/20 focus:outline-none"
                         style={{
                           fontSize: '16px',
                           borderColor: 'rgba(201, 168, 108, 0.3)',

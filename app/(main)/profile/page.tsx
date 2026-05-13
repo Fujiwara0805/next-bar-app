@@ -16,10 +16,10 @@ import { LoadingScreen } from '@/components/ui/loading-screen';
 
 const BG_OFFWHITE = '#F7F3E9';
 const NAVY = '#13294b';
-const BRASS = '#ffc52d';
+const BRASS = '#ffc82c';
 const COPPER = '#B87333';
 // グラデ廃止: フラットカラーで統一
-const GOLD_GRADIENT = '#ffc52d';
+const GOLD_GRADIENT = '#ffc82c';
 const NAVY_GRADIENT = '#13294b';
 
 export default function ProfilePage() {
@@ -86,12 +86,12 @@ export default function ProfilePage() {
           <button
             onClick={() => router.push('/store/manage')}
             className="flex items-center gap-1.5 text-sm font-medium transition-opacity hover:opacity-80"
-            style={{ color: '#FDFBF7' }}
+            style={{ color: '#F7F3E9' }}
           >
             <ArrowLeft className="w-4 h-4" />
             {t('profile.dashboard_back')}
           </button>
-          <h1 className="text-lg font-light tracking-[0.2em]" style={{ color: '#FDFBF7' }}>
+          <h1 className="text-lg font-light tracking-[0.2em]" style={{ color: '#F7F3E9' }}>
             {t('profile.title')}
           </h1>
           <div className="w-12" />
@@ -206,7 +206,7 @@ export default function ProfilePage() {
               onClick={handleSignOut}
               style={{
                 background: 'white',
-                color: '#dc2626',
+                color: '#B3453F',
                 border: '1px solid rgba(220, 38, 38, 0.35)',
               }}
             >

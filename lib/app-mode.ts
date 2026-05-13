@@ -96,73 +96,70 @@ export interface PanelLightTheme {
 // ============================================================================
 
 export const BAR_COLORS_A: ColorsShapeA = {
-  background: '#13294b',              // Brewers Dark Navy
-  surface: '#1F57A4',                 // Brewers Blue
-  surfaceLight: '#86BFE8',            // Brewers Light Blue
-  cardBackground: '#FDFBF7',          // Off-white
-  primary: '#1F57A4',                 // Brewers Blue
-  charcoal: '#2D3436',
-  warmGray: '#636E72',
-  accent: '#ffc52d',                  // Brewers Yellow (flat)
-  accentLight: '#ffc52d',
-  accentDark: '#ffc52d',
-  text: '#FDFBF7',                    // Off-white
-  textMuted: 'rgba(253, 251, 247, 0.7)',
-  textSubtle: 'rgba(253, 251, 247, 0.5)',
-  // グラデーションは廃止。フラットカラーで統一。
-  luxuryGradient: '#13294b',
-  goldGradient: '#ffc52d',
-  cardGradient: '#FDFBF7',
-  borderGold: 'rgba(255, 197, 45, 0.3)',
-  borderSubtle: 'rgba(255, 197, 45, 0.15)',
-  shadowGold: '0 4px 12px rgba(19, 41, 75, 0.08)',
-  shadowDeep: '0 8px 24px rgba(0, 0, 0, 0.12)',
-  error: '#EF4444',
-  errorBg: 'rgba(239, 68, 68, 0.15)',
-  errorBorder: 'rgba(239, 68, 68, 0.3)',
+  background: '#13294b',
+  surface: '#20385F',
+  surfaceLight: '#335280',
+  cardBackground: '#F7F3E9',
+  primary: '#13294b',
+  charcoal: '#141821',
+  warmGray: '#4D5567',
+  accent: '#ffc82c',
+  accentLight: '#ffdf85',
+  accentDark: '#C49A33',
+  text: '#F7F3E9',
+  textMuted: 'rgba(247, 243, 233, 0.76)',
+  textSubtle: 'rgba(144, 164, 193, 0.9)',
+  luxuryGradient: 'linear-gradient(135deg, #13294b 0%, #20385F 100%)',
+  goldGradient: 'linear-gradient(135deg, #ffdf85 0%, #ffc82c 100%)',
+  cardGradient: 'linear-gradient(180deg, #F7F3E9 0%, #FFFFFF 100%)',
+  borderGold: 'rgba(255, 200, 44, 0.28)',
+  borderSubtle: 'rgba(255, 255, 255, 0.08)',
+  shadowGold: '0 0 32px rgba(255, 200, 44, 0.22)',
+  shadowDeep: '0 16px 40px rgba(0, 0, 0, 0.24)',
+  error: '#B3453F',
+  errorBg: 'rgba(179, 69, 63, 0.14)',
+  errorBorder: 'rgba(179, 69, 63, 0.3)',
 };
 
 export const BAR_COLORS_B: ColorsShapeB = {
-  deepNavy: '#13294b',              // Brewers Dark Navy
-  midnightBlue: '#1F57A4',          // Brewers Blue
-  royalNavy: '#86BFE8',             // Brewers Light Blue
-  champagneGold: '#ffc52d',         // Brewers Yellow (flat)
-  paleGold: '#ffc52d',
-  antiqueGold: '#ffc52d',
-  charcoal: '#2D3436',
-  warmGray: '#636E72',
-  platinum: '#DFE6E9',
-  ivory: '#FDFBF7',
-  // グラデーションは廃止。フラットカラーで統一。
-  luxuryGradient: '#13294b',
-  goldGradient: '#ffc52d',
-  cardGradient: '#FDFBF7',
+  deepNavy: '#13294b',
+  midnightBlue: '#20385F',
+  royalNavy: '#335280',
+  champagneGold: '#ffc82c',
+  paleGold: '#ffdf85',
+  antiqueGold: '#B87333',
+  charcoal: '#141821',
+  warmGray: '#4D5567',
+  platinum: '#DCE1EB',
+  ivory: '#F7F3E9',
+  luxuryGradient: 'linear-gradient(135deg, #13294b 0%, #20385F 100%)',
+  goldGradient: 'linear-gradient(135deg, #ffdf85 0%, #ffc82c 100%)',
+  cardGradient: 'linear-gradient(180deg, #F7F3E9 0%, #FFFFFF 100%)',
 };
 
 export const BAR_PANEL_DARK: PanelDarkTheme = {
   background: '#13294b',
-  surface: '#1F57A4',
-  accent: '#ffc52d',
-  accentLight: '#ffc52d',
-  text: '#FDFBF7',
-  textMuted: 'rgba(253, 251, 247, 0.7)',
-  textSubtle: 'rgba(253, 251, 247, 0.5)',
-  borderGold: 'rgba(255, 197, 45, 0.3)',
-  borderSubtle: 'rgba(255, 197, 45, 0.15)',
-  shadowGold: '0 4px 12px rgba(19, 41, 75, 0.08)',
-  // グラデ廃止: フラットイエロー
-  goldGradient: '#ffc52d',
+  surface: '#20385F',
+  accent: '#ffc82c',
+  accentLight: '#ffdf85',
+  text: '#F7F3E9',
+  textMuted: 'rgba(247, 243, 233, 0.76)',
+  textSubtle: 'rgba(144, 164, 193, 0.9)',
+  borderGold: 'rgba(255, 200, 44, 0.28)',
+  borderSubtle: 'rgba(255, 255, 255, 0.08)',
+  shadowGold: '0 0 32px rgba(255, 200, 44, 0.22)',
+  goldGradient: 'linear-gradient(135deg, #ffdf85 0%, #ffc82c 100%)',
 };
 
 export const BAR_PANEL_LIGHT: PanelLightTheme = {
   background: '#FFFFFF',
-  surface: '#FDFBF7',
-  accent: '#ffc52d',
+  surface: '#F7F8FA',
+  accent: '#13294b',
   text: '#13294b',
-  textMuted: '#636E72',
-  textSubtle: '#9BA4A9',
-  borderGold: 'rgba(255, 198, 45, 0.25)',
-  borderSubtle: 'rgba(255, 198, 45, 0.12)',
+  textMuted: '#4D5567',
+  textSubtle: '#8D95A6',
+  borderGold: 'rgba(255, 200, 44, 0.25)',
+  borderSubtle: '#DCE1EB',
   badgeBg: 'rgba(19, 41, 75, 0.04)',
 };
 

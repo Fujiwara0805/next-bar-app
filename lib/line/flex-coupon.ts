@@ -97,7 +97,7 @@ export function buildCouponBubble(params: CouponFlexParams): FlexBubble {
         {
           type: 'button',
           style: 'primary',
-          color: '#C9A86C',
+          color: '#ffc82c',
           action: {
             type: 'uri',
             label: params.ctaLabel,
