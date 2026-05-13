@@ -305,6 +305,7 @@ export default function RootLayout({
         <link rel="apple-touch-icon" sizes="180x180" href="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_144,c_pad,w_180,h_180,b_white/v1777620612/ChatGPT_Image_2026%E5%B9%B45%E6%9C%881%E6%97%A5_16_25_22_wopehc.png" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#13294b" />
+        <meta name="mobile-web-app-capable" content="yes" />
         
         {/* 構造化データ (JSON-LD) - より詳細な情報を追加 */}
         <script

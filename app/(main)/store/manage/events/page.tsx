@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   CalendarDays,
@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAdminTheme } from '@/lib/admin-theme-context';
+import { useAuth } from '@/lib/auth/context';
 import { supabase } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -80,6 +81,8 @@ function statusBadge(status: PlatformEventStatus) {
 
 export default function PlatformEventsPage() {
   const { colors: C } = useAdminTheme();
+  const { session, loading: authLoading } = useAuth();
+  const accessToken = session?.access_token;
   const [events, setEvents] = useState<PlatformEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -91,15 +94,13 @@ export default function PlatformEventsPage() {
   const [uploadingImage, setUploadingImage] = useState(false);
   const imageInputRef = useRef<HTMLInputElement | null>(null);
 
-  const fetchEvents = async () => {
+  const fetchEvents = useCallback(async () => {
     setLoading(true);
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData.session?.access_token;
-      if (!token) throw new Error('session_missing');
+      if (!accessToken) throw new Error('session_missing');
       const res = await fetch('/api/platform/events', {
         cache: 'no-store',
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${accessToken}` },
       });
       if (!res.ok) throw new Error(`fetch_failed:${res.status}`);
       const json = await res.json();
@@ -110,11 +111,16 @@ export default function PlatformEventsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [accessToken]);
 
   useEffect(() => {
+    if (authLoading) return;
+    if (!accessToken) {
+      setLoading(false);
+      return;
+    }
     fetchEvents();
-  }, []);
+  }, [authLoading, accessToken, fetchEvents]);
 
   const filtered = useMemo(() => {
     const q = query.toLowerCase();
@@ -203,16 +209,14 @@ export default function PlatformEventsPage() {
     }
     setSaving(true);
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData.session?.access_token;
-      if (!token) throw new Error('session_missing');
+      if (!accessToken) throw new Error('session_missing');
       const res = await fetch(
         editing ? `/api/platform/events/${editing.id}` : '/api/platform/events',
         {
           method: editing ? 'PATCH' : 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${accessToken}`,
           },
           body: JSON.stringify(form),
         }
@@ -242,12 +246,10 @@ export default function PlatformEventsPage() {
     if (!window.confirm(`${event.title} を削除しますか？`)) return;
     setDeletingId(event.id);
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData.session?.access_token;
-      if (!token) throw new Error('session_missing');
+      if (!accessToken) throw new Error('session_missing');
       const res = await fetch(`/api/platform/events/${event.id}`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${accessToken}` },
       });
       if (!res.ok) throw new Error(`delete_failed:${res.status}`);
       toast.success('イベントを削除しました');

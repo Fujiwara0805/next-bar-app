@@ -156,7 +156,7 @@ export default function StoreUpdatePage() {
   ] as const;
   const router = useRouter();
   const params = useParams();
-  const { user, accountType, signOut } = useAuth();
+  const { user, accountType, session, signOut } = useAuth();
   const { t } = useLanguage();
 
   // ルートの body 背景が透ける（オーバースクロール等）とき、カードエリアと同色に揃える
@@ -193,7 +193,6 @@ export default function StoreUpdatePage() {
   const [storeEvents, setStoreEvents] = useState<StoreEventRow[]>([]);
   const [loadingStoreEvents, setLoadingStoreEvents] = useState(false);
   const [savingEventId, setSavingEventId] = useState<string | null>(null);
-  const [eventInfoOpen, setEventInfoOpen] = useState(false);
   
   // 臨時休業中かどうかを表示するためのstate
   const [isManualClosed, setIsManualClosed] = useState(false);
@@ -308,8 +307,7 @@ export default function StoreUpdatePage() {
     if (!params.id) return;
     setLoadingStoreEvents(true);
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData.session?.access_token;
+      const token = session?.access_token;
       if (!token) return;
       const res = await fetch(`/api/stores/${params.id}/events`, {
         cache: 'no-store',
@@ -325,7 +323,7 @@ export default function StoreUpdatePage() {
     } finally {
       setLoadingStoreEvents(false);
     }
-  }, [params.id]);
+  }, [params.id, session?.access_token]);
 
   // 認証状態のチェック
   useEffect(() => {
@@ -359,12 +357,6 @@ export default function StoreUpdatePage() {
     }
   }, [authChecked, user, accountType, params.id, fetchStore, fetchReservations, fetchStoreEvents]);
 
-  useEffect(() => {
-    if (storeEvents.length === 0) {
-      setEventInfoOpen(false);
-    }
-  }, [storeEvents.length]);
-
   const updateEventParticipation = async (
     eventId: string,
     isParticipating: boolean
@@ -372,8 +364,7 @@ export default function StoreUpdatePage() {
     if (!params.id) return;
     setSavingEventId(eventId);
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData.session?.access_token;
+      const token = session?.access_token;
       if (!token) throw new Error('session_missing');
       const res = await fetch(`/api/stores/${params.id}/events`, {
         method: 'PATCH',
@@ -881,7 +872,7 @@ export default function StoreUpdatePage() {
                     border: `1px solid rgba(19, 41, 75, 0.12)`,
                   }}
                 >
-                  <div className="mb-4 flex items-center justify-between gap-3">
+                  <div className="mb-4 flex items-center gap-3">
                     <div className="flex items-center gap-3">
                       <div
                         className="p-2 rounded-lg"
@@ -896,26 +887,6 @@ export default function StoreUpdatePage() {
                         イベント参加設定
                       </h2>
                     </div>
-                    <button
-                      type="button"
-                      disabled={loadingStoreEvents || storeEvents.length === 0}
-                      onClick={() => setEventInfoOpen((open) => !open)}
-                      aria-pressed={eventInfoOpen}
-                      aria-label={eventInfoOpen ? 'イベント情報を閉じる' : 'イベント情報を開く'}
-                      className="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full px-0.5 transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
-                      style={{
-                        background: eventInfoOpen ? '#13294b' : '#F7F3E9',
-                        border: `1px solid ${eventInfoOpen ? '#13294b' : 'rgba(19, 41, 75, 0.18)'}`,
-                      }}
-                    >
-                      <span
-                        className="absolute h-5 w-5 rounded-full transition-all"
-                        style={{
-                          background: eventInfoOpen ? '#ffc82c' : '#13294b',
-                          left: eventInfoOpen ? 'calc(100% - 22px)' : '2px',
-                        }}
-                      />
-                    </button>
                   </div>
                   {loadingStoreEvents ? (
                     <div className="flex items-center gap-2 text-sm" style={{ color: COLORS.warmGray }}>
@@ -933,27 +904,24 @@ export default function StoreUpdatePage() {
                     >
                       現在参加設定できるイベントはありません。
                     </div>
-                  ) : !eventInfoOpen ? (
-                    <div
-                      className="rounded-xl p-4 text-sm font-semibold"
-                      style={{
-                        background: 'rgba(19, 41, 75, 0.04)',
-                        border: '1px solid rgba(19, 41, 75, 0.08)',
-                        color: COLORS.warmGray,
-                      }}
-                    >
-                      トグルをONにするとイベント情報を表示します。
-                    </div>
                   ) : (
                     <div className="space-y-4">
                       {storeEvents.map((event) => {
+                        const participating = !!event.participation?.is_participating;
+                        const saving = savingEventId === event.id;
                         return (
                           <div
                             key={event.id}
                             className="rounded-xl p-4"
                             style={{
-                              background: 'rgba(19, 41, 75, 0.03)',
-                              border: '1px solid rgba(19, 41, 75, 0.08)',
+                              background: participating
+                                ? 'rgba(255, 200, 44, 0.12)'
+                                : 'rgba(19, 41, 75, 0.03)',
+                              border: `1px solid ${
+                                participating
+                                  ? 'rgba(255, 200, 44, 0.42)'
+                                  : 'rgba(19, 41, 75, 0.08)'
+                              }`,
                             }}
                           >
                             <div className="flex items-center gap-2">
@@ -961,6 +929,32 @@ export default function StoreUpdatePage() {
                               <p className="min-w-0 flex-1 text-base font-bold leading-tight" style={{ color: COLORS.deepNavy }}>
                                 {event.title}
                               </p>
+                              {saving && <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" style={{ color: '#13294b' }} />}
+                              <span className="text-[11px] font-bold" style={{ color: COLORS.warmGray }}>
+                                参加
+                              </span>
+                              <button
+                                type="button"
+                                disabled={saving}
+                                onClick={() =>
+                                  updateEventParticipation(event.id, !participating)
+                                }
+                                aria-pressed={participating}
+                                aria-label={participating ? 'イベント参加をOFFにする' : 'イベント参加をONにする'}
+                                className="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full px-0.5 transition-opacity disabled:cursor-not-allowed disabled:opacity-60"
+                                style={{
+                                  background: participating ? '#13294b' : '#F7F3E9',
+                                  border: `1px solid ${participating ? '#13294b' : 'rgba(19, 41, 75, 0.18)'}`,
+                                }}
+                              >
+                                <span
+                                  className="absolute h-5 w-5 rounded-full transition-all"
+                                  style={{
+                                    background: participating ? '#ffc82c' : '#13294b',
+                                    left: participating ? 'calc(100% - 22px)' : '2px',
+                                  }}
+                                />
+                              </button>
                             </div>
                             <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm font-semibold" style={{ color: COLORS.warmGray }}>
                               <span className="inline-flex items-center gap-1.5">
