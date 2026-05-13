@@ -4,6 +4,8 @@ import type { Database } from '@/lib/supabase/types';
 import type { StoreEventRow } from '@/lib/types/platform-event';
 
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+export const fetchCache = 'force-no-store';
 export const runtime = 'nodejs';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -19,6 +21,10 @@ export async function GET(
 
   const admin = createClient<Database>(supabaseUrl, serviceRoleKey, {
     auth: { autoRefreshToken: false, persistSession: false },
+    global: {
+      fetch: (input, init) =>
+        fetch(input, { ...init, cache: 'no-store' as RequestCache }),
+    },
   });
 
   const { data, error } = await (admin as any)

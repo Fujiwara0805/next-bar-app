@@ -36,8 +36,6 @@ import {
   Expand,
   MessageCirclePlus,
   Gauge,
-  CalendarDays,
-  PartyPopper,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CloseCircleButton } from '@/components/ui/close-circle-button';
@@ -58,7 +56,6 @@ import { SponsorCampaignBanner } from '@/components/sponsors/sponsor-campaign-ba
 import { CrowdVoteModal } from '@/components/store/crowd-vote-modal';
 import { getTodayOpenTime, isTodayClosedDay, checkIsOpenFromStructuredHours } from '@/lib/structured-business-hours';
 import { useOptimizedLocation } from '@/lib/hooks/useOptimizedLocation';
-import type { StoreEventRow } from '@/lib/types/platform-event';
 type Store = Database['public']['Tables']['stores']['Row'];
 
 // ============================================
@@ -243,7 +240,6 @@ export default function StoreDetailPage() {
 
   // 空席投票モーダルの開閉
   const [voteModalOpen, setVoteModalOpen] = useState(false);
-  const [storeEvents, setStoreEvents] = useState<StoreEventRow[]>([]);
 
   // ============================================
   // ライトボックスを開く・閉じる関数
@@ -393,25 +389,11 @@ export default function StoreDetailPage() {
     }
   }, []);
 
-  const fetchStoreEvents = useCallback(async (id: string) => {
-    try {
-      const response = await fetch(`/api/stores/${id}/public-events`, {
-        cache: 'no-store',
-      });
-      if (!response.ok) return;
-      const json = await response.json();
-      setStoreEvents(json.events ?? []);
-    } catch {
-      setStoreEvents([]);
-    }
-  }, []);
-
   useEffect(() => {
     if (params.id) {
       fetchStore(params.id as string);
-      fetchStoreEvents(params.id as string);
     }
-  }, [params.id, fetchStore, fetchStoreEvents]);
+  }, [params.id, fetchStore]);
 
   useEffect(() => {
     if (store && userLocation) {
@@ -938,54 +920,6 @@ export default function StoreDetailPage() {
                   <p className="text-sm font-bold" style={{ color: COLORS.deepNavy }}>
                     {store.status_message}
                   </p>
-                </div>
-                <GoldDivider />
-              </>
-            )}
-
-            {storeEvents.length > 0 && (
-              <>
-                <div className="space-y-3 mb-4">
-                  <div className="flex items-center gap-2">
-                    <PartyPopper className="w-5 h-5" style={{ color: COLORS.champagneGold }} />
-                    <p className="text-sm font-bold" style={{ color: COLORS.deepNavy }}>
-                      参加中イベント
-                    </p>
-                  </div>
-                  {storeEvents.slice(0, 3).map((event) => (
-                    <div
-                      key={event.id}
-                      className="rounded-xl p-3"
-                      style={{
-                        backgroundColor: 'rgba(201, 168, 108, 0.08)',
-                        border: `1px solid rgba(201, 168, 108, 0.18)`,
-                      }}
-                    >
-                      <p className="text-sm font-bold" style={{ color: COLORS.deepNavy }}>
-                        {event.title}
-                      </p>
-                      <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1 text-[11px]" style={{ color: COLORS.warmGray }}>
-                        {event.area_label && <span>{event.area_label}</span>}
-                        {event.start_at && (
-                          <span className="inline-flex items-center gap-1">
-                            <CalendarDays className="w-3 h-3" />
-                            {new Date(event.start_at).toLocaleDateString('ja-JP', { timeZone: 'Asia/Tokyo' })}
-                          </span>
-                        )}
-                      </div>
-                      {event.external_url && (
-                        <button
-                          type="button"
-                          onClick={() => window.open(event.external_url!, '_blank')}
-                          className="inline-flex items-center gap-1 mt-2 text-xs font-bold"
-                          style={{ color: STORE_LINK_NAVY }}
-                        >
-                          詳細を見る
-                          <ExternalLink className="w-3 h-3" />
-                        </button>
-                      )}
-                    </div>
-                  ))}
                 </div>
                 <GoldDivider />
               </>
