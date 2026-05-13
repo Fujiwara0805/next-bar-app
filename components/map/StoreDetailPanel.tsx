@@ -44,29 +44,53 @@ function CrowdVoteSummary({
   counts,
   leading,
   title,
+  isEvent = false,
 }: {
   counts: CrowdCounts;
   leading: CrowdStatus | null;
   title: string;
+  isEvent?: boolean;
 }) {
-  const items: Array<{ status: CrowdStatus; color: string; mutedColor: string; Icon: React.ElementType }> = [
-    { status: 'vacant', color: '#22c55e', mutedColor: 'rgba(34, 197, 94, 0.5)', Icon: UserIcon },
-    { status: 'wait', color: '#ffc82c', mutedColor: 'rgba(255, 200, 44, 0.5)', Icon: UsersIcon },
-    { status: 'full', color: '#ef4444', mutedColor: 'rgba(239, 68, 68, 0.5)', Icon: UsersRound },
-  ];
+  // イベント参加店舗ではカード全体がイエロー背景になるため、
+  // 投票結果の3アイコンとカウント数字をすべてブルワーズネイビーに統一する。
+  const EVENT_NAVY = '#13294b';
+  const EVENT_NAVY_MUTED = 'rgba(19, 41, 75, 0.45)';
+
+  const items: Array<{ status: CrowdStatus; color: string; mutedColor: string; Icon: React.ElementType }> = isEvent
+    ? [
+        { status: 'vacant', color: EVENT_NAVY, mutedColor: EVENT_NAVY_MUTED, Icon: UserIcon },
+        { status: 'wait', color: EVENT_NAVY, mutedColor: EVENT_NAVY_MUTED, Icon: UsersIcon },
+        { status: 'full', color: EVENT_NAVY, mutedColor: EVENT_NAVY_MUTED, Icon: UsersRound },
+      ]
+    : [
+        { status: 'vacant', color: '#22c55e', mutedColor: 'rgba(34, 197, 94, 0.5)', Icon: UserIcon },
+        { status: 'wait', color: '#ffc82c', mutedColor: 'rgba(255, 200, 44, 0.5)', Icon: UsersIcon },
+        { status: 'full', color: '#ef4444', mutedColor: 'rgba(239, 68, 68, 0.5)', Icon: UsersRound },
+      ];
+
+  const titleColor = isEvent ? EVENT_NAVY : 'rgba(255,255,255,0.6)';
+  const containerBg = isEvent ? 'rgba(19, 41, 75, 0.08)' : 'rgba(255,255,255,0.07)';
+  const containerShadow = isEvent
+    ? 'inset 0 1px 0 rgba(19, 41, 75, 0.08)'
+    : 'inset 0 1px 0 rgba(255,255,255,0.06)';
+  const dividerBg = isEvent ? 'rgba(19, 41, 75, 0.22)' : 'rgba(255,255,255,0.18)';
+  const inactiveCountColor = isEvent ? EVENT_NAVY_MUTED : 'rgba(253, 251, 247, 0.78)';
 
   return (
     <div className="flex items-center justify-center gap-2 pb-1">
-      <p className="text-[10px] font-bold leading-none tracking-normal text-white/60">
+      <p className="text-[10px] font-bold leading-none tracking-normal" style={{ color: titleColor }}>
         {title}
       </p>
-      <div className="flex items-center justify-center gap-1.5 rounded-lg bg-white/[0.07] px-2.5 py-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+      <div
+        className="flex items-center justify-center gap-1.5 rounded-lg px-2.5 py-1"
+        style={{ background: containerBg, boxShadow: containerShadow }}
+      >
         {items.map(({ status, color, mutedColor, Icon }, index) => {
           const c = counts[status] ?? 0;
           const isLead = leading === status && c > 0;
           return (
             <div key={status} className="flex items-center gap-1.5">
-              {index > 0 && <div className="h-3.5 w-px bg-white/[0.18]" />}
+              {index > 0 && <div className="h-3.5 w-px" style={{ background: dividerBg }} />}
               <div className="flex min-w-[28px] items-center justify-center gap-1">
                 <Icon
                   className="h-3.5 w-3.5"
@@ -75,7 +99,7 @@ function CrowdVoteSummary({
                 />
                 <span
                   className="text-xs font-extrabold leading-none"
-                  style={{ color: isLead ? color : 'rgba(253, 251, 247, 0.78)' }}
+                  style={{ color: isLead ? color : inactiveCountColor }}
                 >
                   {c}
                 </span>
@@ -369,6 +393,7 @@ export function StoreDetailPanel({
                 counts={voteCounts}
                 leading={aiStatus}
                 title={voteSummaryTitle}
+                isEvent={isEventStore}
               />
             </motion.div>
           )}
@@ -408,22 +433,6 @@ export function StoreDetailPanel({
                     {store.name}
                   </h3>
                   <div className="flex items-center gap-1.5 flex-shrink-0">
-                    {isEventStore && !isExpanded && (
-                      <motion.span
-                        initial={{ scale: 0, rotate: -20 }}
-                        animate={{ scale: 1, rotate: 0 }}
-                        transition={{ type: 'spring', stiffness: 320, damping: 18 }}
-                        className="inline-flex w-8 h-8 rounded-full items-center justify-center text-base leading-none"
-                        style={{
-                          background: '#13294b',
-                          boxShadow: '0 4px 12px rgba(19, 41, 75, 0.45)',
-                          border: '2px solid #ffc82c',
-                        }}
-                        aria-label="イベント参加店舗"
-                      >
-                        🎉
-                      </motion.span>
-                    )}
                     <CloseCircleButton
                       type="button"
                       size="sm"
