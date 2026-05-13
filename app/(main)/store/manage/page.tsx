@@ -65,7 +65,7 @@ function formatStoreAreaLabel(address: string | null | undefined): string {
 export default function StoreManagePage() {
   const { colors: C } = useAdminTheme();
   const router = useRouter();
-  const { user, profile, accountType, store, signOut } = useAuth();
+  const { user, profile, accountType, store, signOut, session } = useAuth();
   const { t } = useLanguage();
   const [stores, setStores] = useState<Store[]>([]);
   const [loading, setLoading] = useState(true);
@@ -90,7 +90,7 @@ export default function StoreManagePage() {
     }
     fetchStores();
     fetchDashboardCounts();
-  }, [accountType, store, router]);
+  }, [accountType, store, router, session?.access_token]);
 
   const fetchStores = async () => {
     if (!user) return;
@@ -111,16 +111,27 @@ export default function StoreManagePage() {
 
   const fetchDashboardCounts = async () => {
     try {
-      const [customerRes, sponsorRes, appRes, eventRes] = await Promise.all([
+      const accessToken = session?.access_token;
+      const eventCountPromise = accessToken
+        ? fetch('/api/platform/events', {
+            cache: 'no-store',
+            headers: { Authorization: `Bearer ${accessToken}` },
+          })
+            .then((res) => (res.ok ? res.json() : { events: [] }))
+            .then((json) => Array.isArray(json?.events) ? json.events.length : 0)
+            .catch(() => 0)
+        : Promise.resolve(0);
+
+      const [customerRes, sponsorRes, appRes, eventCountValue] = await Promise.all([
         supabase.from('users').select('id', { count: 'exact', head: true }).eq('role', 'customer'),
         supabase.from('sponsors').select('id', { count: 'exact', head: true }).eq('is_active', true),
         supabase.from('store_applications').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
-        (supabase as any).from('platform_events').select('id', { count: 'exact', head: true }),
+        eventCountPromise,
       ]);
       setCustomerCount(customerRes.count || 0);
       setSponsorCount(sponsorRes.count || 0);
       setPendingApps(appRes.count || 0);
-      setEventCount(eventRes.count || 0);
+      setEventCount(eventCountValue);
     } catch {}
   };
 
