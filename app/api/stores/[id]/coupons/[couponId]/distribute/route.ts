@@ -223,11 +223,14 @@ export async function POST(
   }
 
   // store_messages レコードを先に作成（クリック追跡 mid に使う）
+  // sender_user_id は public.users(id) への FK。店舗自己ログインの場合 user.id は
+  // public.users に存在しないため、store.owner_id にフォールバックする。
+  const senderUserId = isOwner ? user.id : store.owner_id ?? null;
   const { data: msgRow, error: msgErr } = await admin
     .from('store_messages')
     .insert({
       store_id: storeId,
-      sender_user_id: user.id,
+      sender_user_id: senderUserId,
       kind: 'coupon',
       body: `[coupon:${coupon.title}] → ${coupon.valid_until}`,
       target_audience: targetAudience,
@@ -239,6 +242,7 @@ export async function POST(
     .select('id')
     .single();
   if (msgErr || !msgRow) {
+    console.error('[coupon distribute] store_messages insert failed', msgErr);
     return NextResponse.json({ error: 'log_failed' }, { status: 500 });
   }
 

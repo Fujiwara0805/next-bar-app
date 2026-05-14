@@ -164,11 +164,15 @@ export async function POST(
   }
 
   // 先にメッセージ行を作成し、クリック追跡URLに使うID確定
+  // sender_user_id は public.users(id) への FK。
+  // 店舗自己ログイン (auth.users にのみ存在し public.users 行が無い) の場合は
+  // user.id を入れると FK 違反になるため、store.owner_id にフォールバックする。
+  const senderUserId = isOwner ? user.id : store.owner_id ?? null;
   const { data: created, error: insertErr } = await admin
     .from('store_messages')
     .insert({
       store_id: storeId,
-      sender_user_id: user.id,
+      sender_user_id: senderUserId,
       kind,
       body: text,
       target_audience: targetAudience,
@@ -180,6 +184,7 @@ export async function POST(
     .select('id')
     .single();
   if (insertErr || !created) {
+    console.error('[broadcast] store_messages insert failed', insertErr);
     return NextResponse.json({ error: 'log_failed' }, { status: 500 });
   }
 
