@@ -210,8 +210,8 @@ export const metadata: Metadata = {
 
   ].join(', '),
   authors: [{ name: 'にけんめぷらす' }],
-  creator: 'NIKENME+',
-  publisher: 'NIKENME+',
+  creator: 'にけんめぷらす',
+  publisher: 'にけんめぷらす',
   robots: {
     index: true,
     follow: true,
@@ -264,7 +264,7 @@ export const metadata: Metadata = {
         url: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761311529/NIKENME_%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_r5gzn4.png',
         width: 1200,
         height: 630,
-        alt: 'NIKENME+ - 大分の飲食店・バー・スナック・居酒屋の空席情報マップ',
+        alt: 'にけんめぷらす - 飲食店・バー・スナック・居酒屋の空席情報マップ',
       },
     ],
     locale: 'ja_JP',
@@ -541,7 +541,7 @@ export default function RootLayout({
                 },
                 {
                   '@type': 'Question',
-                  name: 'NIKENME+の使い方を教えてください',
+                  name: 'にけんめぷらすの使い方を教えてください',
                   acceptedAnswer: {
                     '@type': 'Answer',
                     text: '1) https://nikenme.jp にアクセス、2) 位置情報の許可を承認、3) 地図上で空席のあるお店を確認。ログインや会員登録は一切不要で、完全無料です。大分市内のおすすめバー・スナック・居酒屋の空席情報がリアルタイムで表示されます。',
