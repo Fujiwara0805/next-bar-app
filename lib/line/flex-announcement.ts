@@ -75,11 +75,12 @@ export function buildAnnouncementBubble(
       type: 'box',
       layout: 'baseline',
       spacing: 'sm',
+      margin: 'md',
       contents: [
         {
           type: 'text',
           text: meta.badge,
-          size: 'xxs',
+          size: 'sm',
           color: COPPER_500,
           weight: 'bold',
           flex: 0,
@@ -87,7 +88,7 @@ export function buildAnnouncementBubble(
         {
           type: 'text',
           text: params.storeName,
-          size: 'xs',
+          size: 'md',
           color: NAVY_500,
           weight: 'bold',
           wrap: true,
@@ -98,11 +99,11 @@ export function buildAnnouncementBubble(
     {
       type: 'text',
       text: `${meta.emoji} ${params.body}`,
-      size: 'md',
+      size: 'xl',
       weight: 'bold',
       color: NAVY_700,
       wrap: true,
-      margin: 'sm',
+      margin: 'md',
     },
   ];
 
@@ -120,14 +121,14 @@ export function buildAnnouncementBubble(
         {
           type: 'text',
           text: '残席',
-          size: 'xs',
+          size: 'sm',
           color: NEUTRAL_400,
           flex: 0,
         },
         {
           type: 'text',
           text: `${params.vacantSeats} 席`,
-          size: 'sm',
+          size: 'lg',
           color: NAVY_700,
           weight: 'bold',
         },
@@ -137,11 +138,11 @@ export function buildAnnouncementBubble(
 
   return {
     type: 'bubble',
-    size: 'micro',
+    size: 'kilo',
     body: {
       type: 'box',
       layout: 'vertical',
-      spacing: 'sm',
+      spacing: 'md',
       backgroundColor: CREAM_50,
       paddingAll: 'lg',
       contents: [
@@ -149,7 +150,7 @@ export function buildAnnouncementBubble(
         {
           type: 'image',
           url: heroUrl,
-          size: 'lg',
+          size: 'full',
           aspectRatio: '1:1',
           aspectMode: 'cover',
           align: 'center',
@@ -162,7 +163,7 @@ export function buildAnnouncementBubble(
       type: 'box',
       layout: 'vertical',
       spacing: 'sm',
-      paddingAll: 'md',
+      paddingAll: 'lg',
       backgroundColor: '#FFFFFF',
       contents: [
         // Brass Yellow に Navy 文字を載せるため box+action 方式（LINE Flexの primary button は文字色を変えられないため）
@@ -183,7 +184,7 @@ export function buildAnnouncementBubble(
               text: meta.ctaLabel,
               color: NAVY_700,
               weight: 'bold',
-              size: 'sm',
+              size: 'md',
               align: 'center',
             },
           ],
@@ -191,10 +192,10 @@ export function buildAnnouncementBubble(
         {
           type: 'text',
           text: 'NIKENME+',
-          size: 'xxs',
+          size: 'xs',
           color: NEUTRAL_600,
           align: 'center',
-          margin: 'sm',
+          margin: 'md',
         },
       ],
     },
