@@ -27,6 +27,20 @@ const NEUTRAL_400 = '#8D95A6'; // Sub text
 const FALLBACK_HERO =
   'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,w_520/v1777620739/a7ec37de-d4b1-46ff-8639-f2d49f567279_kym3yo.png';
 
+// LINE Flex の画像は HTTPS / 最大1024px・1MB 程度推奨。
+// Cloudinary URL は f_auto,q_auto,w_1024 を差し込んでサイズを抑える。
+function optimizeForLineFlex(url: string): string {
+  if (!url) return url;
+  const marker = '/image/upload/';
+  const i = url.indexOf(marker);
+  if (i < 0) return url;
+  const head = url.slice(0, i + marker.length);
+  const tail = url.slice(i + marker.length);
+  // すでに f_auto / q_auto / w_ がある場合は二重適用しない
+  if (/^(f_auto|q_auto|w_\d+)/.test(tail)) return url;
+  return `${head}f_auto,q_auto,w_1024/${tail}`;
+}
+
 type Kind = 'open_signal' | 'announcement' | 'vacancy';
 
 const KIND_META: Record<
@@ -67,7 +81,7 @@ export function buildAnnouncementBubble(
   params: AnnouncementFlexParams
 ): FlexBubble {
   const meta = KIND_META[params.kind];
-  const heroUrl = params.imageUrl || FALLBACK_HERO;
+  const heroUrl = optimizeForLineFlex(params.imageUrl || FALLBACK_HERO);
 
   const bodyContents: FlexComponent[] = [
     // バッジ + 店舗名

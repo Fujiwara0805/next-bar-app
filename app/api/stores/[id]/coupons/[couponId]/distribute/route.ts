@@ -13,6 +13,7 @@ import {
   type LineMessage,
 } from '@/lib/line/messaging';
 import { buildCouponBubble, buildCouponFlexMessage } from '@/lib/line/flex-coupon';
+import { buildLiffTrackingUrl } from '@/lib/line/liff-url';
 import { generateRedeemCode } from '@/lib/coupons/signature';
 
 export const dynamic = 'force-dynamic';
@@ -258,9 +259,6 @@ export async function POST(
     }
   }
 
-  const origin =
-    process.env.NEXT_PUBLIC_SITE_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? '';
-
   const validUntilLabel = new Date(coupon.valid_until).toLocaleDateString('ja-JP', {
     year: 'numeric',
     month: '2-digit',
@@ -303,9 +301,10 @@ export async function POST(
       continue;
     }
 
-    const trackUrl = `${origin}/api/line/track?mid=${msgRow.id}&u=${encodeURIComponent(
+    const trackUrl = buildLiffTrackingUrl(
+      msgRow.id,
       `/liff/coupon/${createdIssueId}`
-    )}`;
+    );
 
     const bubble = buildCouponBubble({
       title: coupon.title,

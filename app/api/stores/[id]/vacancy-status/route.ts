@@ -13,6 +13,7 @@ import { createClient } from '@supabase/supabase-js';
 import { sendPushToNearbyUsers } from '@/lib/push/server';
 import { filterVacancyTargets, isMessagingConfigured, multicast } from '@/lib/line/messaging';
 import { buildAnnouncementFlexMessage } from '@/lib/line/flex-announcement';
+import { buildLiffPathUrl, buildLiffTrackingUrl } from '@/lib/line/liff-url';
 import { assertStoreAccess, resolveManageAuth } from '@/lib/api/manage-auth';
 
 const DEFAULT_LINE_VACANCY_RADIUS_KM = 1.0;
@@ -185,11 +186,9 @@ export async function PATCH(
               return;
             }
 
-            const origin =
-              process.env.NEXT_PUBLIC_SITE_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? '';
             const trackUrl = msgRow?.id
-              ? `${origin}/api/line/track?mid=${msgRow.id}&u=${encodeURIComponent(`/store/${storeId}`)}`
-              : `${origin}/store/${storeId}`;
+              ? buildLiffTrackingUrl(msgRow.id, `/store/${storeId}`)
+              : buildLiffPathUrl(`/store/${storeId}`);
 
             const heroImage = Array.isArray(store.image_urls)
               ? store.image_urls[0] ?? null

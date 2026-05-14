@@ -8,6 +8,7 @@ import { createClient } from '@supabase/supabase-js';
 import type { Database } from '@/lib/supabase/types';
 import { DAILY_NOTIFY_CAP, filterVacancyTargets, isMessagingConfigured, multicast, todayJst } from '@/lib/line/messaging';
 import { buildAnnouncementFlexMessage } from '@/lib/line/flex-announcement';
+import { buildLiffTrackingUrl } from '@/lib/line/liff-url';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -189,8 +190,7 @@ export async function POST(
     return NextResponse.json({ error: 'log_failed' }, { status: 500 });
   }
 
-  const origin = process.env.NEXT_PUBLIC_SITE_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? '';
-  const trackUrl = `${origin}/api/line/track?mid=${created.id}&u=${encodeURIComponent(`/store/${storeId}`)}`;
+  const trackUrl = buildLiffTrackingUrl(created.id, `/store/${storeId}`);
   const heroImage = Array.isArray(store.image_urls) ? store.image_urls[0] ?? null : null;
   const flex = buildAnnouncementFlexMessage({
     kind,
