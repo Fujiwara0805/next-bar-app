@@ -21,12 +21,28 @@ export type StoreEventParticipation = {
   event_id: string;
   store_id: string;
   is_participating: boolean;
+  benefit_text: string | null;
   notes: string | null;
   updated_by: string | null;
   updated_at: string;
   event?: PlatformEvent;
 };
 
+export type StoreEventBenefitStats = {
+  redemption_count: number;
+  last_redeemed_at: string | null;
+};
+
 export type StoreEventRow = PlatformEvent & {
   participation: StoreEventParticipation | null;
+  stats?: StoreEventBenefitStats;
+};
+
+export type StoreEventBenefitRedemption = {
+  id: string;
+  event_id: string;
+  store_id: string;
+  redeemed_at: string;
+  created_by: string | null;
+  created_at: string;
 };

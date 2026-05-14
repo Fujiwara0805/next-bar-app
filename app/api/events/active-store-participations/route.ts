@@ -62,7 +62,7 @@ export async function GET() {
 
   const { data: rows, error: participationError } = await (admin as any)
     .from('store_event_participations')
-    .select('store_id, event_id')
+    .select('store_id, event_id, benefit_text')
     .eq('is_participating', true)
     .in('event_id', activeEventIds);
 
@@ -73,14 +73,15 @@ export async function GET() {
     return NextResponse.json({ participations: [] });
   }
 
-  const participations = ((rows ?? []) as { store_id: string; event_id: string }[])
+  const participations = ((rows ?? []) as { store_id: string; event_id: string; benefit_text: string | null }[])
     .map((row) => {
       const event = eventMap.get(row.event_id);
       if (!event) return null;
       return {
         store_id: row.store_id,
         event_id: row.event_id,
-        event,
+        benefit_text: row.benefit_text ?? null,
+        event: { ...event, benefit_text: row.benefit_text ?? null },
       };
     })
     .filter(Boolean);

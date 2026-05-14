@@ -20,7 +20,6 @@ import {
   User as UserIcon,
   Users as UsersIcon,
   UsersRound,
-  Ticket,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CROWD_STATUSES, type CrowdStatus } from '@/lib/crowd/aggregate';
@@ -445,16 +444,6 @@ export function StoreDetailPanel({
                   </div>
                 </div>
 
-                {isEventStore && store.active_event && (
-                  <div
-                    className="mb-2 inline-flex max-w-full items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold"
-                    style={{ background: '#13294b', color: '#ffc82c' }}
-                  >
-                    <Ticket className="h-3.5 w-3.5 shrink-0" />
-                    <span className="truncate">イベント参加店舗 / {store.active_event.title}</span>
-                  </div>
-                )}
-
                 {store.google_rating && (
                   <div className="flex items-center gap-2 -mt-2">
                     <div className="flex items-center gap-0.5">
@@ -543,6 +532,23 @@ export function StoreDetailPanel({
               <div style={{ borderTop: `1px solid ${theme.borderSubtle}` }} className="pt-2">
                 <p className="text-sm font-bold line-clamp-2" style={{ color: theme.textMuted }}>
                   {store.status_message}
+                </p>
+              </div>
+            )}
+
+            {isEventStore && store.active_event && (
+              <div
+                className="rounded-lg px-2.5 py-1.5"
+                style={{
+                  background: 'rgba(255, 200, 44, 0.14)',
+                  border: '1px solid rgba(255, 200, 44, 0.45)',
+                }}
+              >
+                <p className="text-[11px] font-bold leading-tight" style={{ color: '#13294b' }}>
+                  🎊 {store.active_event.title}
+                </p>
+                <p className="text-xs font-bold leading-snug line-clamp-2" style={{ color: '#13294b' }}>
+                  特典: {store.active_event.benefit_text?.trim() || '特典なし'}
                 </p>
               </div>
             )}

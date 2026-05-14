@@ -731,22 +731,6 @@ function StoreListContent() {
                             <span>No.{index + 1}</span>
                           </motion.div>
                         )}
-                        {isEventStore && !isConciergeActive && (
-                          <motion.div
-                            initial={{ scale: 0, rotate: -20 }}
-                            animate={{ scale: 1, rotate: 0 }}
-                            transition={{ type: 'spring', stiffness: 320, damping: 18, delay: index * 0.05 + 0.1 }}
-                            className="absolute top-2 right-2 z-10 w-9 h-9 rounded-full flex items-center justify-center text-lg leading-none"
-                            style={{
-                              background: EVENT_CARD_FG,
-                              boxShadow: `0 4px 12px ${EVENT_CARD_FG}55`,
-                              border: `2px solid ${EVENT_CARD_BG}`,
-                            }}
-                            aria-label="イベント参加店舗"
-                          >
-                            🎉
-                          </motion.div>
-                        )}
                         <div className="flex gap-3 h-full">
                           {store.image_urls && store.image_urls.length > 0 && (
                             <motion.img
@@ -846,6 +830,23 @@ function StoreListContent() {
                               
                               {store.status_message && (
                                 <p className="text-sm font-bold line-clamp-2 pt-1" style={{ color: isEventStore ? EVENT_CARD_FG : COLORS.deepNavy }}>{store.status_message}</p>
+                              )}
+
+                              {isEventStore && store.active_event && (
+                                <div
+                                  className="mt-2 rounded-lg px-2.5 py-1.5"
+                                  style={{
+                                    background: `${EVENT_CARD_FG}14`,
+                                    border: `1px solid ${EVENT_CARD_FG}33`,
+                                  }}
+                                >
+                                  <p className="text-[11px] font-bold inline-flex items-center gap-1 leading-tight" style={{ color: EVENT_CARD_FG }}>
+                                    🎊 {store.active_event.title}
+                                  </p>
+                                  <p className="text-xs font-bold leading-snug line-clamp-2" style={{ color: EVENT_CARD_FG }}>
+                                    特典: {store.active_event.benefit_text?.trim() || '特典なし'}
+                                  </p>
+                                </div>
                               )}
 
                               {isConciergeActive && matchScore > 0 && (

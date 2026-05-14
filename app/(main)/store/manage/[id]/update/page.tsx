@@ -193,6 +193,9 @@ export default function StoreUpdatePage() {
   const [storeEvents, setStoreEvents] = useState<StoreEventRow[]>([]);
   const [loadingStoreEvents, setLoadingStoreEvents] = useState(false);
   const [savingEventId, setSavingEventId] = useState<string | null>(null);
+  // 特典内容のドラフト（イベントID別）。保存はデバウンス
+  const [benefitDrafts, setBenefitDrafts] = useState<Record<string, string>>({});
+  const [savingBenefitEventId, setSavingBenefitEventId] = useState<string | null>(null);
   
   // 臨時休業中かどうかを表示するためのstate
   const [isManualClosed, setIsManualClosed] = useState(false);
@@ -317,6 +320,16 @@ export default function StoreUpdatePage() {
       const json = await res.json();
       const rows = (json.events ?? []) as StoreEventRow[];
       setStoreEvents(rows);
+      // 特典ドラフトを既存値で初期化
+      setBenefitDrafts((prev) => {
+        const next = { ...prev };
+        rows.forEach((row) => {
+          if (next[row.id] === undefined) {
+            next[row.id] = row.participation?.benefit_text ?? '';
+          }
+        });
+        return next;
+      });
     } catch (error) {
       console.warn('[store/update] fetch events warning', error);
       setStoreEvents([]);
@@ -376,6 +389,7 @@ export default function StoreUpdatePage() {
           event_id: eventId,
           is_participating: isParticipating,
           notes: null,
+          benefit_text: benefitDrafts[eventId] ?? null,
         }),
       });
       const json = await res.json().catch(() => ({}));
@@ -406,6 +420,63 @@ export default function StoreUpdatePage() {
       setSavingEventId(null);
     }
   };
+
+  // 特典テキストのデバウンス保存（800ms）
+  const persistBenefitText = useCallback(
+    async (eventId: string, isParticipating: boolean, value: string) => {
+      if (!params.id) return;
+      setSavingBenefitEventId(eventId);
+      try {
+        const token = session?.access_token;
+        if (!token) throw new Error('session_missing');
+        const res = await fetch(`/api/stores/${params.id}/events`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            event_id: eventId,
+            is_participating: isParticipating,
+            notes: null,
+            benefit_text: value.trim() ? value.trim() : null,
+          }),
+        });
+        const json = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(json?.error ?? `save_failed:${res.status}`);
+        const participation = json.participation as StoreEventParticipation;
+        setStoreEvents((prev) =>
+          prev.map((event) =>
+            event.id === eventId ? { ...event, participation } : event
+          )
+        );
+      } catch (error) {
+        console.error('[store/update] save benefit error', error);
+        toast.error('特典内容の保存に失敗しました', { position: 'top-center' });
+      } finally {
+        setSavingBenefitEventId(null);
+      }
+    },
+    [params.id, session?.access_token]
+  );
+
+  // debounce timer per event id
+  useEffect(() => {
+    const timers: number[] = [];
+    Object.entries(benefitDrafts).forEach(([eventId, value]) => {
+      const event = storeEvents.find((e) => e.id === eventId);
+      if (!event || !event.participation?.is_participating) return;
+      const current = event.participation.benefit_text ?? '';
+      if ((value ?? '').trim() === current.trim()) return;
+      const timerId = window.setTimeout(() => {
+        persistBenefitText(eventId, true, value);
+      }, 800);
+      timers.push(timerId);
+    });
+    return () => {
+      timers.forEach((t) => window.clearTimeout(t));
+    };
+  }, [benefitDrafts, storeEvents, persistBenefitText]);
 
   const handleStatusSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -986,6 +1057,44 @@ export default function StoreUpdatePage() {
                                 <FileText className="w-4 h-4 mt-0.5 shrink-0" style={{ color: '#13294b' }} />
                                 <p className="text-sm leading-relaxed line-clamp-3" style={{ color: COLORS.charcoal }}>
                                   {event.description}
+                                </p>
+                              </div>
+                            )}
+                            {participating && (
+                              <div className="mt-4">
+                                <div className="flex items-center justify-between mb-1.5">
+                                  <Label
+                                    htmlFor={`benefit-${event.id}`}
+                                    className="text-xs font-bold inline-flex items-center gap-1.5"
+                                    style={{ color: COLORS.deepNavy }}
+                                  >
+                                    <PartyPopper className="w-3.5 h-3.5" style={{ color: '#13294b' }} />
+                                    お客様への特典（任意）
+                                  </Label>
+                                  {savingBenefitEventId === event.id && (
+                                    <Loader2 className="w-3 h-3 animate-spin" style={{ color: COLORS.warmGray }} />
+                                  )}
+                                </div>
+                                <Textarea
+                                  id={`benefit-${event.id}`}
+                                  value={benefitDrafts[event.id] ?? ''}
+                                  onChange={(e) =>
+                                    setBenefitDrafts((prev) => ({ ...prev, [event.id]: e.target.value }))
+                                  }
+                                  placeholder="例: ご来店時にスタッフへお声掛けください。生ビール1杯サービス！"
+                                  rows={2}
+                                  maxLength={200}
+                                  className="rounded-lg border-2 font-medium transition-all focus:border-[#335280] focus:ring-2 focus:ring-[#335280]/20"
+                                  style={{
+                                    fontSize: '14px',
+                                    borderColor: 'rgba(19, 41, 75, 0.18)',
+                                    backgroundColor: '#ffffff',
+                                    minHeight: '60px',
+                                    resize: 'vertical',
+                                  }}
+                                />
+                                <p className="text-[11px] text-right mt-0.5 font-medium" style={{ color: COLORS.warmGray }}>
+                                  {(benefitDrafts[event.id] ?? '').length} / 200文字　未入力時は「特典なし」と表示されます
                                 </p>
                               </div>
                             )}

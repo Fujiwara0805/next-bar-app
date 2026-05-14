@@ -16,6 +16,7 @@ import {
   ChevronRight,
   Building2,
   Users,
+  Gift,
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { CloseCircleButton } from '@/components/ui/close-circle-button';
@@ -94,6 +95,12 @@ export default function StoreEngagementMenuPage() {
       icon: ScanLine,
       title: '消込',
       description: 'クーポン消込（6桁コード入力）',
+    },
+    {
+      href: `/store/manage/${storeId}/event-benefits`,
+      icon: Gift,
+      title: '特典管理',
+      description: 'イベント参加時の特典利用件数・履歴の確認',
     },
   ];
 

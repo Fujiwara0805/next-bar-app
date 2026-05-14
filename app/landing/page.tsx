@@ -831,7 +831,6 @@ export default function LandingPage() {
                 {t('landing.events_subtitle')}
               </span>
               <h2 className="text-2xl sm:text-3xl font-bold lg:text-4xl flex items-center justify-center gap-2" style={{ color: lpMid.page.text }}>
-                <span aria-hidden>🎉</span>
                 {t('landing.events_title')}
               </h2>
             </motion.div>
@@ -873,13 +872,6 @@ export default function LandingPage() {
                         {t('landing.events_view_stores')} <ChevronRight className="w-4 h-4" />
                       </p>
                     </div>
-                    <span
-                      className="shrink-0 inline-flex w-10 h-10 rounded-full items-center justify-center text-xl leading-none"
-                      style={{ background: LP_NAVY, border: `2px solid ${LP_YELLOW}` }}
-                      aria-hidden
-                    >
-                      🎉
-                    </span>
                   </div>
                 </motion.button>
               ))}

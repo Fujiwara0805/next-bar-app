@@ -51,6 +51,7 @@ export async function GET(
         event_id: row.event_id,
         store_id: row.store_id,
         is_participating: row.is_participating,
+        benefit_text: row.benefit_text ?? null,
         notes: row.notes,
         updated_by: row.updated_by,
         updated_at: row.updated_at,

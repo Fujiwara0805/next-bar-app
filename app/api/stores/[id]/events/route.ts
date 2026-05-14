@@ -16,6 +16,7 @@ type PatchPayload = {
   event_id?: unknown;
   is_participating?: unknown;
   notes?: unknown;
+  benefit_text?: unknown;
 };
 
 function nullableString(value: unknown, max = 1000): string | null {
@@ -67,9 +68,35 @@ export async function GET(
         ])
   );
 
+  // 特典利用履歴の集計（参加中イベントのみ）
+  const participatingEventIds = Array.from(participationMap.entries())
+    .filter(([, p]) => p.is_participating)
+    .map(([eventId]) => eventId);
+
+  const statsMap = new Map<string, { redemption_count: number; last_redeemed_at: string | null }>();
+  if (participatingEventIds.length > 0) {
+    const { data: redemptions, error: redErr } = await (auth.ctx.admin as any)
+      .from('store_event_benefit_redemptions')
+      .select('event_id, redeemed_at')
+      .eq('store_id', params.id)
+      .in('event_id', participatingEventIds);
+    if (redErr && redErr.code !== '42P01') {
+      console.warn('[store-events] fetch redemption stats warning', redErr);
+    }
+    for (const row of (redemptions ?? []) as Array<{ event_id: string; redeemed_at: string }>) {
+      const entry = statsMap.get(row.event_id) ?? { redemption_count: 0, last_redeemed_at: null };
+      entry.redemption_count += 1;
+      if (!entry.last_redeemed_at || row.redeemed_at > entry.last_redeemed_at) {
+        entry.last_redeemed_at = row.redeemed_at;
+      }
+      statsMap.set(row.event_id, entry);
+    }
+  }
+
   const rows: StoreEventRow[] = eventRows.map((event) => ({
     ...event,
     participation: participationMap.get(event.id) ?? null,
+    stats: statsMap.get(event.id) ?? { redemption_count: 0, last_redeemed_at: null },
   }));
 
   return NextResponse.json({ events: rows });
@@ -100,7 +127,7 @@ export async function PATCH(
   const updatedBy =
     auth.ctx.operatorRole === 'admin' ? auth.ctx.operatorId : null;
 
-  const payload = {
+  const payload: Record<string, unknown> = {
     event_id: raw.event_id,
     store_id: params.id,
     is_participating: raw.is_participating,
@@ -108,6 +135,9 @@ export async function PATCH(
     updated_by: updatedBy,
     updated_at: new Date().toISOString(),
   };
+  if (Object.prototype.hasOwnProperty.call(raw, 'benefit_text')) {
+    payload.benefit_text = nullableString(raw.benefit_text, 500);
+  }
 
   const { data: existing, error: findError } = await (auth.ctx.admin as any)
     .from('store_event_participations')

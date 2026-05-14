@@ -6,6 +6,7 @@ export type ActiveStoreEvent = {
   image_url: string | null;
   start_at: string | null;
   end_at: string | null;
+  benefit_text?: string | null;
 };
 
 export type EventAwareStore = Database['public']['Tables']['stores']['Row'] & {
@@ -16,6 +17,7 @@ export type EventAwareStore = Database['public']['Tables']['stores']['Row'] & {
 export type ActiveStoreParticipation = {
   store_id: string;
   event_id: string;
+  benefit_text: string | null;
   event: ActiveStoreEvent;
 };
 
@@ -33,7 +35,10 @@ export function attachActiveEvents<T extends { id: string }>(
   const eventMap = new Map<string, ActiveStoreEvent[]>();
   participations.forEach((participation) => {
     const current = eventMap.get(participation.store_id) ?? [];
-    current.push(participation.event);
+    current.push({
+      ...participation.event,
+      benefit_text: participation.benefit_text ?? participation.event.benefit_text ?? null,
+    });
     eventMap.set(participation.store_id, current);
   });
 

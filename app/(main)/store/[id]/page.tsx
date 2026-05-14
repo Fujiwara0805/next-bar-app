@@ -56,6 +56,7 @@ import { SponsorCampaignBanner } from '@/components/sponsors/sponsor-campaign-ba
 import { CrowdVoteModal } from '@/components/store/crowd-vote-modal';
 import { getTodayOpenTime, isTodayClosedDay, checkIsOpenFromStructuredHours } from '@/lib/structured-business-hours';
 import { useOptimizedLocation } from '@/lib/hooks/useOptimizedLocation';
+import type { StoreEventRow } from '@/lib/types/platform-event';
 type Store = Database['public']['Tables']['stores']['Row'];
 
 // ============================================
@@ -241,6 +242,9 @@ export default function StoreDetailPage() {
   // 空席投票モーダルの開閉
   const [voteModalOpen, setVoteModalOpen] = useState(false);
 
+  // 参加中イベント＆特典
+  const [activeStoreEvents, setActiveStoreEvents] = useState<StoreEventRow[]>([]);
+
   // ============================================
   // ライトボックスを開く・閉じる関数
   // ============================================
@@ -394,6 +398,33 @@ export default function StoreDetailPage() {
       fetchStore(params.id as string);
     }
   }, [params.id, fetchStore]);
+
+  // 参加中イベントの取得（特典内容表示用）
+  useEffect(() => {
+    if (!params.id) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`/api/stores/${params.id}/public-events`, { cache: 'no-store' });
+        if (!res.ok) return;
+        const json = await res.json();
+        const rows = (json.events ?? []) as StoreEventRow[];
+        // start_at/end_at で「期間内」のみ抽出
+        const now = Date.now();
+        const active = rows.filter((event) => {
+          const startOk = !event.start_at || new Date(event.start_at).getTime() <= now;
+          const endOk = !event.end_at || new Date(event.end_at).getTime() >= now;
+          return startOk && endOk;
+        });
+        if (!cancelled) setActiveStoreEvents(active);
+      } catch (error) {
+        console.warn('[store/detail] fetch events warning', error);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [params.id]);
 
   useEffect(() => {
     if (store && userLocation) {
@@ -920,6 +951,35 @@ export default function StoreDetailPage() {
                   <p className="text-sm font-bold" style={{ color: COLORS.deepNavy }}>
                     {store.status_message}
                   </p>
+                </div>
+                <GoldDivider />
+              </>
+            )}
+
+            {activeStoreEvents.length > 0 && (
+              <>
+                <div className="space-y-2 mb-4">
+                  {activeStoreEvents.map((event) => {
+                    const benefit = event.participation?.benefit_text?.trim() || '';
+                    return (
+                      <div
+                        key={event.id}
+                        className="p-4 rounded-xl"
+                        style={{
+                          background: 'rgba(255, 200, 44, 0.10)',
+                          borderLeft: `4px solid #ffc82c`,
+                          border: '1px solid rgba(255, 200, 44, 0.35)',
+                        }}
+                      >
+                        <p className="text-xs font-bold mb-1 inline-flex items-center gap-1" style={{ color: '#13294b' }}>
+                          🎊 イベント参加中: {event.title}
+                        </p>
+                        <p className="text-sm font-bold leading-relaxed" style={{ color: '#13294b' }}>
+                          特典: {benefit || '特典なし'}
+                        </p>
+                      </div>
+                    );
+                  })}
                 </div>
                 <GoldDivider />
               </>
