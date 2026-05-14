@@ -25,7 +25,7 @@ const NEUTRAL_600 = '#4D5567'; // Body text
 const NEUTRAL_400 = '#8D95A6'; // Sub text
 
 const FALLBACK_HERO =
-  'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,w_1040/v1761355092/%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png';
+  'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,w_520/v1777620739/a7ec37de-d4b1-46ff-8639-f2d49f567279_kym3yo.png';
 
 type Kind = 'open_signal' | 'announcement' | 'vacancy';
 
@@ -35,19 +35,19 @@ const KIND_META: Record<
 > = {
   open_signal: {
     badge: 'OPEN',
-    emoji: '🟢',
+    emoji: '🏠',
     ctaLabel: 'お店を見る',
     altPrefix: '営業中シグナル',
   },
   announcement: {
     badge: 'NEWS',
-    emoji: '📣',
+    emoji: '🔔',
     ctaLabel: '詳しく見る',
     altPrefix: 'お知らせ',
   },
   vacancy: {
     badge: 'SEAT',
-    emoji: '🪑',
+    emoji: '🈳',
     ctaLabel: '今すぐ確認',
     altPrefix: '空席が出ました',
   },
@@ -137,22 +137,26 @@ export function buildAnnouncementBubble(
 
   return {
     type: 'bubble',
-    size: 'kilo',
-    hero: {
-      type: 'image',
-      url: heroUrl,
-      size: 'full',
-      aspectRatio: '20:11',
-      aspectMode: 'cover',
-      backgroundColor: NAVY_700,
-    },
+    size: 'micro',
     body: {
       type: 'box',
       layout: 'vertical',
       spacing: 'sm',
       backgroundColor: CREAM_50,
       paddingAll: 'lg',
-      contents: bodyContents,
+      contents: [
+        // 画像を hero ではなく body 内に embed して2まわり小さく表示
+        {
+          type: 'image',
+          url: heroUrl,
+          size: 'md',
+          aspectRatio: '1:1',
+          aspectMode: 'cover',
+          align: 'center',
+          backgroundColor: '#FFFFFF',
+        },
+        ...bodyContents,
+      ],
     },
     footer: {
       type: 'box',
@@ -195,7 +199,6 @@ export function buildAnnouncementBubble(
       ],
     },
     styles: {
-      hero: { backgroundColor: NAVY_700 },
       body: { backgroundColor: CREAM_50 },
       footer: { separator: true, separatorColor: '#E1E8F3' },
     },

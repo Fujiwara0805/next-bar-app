@@ -1244,7 +1244,7 @@ export const translations = {
       auth_required: 'QRの表示にはログインが必要です',
       how_to_use_title: '使い方',
       how_to_use_1: '店舗スタッフに画面を見せてください',
-      how_to_use_2: 'スタッフがQRをスキャンするとスタンプが付与されます',
+      how_to_use_2: 'QRをスキャンするとスタンプが付与されます',
       how_to_use_3: 'QRは{sec}秒ごとに自動更新されます',
       guest_fallback: 'ゲスト',
       store_scan_card_title: '店舗QRを読み取る',
