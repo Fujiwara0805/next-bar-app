@@ -145,11 +145,11 @@ export function buildAnnouncementBubble(
       backgroundColor: CREAM_50,
       paddingAll: 'lg',
       contents: [
-        // 画像を hero ではなく body 内に embed して2まわり小さく表示
+        // 画像を hero ではなく body 内に embed
         {
           type: 'image',
           url: heroUrl,
-          size: 'md',
+          size: 'lg',
           aspectRatio: '1:1',
           aspectMode: 'cover',
           align: 'center',

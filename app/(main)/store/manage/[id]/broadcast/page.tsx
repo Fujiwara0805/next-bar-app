@@ -606,10 +606,10 @@ function StoreBroadcastPageInner() {
                     border: `1px solid rgba(201, 168, 108, 0.15)`,
                   }}
                 >
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="mb-4 space-y-2">
                     <SectionHeader icon={Radio} title={t('broadcast.history_title')} />
                     {history.length > 0 && (
-                      <div className="flex gap-1">
+                      <div className="flex gap-2">
                         <button
                           type="button"
                           onClick={() => setHistoryFilter('all')}

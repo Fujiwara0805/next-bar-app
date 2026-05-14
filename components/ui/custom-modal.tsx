@@ -50,7 +50,7 @@ export function CustomModal({
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className={`bg-white rounded-2xl shadow-2xl ${SIZE_CLASS[size]} w-full p-6 relative`}
+              className={`bg-white rounded-2xl shadow-2xl ${SIZE_CLASS[size]} w-full p-6 relative overflow-x-hidden`}
               onClick={(e) => e.stopPropagation()}
             >
               {/* 閉じるボタン */}

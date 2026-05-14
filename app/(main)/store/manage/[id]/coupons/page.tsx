@@ -592,7 +592,7 @@ function StoreCouponsPageInner() {
       >
         <form
           onSubmit={handleSubmit}
-          className="space-y-4 max-h-[70dvh] overflow-y-auto pr-1"
+          className="space-y-4 max-h-[70dvh] overflow-y-auto overflow-x-hidden pr-1 w-full"
         >
             {/* 画像 */}
             <div>
