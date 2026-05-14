@@ -16,7 +16,7 @@ import { buildAnnouncementFlexMessage } from '@/lib/line/flex-announcement';
 import { assertStoreAccess, resolveManageAuth } from '@/lib/api/manage-auth';
 
 const DEFAULT_LINE_VACANCY_RADIUS_KM = 1.0;
-const VACANCY_THROTTLE_HOURS = 0.5; // 1ユーザー30分1通まで
+const VACANCY_THROTTLE_HOURS = 0.05; // 1ユーザー3分に1通まで（運用緩和: テスト中は連続送信可）
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;

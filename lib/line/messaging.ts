@@ -135,7 +135,7 @@ export type NearbyCandidate = {
 };
 
 /** 1ユーザーが LINE OA から1日に受け取れる通知の上限（vacancy + broadcast 共通） */
-export const DAILY_NOTIFY_CAP = 5;
+export const DAILY_NOTIFY_CAP = 30;
 
 /** Asia/Tokyo の今日（YYYY-MM-DD）を返す。DBの date 列と直接比較できる形式。 */
 export function todayJst(now: Date = new Date()): string {

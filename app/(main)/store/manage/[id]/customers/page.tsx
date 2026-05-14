@@ -442,7 +442,7 @@ export default function StoreCustomersPage() {
                       border: `1px solid ${active ? 'rgba(201, 168, 108, 0.55)' : 'rgba(19, 41, 75, 0.08)'}`,
                     }}
                   >
-                    {count}回以上
+                    {count}回〜
                   </button>
                 );
               })}

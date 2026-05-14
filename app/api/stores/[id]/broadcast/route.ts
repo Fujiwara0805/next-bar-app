@@ -15,7 +15,7 @@ export const runtime = 'nodejs';
 const MAX_BODY_LEN = 400;
 const MAX_ALL_OA_PER_DAY = 3;
 const DEFAULT_RADIUS_KM = 1.5;
-const BROADCAST_THROTTLE_HOURS = 0.5; // 1ユーザー30分1通まで
+const BROADCAST_THROTTLE_HOURS = 0.05; // 1ユーザー3分に1通まで（運用緩和: テスト中は連続送信可）
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
