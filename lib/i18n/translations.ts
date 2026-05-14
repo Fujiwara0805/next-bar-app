@@ -792,14 +792,14 @@ export const translations = {
       seats_available: '空席があります',
       night_spot: 'Night Spot',
       // Hero section
-      hero_catchphrase: '一次会前後のお店探しは\nNIKENME+で決まり',
+      hero_catchphrase: '一次会前後のお店探しは\nにけんめぷらすで決まり',
       izakaya_hero_catchphrase: '「今夜、一杯どう？」\n旨い肴と酒が待っている。',
       hero_subcopy: 'ログイン不要 ー 地図上で空席状況を確認できます ー',
       izakaya_hero_subcopy: 'ログイン不要 ー 地図から居酒屋の空席を確認 ー',
-      hero_body: 'NIKENME+は、大分の夜を\n案内するはしご酒 Map 🍺です。',
+      hero_body: 'にけんめぷらすは、大分の夜を\n案内するはしご酒 Map 🍺です。',
       // Hero PC section
-      hero_pc_badge: 'NIKENME+',
-      hero_pc_title: '一次会前後のお店探しは\nNIKENME+で決まり',
+      hero_pc_badge: 'にけんめぷらす',
+      hero_pc_title: '一次会前後のお店探しは\nにけんめぷらすで決まり',
       hero_pc_description: 'お店の空席状況をリアルタイムで確認',
       // Problems section
       problems_title: 'こんなお悩み、ありませんか？',
