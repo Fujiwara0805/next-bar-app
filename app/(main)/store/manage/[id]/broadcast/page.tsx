@@ -790,12 +790,19 @@ function StoreBroadcastPageInner() {
 
             {/* ===== 分析タブ ===== */}
             <TabsContent value="analytics">
-              {loadingAnalytics || !analytics ? (
+              {loadingAnalytics ? (
                 <div className="flex justify-center py-16">
                   <Loader2
                     className="w-6 h-6 animate-spin"
                     style={{ color: COLORS.champagneGold }}
                   />
+                </div>
+              ) : !analytics ? (
+                <div
+                  className="py-16 text-center text-sm"
+                  style={{ color: COLORS.warmGray }}
+                >
+                  {t('analytics.load_failed') || '分析データを取得できませんでした'}
                 </div>
               ) : (
                 <div className="space-y-4">

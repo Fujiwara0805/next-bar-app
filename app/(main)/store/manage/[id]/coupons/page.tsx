@@ -39,6 +39,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { CustomModal } from '@/components/ui/custom-modal';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -590,39 +591,22 @@ function StoreCouponsPageInner() {
         </motion.div>
       </div>
 
-      {/* ===== 作成・編集ダイアログ ===== */}
-      <Dialog open={formOpen} onOpenChange={setFormOpen}>
-        <DialogContent
-          className="max-w-lg max-h-[90dvh] overflow-y-auto p-0"
-          style={{
-            background: COLORS.ivory,
-            border: `1px solid rgba(201, 168, 108, 0.25)`,
-          }}
+      {/* ===== 作成・編集モーダル ===== */}
+      <CustomModal
+        isOpen={formOpen}
+        onClose={() => setFormOpen(false)}
+        title={
+          formMode === 'create'
+            ? t('coupon.form_create_title')
+            : t('coupon.form_edit_title')
+        }
+        description={t('coupon.form_description')}
+        size="lg"
+      >
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-4 max-h-[70dvh] overflow-y-auto pr-1"
         >
-          {/* ゴールドのトップアクセント */}
-          <div
-            className="h-1 w-full"
-            style={{ background: COLORS.goldGradient }}
-          />
-          <div className="px-6 pt-5 pb-6">
-            <DialogHeader className="mb-2">
-              <DialogTitle
-                className="text-xl font-bold tracking-wide"
-                style={{ color: COLORS.deepNavy }}
-              >
-                {formMode === 'create'
-                  ? t('coupon.form_create_title')
-                  : t('coupon.form_edit_title')}
-              </DialogTitle>
-              <DialogDescription
-                className="text-xs"
-                style={{ color: COLORS.warmGray }}
-              >
-                {t('coupon.form_description')}
-              </DialogDescription>
-            </DialogHeader>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
             {/* 画像 */}
             <div>
               <Label className="text-xs font-bold" style={{ color: COLORS.deepNavy }}>
@@ -829,8 +813,8 @@ function StoreCouponsPageInner() {
               </div>
             </div>
 
-            {/* 期間 */}
-            <div className="grid grid-cols-2 gap-3">
+            {/* 期間（モバイルで datetime-local のネイティブピッカーを押せる幅を確保するため1カラム） */}
+            <div className="space-y-3">
               <div>
                 <Label
                   htmlFor="valid-from"
@@ -846,7 +830,7 @@ function StoreCouponsPageInner() {
                   onChange={(e) =>
                     setForm((p) => ({ ...p, validFrom: e.target.value }))
                   }
-                  className="mt-1 rounded-xl"
+                  className="mt-1 rounded-xl block w-full"
                   style={{
                     fontSize: '16px',
                     background: '#FFFFFF',
@@ -871,7 +855,7 @@ function StoreCouponsPageInner() {
                   onChange={(e) =>
                     setForm((p) => ({ ...p, validUntil: e.target.value }))
                   }
-                  className="mt-1 rounded-xl"
+                  className="mt-1 rounded-xl block w-full"
                   style={{
                     fontSize: '16px',
                     background: '#FFFFFF',
@@ -966,7 +950,7 @@ function StoreCouponsPageInner() {
               </p>
             </div>
 
-            <DialogFooter className="gap-2 sm:gap-2 pt-2">
+            <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-2">
               <Button
                 type="button"
                 variant="outline"
@@ -1000,11 +984,9 @@ function StoreCouponsPageInner() {
                   ? t('coupon.form_create_btn')
                   : t('coupon.form_update_btn')}
               </Button>
-            </DialogFooter>
-          </form>
-          </div>
-        </DialogContent>
-      </Dialog>
+            </div>
+        </form>
+      </CustomModal>
 
       {/* ===== 配信ダイアログ ===== */}
       <Dialog open={distributeOpen} onOpenChange={setDistributeOpen}>

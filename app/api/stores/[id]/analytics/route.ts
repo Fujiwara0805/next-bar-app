@@ -59,11 +59,14 @@ export async function GET(
   });
   const { data: store } = await admin
     .from('stores')
-    .select('id, name, owner_id')
+    .select('id, name, owner_id, email')
     .eq('id', storeId)
     .maybeSingle();
   if (!store) return NextResponse.json({ error: 'store_not_found' }, { status: 404 });
-  if (store.owner_id !== user.id) {
+  const isOwner = store.owner_id === user.id;
+  const isStoreSelf = store.id === user.id;
+  const isStoreEmail = !!user.email && store.email === user.email;
+  if (!isOwner && !isStoreSelf && !isStoreEmail) {
     const { data: me } = await admin.from('users').select('role').eq('id', user.id).maybeSingle();
     if (me?.role !== 'admin') return NextResponse.json({ error: 'forbidden' }, { status: 403 });
   }
