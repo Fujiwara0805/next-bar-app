@@ -67,16 +67,17 @@ export async function POST(
 
   const { data: store } = await admin
     .from('stores')
-    .select('id, owner_id, name')
+    .select('id, owner_id, name, email')
     .eq('id', storeId)
     .maybeSingle();
   if (!store) {
     return NextResponse.json({ error: 'store_not_found' }, { status: 404 });
   }
-  // 認可: 1) 運営オーナー  2) admin ロール  3) 店舗アカウント本体 (auth.id === stores.id)
+  // 認可: 1) 運営オーナー  2) admin ロール  3) 店舗アカウント本体 (auth.id === stores.id)  4) 店舗メール一致
   const isOwner = store.owner_id === user.id;
   const isStoreSelf = store.id === user.id;
-  if (!isOwner && !isStoreSelf) {
+  const isStoreEmail = !!user.email && store.email === user.email;
+  if (!isOwner && !isStoreSelf && !isStoreEmail) {
     const { data: me } = await admin
       .from('users')
       .select('role')
@@ -86,6 +87,9 @@ export async function POST(
       return NextResponse.json({ error: 'forbidden' }, { status: 403 });
     }
   }
+  // public.users(id) への FK を満たす sender。店舗自己ログイン (auth.users にのみ存在) の場合は
+  // store.owner_id にフォールバックする。
+  const actorUserId = isOwner ? user.id : store.owner_id ?? null;
 
   // store_id 一致 & redeem_code 一致で検索
   const { data: issue } = await admin
@@ -139,7 +143,7 @@ export async function POST(
     .from('coupon_issues')
     .update({
       redeemed_at: redeemedAt,
-      redeemed_by_user_id: user.id,
+      redeemed_by_user_id: actorUserId,
     })
     .eq('id', issue.id)
     .is('redeemed_at', null)
@@ -147,6 +151,7 @@ export async function POST(
     .maybeSingle();
 
   if (updateErr) {
+    console.error('[coupons-redeem] coupon_issues update failed', updateErr);
     return NextResponse.json(
       { error: 'update_failed', message: updateErr.message },
       { status: 500 }
@@ -162,12 +167,13 @@ export async function POST(
     issue_id: issue.id,
     store_id: storeId,
     redeemed_at: redeemedAt,
-    redeemed_by_user_id: user.id,
+    redeemed_by_user_id: actorUserId,
     amount_used: amountUsed,
     notes: notes || null,
   });
   if (insertErr) {
     // ロールバック: redeemed_at を戻す
+    console.error('[coupons-redeem] coupon_redemptions insert failed', insertErr);
     await admin
       .from('coupon_issues')
       .update({ redeemed_at: null, redeemed_by_user_id: null })

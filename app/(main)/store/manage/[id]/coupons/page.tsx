@@ -31,14 +31,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { CloseCircleButton } from '@/components/ui/close-circle-button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import { CustomModal } from '@/components/ui/custom-modal';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -595,11 +587,6 @@ function StoreCouponsPageInner() {
       <CustomModal
         isOpen={formOpen}
         onClose={() => setFormOpen(false)}
-        title={
-          formMode === 'create'
-            ? t('coupon.form_create_title')
-            : t('coupon.form_edit_title')
-        }
         description={t('coupon.form_description')}
         size="lg"
       >
@@ -988,16 +975,13 @@ function StoreCouponsPageInner() {
         </form>
       </CustomModal>
 
-      {/* ===== 配信ダイアログ ===== */}
-      <Dialog open={distributeOpen} onOpenChange={setDistributeOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle style={{ color: COLORS.deepNavy }}>クーポン配信</DialogTitle>
-            <DialogDescription>
-              {distributeCoupon?.title}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
+      {/* ===== 配信モーダル ===== */}
+      <CustomModal
+        isOpen={distributeOpen}
+        onClose={() => setDistributeOpen(false)}
+        description={distributeCoupon?.title}
+      >
+        <div className="space-y-4">
             <div>
               <Label className="text-xs font-bold" style={{ color: COLORS.deepNavy }}>
                 {t('broadcast.target_label')}
@@ -1062,7 +1046,7 @@ function StoreCouponsPageInner() {
               </div>
             )}
           </div>
-          <DialogFooter className="gap-2 sm:gap-2">
+          <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-2">
             <Button
               type="button"
               variant="outline"
@@ -1089,9 +1073,8 @@ function StoreCouponsPageInner() {
               )}
               配信する
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </div>
+      </CustomModal>
     </div>
   );
 }

@@ -399,7 +399,6 @@ export default function PlatformEventsPage() {
       <CustomModal
         isOpen={formOpen}
         onClose={() => !saving && setFormOpen(false)}
-        title={editing ? 'イベント編集' : 'イベント追加'}
       >
         <div className="space-y-3" style={{ color: '#13294b' }}>
           <Input placeholder="イベント名" value={form.title} onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))} />

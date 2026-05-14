@@ -120,7 +120,7 @@ const inputStyles = {
     bg-popover text-popover-foreground border-2
     transition-all duration-200
     font-medium
-    placeholder:text-muted-foreground
+    placeholder:text-muted-foreground/60
     focus:outline-none
   `,
   focus: `
