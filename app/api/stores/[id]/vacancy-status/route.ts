@@ -12,6 +12,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { sendPushToNearbyUsers } from '@/lib/push/server';
 import { filterVacancyTargets, isMessagingConfigured, multicast } from '@/lib/line/messaging';
+import { buildAnnouncementFlexMessage } from '@/lib/line/flex-announcement';
 import { assertStoreAccess, resolveManageAuth } from '@/lib/api/manage-auth';
 
 const DEFAULT_LINE_VACANCY_RADIUS_KM = 1.0;
@@ -74,7 +75,7 @@ export async function PATCH(
     // 店舗の現在の状態を取得
     const { data: store, error: fetchError } = await supabase
       .from('stores')
-      .select('id, name, is_open, vacancy_status, latitude, longitude')
+      .select('id, name, is_open, vacancy_status, latitude, longitude, image_urls')
       .eq('id', storeId)
       .single();
 
@@ -117,10 +118,11 @@ export async function PATCH(
       );
     }
 
-    // 空席ありに変更された場合、1km圏内のユーザーにプッシュ通知（fire-and-forget）
+    // 空席ありに保存されたら、近くのユーザーにプッシュ通知（fire-and-forget）。
+    // 「遷移」ではなく「現在 vacant」を条件にして、再保存でも発火可能にする。
+    // 30分のスロットル ([[filterVacancyTargets]]) と日次キャップが連投を防ぐ。
     if (
       vacancy_status === 'vacant' &&
-      store.vacancy_status !== 'vacant' &&
       store.latitude != null &&
       store.longitude != null
     ) {
@@ -189,12 +191,19 @@ export async function PATCH(
               ? `${origin}/api/line/track?mid=${msgRow.id}&u=${encodeURIComponent(`/store/${storeId}`)}`
               : `${origin}/store/${storeId}`;
 
-            const result = await multicast(targets, [
-              {
-                type: 'text',
-                text: `🍶 ${store.name} に空席が出ました！\n今すぐ確認 → ${trackUrl}`,
-              },
-            ]);
+            const heroImage = Array.isArray(store.image_urls)
+              ? store.image_urls[0] ?? null
+              : null;
+            const flex = buildAnnouncementFlexMessage({
+              kind: 'vacancy',
+              storeName: store.name,
+              body: 'カウンターに空席が出ました。今のうちにどうぞ。',
+              trackingUrl: trackUrl,
+              imageUrl: heroImage,
+              vacantSeats: typeof vacant_seats === 'number' ? vacant_seats : null,
+            });
+
+            const result = await multicast(targets, [flex]);
 
             // 送信成功したtargetsへ last_vacancy_sent_at と日次カウンタを反映（JSTで自動リセット）
             if (result.delivered > 0 && targets.length > 0) {

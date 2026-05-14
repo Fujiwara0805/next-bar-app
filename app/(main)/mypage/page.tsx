@@ -14,6 +14,7 @@ import {
   Sparkles,
   UserCog,
   ChevronDown,
+  Bell,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth/context';
 import { useLanguage } from '@/lib/i18n/context';
@@ -530,6 +531,20 @@ export default function MyPage() {
 
           {/* その他導線（プロフィール編集はアバター横へ統合済） */}
           <div className="space-y-2 mb-4">
+            <Link href="/liff/vacancy">
+              <Button
+                variant="outline"
+                className="w-full justify-start h-12 rounded-xl font-medium"
+                style={{
+                  background: 'white',
+                  border: `1px solid ${BRASS}55`,
+                  color: NAVY,
+                }}
+              >
+                <Bell className="w-4 h-4 mr-2" style={{ color: COPPER }} />
+                空席通知の設定
+              </Button>
+            </Link>
             <Link href="/map">
               <Button
                 variant="outline"

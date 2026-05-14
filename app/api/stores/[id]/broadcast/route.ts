@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '@/lib/supabase/types';
 import { DAILY_NOTIFY_CAP, filterVacancyTargets, isMessagingConfigured, multicast, todayJst } from '@/lib/line/messaging';
+import { buildAnnouncementFlexMessage } from '@/lib/line/flex-announcement';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -87,7 +88,7 @@ export async function POST(
   // email 一致) または admin。デモ用途で test 店舗が `owner_id` を持たないケースも考慮。
   const { data: store } = await admin
     .from('stores')
-    .select('id, name, owner_id, latitude, longitude, email')
+    .select('id, name, owner_id, latitude, longitude, email, image_urls')
     .eq('id', storeId)
     .maybeSingle();
   if (!store) {
@@ -190,11 +191,17 @@ export async function POST(
 
   const origin = process.env.NEXT_PUBLIC_SITE_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? '';
   const trackUrl = `${origin}/api/line/track?mid=${created.id}&u=${encodeURIComponent(`/store/${storeId}`)}`;
-  const prefix = kind === 'open_signal' ? '🟢 営業中' : '📣 お知らせ';
-  const messageText = `${prefix}｜${store.name}\n\n${text}\n\n👉 ${trackUrl}`;
+  const heroImage = Array.isArray(store.image_urls) ? store.image_urls[0] ?? null : null;
+  const flex = buildAnnouncementFlexMessage({
+    kind,
+    storeName: store.name,
+    body: text,
+    trackingUrl: trackUrl,
+    imageUrl: heroImage,
+  });
 
   const result = targetIds.length > 0
-    ? await multicast(targetIds, [{ type: 'text', text: messageText }])
+    ? await multicast(targetIds, [flex])
     : { requested: 0, delivered: 0, failed: 0, errors: [] };
 
   // 送信成功者のスロットルタイムスタンプ + 日次カウンタを更新（JSTで自動リセット）
