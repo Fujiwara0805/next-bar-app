@@ -196,7 +196,7 @@ export async function PATCH(
             const flex = buildAnnouncementFlexMessage({
               kind: 'vacancy',
               storeName: store.name,
-              body: 'カウンターに空席が出ました。今のうちにどうぞ。',
+              body: '空席が出ました。ご来店をお待ちしております。',
               trackingUrl: trackUrl,
               imageUrl: heroImage,
               vacantSeats: typeof vacant_seats === 'number' ? vacant_seats : null,
