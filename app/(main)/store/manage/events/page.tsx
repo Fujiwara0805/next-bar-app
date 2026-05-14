@@ -414,7 +414,7 @@ export default function PlatformEventsPage() {
           <div className="space-y-2">
             {form.image_url ? (
               <div className="relative overflow-hidden rounded-lg border" style={{ borderColor: '#d6c19a' }}>
-                <img src={form.image_url} alt="イベント画像" className="h-36 w-full object-cover" />
+                <img src={form.image_url} alt="イベント画像" className="aspect-[16/9] w-full object-cover" />
                 <button
                   type="button"
                   onClick={clearEventImage}
@@ -430,7 +430,7 @@ export default function PlatformEventsPage() {
                 type="button"
                 onClick={() => imageInputRef.current?.click()}
                 disabled={uploadingImage}
-                className="flex h-28 w-full flex-col items-center justify-center gap-2 rounded-lg border border-dashed text-sm font-bold disabled:opacity-60"
+                className="flex aspect-[16/9] w-full flex-col items-center justify-center gap-2 rounded-lg border border-dashed text-sm font-bold disabled:opacity-60"
                 style={{ borderColor: '#d6c19a', color: '#13294b', background: '#fffaf0' }}
               >
                 {uploadingImage ? (
@@ -441,6 +441,10 @@ export default function PlatformEventsPage() {
                 イベント画像をアップロード
               </button>
             )}
+            <p className="text-[11px] font-medium leading-relaxed" style={{ color: '#7a6b50' }}>
+              推奨サイズ: <strong style={{ color: '#13294b' }}>1600 × 900 px（16:9 横長）</strong>　最小: 1280 × 720 px　形式: JPEG / PNG / WebP　容量: 10MB 以下<br />
+              ※ LP イベントセクションは 16:9 で表示されます。比率が異なる画像は上下／左右がトリミングされます。
+            </p>
             <input
               ref={imageInputRef}
               type="file"
