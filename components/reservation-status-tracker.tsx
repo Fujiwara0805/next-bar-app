@@ -210,7 +210,7 @@ export function ReservationStatusTracker({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
         >
-          <h3 className="text-lg font-bold text-foreground">
+          <h3 className="text-lg font-bold text-[#13294b]">
             {getStatusText()}
           </h3>
           <p className="text-sm text-muted-foreground whitespace-pre-line">
