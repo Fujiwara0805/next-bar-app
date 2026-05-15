@@ -54,7 +54,7 @@ import { ImageLightbox } from '@/components/ui/ImageLightbox';
 import { sendGAEvent } from '@/lib/analytics';
 import { SponsorCampaignBanner } from '@/components/sponsors/sponsor-campaign-banner';
 import { CrowdVoteModal } from '@/components/store/crowd-vote-modal';
-import { getTodayOpenTime, isTodayClosedDay, checkIsOpenFromStructuredHours } from '@/lib/structured-business-hours';
+import { getTodayOpenTime, isTodayClosedDay, checkIsOpenFromStructuredHours, isManualCloseActive } from '@/lib/structured-business-hours';
 import { useOptimizedLocation } from '@/lib/hooks/useOptimizedLocation';
 import type { StoreEventRow } from '@/lib/types/platform-event';
 type Store = Database['public']['Tables']['stores']['Row'];
@@ -534,6 +534,8 @@ export default function StoreDetailPage() {
   // ============================================
   const getEffectiveVacancyStatus = (): string => {
     if (!store) return 'closed';
+    // 閉店ボタンによる臨時休業中（12時間以内）は営業時間に関係なく 'closed'
+    if (isManualCloseActive(store)) return 'closed';
     const sbh = store.structured_business_hours as BusinessHours | null;
     if (!sbh) return store.vacancy_status ?? 'closed';
     const result = checkIsOpenFromStructuredHours(sbh);
@@ -971,12 +973,17 @@ export default function StoreDetailPage() {
                           border: '1px solid rgba(255, 200, 44, 0.35)',
                         }}
                       >
-                        <p className="text-xs font-bold mb-1 inline-flex items-center gap-1" style={{ color: '#13294b' }}>
-                          🎊 イベント参加中: {event.title}
+                        <p className="text-xs font-bold inline-flex items-center gap-1" style={{ color: '#13294b' }}>
+                          🎊 イベント参加中
                         </p>
-                        <p className="text-sm font-bold leading-relaxed" style={{ color: '#13294b' }}>
-                          特典: {benefit || '特典なし'}
+                        <p className="text-sm font-bold leading-relaxed mt-1" style={{ color: '#13294b' }}>
+                          {event.title}
                         </p>
+                        {benefit && (
+                          <p className="text-sm font-bold leading-relaxed mt-1" style={{ color: '#13294b' }}>
+                            特典: {benefit}
+                          </p>
+                        )}
                       </div>
                     );
                   })}

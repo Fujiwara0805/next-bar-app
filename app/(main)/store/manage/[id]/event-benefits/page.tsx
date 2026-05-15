@@ -337,20 +337,22 @@ export default function StoreEventBenefitsPage() {
                     </h3>
                   </div>
 
-                  <div
-                    className="rounded-xl p-3 mb-3"
-                    style={{
-                      background: 'rgba(255, 200, 44, 0.10)',
-                      border: '1px solid rgba(255, 200, 44, 0.35)',
-                    }}
-                  >
-                    <p className="text-[11px] font-bold mb-1 inline-flex items-center gap-1" style={{ color: COLORS.warmGray }}>
-                      <Gift className="w-3 h-3" /> 特典内容
-                    </p>
-                    <p className="text-sm font-semibold leading-relaxed" style={{ color: COLORS.deepNavy }}>
-                      {benefit || '特典なし'}
-                    </p>
-                  </div>
+                  {benefit && (
+                    <div
+                      className="rounded-xl p-3 mb-3"
+                      style={{
+                        background: 'rgba(255, 200, 44, 0.10)',
+                        border: '1px solid rgba(255, 200, 44, 0.35)',
+                      }}
+                    >
+                      <p className="text-[11px] font-bold mb-1 inline-flex items-center gap-1" style={{ color: COLORS.warmGray }}>
+                        <Gift className="w-3 h-3" /> 特典内容
+                      </p>
+                      <p className="text-sm font-semibold leading-relaxed" style={{ color: COLORS.deepNavy }}>
+                        {benefit}
+                      </p>
+                    </div>
+                  )}
 
                   <div className="grid grid-cols-2 gap-3 mb-3">
                     <div

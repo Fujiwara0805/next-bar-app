@@ -147,7 +147,7 @@ export default function StoreUpdatePage() {
     {
       value: 'closed',
       label: '閉店',
-      description: '営業時間外または臨時休業（12時間後に自動解除）',
+      description: '臨時休業（営業時間に関わらず閉店表示／12時間後に自動解除、他ボタン押下で即解除）',
       color: COLORS.warmGray,
       bgColor: 'rgba(99, 110, 114, 0.08)',
       borderColor: 'rgba(99, 110, 114, 0.3)',
@@ -1094,7 +1094,7 @@ export default function StoreUpdatePage() {
                                   }}
                                 />
                                 <p className="text-[11px] text-right mt-0.5 font-medium" style={{ color: COLORS.warmGray }}>
-                                  {(benefitDrafts[event.id] ?? '').length} / 200文字　未入力時は「特典なし」と表示されます
+                                  {(benefitDrafts[event.id] ?? '').length} / 200文字　未入力時は特典欄を非表示にします
                                 </p>
                               </div>
                             )}

@@ -28,7 +28,7 @@ import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/lib/i18n/context';
 import { translations } from '@/lib/i18n/translations';
 import { InstantReservationButton } from '@/components/instant-reservation-button';
-import { getTodayOpenTime, isTodayClosedDay, checkIsOpenFromStructuredHours } from '@/lib/structured-business-hours';
+import { getTodayOpenTime, isTodayClosedDay, checkIsOpenFromStructuredHours, isManualCloseActive } from '@/lib/structured-business-hours';
 import { sendGAEvent } from '@/lib/analytics';
 import { useAppMode } from '@/lib/app-mode-context';
 import type { BusinessHours } from '@/lib/supabase/types';
@@ -240,6 +240,8 @@ export function StoreDetailPanel({
   }, [userLocation, store.latitude, store.longitude]);
 
   const getEffectiveVacancyStatus = (): string => {
+    // 閉店ボタンによる臨時休業中（12時間以内）は営業時間に関係なく 'closed'
+    if (isManualCloseActive(store)) return 'closed';
     const sbh = store.structured_business_hours as BusinessHours | null;
     if (!sbh) return store.vacancy_status ?? 'closed';
     const result = checkIsOpenFromStructuredHours(sbh);
@@ -547,9 +549,11 @@ export function StoreDetailPanel({
                 <p className="text-[11px] font-bold leading-tight" style={{ color: '#13294b' }}>
                   🎊 {store.active_event.title}
                 </p>
-                <p className="text-xs font-bold leading-snug line-clamp-2" style={{ color: '#13294b' }}>
-                  特典: {store.active_event.benefit_text?.trim() || '特典なし'}
-                </p>
+                {store.active_event.benefit_text?.trim() && (
+                  <p className="text-xs font-bold leading-snug line-clamp-2" style={{ color: '#13294b' }}>
+                    特典: {store.active_event.benefit_text.trim()}
+                  </p>
+                )}
               </div>
             )}
 

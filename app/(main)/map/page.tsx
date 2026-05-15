@@ -44,7 +44,7 @@ import {
 import { useOptimizedLocation, DEFAULT_LOCATION } from '@/lib/hooks/useOptimizedLocation';
 import { sendGAEvent } from '@/lib/analytics';
 import { StoreDetailPanel } from '@/components/map/StoreDetailPanel';
-import { checkIsOpenFromStructuredHours } from '@/lib/structured-business-hours';
+import { checkIsOpenFromStructuredHours, isManualCloseActive } from '@/lib/structured-business-hours';
 import type { BusinessHours } from '@/lib/supabase/types';
 import { SponsorMapIcon } from '@/components/sponsors/sponsor-map-icon';
 import { UserPushSubscription } from '@/components/user-push-subscription';
@@ -110,6 +110,8 @@ const STORE_SELECT_COLUMNS = `
   google_rating,
   google_reviews_count,
   is_open,
+  manual_closed,
+  manual_closed_at,
   phone,
   address,
   website_url,
@@ -832,6 +834,12 @@ function MapPageContent() {
     const viewportStores = filterStoresByViewport(stores, currentBounds)
       .filter((store) => !eventOnly || !!store.active_event);
     return viewportStores.map(store => {
+      // 閉店ボタンによる臨時休業中（12時間以内）は営業時間に関係なく 'closed' に固定
+      if (isManualCloseActive(store)) {
+        return store.vacancy_status === 'closed'
+          ? store
+          : { ...store, vacancy_status: 'closed' as const };
+      }
       const sbh = store.structured_business_hours as BusinessHours | null;
       if (!sbh) return store;
       const result = checkIsOpenFromStructuredHours(sbh);

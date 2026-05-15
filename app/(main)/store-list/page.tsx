@@ -29,7 +29,7 @@ import type { Database, BusinessHours } from '@/lib/supabase/types';
 import { useLanguage } from '@/lib/i18n/context';
 import { useAppMode } from '@/lib/app-mode-context';
 import { ConciergeModal } from '@/components/concierge-modal';
-import { getTodayOpenTime, isTodayClosedDay, checkIsOpenFromStructuredHours as checkIsOpenFromStructuredHoursClient } from '@/lib/structured-business-hours';
+import { getTodayOpenTime, isTodayClosedDay, checkIsOpenFromStructuredHours as checkIsOpenFromStructuredHoursClient, isManualCloseActive } from '@/lib/structured-business-hours';
 import { useOptimizedLocation } from '@/lib/hooks/useOptimizedLocation';
 import { SponsorCampaignBanner } from '@/components/sponsors/sponsor-campaign-banner';
 import {
@@ -528,12 +528,14 @@ function StoreListContent() {
    * 逆に DB が 'open'/'vacant' でも structured_business_hours 上は営業外なら 'closed' に補正する。
    */
   const getEffectiveVacancyStatus = (store: Store): string => {
+    // 閉店ボタンによる臨時休業中（12時間以内）は営業時間に関係なく 'closed'
+    if (isManualCloseActive(store)) return 'closed';
     const sbh = store.structured_business_hours as BusinessHours | null;
     if (!sbh) return store.vacancy_status ?? 'closed';
-    
+
     const result = checkIsOpenFromStructuredHoursClient(sbh);
     if (result === null) return store.vacancy_status ?? 'closed';
-    
+
     if (result) {
       // 営業中: DB が closed なら open に補正、それ以外はDB値を尊重
       return store.vacancy_status === 'closed' ? 'open' : (store.vacancy_status ?? 'open');
@@ -843,9 +845,11 @@ function StoreListContent() {
                                   <p className="text-[11px] font-bold inline-flex items-center gap-1 leading-tight" style={{ color: EVENT_CARD_FG }}>
                                     🎊 {store.active_event.title}
                                   </p>
-                                  <p className="text-xs font-bold leading-snug line-clamp-2" style={{ color: EVENT_CARD_FG }}>
-                                    特典: {store.active_event.benefit_text?.trim() || '特典なし'}
-                                  </p>
+                                  {store.active_event.benefit_text?.trim() && (
+                                    <p className="text-xs font-bold leading-snug line-clamp-2" style={{ color: EVENT_CARD_FG }}>
+                                      特典: {store.active_event.benefit_text.trim()}
+                                    </p>
+                                  )}
                                 </div>
                               )}
 

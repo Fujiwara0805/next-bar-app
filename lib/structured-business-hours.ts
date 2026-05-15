@@ -121,6 +121,29 @@ export function getTodayOpenTime(
 }
 
 /**
+ * 店舗の閉店ボタン（臨時休業）が現在も有効かを判定する。
+ *
+ * - manual_closed=true かつ manual_closed_at から 12 時間以内 → true
+ * - それ以外（フラグなし／12時間経過／manual_closed_at が無い）→ false
+ *
+ * このフラグが true の間は、登録済みの営業時間・Google判定を上書きして
+ * 'closed' を表示する。他の空席ボタン（vacant/full/open）を押すと
+ * サーバー側で manual_closed=false にクリアされる。
+ */
+const MANUAL_CLOSE_TTL_MS = 12 * 60 * 60 * 1000;
+
+export function isManualCloseActive(
+  store: { manual_closed?: boolean | null; manual_closed_at?: string | null } | null | undefined
+): boolean {
+  if (!store) return false;
+  if (!store.manual_closed) return false;
+  if (!store.manual_closed_at) return true;
+  const closedAt = new Date(store.manual_closed_at).getTime();
+  if (!Number.isFinite(closedAt)) return false;
+  return Date.now() - closedAt < MANUAL_CLOSE_TTL_MS;
+}
+
+/**
  * 当日が定休日かどうかを判定する
  */
 export function isTodayClosedDay(
