@@ -98,6 +98,39 @@ export async function deleteAdSlot(id: string): Promise<{
 }> {
   try {
     const supabase = createServerSupabaseClient();
+
+    const { data: creatives, error: creativesError } = await supabase
+      .from('sponsor_ad_creatives')
+      .select('id')
+      .eq('ad_slot_id', id);
+
+    if (creativesError) return { success: false, error: creativesError.message };
+
+    const creativeIds = (creatives || []).map((creative) => creative.id);
+
+    if (creativeIds.length > 0) {
+      const { error: creativeImpressionsError } = await supabase
+        .from('sponsor_impressions')
+        .delete()
+        .in('creative_id', creativeIds);
+
+      if (creativeImpressionsError) return { success: false, error: creativeImpressionsError.message };
+    }
+
+    const { error: slotImpressionsError } = await supabase
+      .from('sponsor_impressions')
+      .delete()
+      .eq('ad_slot_id', id);
+
+    if (slotImpressionsError) return { success: false, error: slotImpressionsError.message };
+
+    const { error: creativeDeleteError } = await supabase
+      .from('sponsor_ad_creatives')
+      .delete()
+      .eq('ad_slot_id', id);
+
+    if (creativeDeleteError) return { success: false, error: creativeDeleteError.message };
+
     const { error } = await supabase.from('sponsor_ad_slots').delete().eq('id', id);
     if (error) return { success: false, error: error.message };
     return { success: true };

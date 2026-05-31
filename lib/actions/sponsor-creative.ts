@@ -116,6 +116,14 @@ export async function deleteCreative(id: string): Promise<{
 }> {
   try {
     const supabase = createServerSupabaseClient();
+
+    const { error: impressionsError } = await supabase
+      .from('sponsor_impressions')
+      .delete()
+      .eq('creative_id', id);
+
+    if (impressionsError) return { success: false, error: impressionsError.message };
+
     const { error } = await supabase.from('sponsor_ad_creatives').delete().eq('id', id);
     if (error) return { success: false, error: error.message };
     return { success: true };

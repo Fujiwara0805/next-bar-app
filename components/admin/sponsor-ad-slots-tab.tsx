@@ -2,11 +2,14 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Loader2, Trash2, Layers, Image, Upload, Edit2, Eye, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, Loader2, Trash2, Layers, Image as ImageIcon, Upload, Edit2, Eye, ChevronDown, ChevronUp } from 'lucide-react';
 import { useAdminTheme } from '@/lib/admin-theme-context';
 import { CustomModal } from '@/components/ui/custom-modal';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase/client';
+import { deleteAdSlot } from '@/lib/actions/sponsor-ad-slot';
+import { deleteContract } from '@/lib/actions/sponsor-contract';
+import { deleteCreative } from '@/lib/actions/sponsor-creative';
 import { SLOT_TYPE_LABELS, PLAN_LABELS } from '@/lib/sponsors/types';
 import type { SponsorContract, SponsorAdSlot, SponsorAdCreative, SlotType, PlanType, DisplayConfig } from '@/lib/sponsors/types';
 
@@ -97,6 +100,10 @@ export function SponsorAdSlotsTab({ sponsorId }: Props) {
   const { colors: C } = useAdminTheme();
   const [data, setData] = useState<ContractWithSlots[]>([]);
   const [loading, setLoading] = useState(true);
+  const [expandedContractIds, setExpandedContractIds] = useState<string[]>([]);
+  const didInitExpanded = useRef(false);
+  const [contractDeleteOpen, setContractDeleteOpen] = useState(false);
+  const [contractDeleteTarget, setContractDeleteTarget] = useState<ContractWithSlots | null>(null);
 
   // Slot form
   const [slotFormOpen, setSlotFormOpen] = useState(false);
@@ -149,7 +156,24 @@ export function SponsorAdSlotsTab({ sponsorId }: Props) {
       contractsWithSlots.push({ ...contract as SponsorContract, slots });
     }
     setData(contractsWithSlots);
+    const contractIds = contractsWithSlots.map((contract) => contract.id);
+    setExpandedContractIds((prev) => {
+      const kept = prev.filter((id) => contractIds.includes(id));
+      if (!didInitExpanded.current) {
+        didInitExpanded.current = true;
+        return contractsWithSlots[0] ? [contractsWithSlots[0].id] : [];
+      }
+      return kept;
+    });
     setLoading(false);
+  };
+
+  const toggleContractExpanded = (contractId: string) => {
+    setExpandedContractIds((prev) => (
+      prev.includes(contractId)
+        ? prev.filter((id) => id !== contractId)
+        : [...prev, contractId]
+    ));
   };
 
   const handleCreateSlot = async () => {
@@ -174,15 +198,27 @@ export function SponsorAdSlotsTab({ sponsorId }: Props) {
   };
 
   const handleDeleteSlot = async (slotId: string) => {
-    const { error } = await supabase
-      .from('sponsor_ad_slots')
-      .delete()
-      .eq('id', slotId);
-    if (!error) {
+    const result = await deleteAdSlot(slotId);
+    if (result.success) {
       toast.success('広告枠を削除しました');
       fetchData();
     } else {
-      toast.error(error.message || '削除に失敗しました');
+      toast.error(result.error || '削除に失敗しました');
+    }
+  };
+
+  const handleDeleteContract = async () => {
+    if (!contractDeleteTarget) return;
+    setSaving(true);
+    const result = await deleteContract(contractDeleteTarget.id);
+    setSaving(false);
+    if (result.success) {
+      toast.success('大枠を削除しました');
+      setContractDeleteOpen(false);
+      setContractDeleteTarget(null);
+      fetchData();
+    } else {
+      toast.error(result.error || '削除に失敗しました');
     }
   };
 
@@ -330,15 +366,12 @@ export function SponsorAdSlotsTab({ sponsorId }: Props) {
   };
 
   const handleDeleteCreative = async (creativeId: string) => {
-    const { error } = await supabase
-      .from('sponsor_ad_creatives')
-      .delete()
-      .eq('id', creativeId);
-    if (!error) {
+    const result = await deleteCreative(creativeId);
+    if (result.success) {
       toast.success('クリエイティブを削除しました');
       fetchData();
     } else {
-      toast.error(error.message || '削除に失敗しました');
+      toast.error(result.error || '削除に失敗しました');
     }
   };
 
@@ -372,143 +405,206 @@ export function SponsorAdSlotsTab({ sponsorId }: Props) {
           <p className="text-sm" style={{ color: C.textMuted }}>契約がありません。まず契約を作成してください。</p>
         </div>
       ) : (
-        data.map((contract) => (
-          <div key={contract.id} className="rounded-xl overflow-hidden" style={{ border: `1px solid ${C.border}` }}>
-            {/* Contract header */}
-            <div className="flex items-center justify-between px-5 py-3" style={{ background: C.bgElevated, borderBottom: `1px solid ${C.border}` }}>
-              <div className="flex items-center gap-3">
-                <span className="text-sm font-semibold" style={{ color: C.text }}>
-                  {PLAN_LABELS[contract.plan_type as PlanType]}
-                </span>
-                <span className="text-xs" style={{ color: C.textSubtle }}>
-                  {contract.start_date} ~ {contract.end_date}
-                </span>
-              </div>
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => { setSlotContractId(contract.id); setSlotFormOpen(true); }}
-                className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold"
-                style={{ background: C.accent, color: C.accentForeground }}
+        data.map((contract) => {
+          const isExpanded = expandedContractIds.includes(contract.id);
+          return (
+            <div key={contract.id} className="rounded-xl overflow-hidden" style={{ border: `1px solid ${C.border}` }}>
+              <div
+                className="flex items-center justify-between gap-3 px-5 py-3"
+                style={{
+                  background: C.bgElevated,
+                  borderBottom: isExpanded ? `1px solid ${C.border}` : 'none',
+                }}
               >
-                <Plus className="w-3 h-3" />
-                枠追加
-              </motion.button>
-            </div>
-
-            {/* Slots */}
-            {contract.slots.length === 0 ? (
-              <div className="px-5 py-6 text-center">
-                <p className="text-xs" style={{ color: C.textSubtle }}>広告枠がありません</p>
+                <button
+                  type="button"
+                  onClick={() => toggleContractExpanded(contract.id)}
+                  className="min-w-0 flex-1 flex items-center gap-3 text-left"
+                  aria-expanded={isExpanded}
+                >
+                  {isExpanded ? (
+                    <ChevronUp className="w-4 h-4 shrink-0" style={{ color: C.textMuted }} />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 shrink-0" style={{ color: C.textMuted }} />
+                  )}
+                  <span className="text-sm font-semibold" style={{ color: C.text }}>
+                    {PLAN_LABELS[contract.plan_type as PlanType]}
+                  </span>
+                  <span className="text-xs" style={{ color: C.textSubtle }}>
+                    {contract.start_date} ~ {contract.end_date}
+                  </span>
+                  <span className="text-xs" style={{ color: C.textSubtle }}>
+                    {contract.slots.length}枠
+                  </span>
+                </button>
+                <div className="flex items-center gap-1 shrink-0">
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => { setSlotContractId(contract.id); setSlotFormOpen(true); }}
+                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold"
+                    style={{ background: C.accent, color: C.accentForeground }}
+                  >
+                    <Plus className="w-3 h-3" />
+                    枠追加
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => { setContractDeleteTarget(contract); setContractDeleteOpen(true); }}
+                    className="p-1.5 rounded-lg"
+                    style={{ color: C.danger }}
+                    title="大枠削除"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </motion.button>
+                </div>
               </div>
-            ) : (
-              contract.slots.map((slot) => (
-                <div key={slot.id} style={{ borderBottom: `1px solid ${C.borderSubtle}` }}>
-                  <div className="flex items-center justify-between px-5 py-3" style={{ background: C.bgCard }}>
-                    <div className="flex items-center gap-3">
-                      <span className="px-2 py-0.5 rounded text-xs font-medium" style={{ background: C.accentBg, color: C.accent }}>
-                        {SLOT_TYPE_LABELS[slot.slot_type as SlotType]}
-                      </span>
-                      <span className="text-xs" style={{ color: C.textSubtle }}>
-                        優先度: {slot.display_priority}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <motion.button
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
-                        onClick={() => openCreativeForm(slot.id, slot.slot_type as SlotType)}
-                        className="p-1.5 rounded-lg"
-                        style={{ color: C.accent }}
-                        title="クリエイティブ追加"
-                      >
-                        <Plus className="w-3.5 h-3.5" />
-                      </motion.button>
-                      <motion.button
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
-                        onClick={() => handleDeleteSlot(slot.id)}
-                        className="p-1.5 rounded-lg"
-                        style={{ color: C.danger }}
-                        title="枠削除"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </motion.button>
-                    </div>
-                  </div>
 
-                  {/* Creatives list */}
-                  {slot.creatives.length > 0 && (
-                    <div className="px-5 py-2 space-y-2" style={{ background: C.bgCard }}>
-                      {slot.creatives.map((creative) => {
-                        const displayImage = creative.image_url || creative.icon_url || creative.background_image_url;
-                        return (
-                          <div
-                            key={creative.id}
-                            className="flex items-center justify-between p-3 rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
-                            style={{ background: C.bgInput, border: `1px solid ${C.borderSubtle}` }}
-                            onClick={() => openCreativeForm(slot.id, slot.slot_type as SlotType, creative)}
-                          >
-                            <div className="flex items-center gap-3 min-w-0">
-                              {displayImage ? (
-                                <div className="w-10 h-10 rounded-lg bg-gray-200 overflow-hidden shrink-0">
-                                  <img src={displayImage} alt="" className="w-full h-full object-cover" />
-                                </div>
-                              ) : (
-                                <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ background: C.bgElevated }}>
-                                  <Image className="w-4 h-4" style={{ color: C.textSubtle }} />
-                                </div>
-                              )}
-                              <div className="min-w-0">
-                                <div className="flex items-center gap-2">
-                                  <p className="text-sm font-medium truncate" style={{ color: C.text }}>
-                                    {SLOT_TYPE_LABELS[slot.slot_type as SlotType]}
-                                  </p>
-                                  {/* Version badge */}
-                                  <span className="text-[10px] px-1.5 py-0.5 rounded-full shrink-0" style={{ background: C.accentBg, color: C.accent }}>
-                                    v{creative.version || 1}
-                                  </span>
-                                  {/* Active/Inactive badge */}
-                                  <span
-                                    className={`text-[10px] px-1.5 py-0.5 rounded-full shrink-0 cursor-pointer ${
-                                      creative.is_active
-                                        ? 'bg-success/10 text-success'
-                                        : 'bg-muted text-muted-foreground'
-                                    }`}
-                                    onClick={(e) => { e.stopPropagation(); handleToggleCreativeActive(creative); }}
-                                    title={creative.is_active ? 'クリックで無効化' : 'クリックで有効化'}
-                                  >
-                                    {creative.is_active ? '有効' : '無効'}
-                                  </span>
-                                </div>
-                                {creative.cta_url && (
-                                  <p className="text-xs truncate" style={{ color: C.textSubtle }}>{creative.cta_url}</p>
-                                )}
-                              </div>
+              <AnimatePresence initial={false}>
+                {isExpanded && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="overflow-hidden"
+                  >
+                    {contract.slots.length === 0 ? (
+                      <div className="px-5 py-6 text-center">
+                        <p className="text-xs" style={{ color: C.textSubtle }}>広告枠がありません</p>
+                      </div>
+                    ) : (
+                      contract.slots.map((slot) => (
+                        <div key={slot.id} style={{ borderBottom: `1px solid ${C.borderSubtle}` }}>
+                          <div className="flex items-center justify-between px-5 py-3" style={{ background: C.bgCard }}>
+                            <div className="flex items-center gap-3">
+                              <span className="px-2 py-0.5 rounded text-xs font-medium" style={{ background: C.accentBg, color: C.accent }}>
+                                {SLOT_TYPE_LABELS[slot.slot_type as SlotType]}
+                              </span>
+                              <span className="text-xs" style={{ color: C.textSubtle }}>
+                                優先度: {slot.display_priority}
+                              </span>
                             </div>
-                            <div className="flex items-center gap-1 shrink-0">
-                              <Edit2 className="w-3.5 h-3.5" style={{ color: C.textSubtle }} />
+                            <div className="flex items-center gap-1">
                               <motion.button
                                 whileHover={{ scale: 1.1 }}
                                 whileTap={{ scale: 0.9 }}
-                                onClick={(e) => { e.stopPropagation(); handleDeleteCreative(creative.id); }}
+                                onClick={() => openCreativeForm(slot.id, slot.slot_type as SlotType)}
+                                className="p-1.5 rounded-lg"
+                                style={{ color: C.accent }}
+                                title="クリエイティブ追加"
+                              >
+                                <Plus className="w-3.5 h-3.5" />
+                              </motion.button>
+                              <motion.button
+                                whileHover={{ scale: 1.1 }}
+                                whileTap={{ scale: 0.9 }}
+                                onClick={() => handleDeleteSlot(slot.id)}
                                 className="p-1.5 rounded-lg"
                                 style={{ color: C.danger }}
+                                title="枠削除"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
                               </motion.button>
                             </div>
                           </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              ))
-            )}
-          </div>
-        ))
+
+                          {slot.creatives.length > 0 && (
+                            <div className="px-5 py-2 space-y-2" style={{ background: C.bgCard }}>
+                              {slot.creatives.map((creative) => {
+                                const displayImage = creative.image_url || creative.icon_url || creative.background_image_url;
+                                return (
+                                  <div
+                                    key={creative.id}
+                                    className="flex items-center justify-between p-3 rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
+                                    style={{ background: C.bgInput, border: `1px solid ${C.borderSubtle}` }}
+                                    onClick={() => openCreativeForm(slot.id, slot.slot_type as SlotType, creative)}
+                                  >
+                                    <div className="flex items-center gap-3 min-w-0">
+                                      {displayImage ? (
+                                        <div className="w-10 h-10 rounded-lg bg-gray-200 overflow-hidden shrink-0">
+                                          <img src={displayImage} alt="" className="w-full h-full object-cover" />
+                                        </div>
+                                      ) : (
+                                        <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ background: C.bgElevated }}>
+                                          <ImageIcon className="w-4 h-4" style={{ color: C.textSubtle }} />
+                                        </div>
+                                      )}
+                                      <div className="min-w-0">
+                                        <div className="flex items-center gap-2">
+                                          <p className="text-sm font-medium truncate" style={{ color: C.text }}>
+                                            {SLOT_TYPE_LABELS[slot.slot_type as SlotType]}
+                                          </p>
+                                          <span className="text-[10px] px-1.5 py-0.5 rounded-full shrink-0" style={{ background: C.accentBg, color: C.accent }}>
+                                            v{creative.version || 1}
+                                          </span>
+                                          <span
+                                            className={`text-[10px] px-1.5 py-0.5 rounded-full shrink-0 cursor-pointer ${
+                                              creative.is_active
+                                                ? 'bg-success/10 text-success'
+                                                : 'bg-muted text-muted-foreground'
+                                            }`}
+                                            onClick={(e) => { e.stopPropagation(); handleToggleCreativeActive(creative); }}
+                                            title={creative.is_active ? 'クリックで無効化' : 'クリックで有効化'}
+                                          >
+                                            {creative.is_active ? '有効' : '無効'}
+                                          </span>
+                                        </div>
+                                        {creative.cta_url && (
+                                          <p className="text-xs truncate" style={{ color: C.textSubtle }}>{creative.cta_url}</p>
+                                        )}
+                                      </div>
+                                    </div>
+                                    <div className="flex items-center gap-1 shrink-0">
+                                      <Edit2 className="w-3.5 h-3.5" style={{ color: C.textSubtle }} />
+                                      <motion.button
+                                        whileHover={{ scale: 1.1 }}
+                                        whileTap={{ scale: 0.9 }}
+                                        onClick={(e) => { e.stopPropagation(); handleDeleteCreative(creative.id); }}
+                                        className="p-1.5 rounded-lg"
+                                        style={{ color: C.danger }}
+                                      >
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                      </motion.button>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      ))
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          );
+        })
       )}
+
+      <CustomModal
+        isOpen={contractDeleteOpen}
+        onClose={() => setContractDeleteOpen(false)}
+        title="大枠削除"
+        description={`「${contractDeleteTarget ? PLAN_LABELS[contractDeleteTarget.plan_type as PlanType] : ''}」を削除しますか？紐づく広告枠・広告・レポートデータも削除されます。`}
+      >
+        <div className="flex gap-2 pt-4">
+          <button
+            onClick={() => setContractDeleteOpen(false)}
+            className="flex-1 py-2.5 rounded-lg text-sm font-medium border border-gray-200 text-gray-600 hover:bg-gray-50"
+          >
+            戻る
+          </button>
+          <button
+            onClick={handleDeleteContract}
+            disabled={saving}
+            className="flex-1 py-2.5 rounded-lg text-sm font-semibold text-destructive-foreground bg-destructive hover:bg-destructive/90 disabled:opacity-50"
+          >
+            {saving ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : '削除する'}
+          </button>
+        </div>
+      </CustomModal>
 
       {/* Slot Create Modal (タイトルなし / PCはひと回り大きく) */}
       <CustomModal isOpen={slotFormOpen} onClose={() => setSlotFormOpen(false)} size="lg">
@@ -876,7 +972,7 @@ function CreativePreview({ form, slotType }: { form: CreativeFormState; slotType
             <img src={form.imageUrl} alt="" className="rounded-lg object-cover shadow-md" style={{ width: form.iconSize, height: form.iconSize }} />
           ) : (
             <div className="rounded-lg bg-gray-600 flex items-center justify-center" style={{ width: form.iconSize, height: form.iconSize }}>
-              <Image className="w-4 h-4 text-gray-400" />
+              <ImageIcon className="w-4 h-4 text-gray-400" />
             </div>
           )}
           <span className="absolute -top-1 -right-1 text-[7px] bg-warning text-warning-foreground px-1 rounded">AD</span>

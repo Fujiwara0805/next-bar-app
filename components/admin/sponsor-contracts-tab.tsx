@@ -2,14 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Loader2, Calendar, Ban, FileText, RotateCcw } from 'lucide-react';
+import { Plus, Loader2, Ban, FileText, RotateCcw, Trash2 } from 'lucide-react';
 import { useAdminTheme } from '@/lib/admin-theme-context';
 import { CustomModal } from '@/components/ui/custom-modal';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/auth/context';
 import { calculateEndDate } from '@/lib/sponsors/utils';
-import { renewContract } from '@/lib/actions/sponsor-contract';
+import { deleteContract, renewContract } from '@/lib/actions/sponsor-contract';
 import { PLAN_LABELS, CONTRACT_STATUS_LABELS } from '@/lib/sponsors/types';
 import type { SponsorContract, PlanType, ContractStatus } from '@/lib/sponsors/types';
 
@@ -32,6 +32,8 @@ export function SponsorContractsTab({ sponsorId }: Props) {
   const [createOpen, setCreateOpen] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
   const [cancelTarget, setCancelTarget] = useState<SponsorContract | null>(null);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<SponsorContract | null>(null);
   const [saving, setSaving] = useState(false);
 
   // Form
@@ -120,6 +122,21 @@ export function SponsorContractsTab({ sponsorId }: Props) {
       fetchContracts();
     } else {
       toast.error(error.message || 'キャンセルに失敗しました');
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setSaving(true);
+    const result = await deleteContract(deleteTarget.id);
+    setSaving(false);
+    if (result.success) {
+      toast.success('契約を削除しました');
+      setDeleteOpen(false);
+      setDeleteTarget(null);
+      fetchContracts();
+    } else {
+      toast.error(result.error || '削除に失敗しました');
     }
   };
 
@@ -240,6 +257,16 @@ export function SponsorContractsTab({ sponsorId }: Props) {
                         <Ban className="w-4 h-4" />
                       </motion.button>
                     )}
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => { setDeleteTarget(c); setDeleteOpen(true); }}
+                      className="p-1.5 rounded-lg transition-colors"
+                      style={{ color: C.danger }}
+                      title="削除"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </motion.button>
                     {status === 'expired' && (
                       <motion.button
                         whileHover={{ scale: 1.05 }}
@@ -428,6 +455,30 @@ export function SponsorContractsTab({ sponsorId }: Props) {
             className="flex-1 py-2.5 rounded-lg text-sm font-semibold text-destructive-foreground bg-destructive hover:bg-destructive/90 disabled:opacity-50"
           >
             {saving ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : 'キャンセルする'}
+          </button>
+        </div>
+      </CustomModal>
+
+      {/* Delete Confirm Modal */}
+      <CustomModal
+        isOpen={deleteOpen}
+        onClose={() => setDeleteOpen(false)}
+        title="契約削除"
+        description="この契約を削除しますか？紐づく広告枠・広告・レポートデータも削除されます。"
+      >
+        <div className="flex gap-2 pt-4">
+          <button
+            onClick={() => setDeleteOpen(false)}
+            className="flex-1 py-2.5 rounded-lg text-sm font-medium border border-gray-200 text-gray-600 hover:bg-gray-50"
+          >
+            戻る
+          </button>
+          <button
+            onClick={handleDelete}
+            disabled={saving}
+            className="flex-1 py-2.5 rounded-lg text-sm font-semibold text-destructive-foreground bg-destructive hover:bg-destructive/90 disabled:opacity-50"
+          >
+            {saving ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : '削除する'}
           </button>
         </div>
       </CustomModal>

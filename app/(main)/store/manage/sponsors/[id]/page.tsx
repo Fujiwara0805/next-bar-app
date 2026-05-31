@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Loader2, Building2, FileText, Layers, BarChart3 } from 'lucide-react';
-import Link from 'next/link';
+import { Building2, FileText, Layers, BarChart3 } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import { useAdminTheme } from '@/lib/admin-theme-context';
 import { useAuth } from '@/lib/auth/context';
@@ -54,9 +53,7 @@ export default function SponsorDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: C.bg }}>
-        <Loader2 className="w-6 h-6 animate-spin" style={{ color: C.accent }} />
-      </div>
+      <div className="min-h-screen" style={{ background: C.bg }} />
     );
   }
 
@@ -80,15 +77,6 @@ export default function SponsorDetailPage() {
       >
         <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link href="/store/manage/sponsors">
-              <motion.div
-                whileHover={{ x: -2 }}
-                className="p-2 rounded-lg cursor-pointer transition-colors"
-                style={{ background: C.bgCard, border: `1px solid ${C.border}` }}
-              >
-                <ArrowLeft className="w-4 h-4" style={{ color: C.textMuted }} />
-              </motion.div>
-            </Link>
             <div className="flex items-center gap-3">
               <div
                 className="w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold"

@@ -46,9 +46,9 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
     <div className="flex flex-col h-full">
       {/* Logo */}
       <div className="px-5 py-6 flex items-center gap-2.5" style={{ borderBottom: `1px solid ${C.border}` }}>
-        <img src={LOGO_URL} alt="NIKENME+" className="w-7 h-7 rounded-lg" />
+        <img src={LOGO_URL} alt="にけんめぷらす" className="w-7 h-7 rounded-lg" />
         <span className="text-sm font-bold tracking-tight" style={{ color: C.text }}>
-          NIKENME+
+          にけんめぷらす
         </span>
         <span
           className="ml-auto text-[9px] font-bold tracking-[0.08em] px-1.5 py-0.5 rounded-full"
@@ -90,7 +90,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         <button
           onClick={handleSignOut}
           className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all"
-          style={{ color: C.textSubtle }}
+          style={{ color: C.danger }}
         >
           <LogOut className="w-4 h-4" />
           ログアウト
@@ -135,7 +135,7 @@ function ManageLayoutInner({ children }: { children: React.ReactNode }) {
         </button>
         <div className="flex items-center gap-2 ml-2">
           <img src={LOGO_URL} alt="" className="w-5 h-5 rounded" />
-          <span className="text-sm font-semibold" style={{ color: C.text }}>NIKENME+</span>
+          <span className="text-sm font-semibold" style={{ color: C.text }}>にけんめぷらす</span>
         </div>
       </div>
 

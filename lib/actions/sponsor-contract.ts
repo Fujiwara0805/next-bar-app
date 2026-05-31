@@ -81,6 +81,92 @@ export async function cancelContract(id: string): Promise<{
   }
 }
 
+export async function deleteContract(id: string): Promise<{
+  success: boolean;
+  error?: string;
+}> {
+  try {
+    const supabase = createServerSupabaseClient();
+
+    const { data: slots, error: slotsError } = await supabase
+      .from('sponsor_ad_slots')
+      .select('id')
+      .eq('contract_id', id);
+
+    if (slotsError) return { success: false, error: slotsError.message };
+
+    const slotIds = (slots || []).map((slot) => slot.id);
+    let creativeIds: string[] = [];
+
+    if (slotIds.length > 0) {
+      const { data: creatives, error: creativesError } = await supabase
+        .from('sponsor_ad_creatives')
+        .select('id')
+        .in('ad_slot_id', slotIds);
+
+      if (creativesError) return { success: false, error: creativesError.message };
+      creativeIds = (creatives || []).map((creative) => creative.id);
+
+      if (creativeIds.length > 0) {
+        const { error: creativeImpressionsError } = await supabase
+          .from('sponsor_impressions')
+          .delete()
+          .in('creative_id', creativeIds);
+
+        if (creativeImpressionsError) return { success: false, error: creativeImpressionsError.message };
+      }
+
+      const { error: slotImpressionsError } = await supabase
+        .from('sponsor_impressions')
+        .delete()
+        .in('ad_slot_id', slotIds);
+
+      if (slotImpressionsError) return { success: false, error: slotImpressionsError.message };
+    }
+
+    const { error: contractImpressionsError } = await supabase
+      .from('sponsor_impressions')
+      .delete()
+      .eq('contract_id', id);
+
+    if (contractImpressionsError) return { success: false, error: contractImpressionsError.message };
+
+    const { error: reportsError } = await supabase
+      .from('sponsor_reports')
+      .delete()
+      .eq('contract_id', id);
+
+    if (reportsError) return { success: false, error: reportsError.message };
+
+    if (slotIds.length > 0) {
+      const { error: creativesDeleteError } = await supabase
+        .from('sponsor_ad_creatives')
+        .delete()
+        .in('ad_slot_id', slotIds);
+
+      if (creativesDeleteError) return { success: false, error: creativesDeleteError.message };
+
+      const { error: slotsDeleteError } = await supabase
+        .from('sponsor_ad_slots')
+        .delete()
+        .in('id', slotIds);
+
+      if (slotsDeleteError) return { success: false, error: slotsDeleteError.message };
+    }
+
+    const { error: contractDeleteError } = await supabase
+      .from('sponsor_contracts')
+      .delete()
+      .eq('id', id);
+
+    if (contractDeleteError) return { success: false, error: contractDeleteError.message };
+    return { success: true };
+  } catch (error) {
+    console.error('deleteContract error:', error);
+    return { success: false, error: '契約の削除に失敗しました' };
+  }
+}
+
 interface RenewContractInput {
   plan_type: PlanType;
   start_date: string;
