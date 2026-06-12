@@ -126,6 +126,22 @@ export async function PATCH(
       );
     }
 
+    // 計測の土台: 空席更新を追記ログに記録する（北極星KPI「有効空席更新数」の算出用）。
+    // vacancy_status が指定された更新のみ記録。失敗しても本処理は止めない（非致命）。
+    if (vacancy_status !== undefined) {
+      try {
+        await (supabase as any).from('store_vacancy_updates').insert({
+          store_id: storeId,
+          status: vacancy_status,
+          previous_status: store.vacancy_status ?? null,
+          source: 'manage_ui',
+          updated_by: auth.ctx.operatorId,
+        });
+      } catch (logErr) {
+        console.warn('[vacancy-status] update log skipped', logErr);
+      }
+    }
+
     // 空席ありに保存されたら、近くのユーザーにプッシュ通知（fire-and-forget）。
     // 「遷移」ではなく「現在 vacant」を条件にして、再保存でも発火可能にする。
     // 30分のスロットル ([[filterVacancyTargets]]) と日次キャップが連投を防ぐ。

@@ -27,6 +27,7 @@ import { locationCache, compassCache, cacheManager } from '@/lib/cache';
 import { useLanguage } from '@/lib/i18n/context';
 import { useAppMode } from '@/lib/app-mode-context';
 import { sendGAEvent } from '@/lib/analytics';
+import { getVacancyFreshness } from '@/lib/vacancy/freshness';
 
 type Store = Database['public']['Tables']['stores']['Row'];
 
@@ -1123,13 +1124,20 @@ export function MapView({
 
       const existingMarkerData = existingMarkers.get(store.id);
 
+      // 空席鮮度を加味したマーカー表示ステータス（古い vacant は要確認=open へ降格）。
+      // 一覧・詳細と同一基準（lib/vacancy/freshness）でマップ上の信用を守る（死因#1対策）。
+      const markerStatus = getVacancyFreshness(
+        store.vacancy_status,
+        store.last_updated ?? store.updated_at
+      ).displayStatus;
+
       if (existingMarkerData) {
         // 既存マーカーを再利用（位置とアイコンのみ更新）
-        const needsPositionUpdate = 
+        const needsPositionUpdate =
           existingMarkerData.lastPosition.lat !== position.lat ||
           existingMarkerData.lastPosition.lng !== position.lng;
-        
-        const needsIconUpdate = existingMarkerData.lastStatus !== store.vacancy_status;
+
+        const needsIconUpdate = existingMarkerData.lastStatus !== markerStatus;
 
         if (needsPositionUpdate) {
           existingMarkerData.marker.setPosition(position);
@@ -1139,11 +1147,11 @@ export function MapView({
 
         if (needsIconUpdate) {
           existingMarkerData.marker.setIcon({
-            url: getMarkerIconUrl(store.vacancy_status),
+            url: getMarkerIconUrl(markerStatus),
             scaledSize: new google.maps.Size(52, 52),
             anchor: new google.maps.Point(26, 26),
           });
-          existingMarkerData.lastStatus = store.vacancy_status;
+          existingMarkerData.lastStatus = markerStatus;
         }
       } else {
         // 新規マーカーを作成
@@ -1152,7 +1160,7 @@ export function MapView({
           map,
           title: store.name,
           icon: {
-            url: getMarkerIconUrl(store.vacancy_status),
+            url: getMarkerIconUrl(markerStatus),
             scaledSize: new google.maps.Size(52, 52),
             anchor: new google.maps.Point(26, 26),
           },
@@ -1192,7 +1200,7 @@ export function MapView({
         existingMarkers.set(store.id, {
           marker,
           touchArea,
-          lastStatus: store.vacancy_status,
+          lastStatus: markerStatus,
           lastPosition: position,
         });
 

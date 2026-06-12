@@ -32,6 +32,15 @@ const DEFAULT_RADIUS_KM = 2.0;
 
 const MAX_STORES_PER_REQUEST = 20;
 
+/**
+ * H-4: forceUpdate による Google Places API 課金増幅の上限化。
+ * このエンドポイントは無認証の公開マップから呼ばれる（ログイン不要が要件）ため、
+ * 認証ではなく「直近更新からの最小間隔」で防御する。forceUpdate=true でも、
+ * 直近 FORCE_REFRESH_MIN_MS 以内に更新済みの店舗は通常キャッシュ判定にフォールバックし、
+ * Google API 呼び出しを店舗あたり最大 ~1 回/分に制限する。
+ */
+const FORCE_REFRESH_MIN_MS = 60 * 1000;
+
 
 function isCacheValid(lastCheckAt: string | null): boolean {
   if (!lastCheckAt) return false;
@@ -250,6 +259,15 @@ async function updateSingleStore(
       closedReason: 'manual',
       fromCache: false,
     };
+  }
+
+  // H-4: forceUpdate でも直近 FORCE_REFRESH_MIN_MS 以内に更新済みなら force を無効化し、
+  // 通常のキャッシュ判定にフォールバックする（無認証ループによる Google API 課金増幅を抑止）。
+  if (forceUpdate && store.last_is_open_check_at) {
+    const lastMs = new Date(store.last_is_open_check_at).getTime();
+    if (Number.isFinite(lastMs) && Date.now() - lastMs < FORCE_REFRESH_MIN_MS) {
+      forceUpdate = false;
+    }
   }
 
   // ★ここが核心部分: forceUpdateがなく、キャッシュが有効ならAPIを叩かずに即リターン

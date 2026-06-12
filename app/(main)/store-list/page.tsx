@@ -30,6 +30,7 @@ import { useLanguage } from '@/lib/i18n/context';
 import { useAppMode } from '@/lib/app-mode-context';
 import { ConciergeModal } from '@/components/concierge-modal';
 import { getTodayOpenTime, isTodayClosedDay, checkIsOpenFromStructuredHours as checkIsOpenFromStructuredHoursClient, isManualCloseActive } from '@/lib/structured-business-hours';
+import { getVacancyFreshness, formatVacancyAge } from '@/lib/vacancy/freshness';
 import { useOptimizedLocation } from '@/lib/hooks/useOptimizedLocation';
 import { SponsorCampaignBanner } from '@/components/sponsors/sponsor-campaign-banner';
 import {
@@ -419,7 +420,8 @@ function StoreListContent() {
     let result = [...stores];
 
     if (vacantOnly) {
-      result = result.filter(store => store.vacancy_status === 'vacant');
+      // 鮮度切れの「空席あり」は要確認へ降格済みとして扱い、空席フィルタから除外する
+      result = result.filter(store => getVacancyFreshnessFor(store).displayStatus === 'vacant');
     }
 
     if (openNowOnly) {
@@ -544,6 +546,14 @@ function StoreListContent() {
       return 'closed';
     }
   };
+
+  // 空席鮮度を加味した表示用ステータス（古い vacant は「営業中・要確認」へ自動降格）。
+  // 一覧・フィルタ・地図・詳細で同一基準（lib/vacancy/freshness）を用いる。
+  const getVacancyFreshnessFor = (store: Store) =>
+    getVacancyFreshness(
+      getEffectiveVacancyStatus(store),
+      store.last_updated ?? store.updated_at
+    );
 
   const getVacancyLabel = (status: string) => {
     switch (status) {
@@ -790,11 +800,20 @@ function StoreListContent() {
                               })()}
                               
                               {(() => {
-                                const effectiveStatus = getEffectiveVacancyStatus(store);
+                                const freshness = getVacancyFreshnessFor(store);
+                                const effectiveStatus = freshness.displayStatus;
+                                const ageText = formatVacancyAge(freshness.ageMinutes, {
+                                  justNow: t('map.updated_just_now'),
+                                  minutesAgo: (n) => t('map.updated_minutes_ago').replace('{n}', String(n)),
+                                  hoursAgo: (n) => t('map.updated_hours_ago').replace('{n}', String(n)),
+                                });
                                 return (
                               <motion.div className="flex items-center gap-2 pt-1 flex-wrap" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}>
                                 <img src={getVacancyIcon(effectiveStatus)} alt={getVacancyLabel(effectiveStatus)} className="w-6 h-6 object-contain" />
                                 <span className="text-lg font-bold" style={{ color: isEventStore ? EVENT_CARD_FG : COLORS.deepNavy }}>{getVacancyLabel(effectiveStatus)}</span>
+                                {(effectiveStatus === 'vacant' || effectiveStatus === 'full') && ageText && (
+                                  <span className="text-xs" style={{ color: isEventStore ? EVENT_CARD_FG : COLORS.warmGray }}>{ageText}</span>
+                                )}
                                 {effectiveStatus === 'vacant' && store.vacant_seats != null && store.vacant_seats > 0 && (
                                   <span className="text-sm font-bold px-2 py-0.5 rounded-lg" style={{
                                     backgroundColor: isEventStore ? `${EVENT_CARD_FG}1A` : 'rgba(34, 197, 94, 0.1)',
