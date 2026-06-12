@@ -149,8 +149,25 @@ export default function ApplicationsManagePage() {
     }
   };
 
-  const handleExportCSV = () => {
-    window.open('/api/store-applications/export', '_blank');
+  const handleExportCSV = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch('/api/store-applications/export', {
+        headers: session?.access_token
+          ? { Authorization: `Bearer ${session.access_token}` }
+          : {},
+      });
+      if (!res.ok) throw new Error('export_failed');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `store_applications_${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      toast.error('エクスポートに失敗しました', { position: 'top-center' });
+    }
   };
 
   const formatDate = (dateString: string) => {

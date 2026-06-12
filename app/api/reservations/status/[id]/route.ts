@@ -1,19 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createServerSupabaseClient } from '@/lib/supabase/server';
 
 // キャッシュ無効化（Route Segment Config）
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 export const fetchCache = 'force-no-store';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables: NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are required');
-}
-
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// quick_reservations は service_role で操作する（anon素通しRLSを撤廃したため）。
+const supabase = createServerSupabaseClient();
 
 export async function GET(
   request: NextRequest,

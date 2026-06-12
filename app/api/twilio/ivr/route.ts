@@ -1,23 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import twilio from 'twilio';
+import { verifyTwilioRequest } from '@/lib/twilio/verify';
+import { createServerSupabaseClient } from '@/lib/supabase/server';
 
 const VoiceResponse = twilio.twiml.VoiceResponse;
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables: NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are required');
-}
-
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// quick_reservations は service_role で操作する（anon素通しRLSを撤廃したため）。
+const supabase = createServerSupabaseClient();
 
 export async function POST(request: NextRequest) {
   try {
+    // Twilio 署名検証（コールフローの偽造・スパムを防止）
+    const verified = await verifyTwilioRequest(request);
+    if (!verified.ok) {
+      console.warn('[twilio/ivr] signature rejected:', verified.reason);
+      return new NextResponse('Forbidden', { status: 403 });
+    }
+
     const searchParams = request.nextUrl.searchParams;
     const reservationId = searchParams.get('reservationId');
-    
+
     if (!reservationId) {
       return new NextResponse('Invalid request', { status: 400 });
     }

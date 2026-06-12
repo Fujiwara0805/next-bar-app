@@ -39,6 +39,7 @@ import {
   Legend,
 } from 'recharts';
 import { AdminKpiCard, getKpiGradient } from '@/components/admin/admin-kpi-card';
+import { supabase } from '@/lib/supabase/client';
 import type { ReportResponse } from '@/lib/sponsors/types';
 
 interface Props {
@@ -105,9 +106,15 @@ export function SponsorReportsTab({ sponsorId }: Props) {
     setLoading(true);
     try {
       const { start, end } = dateRange;
+      const { data: { session } } = await supabase.auth.getSession();
       const res = await fetch(
         `/api/sponsors/${sponsorId}/reports?start_date=${start}&end_date=${end}`,
-        { cache: 'no-store' }
+        {
+          cache: 'no-store',
+          headers: session?.access_token
+            ? { Authorization: `Bearer ${session.access_token}` }
+            : {},
+        }
       );
       if (res.ok) {
         setData(await res.json());
@@ -147,7 +154,12 @@ export function SponsorReportsTab({ sponsorId }: Props) {
         URL.revokeObjectURL(a.href);
       } else {
         const url = `/api/sponsors/${sponsorId}/reports/export?format=pdf&start_date=${start}&end_date=${end}`;
-        const res = await fetch(url);
+        const { data: { session } } = await supabase.auth.getSession();
+        const res = await fetch(url, {
+          headers: session?.access_token
+            ? { Authorization: `Bearer ${session.access_token}` }
+            : {},
+        });
         const pdfData = await res.json();
         const { jsPDF } = await import('jspdf');
         const doc = new jsPDF();

@@ -1,16 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import twilio from 'twilio';
 import { sendPushToStore } from '@/lib/push/server';
+import { createServerSupabaseClient } from '@/lib/supabase/server';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables: NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are required');
-}
-
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// quick_reservations は service_role で操作する（anon素通しRLSを撤廃したため）。
+const supabase = createServerSupabaseClient();
 
 const twilioAccountSid = process.env.TWILIO_ACCOUNT_SID;
 const twilioAuthToken = process.env.TWILIO_AUTH_TOKEN;
@@ -33,7 +27,25 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    
+
+    // 入力の型・長さバリデーション
+    // （TTSで読み上げられるため過度に長い/不正な値を拒否し、悪用を抑止）
+    const name = String(userName).trim().slice(0, 50);
+    const phoneRaw = String(userPhone).trim();
+    if (!/^[0-9+\-\s()]{8,20}$/.test(phoneRaw)) {
+      return NextResponse.json(
+        { error: 'Invalid phone number format' },
+        { status: 400 }
+      );
+    }
+    const size = Number(partySize);
+    if (!Number.isInteger(size) || size < 1 || size > 50) {
+      return NextResponse.json(
+        { error: 'Invalid party size' },
+        { status: 400 }
+      );
+    }
+
     // 到着時間の検証（デフォルトは10分）
     const minutes = arrivalMinutes ? parseInt(arrivalMinutes) : 10;
     if (![10, 20, 30].includes(minutes)) {
@@ -42,7 +54,35 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    
+
+    // レート制限（防御的多層化）: ログイン不要のため、
+    // 直近5分の quick_reservations を caller_phone / store_id 単位で数え、
+    // 連続発信によるスパム架電・Twilio課金浪費を抑止する。
+    const RATE_WINDOW_MS = 5 * 60 * 1000;
+    const MAX_PER_PHONE = 3;
+    const MAX_PER_STORE = 5;
+    const since = new Date(Date.now() - RATE_WINDOW_MS).toISOString();
+
+    const [{ count: phoneCount }, { count: storeCount }] = await Promise.all([
+      supabase
+        .from('quick_reservations')
+        .select('id', { count: 'exact', head: true })
+        .eq('caller_phone', phoneRaw)
+        .gte('created_at', since),
+      supabase
+        .from('quick_reservations')
+        .select('id', { count: 'exact', head: true })
+        .eq('store_id', storeId)
+        .gte('created_at', since),
+    ]);
+
+    if ((phoneCount ?? 0) >= MAX_PER_PHONE || (storeCount ?? 0) >= MAX_PER_STORE) {
+      return NextResponse.json(
+        { error: 'Too many reservation requests. Please try again later.' },
+        { status: 429 }
+      );
+    }
+
     // 店舗情報を取得
     const { data: store, error: storeError } = await supabase
       .from('stores')
@@ -73,9 +113,9 @@ export async function POST(request: NextRequest) {
       .insert({
         store_id: storeId,
         user_id: userId || null, // オプショナル（ゲスト予約の場合はnull）
-        caller_name: userName, // 必須
-        caller_phone: userPhone,
-        party_size: partySize,
+        caller_name: name, // 必須
+        caller_phone: phoneRaw,
+        party_size: size,
         arrival_time: arrivalTime.toISOString(),
         status: 'pending',
         expires_at: new Date(Date.now() + 3 * 60 * 1000).toISOString(), // 3分で期限切れ
@@ -114,7 +154,7 @@ export async function POST(request: NextRequest) {
       // 店舗にプッシュ通知を送信（新規予約リクエスト）
       sendPushToStore(storeId, {
         title: '🔔 新しい予約リクエスト',
-        body: `${userName}様から${partySize}名の予約リクエストが入りました。`,
+        body: `${name}様から${size}名の予約リクエストが入りました。`,
         url: `/store/manage/${storeId}/update`,
         tag: `reservation-${reservation.id}`,
       });

@@ -1,22 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import { sendPushToStore } from '@/lib/push/server';
+import { verifyTwilioRequest } from '@/lib/twilio/verify';
+import { createServerSupabaseClient } from '@/lib/supabase/server';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables: NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are required');
-}
-
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// quick_reservations は service_role で操作する（anon素通しRLSを撤廃したため）。
+const supabase = createServerSupabaseClient();
 
 export async function POST(request: NextRequest) {
   try {
-    const formData = await request.formData();
-    const callSid = formData.get('CallSid') as string;
-    const callStatus = formData.get('CallStatus') as string;
-    
+    // Twilio 署名検証（偽のステータスコールバックによる予約状態改ざんを防止）。
+    // formData は verify 内で消費し、結果の params を再利用する。
+    const verified = await verifyTwilioRequest(request);
+    if (!verified.ok) {
+      console.warn('[twilio/call-status] signature rejected:', verified.reason);
+      return new NextResponse('Forbidden', { status: 403 });
+    }
+
+    const callSid = verified.params['CallSid'];
+    const callStatus = verified.params['CallStatus'];
+
     console.log('Call status callback:', { callSid, callStatus });
     
     // 通話SIDで予約を検索

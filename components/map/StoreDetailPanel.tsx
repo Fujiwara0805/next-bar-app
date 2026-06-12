@@ -29,6 +29,7 @@ import { useLanguage } from '@/lib/i18n/context';
 import { translations } from '@/lib/i18n/translations';
 import { InstantReservationButton } from '@/components/instant-reservation-button';
 import { getTodayOpenTime, isTodayClosedDay, checkIsOpenFromStructuredHours, isManualCloseActive } from '@/lib/structured-business-hours';
+import { getVacancyFreshness, formatVacancyAge } from '@/lib/vacancy/freshness';
 import { sendGAEvent } from '@/lib/analytics';
 import { useAppMode } from '@/lib/app-mode-context';
 import type { BusinessHours } from '@/lib/supabase/types';
@@ -253,6 +254,19 @@ export function StoreDetailPanel({
   };
 
   const effectiveStatus = getEffectiveVacancyStatus();
+
+  // 空席鮮度の評価: 古い「空席あり」は「営業中・要確認」へ自動降格し、最終更新を明示する。
+  const freshness = getVacancyFreshness(
+    effectiveStatus,
+    store.last_updated ?? store.updated_at
+  );
+  // バッジ表示には鮮度を加味したステータスを使う
+  const displayStatus = freshness.displayStatus;
+  const freshnessAgeText = formatVacancyAge(freshness.ageMinutes, {
+    justNow: t('map.updated_just_now'),
+    minutesAgo: (n) => t('map.updated_minutes_ago').replace('{n}', String(n)),
+    hoursAgo: (n) => t('map.updated_hours_ago').replace('{n}', String(n)),
+  });
 
   const getVacancyLabel = (status: string) => {
     switch (status) {
@@ -492,24 +506,24 @@ export function StoreDetailPanel({
                 )}
 
                 <div className="flex items-center gap-2 pt-1 flex-wrap">
-                  {/* 1) 店舗側設定の空席アイコン */}
+                  {/* 1) 店舗側設定の空席アイコン（鮮度を加味した表示ステータス） */}
                   <img
-                    src={getVacancyIcon(effectiveStatus)}
-                    alt={getVacancyLabel(effectiveStatus)}
+                    src={getVacancyIcon(displayStatus)}
+                    alt={getVacancyLabel(displayStatus)}
                     className="w-6 h-6"
                   />
                   <span className="text-xl font-bold" style={{ color: theme.text }}>
-                    {getVacancyLabel(effectiveStatus)}
+                    {getVacancyLabel(displayStatus)}
                   </span>
 
-                  {/* 2) 残席数 */}
-                  {effectiveStatus === 'vacant' && store.vacant_seats != null && store.vacant_seats > 0 && (
+                  {/* 2) 残席数（鮮度切れで降格した場合は実態不明のため非表示） */}
+                  {displayStatus === 'vacant' && store.vacant_seats != null && store.vacant_seats > 0 && (
                     <span className="text-sm font-bold px-2 py-0.5 rounded-lg bg-success/10 text-success">
                       {t('store_detail.vacant_seats').replace('{count}', String(store.vacant_seats))}
                     </span>
                   )}
 
-                  {effectiveStatus === 'closed' && (() => {
+                  {displayStatus === 'closed' && (() => {
                     const sbh = store.structured_business_hours as BusinessHours | null;
                     if (isTodayClosedDay(sbh)) {
                       return (
@@ -527,6 +541,21 @@ export function StoreDetailPanel({
                     );
                   })()}
                 </div>
+
+                {/* 3) 空席鮮度: 最終更新時刻と、鮮度切れ警告（死因#1: 空席情報の信頼崩壊 対策） */}
+                {(displayStatus === 'vacant' || displayStatus === 'full' || freshness.downgraded) && freshnessAgeText && (
+                  <div className="pt-1">
+                    {freshness.stale ? (
+                      <span className="text-xs font-bold px-2 py-0.5 rounded-lg bg-amber-100 text-amber-700">
+                        {t('map.vacancy_stale').replace('{ago}', freshnessAgeText)}
+                      </span>
+                    ) : (
+                      <span className="text-xs font-medium" style={{ color: theme.textMuted }}>
+                        {t('map.vacancy_updated_ago').replace('{ago}', freshnessAgeText)}
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 

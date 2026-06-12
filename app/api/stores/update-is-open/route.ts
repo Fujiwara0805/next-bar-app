@@ -13,19 +13,13 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import { checkIsOpenFromGooglePlaceId } from '@/lib/business-hours';
 import { checkIsOpenFromStructuredHours } from '@/lib/structured-business-hours';
 import type { BusinessHours } from '@/lib/supabase/types';
+import { createServerSupabaseClient } from '@/lib/supabase/server';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
-}
-
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// stores の営業状態更新は service_role で行う（anonによる全列UPDATE素通しRLSを撤廃したため）。
+const supabase = createServerSupabaseClient();
 
 /**
  * キャッシュ有効期間（60分）

@@ -7,9 +7,15 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { resolveManageAuth, assertPlatformAdmin } from '@/lib/api/manage-auth';
 
 export async function GET(request: NextRequest) {
   try {
+    const auth = await resolveManageAuth(request);
+    if (!auth.ok) return auth.response;
+    const forbidden = await assertPlatformAdmin(auth.ctx);
+    if (forbidden) return forbidden;
+
     const supabase = createServerSupabaseClient();
 
     const { data, error } = await supabase

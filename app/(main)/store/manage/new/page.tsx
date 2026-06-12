@@ -255,7 +255,12 @@ function NewStorePage() {
 
     const fetchApplication = async () => {
       try {
-        const res = await fetch(`/api/store-applications/${applicationId}`);
+        const { data: { session } } = await supabase.auth.getSession();
+        const res = await fetch(`/api/store-applications/${applicationId}`, {
+          headers: session?.access_token
+            ? { Authorization: `Bearer ${session.access_token}` }
+            : {},
+        });
         if (!res.ok) throw new Error('申し込みデータの取得に失敗しました');
         const { data } = await res.json();
 

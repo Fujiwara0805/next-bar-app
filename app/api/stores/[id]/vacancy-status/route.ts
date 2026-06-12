@@ -94,6 +94,10 @@ export async function PATCH(
     };
 
     if (vacancy_status !== undefined) updateData.vacancy_status = vacancy_status;
+    // 空席ステータス変更時は鮮度アンカー(last_updated)を必ず打刻する。
+    // クライアントが last_updated を送らないケースでも鮮度判定を正しく機能させる。
+    // ([[lib/vacancy/freshness.ts]] の自動降格はこの値を基準にする)
+    if (vacancy_status !== undefined) updateData.last_updated = new Date().toISOString();
     if (status_message !== undefined) updateData.status_message = status_message;
     if (is_open !== undefined) updateData.is_open = is_open;
     if (vacant_seats !== undefined) updateData.vacant_seats = vacant_seats;
@@ -101,7 +105,10 @@ export async function PATCH(
     if (closed_reason !== undefined) updateData.closed_reason = closed_reason;
     if (manual_closed_at !== undefined) updateData.manual_closed_at = manual_closed_at;
     if (last_is_open_check_at !== undefined) updateData.last_is_open_check_at = last_is_open_check_at;
-    if (last_updated !== undefined) updateData.last_updated = last_updated;
+    // vacancy_status 変更時はサーバ打刻を優先（クライアント値で上書きさせない）
+    if (last_updated !== undefined && vacancy_status === undefined) {
+      updateData.last_updated = last_updated;
+    }
 
     // 更新実行
     const { data: updatedStore, error: updateError } = await supabase

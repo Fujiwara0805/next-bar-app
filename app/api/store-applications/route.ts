@@ -12,6 +12,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { resolveManageAuth, assertPlatformAdmin } from '@/lib/api/manage-auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -141,6 +142,12 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
+    // 認可: platform admin のみ（申請PIIの閲覧）
+    const auth = await resolveManageAuth(request);
+    if (!auth.ok) return auth.response;
+    const forbidden = await assertPlatformAdmin(auth.ctx);
+    if (forbidden) return forbidden;
+
     const supabase = createServerSupabaseClient();
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');

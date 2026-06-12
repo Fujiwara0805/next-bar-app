@@ -29,7 +29,9 @@ interface NestedSlotRow {
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
-  const debug = url.searchParams.get('debug') === '1';
+  // M-4: 本番では debug 情報(構成・service_roleの有無・内部エラー)を一切返さない。
+  const debug =
+    url.searchParams.get('debug') === '1' && process.env.NODE_ENV !== 'production';
   const debugInfo: Record<string, unknown> = {};
 
   try {

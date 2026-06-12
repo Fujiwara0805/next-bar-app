@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { resolveManageAuth, assertPlatformAdmin } from '@/lib/api/manage-auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -8,6 +9,11 @@ export async function GET(
   { params }: { params: Promise<{ sponsorId: string }> }
 ) {
   try {
+    const auth = await resolveManageAuth(request);
+    if (!auth.ok) return auth.response;
+    const forbidden = await assertPlatformAdmin(auth.ctx);
+    if (forbidden) return forbidden;
+
     const { sponsorId } = await params;
     const { searchParams } = new URL(request.url);
     const format = searchParams.get('format') || 'csv';

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { resolveManageAuth, assertPlatformAdmin } from '@/lib/api/manage-auth';
 import type { ReportResponse, SlotType, CreativePerformance } from '@/lib/sponsors/types';
 
 export const dynamic = 'force-dynamic';
@@ -9,6 +10,12 @@ export async function GET(
   { params }: { params: Promise<{ sponsorId: string }> }
 ) {
   try {
+    // 認可: platform admin のみ（スポンサー広告効果データの閲覧）
+    const auth = await resolveManageAuth(request);
+    if (!auth.ok) return auth.response;
+    const forbidden = await assertPlatformAdmin(auth.ctx);
+    if (forbidden) return forbidden;
+
     const { sponsorId } = await params;
     const { searchParams } = new URL(request.url);
 
