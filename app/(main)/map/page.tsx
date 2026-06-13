@@ -150,29 +150,6 @@ function calculateRetryDelay(retryCount: number): number {
 }
 
 /**
- * Viewport内の店舗のみをフィルタリング
- */
-function filterStoresByViewport(
-  stores: Store[],
-  bounds: ViewportBounds | null,
-  padding: number = 0.01
-): Store[] {
-  if (!bounds) return stores;
-
-  return stores.filter((store) => {
-    const lat = Number(store.latitude);
-    const lng = Number(store.longitude);
-
-    return (
-      lat >= bounds.sw.lat - padding &&
-      lat <= bounds.ne.lat + padding &&
-      lng >= bounds.sw.lng - padding &&
-      lng <= bounds.ne.lng + padding
-    );
-  });
-}
-
-/**
  * BoundsKeyを生成
  */
 function generateBoundsKey(bounds: ViewportBounds): string {
@@ -829,11 +806,10 @@ function MapPageContent() {
     router.push(`/store/${storeId}`);
   }, [router]);
 
-  // Viewport内の店舗のみをフィルタリング（メモ化）
+  // マーカーの付け外しによるチラつきを避けるため、マップ上は全店舗を安定表示する
   const filteredStores = useMemo(() => {
-    const viewportStores = filterStoresByViewport(stores, currentBounds)
-      .filter((store) => !eventOnly || !!store.active_event);
-    return viewportStores.map(store => {
+    const visibleStores = stores.filter((store) => !eventOnly || !!store.active_event);
+    return visibleStores.map(store => {
       // 閉店ボタンによる臨時休業中（12時間以内）は営業時間に関係なく 'closed' に固定
       if (isManualCloseActive(store)) {
         return store.vacancy_status === 'closed'
@@ -852,7 +828,7 @@ function MapPageContent() {
       }
       return store;
     });
-  }, [stores, currentBounds, eventOnly]);
+  }, [stores, eventOnly]);
 
   // stores から最新データを導出（IDのみ保持し、表示はstoresから取得）
   const selectedStore = useMemo(() => {

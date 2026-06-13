@@ -146,8 +146,8 @@ export default function StoreUpdatePage() {
     },
     {
       value: 'closed',
-      label: '閉店',
-      description: '臨時休業（営業時間に関わらず閉店表示／12時間後に自動解除、他ボタン押下で即解除）',
+      label: '臨時休業',
+      description: '',
       color: COLORS.warmGray,
       bgColor: 'rgba(99, 110, 114, 0.08)',
       borderColor: 'rgba(99, 110, 114, 0.3)',
@@ -1150,12 +1150,14 @@ export default function StoreUpdatePage() {
                                 {IconComponent && <IconComponent className="w-4 h-4" />}
                                 {option.label}
                               </div>
-                              <div 
-                                className="text-sm font-medium"
-                                style={{ color: COLORS.warmGray }}
-                              >
-                                {option.description}
-                              </div>
+                              {option.description && (
+                                <div 
+                                  className="text-sm font-medium"
+                                  style={{ color: COLORS.warmGray }}
+                                >
+                                  {option.description}
+                                </div>
+                              )}
                             </div>
                           </Label>
                         </motion.div>

@@ -89,18 +89,10 @@ interface DeviceOrientationState {
   isSupported: boolean;
 }
 
-// マーカー管理用の型
-type StoreMarkerOverlay = google.maps.OverlayView & {
-  setPosition: (position: { lat: number; lng: number }) => void;
-  updateContent: (status: string, imageUrl: string | null, title: string) => void;
-  bounce: () => void;
-};
-
 interface StoreMarkerData {
-  marker: StoreMarkerOverlay;
+  marker: google.maps.Marker;
   touchArea: google.maps.Circle;
-  lastStatus: string | null;
-  lastImageUrl: string | null;
+  lastIconKey: string;
   lastPosition: { lat: number; lng: number };
 }
 
@@ -150,179 +142,164 @@ function calculateDistanceMeters(
   return R * c;
 }
 
-const MARKER_SIZE_PX = 52;
+const MARKER_ICON_WIDTH_PX = 112;
+const MARKER_ICON_HEIGHT_PX = 66;
 const MARKER_FRAME_SIZE_PX = 46;
-
-function applyStyles(el: HTMLElement, styles: Partial<CSSStyleDeclaration>) {
-  Object.assign(el.style, styles);
-}
+const MARKER_LABEL_WIDTH_PX = 96;
+const MARKER_IMAGE_CANVAS_SIZE_PX = 96;
+const markerImageCache = new Map<string, Promise<string | null>>();
 
 function getMarkerImageUrl(store: Store): string | null {
   const firstImage = store.image_urls?.[0];
   return typeof firstImage === 'string' && firstImage.trim() ? firstImage.trim() : null;
 }
 
-function createBeerFallbackIcon(): SVGSVGElement {
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.setAttribute('viewBox', '0 0 24 24');
-  svg.setAttribute('width', '24');
-  svg.setAttribute('height', '24');
-  svg.setAttribute('fill', 'none');
-  svg.setAttribute('stroke', 'currentColor');
-  svg.setAttribute('stroke-width', '2.4');
-  svg.setAttribute('stroke-linecap', 'round');
-  svg.setAttribute('stroke-linejoin', 'round');
-  svg.setAttribute('aria-hidden', 'true');
-
-  const mug = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  mug.setAttribute('d', 'M4 8h11v11a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V8Z');
-  const handle = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  handle.setAttribute('d', 'M15 10h2a3 3 0 0 1 0 6h-2');
-  const foam = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  foam.setAttribute('d', 'M5 8a3 3 0 0 1 5-3 3 3 0 0 1 5 3');
-  const line1 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  line1.setAttribute('d', 'M8 12v6');
-  const line2 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  line2.setAttribute('d', 'M11 12v6');
-
-  svg.append(mug, handle, foam, line1, line2);
-  return svg;
+function escapeSvgText(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }
 
-function buildMarkerVisual(status: string, imageUrl: string | null): HTMLElement {
-  const visual = document.createElement('span');
-  applyStyles(visual, {
-    position: 'relative',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: `${MARKER_FRAME_SIZE_PX}px`,
-    height: `${MARKER_FRAME_SIZE_PX}px`,
-    borderRadius: '9999px',
-    overflow: 'hidden',
-    border: `3px solid ${status === 'open' ? '#22c55e' : '#FFFFFF'}`,
-    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.32)',
-    background: '#13294b',
-    color: '#FFFFFF',
-    fontFamily:
-      'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-    fontSize: '20px',
-    fontWeight: '900',
-    lineHeight: '1',
+function truncateMarkerTitle(title: string): string {
+  return title.length > 10 ? `${title.slice(0, 10)}...` : title;
+}
+
+function getMarkerIconKey(status: string, imageUrl: string | null, title: string): string {
+  return `${status}|${imageUrl ?? ''}|${title}`;
+}
+
+function createBeerSvgPaths(): string {
+  return `
+    <path d="M4 8h11v11a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V8Z"/>
+    <path d="M15 10h2a3 3 0 0 1 0 6h-2"/>
+    <path d="M5 8a3 3 0 0 1 5-3 3 3 0 0 1 5 3"/>
+    <path d="M8 12v6"/>
+    <path d="M11 12v6"/>
+  `;
+}
+
+function createMarkerSvgDataUrl(
+  status: string,
+  title: string,
+  imageDataUrl: string | null
+): string {
+  const iconX = (MARKER_ICON_WIDTH_PX - MARKER_FRAME_SIZE_PX) / 2;
+  const iconY = 0;
+  const centerX = MARKER_ICON_WIDTH_PX / 2;
+  const centerY = MARKER_FRAME_SIZE_PX / 2;
+  const radius = MARKER_FRAME_SIZE_PX / 2 - 2;
+  const labelX = (MARKER_ICON_WIDTH_PX - MARKER_LABEL_WIDTH_PX) / 2;
+  const labelY = MARKER_FRAME_SIZE_PX + 3;
+  const labelText = escapeSvgText(truncateMarkerTitle(title));
+  const borderColor = status === 'open' ? '#22c55e' : '#FFFFFF';
+  const label = `
+    <rect x="${labelX}" y="${labelY}" width="${MARKER_LABEL_WIDTH_PX}" height="16" rx="8" fill="#13294b" fill-opacity="0.88" stroke="#FFFFFF" stroke-opacity="0.74" stroke-width="1"/>
+    <text x="${centerX}" y="${labelY + 11.5}" text-anchor="middle" fill="#FFFFFF" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="10" font-weight="800">${labelText}</text>
+  `;
+
+  let body = '';
+  if (status === 'vacant' || status === 'full') {
+    const fill = status === 'vacant' ? '#22c55e' : '#ef4444';
+    const text = status === 'vacant' ? '空' : '満';
+    body = `
+      <circle cx="${centerX}" cy="${centerY}" r="${radius}" fill="${fill}" stroke="#FFFFFF" stroke-width="3"/>
+      <text x="${centerX}" y="${centerY + 7}" text-anchor="middle" fill="#FFFFFF" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="20" font-weight="900">${text}</text>
+    `;
+  } else if (imageDataUrl) {
+    body = `
+      <defs>
+        <clipPath id="storeClip"><circle cx="${centerX}" cy="${centerY}" r="${radius}"/></clipPath>
+      </defs>
+      <image href="${imageDataUrl}" x="${iconX}" y="${iconY}" width="${MARKER_FRAME_SIZE_PX}" height="${MARKER_FRAME_SIZE_PX}" preserveAspectRatio="xMidYMid slice" clip-path="url(#storeClip)"/>
+      ${status === 'closed' ? `<circle cx="${centerX}" cy="${centerY}" r="${radius}" fill="#4b5563" fill-opacity="0.68"/>` : ''}
+      <circle cx="${centerX}" cy="${centerY}" r="${radius}" fill="none" stroke="${borderColor}" stroke-width="3"/>
+    `;
+  } else {
+    body = `
+      <circle cx="${centerX}" cy="${centerY}" r="${radius}" fill="#13294b" stroke="${borderColor}" stroke-width="3"/>
+      <g transform="translate(${centerX - 12} ${centerY - 12})" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+        ${createBeerSvgPaths()}
+      </g>
+      ${status === 'closed' ? `<circle cx="${centerX}" cy="${centerY}" r="${radius}" fill="#4b5563" fill-opacity="0.68"/>` : ''}
+    `;
+  }
+
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="${MARKER_ICON_WIDTH_PX}" height="${MARKER_ICON_HEIGHT_PX}" viewBox="0 0 ${MARKER_ICON_WIDTH_PX} ${MARKER_ICON_HEIGHT_PX}">
+      <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+        <feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#000000" flood-opacity="0.32"/>
+      </filter>
+      <g filter="url(#shadow)">${body}${label}</g>
+    </svg>
+  `;
+
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+}
+
+function createGoogleMarkerIcon(url: string): google.maps.Icon {
+  return {
+    url,
+    scaledSize: new google.maps.Size(MARKER_ICON_WIDTH_PX, MARKER_ICON_HEIGHT_PX),
+    anchor: new google.maps.Point(MARKER_ICON_WIDTH_PX / 2, MARKER_FRAME_SIZE_PX / 2),
+  };
+}
+
+function loadMarkerImageDataUrl(imageUrl: string): Promise<string | null> {
+  if (imageUrl.startsWith('data:')) return Promise.resolve(imageUrl);
+  const cached = markerImageCache.get(imageUrl);
+  if (cached) return cached;
+
+  const promise = new Promise<string | null>((resolve) => {
+    const image = new Image();
+    image.crossOrigin = 'anonymous';
+    image.onload = () => {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = MARKER_IMAGE_CANVAS_SIZE_PX;
+        canvas.height = MARKER_IMAGE_CANVAS_SIZE_PX;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          resolve(null);
+          return;
+        }
+        const scale = Math.max(
+          MARKER_IMAGE_CANVAS_SIZE_PX / image.naturalWidth,
+          MARKER_IMAGE_CANVAS_SIZE_PX / image.naturalHeight
+        );
+        const drawWidth = image.naturalWidth * scale;
+        const drawHeight = image.naturalHeight * scale;
+        ctx.drawImage(
+          image,
+          (MARKER_IMAGE_CANVAS_SIZE_PX - drawWidth) / 2,
+          (MARKER_IMAGE_CANVAS_SIZE_PX - drawHeight) / 2,
+          drawWidth,
+          drawHeight
+        );
+        resolve(canvas.toDataURL('image/png'));
+      } catch {
+        resolve(null);
+      }
+    };
+    image.onerror = () => resolve(null);
+    image.src = imageUrl;
   });
 
-  if (status === 'vacant' || status === 'full') {
-    visual.textContent = status === 'vacant' ? '空' : '満';
-    visual.style.background = status === 'vacant' ? '#22c55e' : '#ef4444';
-    return visual;
-  }
-
-  if (imageUrl) {
-    const img = document.createElement('img');
-    img.src = imageUrl;
-    img.alt = '';
-    img.decoding = 'async';
-    applyStyles(img, {
-      width: '100%',
-      height: '100%',
-      objectFit: 'cover',
-      display: 'block',
-    });
-    visual.appendChild(img);
-  } else {
-    visual.appendChild(createBeerFallbackIcon());
-  }
-
-  if (status === 'closed') {
-    const overlay = document.createElement('span');
-    applyStyles(overlay, {
-      position: 'absolute',
-      inset: '0',
-      background: 'rgba(75, 85, 99, 0.68)',
-    });
-    visual.appendChild(overlay);
-  }
-
-  return visual;
+  markerImageCache.set(imageUrl, promise);
+  return promise;
 }
 
-function createStoreMarkerOverlay(
-  map: google.maps.Map,
-  position: { lat: number; lng: number },
+async function createMarkerIconUrl(
   status: string,
   imageUrl: string | null,
-  title: string,
-  onClick: () => void
-): StoreMarkerOverlay {
-  const element = document.createElement('button');
-  element.type = 'button';
-  applyStyles(element, {
-    position: 'absolute',
-    width: `${MARKER_SIZE_PX}px`,
-    height: `${MARKER_SIZE_PX}px`,
-    padding: '0',
-    border: '0',
-    background: 'transparent',
-    cursor: 'pointer',
-    transform: 'translate(-50%, -50%)',
-    touchAction: 'manipulation',
-  });
-  const handleElementClick = (event: MouseEvent) => {
-    event.stopPropagation();
-    onClick();
-  };
-  element.addEventListener('click', handleElementClick);
-
-  let markerPosition = position;
-  const overlay = new google.maps.OverlayView() as StoreMarkerOverlay;
-
-  overlay.updateContent = (nextStatus, nextImageUrl, nextTitle) => {
-    element.replaceChildren(buildMarkerVisual(nextStatus, nextImageUrl));
-    element.title = nextTitle;
-    element.setAttribute('aria-label', nextTitle);
-  };
-
-  overlay.setPosition = (nextPosition) => {
-    markerPosition = nextPosition;
-    overlay.draw();
-  };
-
-  overlay.bounce = () => {
-    const visual = element.firstElementChild;
-    if (!(visual instanceof HTMLElement)) return;
-    visual.animate(
-      [
-        { transform: 'translateY(0)' },
-        { transform: 'translateY(-12px)' },
-        { transform: 'translateY(0)' },
-      ],
-      { duration: 700, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' }
-    );
-  };
-
-  overlay.onAdd = () => {
-    overlay.getPanes()?.overlayMouseTarget.appendChild(element);
-  };
-
-  overlay.draw = () => {
-    const projection = overlay.getProjection();
-    if (!projection) return;
-    const point = projection.fromLatLngToDivPixel(
-      new google.maps.LatLng(markerPosition.lat, markerPosition.lng)
-    );
-    if (!point) return;
-    element.style.left = `${point.x}px`;
-    element.style.top = `${point.y}px`;
-  };
-
-  overlay.onRemove = () => {
-    element.removeEventListener('click', handleElementClick);
-    element.remove();
-  };
-
-  overlay.updateContent(status, imageUrl, title);
-  overlay.setMap(map);
-  return overlay;
+  title: string
+): Promise<string> {
+  const imageDataUrl =
+    imageUrl && (status === 'open' || status === 'closed')
+      ? await loadMarkerImageDataUrl(imageUrl)
+      : null;
+  return createMarkerSvgDataUrl(status, title, imageDataUrl);
 }
 
 // ============================================================================
@@ -1295,6 +1272,7 @@ export function MapView({
         store.last_updated ?? store.updated_at
       ).displayStatus;
       const markerImageUrl = getMarkerImageUrl(store);
+      const markerIconKey = getMarkerIconKey(markerStatus, markerImageUrl, store.name);
 
       if (existingMarkerData) {
         // 既存マーカーを再利用（位置と表示のみ更新）
@@ -1302,9 +1280,7 @@ export function MapView({
           existingMarkerData.lastPosition.lat !== position.lat ||
           existingMarkerData.lastPosition.lng !== position.lng;
 
-        const needsIconUpdate =
-          existingMarkerData.lastStatus !== markerStatus ||
-          existingMarkerData.lastImageUrl !== markerImageUrl;
+        const needsIconUpdate = existingMarkerData.lastIconKey !== markerIconKey;
 
         if (needsPositionUpdate) {
           existingMarkerData.marker.setPosition(position);
@@ -1313,12 +1289,16 @@ export function MapView({
         }
 
         if (needsIconUpdate) {
-          existingMarkerData.marker.updateContent(markerStatus, markerImageUrl, store.name);
-          existingMarkerData.lastStatus = markerStatus;
-          existingMarkerData.lastImageUrl = markerImageUrl;
+          existingMarkerData.lastIconKey = markerIconKey;
+          createMarkerIconUrl(markerStatus, markerImageUrl, store.name).then((iconUrl) => {
+            const latestMarkerData = storeMarkersRef.current.get(store.id);
+            if (!latestMarkerData || latestMarkerData.lastIconKey !== markerIconKey) return;
+            latestMarkerData.marker.setIcon(createGoogleMarkerIcon(iconUrl));
+            latestMarkerData.marker.setTitle(store.name);
+          });
         }
       } else {
-        let marker: StoreMarkerOverlay | null = null;
+        let marker: google.maps.Marker | null = null;
 
         // クリックイベント（クロージャでstoreをキャプチャ）
         const handleClick = () => {
@@ -1328,20 +1308,31 @@ export function MapView({
               store_name: store.name,
               vacancy_status: store.vacancy_status ?? 'unknown',
             });
-            marker?.bounce();
+            marker?.setAnimation(google.maps.Animation.BOUNCE);
+            setTimeout(() => marker?.setAnimation(null), 700);
             onStoreClick(store);
           }
         };
 
         // 新規マーカーを作成
-        marker = createStoreMarkerOverlay(
-          map,
+        marker = new google.maps.Marker({
           position,
-          markerStatus,
-          markerImageUrl,
-          store.name,
-          handleClick
-        );
+          map,
+          title: store.name,
+          icon: createGoogleMarkerIcon(createMarkerSvgDataUrl(markerStatus, store.name, null)),
+          optimized: true,
+          zIndex: 100,
+          cursor: 'pointer',
+          clickable: true,
+        });
+
+        createMarkerIconUrl(markerStatus, markerImageUrl, store.name).then((iconUrl) => {
+          const latestMarkerData = storeMarkersRef.current.get(store.id);
+          if (!latestMarkerData || latestMarkerData.lastIconKey !== markerIconKey) return;
+          latestMarkerData.marker.setIcon(createGoogleMarkerIcon(iconUrl));
+        });
+
+        marker.addListener('click', handleClick);
 
         const touchArea = new google.maps.Circle({
           map,
@@ -1358,8 +1349,7 @@ export function MapView({
         existingMarkers.set(store.id, {
           marker,
           touchArea,
-          lastStatus: markerStatus,
-          lastImageUrl: markerImageUrl,
+          lastIconKey: markerIconKey,
           lastPosition: position,
         });
 
@@ -1377,7 +1367,8 @@ export function MapView({
 
     const markerData = storeMarkersRef.current.get(selectedStoreId);
     if (markerData) {
-      markerData.marker.bounce();
+      markerData.marker.setAnimation(google.maps.Animation.BOUNCE);
+      setTimeout(() => markerData.marker.setAnimation(null), 700);
     }
   }, [selectedStoreId, mapReady]);
 
