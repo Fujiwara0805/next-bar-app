@@ -145,7 +145,6 @@ function calculateDistanceMeters(
 const MARKER_ICON_WIDTH_PX = 112;
 const MARKER_ICON_HEIGHT_PX = 66;
 const MARKER_FRAME_SIZE_PX = 46;
-const MARKER_LABEL_WIDTH_PX = 96;
 
 /**
  * 高DPI（Retina）ディスプレイで鮮明に描画するためのレンダースケール。
@@ -218,13 +217,12 @@ function createMarkerSvgDataUrl(
   const centerX = MARKER_ICON_WIDTH_PX / 2;
   const centerY = MARKER_FRAME_SIZE_PX / 2;
   const radius = MARKER_FRAME_SIZE_PX / 2 - 2;
-  const labelX = (MARKER_ICON_WIDTH_PX - MARKER_LABEL_WIDTH_PX) / 2;
   const labelY = MARKER_FRAME_SIZE_PX + 3;
   const labelText = escapeSvgText(truncateMarkerTitle(title));
   const borderColor = status === 'open' ? '#22c55e' : '#FFFFFF';
+  // 店舗名はネイビー(#13294b)の文字に白い縁取りを付与（paint-order="stroke" で白縁を文字背面に描画）
   const label = `
-    <rect x="${labelX}" y="${labelY}" width="${MARKER_LABEL_WIDTH_PX}" height="16" rx="8" fill="#13294b" fill-opacity="0.88" stroke="#FFFFFF" stroke-opacity="0.74" stroke-width="1"/>
-    <text x="${centerX}" y="${labelY + 11.5}" text-anchor="middle" fill="#FFFFFF" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="10" font-weight="800">${labelText}</text>
+    <text x="${centerX}" y="${labelY + 11.5}" text-anchor="middle" fill="#13294b" stroke="#FFFFFF" stroke-width="3" stroke-linejoin="round" paint-order="stroke" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="10" font-weight="800">${labelText}</text>
   `;
 
   let body = '';
