@@ -267,6 +267,16 @@ export function StoreDetailPanel({
     minutesAgo: (n) => t('map.updated_minutes_ago').replace('{n}', String(n)),
     hoursAgo: (n) => t('map.updated_hours_ago').replace('{n}', String(n)),
   });
+  const freshnessInlineText = freshnessAgeText
+    ? freshness.stale
+      ? t('map.vacancy_stale').replace('{ago}', freshnessAgeText)
+      : t('map.vacancy_updated_ago')
+          .replace('{ago}', freshnessAgeText)
+          .replace(/^空席情報\s*/, '')
+          .replace(/^Vacancy\s+/i, '')
+          .replace(/^빈자리 정보\s*/, '')
+          .replace(/^空位信息\s*/, '')
+    : null;
 
   const getVacancyLabel = (status: string) => {
     switch (status) {
@@ -520,6 +530,14 @@ export function StoreDetailPanel({
                       {isDisplayRegularHoliday ? t('map.regular_holiday') : getVacancyLabel(displayStatus)}
                     </span>
                   )}
+                  {(displayStatus === 'vacant' || displayStatus === 'full' || freshness.downgraded) && freshnessInlineText && (
+                    <span
+                      className={`text-xs ${freshness.stale ? 'font-bold px-2 py-0.5 rounded-lg bg-amber-100 text-amber-700' : 'font-medium'}`}
+                      style={freshness.stale ? undefined : { color: theme.textMuted }}
+                    >
+                      {freshnessInlineText}
+                    </span>
+                  )}
 
                   {/* 2) 残席数（鮮度切れで降格した場合は実態不明のため非表示） */}
                   {displayStatus === 'vacant' && store.vacant_seats != null && store.vacant_seats > 0 && (
@@ -539,21 +557,6 @@ export function StoreDetailPanel({
                     );
                   })()}
                 </div>
-
-                {/* 3) 空席鮮度: 最終更新時刻と、鮮度切れ警告（死因#1: 空席情報の信頼崩壊 対策） */}
-                {(displayStatus === 'vacant' || displayStatus === 'full' || freshness.downgraded) && freshnessAgeText && (
-                  <div className="pt-1">
-                    {freshness.stale ? (
-                      <span className="text-xs font-bold px-2 py-0.5 rounded-lg bg-amber-100 text-amber-700">
-                        {t('map.vacancy_stale').replace('{ago}', freshnessAgeText)}
-                      </span>
-                    ) : (
-                      <span className="text-xs font-medium" style={{ color: theme.textMuted }}>
-                        {t('map.vacancy_updated_ago').replace('{ago}', freshnessAgeText)}
-                      </span>
-                    )}
-                  </div>
-                )}
               </div>
             </div>
 

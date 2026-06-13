@@ -150,8 +150,8 @@ function calculateDistanceMeters(
   return R * c;
 }
 
-const MARKER_SIZE_PX = 58;
-const MARKER_FRAME_SIZE_PX = 52;
+const MARKER_SIZE_PX = 52;
+const MARKER_FRAME_SIZE_PX = 46;
 
 function applyStyles(el: HTMLElement, styles: Partial<CSSStyleDeclaration>) {
   Object.assign(el.style, styles);
@@ -165,8 +165,8 @@ function getMarkerImageUrl(store: Store): string | null {
 function createBeerFallbackIcon(): SVGSVGElement {
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('viewBox', '0 0 24 24');
-  svg.setAttribute('width', '28');
-  svg.setAttribute('height', '28');
+  svg.setAttribute('width', '24');
+  svg.setAttribute('height', '24');
   svg.setAttribute('fill', 'none');
   svg.setAttribute('stroke', 'currentColor');
   svg.setAttribute('stroke-width', '2.4');
@@ -206,7 +206,7 @@ function buildMarkerVisual(status: string, imageUrl: string | null): HTMLElement
     color: '#FFFFFF',
     fontFamily:
       'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-    fontSize: '23px',
+    fontSize: '20px',
     fontWeight: '900',
     lineHeight: '1',
   });
