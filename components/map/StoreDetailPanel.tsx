@@ -346,6 +346,9 @@ export function StoreDetailPanel({
   };
   const theme = isEventStore && !isExpanded ? eventCompactTheme : (isExpanded ? lightTheme : darkTheme);
   const voteSummaryTitle = t('store_status.ai_aggregated_label');
+  const displayBusinessHours = store.structured_business_hours as BusinessHours | null;
+  const isDisplayRegularHoliday =
+    displayStatus === 'closed' && isTodayClosedDay(displayBusinessHours);
 
   return (
     <motion.div
@@ -509,12 +512,14 @@ export function StoreDetailPanel({
                   {/* 1) 店舗側設定の空席アイコン（鮮度を加味した表示ステータス） */}
                   <img
                     src={getVacancyIcon(displayStatus)}
-                    alt={getVacancyLabel(displayStatus)}
+                    alt={isDisplayRegularHoliday ? t('map.regular_holiday') : getVacancyLabel(displayStatus)}
                     className="w-6 h-6"
                   />
-                  <span className="text-xl font-bold" style={{ color: theme.text }}>
-                    {getVacancyLabel(displayStatus)}
-                  </span>
+                  {(displayStatus !== 'closed' || isDisplayRegularHoliday) && (
+                    <span className="text-xl font-bold" style={{ color: theme.text }}>
+                      {isDisplayRegularHoliday ? t('map.regular_holiday') : getVacancyLabel(displayStatus)}
+                    </span>
+                  )}
 
                   {/* 2) 残席数（鮮度切れで降格した場合は実態不明のため非表示） */}
                   {displayStatus === 'vacant' && store.vacant_seats != null && store.vacant_seats > 0 && (
@@ -524,18 +529,11 @@ export function StoreDetailPanel({
                   )}
 
                   {displayStatus === 'closed' && (() => {
-                    const sbh = store.structured_business_hours as BusinessHours | null;
-                    if (isTodayClosedDay(sbh)) {
-                      return (
-                        <span className="text-sm font-bold px-2 py-0.5 rounded-lg bg-destructive/10 text-destructive">
-                          {t('map.regular_holiday')}
-                        </span>
-                      );
-                    }
-                    const openTime = getTodayOpenTime(sbh);
+                    if (isDisplayRegularHoliday) return null;
+                    const openTime = getTodayOpenTime(displayBusinessHours);
                     if (!openTime) return null;
                     return (
-                      <span className="text-sm font-bold px-2 py-0.5 rounded-lg bg-success/10 text-success">
+                      <span className="text-sm font-bold px-2 py-0.5 rounded-lg bg-success/10 text-white">
                         {t('map.opens_at').replace('{time}', openTime)}
                       </span>
                     );

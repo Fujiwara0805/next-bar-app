@@ -1143,59 +1143,6 @@ function MapPageContent() {
         )}
       </AnimatePresence>
 
-      {/* 凡例 */}
-      <div
-        className="fixed bottom-24 left-4 z-20 rounded-xl shadow-lg p-3 safe-bottom pointer-events-auto"
-        style={{
-          background: `${colors.background}F0`,
-          backdropFilter: 'blur(12px)',
-          border: `1px solid ${colors.borderGold}`,
-        }}
-      >
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <img
-              src="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761311529/%E7%A9%BA%E5%B8%AD%E3%81%82%E3%82%8A_rzejgw.png"
-              alt={t('map.vacant')}
-              className="w-6 h-6"
-            />
-            <span className="text-sm font-bold" style={{ color: colors.text }}>
-              {t('map.vacant')}
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <img
-              src="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761311529/%E6%BA%80%E5%B8%AD_gszsqi.png"
-              alt={t('map.full')}
-              className="w-6 h-6"
-            />
-            <span className="text-sm font-bold" style={{ color: colors.text }}>
-              {t('map.full')}
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <img
-              src="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1767848645/icons8-%E9%96%8B%E5%BA%97%E3%82%B5%E3%82%A4%E3%83%B3-94_a4tmzn.png"
-              alt={t('map.open')}
-              className="w-6 h-6"
-            />
-            <span className="text-sm font-bold" style={{ color: colors.text }}>
-              {t('map.open')}
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <img
-              src="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761318837/icons8-%E9%96%89%E5%BA%97%E3%82%B5%E3%82%A4%E3%83%B3-100_fczegk.png"
-              alt={t('map.closed')}
-              className="w-6 h-6"
-            />
-            <span className="text-sm font-bold" style={{ color: colors.text }}>
-              {t('map.closed')}
-            </span>
-          </div>
-        </div>
-      </div>
-
       {/* スポンサー広告 */}
       <SponsorMapIcon />
 

@@ -876,6 +876,8 @@ export default function StoreDetailPage() {
               {/* 空席情報 */}
               {(() => {
                 const effectiveStatus = getEffectiveVacancyStatus();
+                const sbh = store.structured_business_hours as BusinessHours | null;
+                const isRegularHoliday = effectiveStatus === 'closed' && isTodayClosedDay(sbh);
                 return (
                   <div className="flex gap-2 mb-3 items-center flex-wrap">
                     <motion.div
@@ -886,12 +888,14 @@ export default function StoreDetailPage() {
                       <div className="flex items-center gap-2">
                         <img
                           src={getVacancyIcon(effectiveStatus)}
-                          alt={getVacancyLabel(effectiveStatus)}
+                          alt={isRegularHoliday ? t('store_detail.regular_holiday') : getVacancyLabel(effectiveStatus)}
                           className="w-6 h-6 object-contain"
                         />
-                        <span className="text-lg font-bold" style={{ color: COLORS.deepNavy }}>
-                          {getVacancyLabel(effectiveStatus)}
-                        </span>
+                        {(effectiveStatus !== 'closed' || isRegularHoliday) && (
+                          <span className="text-lg font-bold" style={{ color: COLORS.deepNavy }}>
+                            {isRegularHoliday ? t('store_detail.regular_holiday') : getVacancyLabel(effectiveStatus)}
+                          </span>
+                        )}
                       </div>
                       {effectiveStatus === 'vacant' && store.vacant_seats != null && store.vacant_seats > 0 && (
                         <span className="text-sm font-bold px-2 py-0.5 rounded-lg" style={{
@@ -902,17 +906,7 @@ export default function StoreDetailPage() {
                         </span>
                       )}
                       {effectiveStatus === 'closed' && (() => {
-                        const sbh = store.structured_business_hours as BusinessHours | null;
-                        if (isTodayClosedDay(sbh)) {
-                          return (
-                            <span className="text-sm font-bold px-2 py-0.5 rounded-lg" style={{
-                              backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                              color: '#ef4444',
-                            }}>
-                              {t('store_detail.regular_holiday')}
-                            </span>
-                          );
-                        }
+                        if (isRegularHoliday) return null;
                         const openTime = getTodayOpenTime(sbh);
                         if (!openTime) return null;
                         return (

@@ -802,6 +802,8 @@ function StoreListContent() {
                               {(() => {
                                 const freshness = getVacancyFreshnessFor(store);
                                 const effectiveStatus = freshness.displayStatus;
+                                const sbh = store.structured_business_hours as BusinessHours | null;
+                                const isRegularHoliday = effectiveStatus === 'closed' && isTodayClosedDay(sbh);
                                 const ageText = formatVacancyAge(freshness.ageMinutes, {
                                   justNow: t('map.updated_just_now'),
                                   minutesAgo: (n) => t('map.updated_minutes_ago').replace('{n}', String(n)),
@@ -809,8 +811,16 @@ function StoreListContent() {
                                 });
                                 return (
                               <motion.div className="flex items-center gap-2 pt-1 flex-wrap" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}>
-                                <img src={getVacancyIcon(effectiveStatus)} alt={getVacancyLabel(effectiveStatus)} className="w-6 h-6 object-contain" />
-                                <span className="text-lg font-bold" style={{ color: isEventStore ? EVENT_CARD_FG : COLORS.deepNavy }}>{getVacancyLabel(effectiveStatus)}</span>
+                                <img
+                                  src={getVacancyIcon(effectiveStatus)}
+                                  alt={isRegularHoliday ? t('store_list.regular_holiday') : getVacancyLabel(effectiveStatus)}
+                                  className="w-6 h-6 object-contain"
+                                />
+                                {(effectiveStatus !== 'closed' || isRegularHoliday) && (
+                                  <span className="text-lg font-bold" style={{ color: isEventStore ? EVENT_CARD_FG : COLORS.deepNavy }}>
+                                    {isRegularHoliday ? t('store_list.regular_holiday') : getVacancyLabel(effectiveStatus)}
+                                  </span>
+                                )}
                                 {(effectiveStatus === 'vacant' || effectiveStatus === 'full') && ageText && (
                                   <span className="text-xs" style={{ color: isEventStore ? EVENT_CARD_FG : COLORS.warmGray }}>{ageText}</span>
                                 )}
@@ -823,17 +833,7 @@ function StoreListContent() {
                                   </span>
                                 )}
                                 {effectiveStatus === 'closed' && (() => {
-                                  const sbh = store.structured_business_hours as BusinessHours | null;
-                                  if (isTodayClosedDay(sbh)) {
-                                    return (
-                                      <span className="text-sm font-bold px-2 py-0.5 rounded-lg" style={{
-                                        backgroundColor: isEventStore ? `${EVENT_CARD_FG}1A` : 'rgba(239, 68, 68, 0.1)',
-                                        color: isEventStore ? EVENT_CARD_FG : '#ef4444',
-                                      }}>
-                                        {t('store_list.regular_holiday')}
-                                      </span>
-                                    );
-                                  }
+                                  if (isRegularHoliday) return null;
                                   const openTime = getTodayOpenTime(sbh);
                                   if (!openTime) return null;
                                   return (
