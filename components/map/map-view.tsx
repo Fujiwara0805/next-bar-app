@@ -146,12 +146,40 @@ const MARKER_ICON_WIDTH_PX = 112;
 const MARKER_ICON_HEIGHT_PX = 66;
 const MARKER_FRAME_SIZE_PX = 46;
 const MARKER_LABEL_WIDTH_PX = 96;
-const MARKER_IMAGE_CANVAS_SIZE_PX = 96;
+
+/**
+ * 高DPI（Retina）ディスプレイで鮮明に描画するためのレンダースケール。
+ * SVGはベクターなので optimized:false により自動で端末解像度に追従するが、
+ * SVGへ埋め込む「店舗写真（ラスター）」だけはソース解像度を上げる必要がある。
+ * SSR安全のため window 不在時は 2 にフォールバックし、2〜3 にクランプする。
+ */
+const MARKER_RENDER_SCALE =
+  typeof window === 'undefined'
+    ? 2
+    : Math.min(3, Math.max(2, Math.ceil(window.devicePixelRatio || 1)));
+
+// 埋め込む店舗写真は「円フレームの表示サイズ × DPR」で用意し、Retinaでも鮮明に
+const MARKER_IMAGE_CANVAS_SIZE_PX = MARKER_FRAME_SIZE_PX * MARKER_RENDER_SCALE;
 const markerImageCache = new Map<string, Promise<string | null>>();
 
 function getMarkerImageUrl(store: Store): string | null {
   const firstImage = store.image_urls?.[0];
   return typeof firstImage === 'string' && firstImage.trim() ? firstImage.trim() : null;
+}
+
+/**
+ * Cloudinary画像URLにマーカー用の最適化変換を注入する。
+ * - c_fill + 正方形サイズで円フレームにちょうど収まるよう切り抜き（g_auto=被写体中心）
+ * - f_auto,q_auto で配信形式・画質を自動最適化（既存方針に準拠）
+ * - dpr は MARKER_IMAGE_CANVAS_SIZE_PX 側で吸収済みのため指定不要
+ * Cloudinary以外のURLはそのまま返す。
+ */
+function optimizeMarkerImageUrl(url: string, sizePx: number): string {
+  if (!url.includes('res.cloudinary.com') || !url.includes('/upload/')) {
+    return url;
+  }
+  const transform = `c_fill,g_auto,w_${sizePx},h_${sizePx},f_auto,q_auto`;
+  return url.replace('/upload/', `/upload/${transform}/`);
 }
 
 function escapeSvgText(value: string): string {
@@ -264,6 +292,9 @@ function loadMarkerImageDataUrl(imageUrl: string): Promise<string | null> {
           resolve(null);
           return;
         }
+        // 高解像度ソースを縮小する際のジャギー/ボケを抑える（鮮明化）
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
         const scale = Math.max(
           MARKER_IMAGE_CANVAS_SIZE_PX / image.naturalWidth,
           MARKER_IMAGE_CANVAS_SIZE_PX / image.naturalHeight
@@ -295,10 +326,11 @@ async function createMarkerIconUrl(
   imageUrl: string | null,
   title: string
 ): Promise<string> {
-  const imageDataUrl =
+  const optimizedUrl =
     imageUrl && (status === 'open' || status === 'closed')
-      ? await loadMarkerImageDataUrl(imageUrl)
+      ? optimizeMarkerImageUrl(imageUrl, MARKER_IMAGE_CANVAS_SIZE_PX)
       : null;
+  const imageDataUrl = optimizedUrl ? await loadMarkerImageDataUrl(optimizedUrl) : null;
   return createMarkerSvgDataUrl(status, title, imageDataUrl);
 }
 
@@ -1320,7 +1352,9 @@ export function MapView({
           map,
           title: store.name,
           icon: createGoogleMarkerIcon(createMarkerSvgDataUrl(markerStatus, store.name, null)),
-          optimized: true,
+          // 高DPIで鮮明に描画するため非最適化（共有キャンバスの等倍ラスタライズを回避）。
+          // 各マーカーが個別<img>になり、端末解像度でSVG/写真が再ラスタライズされる。
+          optimized: false,
           zIndex: 100,
           cursor: 'pointer',
           clickable: true,
@@ -1398,6 +1432,7 @@ export function MapView({
           map,
           title: "あなたの現在地",
           icon: directionalIcon,
+          optimized: false, // 高DPIで現在地アイコンを鮮明に
           zIndex: 9999,
         });
         userMarkerRef.current = marker;
