@@ -2,16 +2,14 @@
 
 /**
  * 店舗管理「集客設定」メニュー
- * - スキャン / クーポン / 配信分析 / 消込 の 4 メニューで各画面へ遷移
+ * - 顧客データ / 配信・分析 / 特典管理 の各画面へ遷移
  */
 
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import {
-  Ticket,
   Megaphone,
-  ScanLine,
   Sparkles,
   ChevronRight,
   Building2,
@@ -79,22 +77,10 @@ export default function StoreEngagementMenuPage() {
       description: '来店履歴・来店頻度の確認とCSV出力',
     },
     {
-      href: `/store/manage/${storeId}/coupons`,
-      icon: Ticket,
-      title: 'クーポン',
-      description: 'LINEクーポンの作成・配信',
-    },
-    {
       href: `/store/manage/${storeId}/broadcast`,
       icon: Megaphone,
       title: '配信・分析',
       description: 'LINEでのお知らせ配信と配信効果の分析',
-    },
-    {
-      href: `/store/manage/${storeId}/redeem`,
-      icon: ScanLine,
-      title: '消込',
-      description: 'クーポン消込（6桁コード入力）',
     },
     {
       href: `/store/manage/${storeId}/event-benefits`,

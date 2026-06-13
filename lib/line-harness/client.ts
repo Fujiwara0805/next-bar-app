@@ -148,7 +148,7 @@ export async function removeTag(lineUserId: string, tag: string): Promise<Result
 }
 
 /**
- * メタデータを書き込む (例: first_visit_at, last_coupon_id, etc.)
+ * メタデータを書き込む (例: first_visit_at, last_visit_at, etc.)
  */
 export async function setMetadata(
   lineUserId: string,
