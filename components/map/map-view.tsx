@@ -241,7 +241,6 @@ function createMarkerSvgDataUrl(
         <clipPath id="storeClip"><circle cx="${centerX}" cy="${centerY}" r="${radius}"/></clipPath>
       </defs>
       <image href="${imageDataUrl}" x="${iconX}" y="${iconY}" width="${MARKER_FRAME_SIZE_PX}" height="${MARKER_FRAME_SIZE_PX}" preserveAspectRatio="xMidYMid slice" clip-path="url(#storeClip)"/>
-      ${status === 'closed' ? `<circle cx="${centerX}" cy="${centerY}" r="${radius}" fill="#4b5563" fill-opacity="0.68"/>` : ''}
       <circle cx="${centerX}" cy="${centerY}" r="${radius}" fill="none" stroke="${borderColor}" stroke-width="3"/>
     `;
   } else {
@@ -250,12 +249,14 @@ function createMarkerSvgDataUrl(
       <g transform="translate(${centerX - 12} ${centerY - 12})" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
         ${createBeerSvgPaths()}
       </g>
-      ${status === 'closed' ? `<circle cx="${centerX}" cy="${centerY}" r="${radius}" fill="#4b5563" fill-opacity="0.68"/>` : ''}
     `;
   }
 
+  // SVGの実寸（intrinsic）を論理サイズ×DPRで出力し、表示時は scaledSize で論理サイズへ縮小する。
+  // これによりモバイルSafari等でも端末解像度ぶんのビットマップが確保され、文字・図形が鮮明になる。
+  // viewBox は論理座標のまま据え置くため、内部の座標計算は一切変更不要。
   const svg = `
-    <svg xmlns="http://www.w3.org/2000/svg" width="${MARKER_ICON_WIDTH_PX}" height="${MARKER_ICON_HEIGHT_PX}" viewBox="0 0 ${MARKER_ICON_WIDTH_PX} ${MARKER_ICON_HEIGHT_PX}">
+    <svg xmlns="http://www.w3.org/2000/svg" width="${MARKER_ICON_WIDTH_PX * MARKER_RENDER_SCALE}" height="${MARKER_ICON_HEIGHT_PX * MARKER_RENDER_SCALE}" viewBox="0 0 ${MARKER_ICON_WIDTH_PX} ${MARKER_ICON_HEIGHT_PX}">
       <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
         <feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#000000" flood-opacity="0.32"/>
       </filter>
@@ -1601,7 +1602,7 @@ const createDirectionalLocationIcon = (heading: number | null): google.maps.Icon
   const base2X = centerX + Math.cos(baseAngle2) * baseRadius;
   const base2Y = centerY + Math.sin(baseAngle2) * baseRadius;
   
-  const svgIcon = `<svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">
+  const svgIcon = `<svg width="${size * MARKER_RENDER_SCALE}" height="${size * MARKER_RENDER_SCALE}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
     <defs><filter id="shadow" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="0" dy="1" stdDeviation="2" flood-opacity="0.3"/></filter></defs>
     <polygon points="${tipX},${tipY} ${base1X},${base1Y} ${base2X},${base2Y}" fill="#13294b" fill-opacity="0.4" filter="url(#shadow)"/>
     <circle cx="${centerX}" cy="${centerY}" r="${innerRadius + 6}" fill="#13294b" fill-opacity="0.2"/>

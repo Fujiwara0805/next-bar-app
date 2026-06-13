@@ -146,8 +146,8 @@ export default function StoreUpdatePage() {
     },
     {
       value: 'closed',
-      label: '臨時休業',
-      description: '',
+      label: '閉店',
+      description: '臨時休業',
       color: COLORS.warmGray,
       bgColor: 'rgba(99, 110, 114, 0.08)',
       borderColor: 'rgba(99, 110, 114, 0.3)',
