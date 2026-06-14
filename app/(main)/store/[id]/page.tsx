@@ -54,6 +54,7 @@ import { ImageLightbox } from '@/components/ui/ImageLightbox';
 import { sendGAEvent } from '@/lib/analytics';
 import { SponsorCampaignBanner } from '@/components/sponsors/sponsor-campaign-banner';
 import { CrowdVoteModal } from '@/components/store/crowd-vote-modal';
+import { LineFriendCta } from '@/components/line/line-friend-cta';
 import { getTodayOpenTime, isTodayClosedDay, checkIsOpenFromStructuredHours, isManualCloseActive } from '@/lib/structured-business-hours';
 import { useOptimizedLocation } from '@/lib/hooks/useOptimizedLocation';
 import type { StoreEventRow } from '@/lib/types/platform-event';
@@ -1426,6 +1427,9 @@ export default function StoreDetailPage() {
             </div>
           </Card>
         </motion.div>
+
+        {/* 転換装置: 店舗詳細ページからのPV→LINE友だち化フック */}
+        <LineFriendCta source="store_page" refId={store.id} />
       </div>
 
       {/* 画像ライトボックス */}

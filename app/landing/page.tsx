@@ -25,6 +25,8 @@ import {
   Scale,
   LogIn,
   Loader2,
+  Users,
+  Landmark,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -157,7 +159,7 @@ export default function LandingPage() {
   const lpLinkOnElevated = LP_NAVY;
   const lpSubtitleOnElevated = colors.accentDark;
 
-  /** NEWS〜エリアガイド: オフ白ページ＋ネイビーカード */
+  /** NEWS〜料金: オフ白ページ＋ネイビーカード */
   const lpMid = {
     page: {
       bg: LP_CARD.bg,
@@ -195,7 +197,6 @@ export default function LandingPage() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [partnerStores, setPartnerStores] = useState<PartnerStore[]>([]);
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
-  const [areaGuideSlide, setAreaGuideSlide] = useState(0);
   const [concernsSlide, setConcernsSlide] = useState(0);
   const [activeEvents, setActiveEvents] = useState<ActiveStoreEvent[]>([]);
   const locationAttemptRef = useRef(false);
@@ -1188,112 +1189,57 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* SEO エリアガイドセクション */}
+      {/* Pricing Section */}
       <section className="relative py-10 md:py-20 px-4 overflow-hidden" style={{ background: lpMid.page.bg }}>
         <div className="container mx-auto max-w-4xl lg:max-w-7xl">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
             <GoldDivider />
-            <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4 lg:text-base" style={{ color: lpMid.page.text }}>{t('landing.area_guide_label')}</span>
-            <h2 className="text-2xl sm:text-3xl font-bold mb-4 lg:text-4xl" style={{ color: lpMid.page.text }}>{renderWithLineBreaks(t('landing.area_guide_title'))}</h2>
-            <p className="text-base max-w-2xl mx-auto lg:text-xl" style={{ color: lpMid.page.textMuted }}>{renderWithLineBreaks(t('landing.area_guide_subtitle'))}</p>
+            <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4 lg:text-base" style={{ color: lpMid.page.text }}>{t('landing.pricing_label')}</span>
+            <h2 className="text-2xl sm:text-3xl font-bold mb-4 lg:text-4xl" style={{ color: lpMid.page.text }}>{renderWithLineBreaks(t('landing.pricing_title'))}</h2>
+            <p className="text-base max-w-2xl mx-auto lg:text-xl" style={{ color: lpMid.page.textMuted }}>{renderWithLineBreaks(t('landing.pricing_subtitle'))}</p>
           </motion.div>
 
-          {(() => {
-            const areaGuides = [
-              {
-                image: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772414070/Gemini_Generated_Image_8eyd8x8eyd8x8eyd_fy2omk_c_pad_b_gen_fill_w_1024_h_1024_x3jvuh.png',
-                title: t('landing.area_guide_miyako_title'),
-                desc1: t('landing.area_guide_miyako_desc1'),
-                desc2: t('landing.area_guide_miyako_desc2'),
-              },
-              {
-                image: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772414069/Gemini_Generated_Image_f6wtfvf6wtfvf6wt_aovpzh_c_pad_b_gen_fill_w_1024_h_1024_dmxlqs.png',
-                title: t('landing.area_guide_chuo_title'),
-                desc1: t('landing.area_guide_chuo_desc1'),
-                desc2: t('landing.area_guide_chuo_desc2'),
-              },
-              {
-                image: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1773797976/Gemini_Generated_Image_s32wqxs32wqxs32w_uyoojl_urft3i.png',
-                title: t('landing.area_guide_beppu_title'),
-                desc1: t('landing.area_guide_beppu_desc1'),
-                desc2: t('landing.area_guide_beppu_desc2'),
-              },
-            ];
-            const renderAreaCard = (index: number) => {
-              const guide = areaGuides[index];
-              return (
-                <article className="rounded-2xl overflow-hidden h-full flex flex-col" style={{ background: lpMid.elevated.bg, border: `1px solid ${lpMid.elevated.border}`, boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
-                  <div className="aspect-[16/9] w-full overflow-hidden flex-shrink-0">
-                    <img src={guide.image} alt={guide.title} className="w-full h-full object-cover" />
-                  </div>
-                  <div className="p-6 flex flex-col flex-1">
-                    <h3 className="text-xl font-bold mb-3 lg:text-3xl" style={{ color: lpMid.elevated.text }}>{guide.title}</h3>
-                    <p className="text-sm leading-relaxed mb-3 lg:text-lg" style={{ color: lpMid.elevated.textMuted }}>{guide.desc1}</p>
-                    <p className="text-sm leading-relaxed lg:text-lg" style={{ color: lpMid.elevated.textMuted }}>{guide.desc2}</p>
-                  </div>
-                </article>
-              );
-            };
-            return (
-              <>
-                {/* モバイル: スライド */}
-                <div className="block lg:hidden relative">
-                  <div className="overflow-hidden rounded-2xl grid">
-                    {areaGuides.map((_, index) => {
-                      const isActive = areaGuideSlide === index;
-                      return (
-                        <motion.div
-                          key={index}
-                          className="col-start-1 row-start-1 h-full"
-                          initial={false}
-                          animate={{ opacity: isActive ? 1 : 0 }}
-                          transition={{ duration: 0.35 }}
-                          style={{ pointerEvents: isActive ? 'auto' : 'none' }}
-                          aria-hidden={!isActive}
-                        >
-                          {renderAreaCard(index)}
-                        </motion.div>
-                      );
-                    })}
-                  </div>
-                  <button
-                    onClick={() => setAreaGuideSlide((prev) => (prev - 1 + areaGuides.length) % areaGuides.length)}
-                    className="absolute left-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 z-10"
-                    style={{ background: lpMid.fab.bg, border: `1px solid ${lpMid.fab.border}`, backdropFilter: 'blur(10px)' }}
-                  >
-                    <ChevronLeft className="w-5 h-5" style={{ color: lpMid.fab.icon }} />
-                  </button>
-                  <button
-                    onClick={() => setAreaGuideSlide((prev) => (prev + 1) % areaGuides.length)}
-                    className="absolute right-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 z-10"
-                    style={{ background: lpMid.fab.bg, border: `1px solid ${lpMid.fab.border}`, backdropFilter: 'blur(10px)' }}
-                  >
-                    <ChevronRight className="w-5 h-5" style={{ color: lpMid.fab.icon }} />
-                  </button>
-                  <div className="flex justify-center gap-2 mt-6">
-                    {areaGuides.map((_, index) => (
-                      <button key={index} onClick={() => setAreaGuideSlide(index)} className="h-2 rounded-full transition-all duration-300" style={{ width: areaGuideSlide === index ? '24px' : '8px', background: areaGuideSlide === index ? LP_YELLOW : lpMid.dotInactive, boxShadow: areaGuideSlide === index ? `0 0 10px ${LP_YELLOW}60` : 'none' }} />
-                    ))}
-                  </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 xl:gap-8 items-stretch">
+            {/* ユーザー（消費者）= 無料 */}
+            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="h-full">
+              <article className="rounded-2xl h-full flex flex-col p-7" style={{ background: lpMid.elevated.bg, border: `1px solid ${lpMid.elevated.border}`, boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-5" style={{ background: 'rgba(201,168,108,0.12)' }}>
+                  <Users className="w-6 h-6" style={{ color: lpMid.elevated.text }} />
                 </div>
-                {/* PC: 最大3枚を横一列 */}
-                <div className="hidden lg:grid lg:grid-cols-3 gap-6 xl:gap-8 items-stretch">
-                  {areaGuides.map((_, index) => (
-                    <motion.div
-                      key={index}
-                      className="min-w-0 h-full"
-                      initial={{ opacity: 0, y: 20 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: index * 0.1 }}
-                    >
-                      {renderAreaCard(index)}
-                    </motion.div>
-                  ))}
+                <h3 className="text-lg font-bold mb-1 lg:text-2xl" style={{ color: lpMid.elevated.text }}>{t('landing.pricing_user_name')}</h3>
+                <p className="text-3xl font-extrabold mb-4 lg:text-4xl" style={{ color: lpMid.elevated.text }}>{t('landing.pricing_user_price')}</p>
+                <p className="text-sm leading-relaxed lg:text-lg" style={{ color: lpMid.elevated.textMuted }}>{renderWithLineBreaks(t('landing.pricing_user_desc'))}</p>
+              </article>
+            </motion.div>
+
+            {/* 加盟店 = 基本無料／公式LINE配信は有料（アクセント） */}
+            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }} className="h-full">
+              <article className="relative rounded-2xl h-full flex flex-col p-7" style={{ background: lpMid.elevated.bg, border: `2px solid ${LP_YELLOW}`, boxShadow: `0 8px 30px ${LP_YELLOW}30` }}>
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-5" style={{ background: LP_YELLOW }}>
+                  <Store className="w-6 h-6" style={{ color: LP_NAVY }} />
                 </div>
-              </>
-            );
-          })()}
+                <h3 className="text-lg font-bold mb-1 lg:text-2xl" style={{ color: lpMid.elevated.text }}>{t('landing.pricing_store_name')}</h3>
+                <p className="text-3xl font-extrabold mb-1 lg:text-4xl" style={{ color: lpMid.elevated.text }}>{t('landing.pricing_store_price')}</p>
+                <p className="text-sm font-bold mb-4" style={{ color: accentTextOnLightBg(lpMid.elevated.bg) }}>{t('landing.pricing_store_price_note')}</p>
+                <p className="text-sm leading-relaxed lg:text-lg" style={{ color: lpMid.elevated.textMuted }}>{renderWithLineBreaks(t('landing.pricing_store_desc'))}</p>
+              </article>
+            </motion.div>
+
+            {/* イベント開催者（自治体・主催者）= 要相談 */}
+            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.2 }} className="h-full">
+              <article className="rounded-2xl h-full flex flex-col p-7" style={{ background: lpMid.elevated.bg, border: `1px solid ${lpMid.elevated.border}`, boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-5" style={{ background: 'rgba(201,168,108,0.12)' }}>
+                  <Landmark className="w-6 h-6" style={{ color: lpMid.elevated.text }} />
+                </div>
+                <h3 className="text-lg font-bold mb-1 lg:text-2xl" style={{ color: lpMid.elevated.text }}>{t('landing.pricing_organizer_name')}</h3>
+                <p className="text-3xl font-extrabold mb-4 lg:text-4xl" style={{ color: lpMid.elevated.text }}>{t('landing.pricing_organizer_price')}</p>
+                <p className="text-sm leading-relaxed mb-6 flex-1 lg:text-lg" style={{ color: lpMid.elevated.textMuted }}>{renderWithLineBreaks(t('landing.pricing_organizer_desc'))}</p>
+                <Link href="/contact" className="inline-flex items-center justify-center gap-2 w-full px-5 py-3 rounded-xl font-bold transition-all hover:scale-[1.02] active:scale-95" style={{ background: LP_YELLOW, color: LP_NAVY }}>
+                  <Mail className="w-4 h-4" />{t('landing.pricing_organizer_cta')}
+                </Link>
+              </article>
+            </motion.div>
+          </div>
         </div>
         {/* cream → navy 自然な曲線ウェーブ */}
         <WaveDivider fill={lpPage.bg} position="bottom" />

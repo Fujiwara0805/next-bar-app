@@ -14,7 +14,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '@/lib/supabase/types';
 import { verifyWebhookSignature, isMessagingConfigured } from '@/lib/line/messaging';
-import { forwardWebhookEvent, isLineHarnessForwardingConfigured } from '@/lib/line-harness/client';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -69,11 +68,6 @@ export async function POST(request: NextRequest) {
   const events = body.events ?? [];
   if (events.length === 0) {
     return NextResponse.json({ ok: true });
-  }
-
-  // LINE Harness が有効なら同じイベントを並行転送 (失敗しても本処理は止めない)
-  if (isLineHarnessForwardingConfigured()) {
-    void forwardWebhookEvent(raw);
   }
 
   const admin = createClient<Database>(supabaseUrl, serviceRoleKey, {

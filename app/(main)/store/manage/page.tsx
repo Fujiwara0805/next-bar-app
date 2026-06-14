@@ -353,7 +353,7 @@ export default function StoreManagePage() {
           </div>
         </motion.div>
 
-        {/* KPI Cards - LINE Harness style */}
+        {/* KPI Cards */}
         <AdminKpiGrid>
           <AdminKpiCard icon={StoreIcon} label="店舗数" value={stores.length} subLabel="登録済み店舗" gradient={getKpiGradient('gold')} href="/store/manage" index={0} />
           <AdminKpiCard icon={Users} label="顧客数" value={customerCount} subLabel="登録ユーザー" gradient={getKpiGradient('teal')} href="/store/manage/customers" index={1} />

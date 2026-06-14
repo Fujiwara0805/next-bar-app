@@ -85,8 +85,8 @@ export default function StoreEngagementMenuPage() {
     {
       href: `/store/manage/${storeId}/event-benefits`,
       icon: Gift,
-      title: '特典管理',
-      description: 'イベント参加時の特典利用件数・履歴の確認',
+      title: '特典の消し込み・管理',
+      description: 'イベント特典の消し込み（利用を記録）と、利用件数・履歴の確認',
     },
   ];
 

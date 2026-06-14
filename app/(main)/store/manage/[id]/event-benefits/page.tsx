@@ -237,7 +237,7 @@ export default function StoreEventBenefitsPage() {
           <div className="flex items-center gap-2">
             <Gift className="w-5 h-5" style={{ color: COLORS.ivory }} />
             <h1 className="text-lg font-light tracking-widest" style={{ color: COLORS.ivory }}>
-              特典管理
+              特典の消し込み
             </h1>
           </div>
           <CloseCircleButton

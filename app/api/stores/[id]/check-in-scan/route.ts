@@ -142,24 +142,6 @@ export async function POST(
     .eq('user_id', customer.id)
     .order('checked_in_at', { ascending: false });
 
-  // LINE Harness にタグ同期 (failsafe: 失敗しても無視)
-  if (customer.line_user_id) {
-    const visitCount = customerCheckIns?.length ?? 1;
-    try {
-      const { assignTag, setMetadata } = await import('@/lib/line-harness/client');
-      if (visitCount === 1) {
-        void assignTag(customer.line_user_id, 'customer');
-        void setMetadata(customer.line_user_id, 'first_visit_at', now.toISOString());
-      }
-      if (visitCount >= 3) {
-        void assignTag(customer.line_user_id, 'repeater');
-      }
-      void setMetadata(customer.line_user_id, 'last_visit_at', now.toISOString());
-    } catch (err) {
-      console.warn('[check-in-scan] line-harness sync skipped', err);
-    }
-  }
-
   const { data: memoRow, error: memoErr } = await (admin as any)
     .from('store_customer_notes')
     .select(

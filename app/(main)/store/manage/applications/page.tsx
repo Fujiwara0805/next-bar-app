@@ -212,7 +212,7 @@ export default function ApplicationsManagePage() {
           </motion.button>
         </motion.div>
 
-        {/* KPI Cards - LINE Harness style */}
+        {/* KPI Cards */}
         <AdminKpiGrid>
           <AdminKpiCard icon={ClipboardList} label="審査待ち" value={applications.length} subLabel="未処理の申込" gradient={getKpiGradient('amber')} index={0} badge={applications.length > 0 ? 'NEW' : undefined} />
           <AdminKpiCard icon={CalendarDays} label="今月の申請" value={thisMonthCount} subLabel="今月受付分" gradient={getKpiGradient('blue')} index={1} />

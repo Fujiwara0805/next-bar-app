@@ -14,144 +14,26 @@ export type Database = {
   }
   public: {
     Tables: {
-      coupon_issues: {
+      line_cta_clicks: {
         Row: {
-          age_range: string | null
-          coupon_id: string
-          gender: string | null
+          created_at: string
           id: string
-          is_first_visit: boolean | null
-          issued_at: string
-          line_user_id: string | null
-          message_id: string | null
-          origin_prefecture: string | null
-          redeem_code: string
-          redeemed_at: string | null
-          redeemed_by_user_id: string | null
-          store_id: string
-          user_id: string | null
+          ref: string | null
+          source: string
         }
         Insert: {
-          age_range?: string | null
-          coupon_id: string
-          gender?: string | null
+          created_at?: string
           id?: string
-          is_first_visit?: boolean | null
-          issued_at?: string
-          line_user_id?: string | null
-          message_id?: string | null
-          origin_prefecture?: string | null
-          redeem_code: string
-          redeemed_at?: string | null
-          redeemed_by_user_id?: string | null
-          store_id: string
-          user_id?: string | null
+          ref?: string | null
+          source: string
         }
         Update: {
-          age_range?: string | null
-          coupon_id?: string
-          gender?: string | null
+          created_at?: string
           id?: string
-          is_first_visit?: boolean | null
-          issued_at?: string
-          line_user_id?: string | null
-          message_id?: string | null
-          origin_prefecture?: string | null
-          redeem_code?: string
-          redeemed_at?: string | null
-          redeemed_by_user_id?: string | null
-          store_id?: string
-          user_id?: string | null
+          ref?: string | null
+          source?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "coupon_issues_coupon_id_fkey"
-            columns: ["coupon_id"]
-            isOneToOne: false
-            referencedRelation: "store_coupons"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "coupon_issues_message_id_fkey"
-            columns: ["message_id"]
-            isOneToOne: false
-            referencedRelation: "store_messages"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "coupon_issues_redeemed_by_user_id_fkey"
-            columns: ["redeemed_by_user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "coupon_issues_store_id_fkey"
-            columns: ["store_id"]
-            isOneToOne: false
-            referencedRelation: "stores"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "coupon_issues_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      coupon_redemptions: {
-        Row: {
-          amount_used: number | null
-          id: string
-          issue_id: string
-          notes: string | null
-          redeemed_at: string
-          redeemed_by_user_id: string | null
-          store_id: string
-        }
-        Insert: {
-          amount_used?: number | null
-          id?: string
-          issue_id: string
-          notes?: string | null
-          redeemed_at?: string
-          redeemed_by_user_id?: string | null
-          store_id: string
-        }
-        Update: {
-          amount_used?: number | null
-          id?: string
-          issue_id?: string
-          notes?: string | null
-          redeemed_at?: string
-          redeemed_by_user_id?: string | null
-          store_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "coupon_redemptions_issue_id_fkey"
-            columns: ["issue_id"]
-            isOneToOne: true
-            referencedRelation: "coupon_issues"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "coupon_redemptions_redeemed_by_user_id_fkey"
-            columns: ["redeemed_by_user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "coupon_redemptions_store_id_fkey"
-            columns: ["store_id"]
-            isOneToOne: false
-            referencedRelation: "stores"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       line_oa_subscribers: {
         Row: {
@@ -262,6 +144,62 @@ export type Database = {
           {
             foreignKeyName: "lottery_rounds_executed_by_fkey"
             columns: ["executed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      platform_events: {
+        Row: {
+          area_label: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          end_at: string | null
+          external_url: string | null
+          id: string
+          image_url: string | null
+          organizer_name: string | null
+          start_at: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          area_label?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          end_at?: string | null
+          external_url?: string | null
+          id?: string
+          image_url?: string | null
+          organizer_name?: string | null
+          start_at?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          area_label?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          end_at?: string | null
+          external_url?: string | null
+          id?: string
+          image_url?: string | null
+          organizer_name?: string | null
+          start_at?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_events_created_by_fkey"
+            columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
@@ -926,68 +864,6 @@ export type Database = {
           },
         ]
       }
-      store_coupons: {
-        Row: {
-          body: string | null
-          conditions: string | null
-          created_at: string
-          discount_type: string
-          discount_value: number | null
-          id: string
-          image_url: string | null
-          is_active: boolean
-          max_issues: number | null
-          max_per_user: number
-          store_id: string
-          title: string
-          updated_at: string
-          valid_from: string | null
-          valid_until: string
-        }
-        Insert: {
-          body?: string | null
-          conditions?: string | null
-          created_at?: string
-          discount_type: string
-          discount_value?: number | null
-          id?: string
-          image_url?: string | null
-          is_active?: boolean
-          max_issues?: number | null
-          max_per_user?: number
-          store_id: string
-          title: string
-          updated_at?: string
-          valid_from?: string | null
-          valid_until: string
-        }
-        Update: {
-          body?: string | null
-          conditions?: string | null
-          created_at?: string
-          discount_type?: string
-          discount_value?: number | null
-          id?: string
-          image_url?: string | null
-          is_active?: boolean
-          max_issues?: number | null
-          max_per_user?: number
-          store_id?: string
-          title?: string
-          updated_at?: string
-          valid_from?: string | null
-          valid_until?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "store_coupons_store_id_fkey"
-            columns: ["store_id"]
-            isOneToOne: false
-            referencedRelation: "stores"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       store_crowd_reports: {
         Row: {
           distance_m: number | null
@@ -1036,6 +912,164 @@ export type Database = {
           {
             foreignKeyName: "store_crowd_reports_user_id_fkey"
             columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      store_customer_notes: {
+        Row: {
+          conversation_notes: string | null
+          created_at: string
+          id: string
+          order_notes: string | null
+          preference_notes: string | null
+          store_id: string
+          updated_at: string
+          updated_by: string | null
+          user_id: string
+        }
+        Insert: {
+          conversation_notes?: string | null
+          created_at?: string
+          id?: string
+          order_notes?: string | null
+          preference_notes?: string | null
+          store_id: string
+          updated_at?: string
+          updated_by?: string | null
+          user_id: string
+        }
+        Update: {
+          conversation_notes?: string | null
+          created_at?: string
+          id?: string
+          order_notes?: string | null
+          preference_notes?: string | null
+          store_id?: string
+          updated_at?: string
+          updated_by?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_customer_notes_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_customer_notes_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_customer_notes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      store_event_benefit_redemptions: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          event_id: string
+          id: string
+          redeemed_at: string
+          store_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          event_id: string
+          id?: string
+          redeemed_at?: string
+          store_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          event_id?: string
+          id?: string
+          redeemed_at?: string
+          store_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_event_benefit_redemptions_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "platform_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_event_benefit_redemptions_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      store_event_participations: {
+        Row: {
+          benefit_text: string | null
+          created_at: string
+          event_id: string
+          id: string
+          is_participating: boolean
+          notes: string | null
+          store_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          benefit_text?: string | null
+          created_at?: string
+          event_id: string
+          id?: string
+          is_participating?: boolean
+          notes?: string | null
+          store_id: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          benefit_text?: string | null
+          created_at?: string
+          event_id?: string
+          id?: string
+          is_participating?: boolean
+          notes?: string | null
+          store_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_event_participations_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "platform_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_event_participations_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_event_participations_updated_by_fkey"
+            columns: ["updated_by"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
@@ -1098,6 +1132,44 @@ export type Database = {
           },
           {
             foreignKeyName: "store_messages_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      store_vacancy_updates: {
+        Row: {
+          created_at: string
+          id: string
+          previous_status: string | null
+          source: string | null
+          status: string
+          store_id: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          previous_status?: string | null
+          source?: string | null
+          status: string
+          store_id: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          previous_status?: string | null
+          source?: string | null
+          status?: string
+          store_id?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_vacancy_updates_store_id_fkey"
             columns: ["store_id"]
             isOneToOne: false
             referencedRelation: "stores"
@@ -1321,6 +1393,7 @@ export type Database = {
         Args: { p_users: string[] }
         Returns: undefined
       }
+      is_admin: { Args: never; Returns: boolean }
       is_platform_admin: { Args: never; Returns: boolean }
       update_sponsor_contract_statuses: { Args: never; Returns: undefined }
     }

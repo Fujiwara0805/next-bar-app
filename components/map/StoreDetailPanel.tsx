@@ -34,6 +34,7 @@ import { sendGAEvent } from '@/lib/analytics';
 import { useAppMode } from '@/lib/app-mode-context';
 import type { BusinessHours } from '@/lib/supabase/types';
 import { CrowdVoteModal } from '@/components/store/crowd-vote-modal';
+import { LineFriendCta } from '@/components/line/line-friend-cta';
 import type { EventAwareStore } from '@/lib/types/active-store-event';
 
 type Store = EventAwareStore;
@@ -791,6 +792,9 @@ export function StoreDetailPanel({
                     </div>
                   </div>
                 )}
+
+                {/* 転換装置: 店舗詳細パネル(地図)からのPV→LINE友だち化フック */}
+                <LineFriendCta source="store_detail" refId={store.id} className="mt-1" />
 
                 <div className="h-4" />
               </motion.div>
