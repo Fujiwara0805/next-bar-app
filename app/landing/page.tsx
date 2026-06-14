@@ -41,6 +41,7 @@ import { useAppMode } from '@/lib/app-mode-context';
 import { newsTranslations } from '@/lib/news-data';
 import { SponsorModal } from '@/components/sponsors/sponsor-modal';
 import { SponsorCtaButton } from '@/components/sponsors/sponsor-cta-button';
+import { LineFriendCta } from '@/components/line/line-friend-cta';
 import { SponsorProvider, useSponsor } from '@/lib/sponsors/context';
 import {
   fetchActiveStoreParticipations,
@@ -198,6 +199,7 @@ export default function LandingPage() {
   const [partnerStores, setPartnerStores] = useState<PartnerStore[]>([]);
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
   const [concernsSlide, setConcernsSlide] = useState(0);
+  const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [activeEvents, setActiveEvents] = useState<ActiveStoreEvent[]>([]);
   const locationAttemptRef = useRef(false);
 
@@ -664,27 +666,17 @@ export default function LandingPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
               >
-                <motion.div
-                  whileHover={{ scale: 1.03, y: -2 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="rounded-full relative overflow-hidden group inline-block"
-                  style={{ boxShadow: '0 12px 32px rgba(255, 198, 45, 0.35)' }}
+                {/* 主CTA: LINE友だち追加で空席通知を受け取る（転換装置・source=hero） */}
+                <LineFriendCta source="hero" variant="compact" className="max-w-sm" />
+                {/* 副CTA: 地図でお店を探す */}
+                <button
+                  type="button"
+                  onClick={handleMapClick}
+                  className="mt-3 inline-flex w-full max-w-sm items-center justify-center gap-2 rounded-full px-8 py-3 text-sm font-semibold transition-all hover:scale-[1.02] active:scale-95 lg:text-base"
+                  style={{ color: LP_NAVY, background: LP_YELLOW, boxShadow: '0 8px 24px rgba(255, 198, 45, 0.32)' }}
                 >
-                  <Button
-                    size="lg"
-                    onClick={handleMapClick}
-                    className="text-base px-10 py-6 rounded-full font-semibold transition-all relative z-10 lg:text-lg"
-                    style={{ background: LP_YELLOW, color: LP_NAVY }}
-                  >
-                    <Store className="w-5 h-5 mr-2" />{t('landing.cta_button_primary')}
-                  </Button>
-                  <motion.div
-                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
-                    style={{ backgroundColor: 'rgba(255,255,255,0.18)' }}
-                    animate={{ x: ['-100%', '200%'] }}
-                    transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 1 }}
-                  />
-                </motion.div>
+                  <Store className="w-4 h-4" />{t('landing.cta_button_primary')}
+                </button>
               </motion.div>
 
               <motion.p
@@ -756,27 +748,19 @@ export default function LandingPage() {
                   ))}
                 </span>
               </h1>
-              <motion.div
-                whileHover={{ scale: 1.03, y: -2 }}
-                whileTap={{ scale: 0.98 }}
-                className="rounded-full relative overflow-hidden group inline-block mb-6"
-                style={{ boxShadow: '0 8px 28px rgba(255, 198, 45, 0.35)' }}
-              >
-                <Button
-                  size="lg"
+              {/* 主CTA: LINE友だち追加で空席通知を受け取る（転換装置・source=hero） */}
+              <div className="mb-6 mx-auto max-w-xs">
+                <LineFriendCta source="hero" variant="compact" />
+                {/* 副CTA: 地図でお店を探す */}
+                <button
+                  type="button"
                   onClick={handleMapClick}
-                  className="text-base px-10 py-6 rounded-full font-semibold transition-all relative z-10 lg:text-lg"
-                  style={{ background: LP_YELLOW, color: LP_NAVY }}
+                  className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-full px-8 py-3 text-sm font-semibold transition-all active:scale-95"
+                  style={{ color: LP_NAVY, background: LP_YELLOW, boxShadow: '0 8px 24px rgba(255, 198, 45, 0.35)' }}
                 >
-                  <Store className="w-5 h-5 mr-2" />{t('landing.cta_button_primary')}
-                </Button>
-                <motion.div
-                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
-                  style={{ backgroundColor: 'rgba(255,255,255,0.18)' }}
-                  animate={{ x: ['-100%', '200%'] }}
-                  transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 1 }}
-                />
-              </motion.div>
+                  <Store className="w-4 h-4" />{t('landing.cta_button_primary')}
+                </button>
+              </div>
               <p className="text-xs sm:text-sm tracking-wider mb-3 lg:text-base" style={{ color: 'rgba(255,255,255,0.88)', textShadow: '0 1px 6px rgba(0,0,0,0.4)' }}>
                 {t('landing.hero_subcopy')}
               </p>
@@ -1190,9 +1174,9 @@ export default function LandingPage() {
       </section>
 
       {/* Pricing Section */}
-      <section className="relative py-10 md:py-20 px-4 overflow-hidden" style={{ background: lpMid.page.bg }}>
+      <section className="relative py-12 md:py-24 px-4 overflow-hidden" style={{ background: lpMid.page.bg }}>
         <div className="container mx-auto max-w-4xl lg:max-w-7xl">
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12 lg:mb-16">
             <GoldDivider />
             <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4 lg:text-base" style={{ color: lpMid.page.text }}>{t('landing.pricing_label')}</span>
             <h2 className="text-2xl sm:text-3xl font-bold mb-4 lg:text-4xl" style={{ color: lpMid.page.text }}>{renderWithLineBreaks(t('landing.pricing_title'))}</h2>
@@ -1201,39 +1185,77 @@ export default function LandingPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 xl:gap-8 items-stretch">
             {/* ユーザー（消費者）= 無料 */}
-            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="h-full">
-              <article className="rounded-2xl h-full flex flex-col p-7" style={{ background: lpMid.elevated.bg, border: `1px solid ${lpMid.elevated.border}`, boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-5" style={{ background: 'rgba(201,168,108,0.12)' }}>
-                  <Users className="w-6 h-6" style={{ color: lpMid.elevated.text }} />
+            <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} whileHover={{ y: -6 }} transition={{ duration: 0.4 }} className="h-full">
+              <article className="rounded-2xl h-full flex flex-col p-7 lg:p-8" style={{ background: lpMid.elevated.bg, border: `1px solid ${lpMid.elevated.border}`, boxShadow: '0 12px 32px rgba(19,41,75,0.08)' }}>
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(255,200,44,0.14)' }}>
+                    <Users className="w-6 h-6" style={{ color: LP_YELLOW }} />
+                  </div>
+                  <h3 className="text-base font-bold flex-1 min-w-0 leading-snug lg:text-xl" style={{ color: lpMid.elevated.text }}>{t('landing.pricing_user_name')}</h3>
+                  <p className="text-xl font-extrabold shrink-0 text-right lg:text-2xl" style={{ color: lpMid.elevated.text }}>{t('landing.pricing_user_price')}</p>
                 </div>
-                <h3 className="text-lg font-bold mb-1 lg:text-2xl" style={{ color: lpMid.elevated.text }}>{t('landing.pricing_user_name')}</h3>
-                <p className="text-3xl font-extrabold mb-4 lg:text-4xl" style={{ color: lpMid.elevated.text }}>{t('landing.pricing_user_price')}</p>
-                <p className="text-sm leading-relaxed lg:text-lg" style={{ color: lpMid.elevated.textMuted }}>{renderWithLineBreaks(t('landing.pricing_user_desc'))}</p>
+                <div className="h-px w-full mb-5" style={{ background: lpMid.elevated.border }} />
+                <ul className="space-y-3 mb-7 flex-1">
+                  {['pricing_user_feat1', 'pricing_user_feat2', 'pricing_user_feat3'].map((k) => (
+                    <li key={k} className="flex items-start gap-2.5 text-sm lg:text-base" style={{ color: lpMid.elevated.textMuted }}>
+                      <CheckCircle className="w-5 h-5 shrink-0 mt-0.5" style={{ color: LP_YELLOW }} />
+                      <span>{t(`landing.${k}`)}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Link href="/map" className="inline-flex items-center justify-center gap-2 w-full px-5 py-3 rounded-xl font-bold transition-all hover:scale-[1.02] active:scale-95" style={{ background: 'transparent', color: LP_YELLOW, border: `1.5px solid ${LP_YELLOW}` }}>
+                  {t('landing.pricing_user_cta')}<ChevronRight className="w-4 h-4" />
+                </Link>
               </article>
             </motion.div>
 
-            {/* 加盟店 = 基本無料／公式LINE配信は有料（アクセント） */}
-            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }} className="h-full">
-              <article className="relative rounded-2xl h-full flex flex-col p-7" style={{ background: lpMid.elevated.bg, border: `2px solid ${LP_YELLOW}`, boxShadow: `0 8px 30px ${LP_YELLOW}30` }}>
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-5" style={{ background: LP_YELLOW }}>
-                  <Store className="w-6 h-6" style={{ color: LP_NAVY }} />
+            {/* 加盟店 = 基本無料／公式LINE配信は有料（おすすめ・アクセント） */}
+            <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} whileHover={{ y: -6 }} transition={{ duration: 0.4, delay: 0.1 }} className="h-full">
+              <article className="relative rounded-2xl h-full flex flex-col p-7 lg:p-8" style={{ background: lpMid.elevated.bg, border: `2px solid ${LP_YELLOW}`, boxShadow: `0 16px 44px ${LP_YELLOW}33` }}>
+                <span className="absolute -top-3 right-6 px-3 py-1 rounded-full text-[11px] font-extrabold tracking-wider" style={{ background: LP_YELLOW, color: LP_NAVY }}>{t('landing.pricing_badge_popular')}</span>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" style={{ background: LP_YELLOW }}>
+                    <Store className="w-6 h-6" style={{ color: LP_NAVY }} />
+                  </div>
+                  <h3 className="text-base font-bold flex-1 min-w-0 leading-snug lg:text-xl" style={{ color: lpMid.elevated.text }}>{t('landing.pricing_store_name')}</h3>
+                  <p className="text-xl font-extrabold shrink-0 text-right lg:text-2xl" style={{ color: lpMid.elevated.text }}>{t('landing.pricing_store_price')}</p>
                 </div>
-                <h3 className="text-lg font-bold mb-1 lg:text-2xl" style={{ color: lpMid.elevated.text }}>{t('landing.pricing_store_name')}</h3>
-                <p className="text-3xl font-extrabold mb-1 lg:text-4xl" style={{ color: lpMid.elevated.text }}>{t('landing.pricing_store_price')}</p>
-                <p className="text-sm font-bold mb-4" style={{ color: accentTextOnLightBg(lpMid.elevated.bg) }}>{t('landing.pricing_store_price_note')}</p>
-                <p className="text-sm leading-relaxed lg:text-lg" style={{ color: lpMid.elevated.textMuted }}>{renderWithLineBreaks(t('landing.pricing_store_desc'))}</p>
+                <p className="text-sm font-bold mb-5" style={{ color: LP_YELLOW }}>{t('landing.pricing_store_price_note')}</p>
+                <div className="h-px w-full mb-5" style={{ background: lpMid.elevated.border }} />
+                <ul className="space-y-3 mb-7 flex-1">
+                  {['pricing_store_feat1', 'pricing_store_feat2', 'pricing_store_feat3'].map((k) => (
+                    <li key={k} className="flex items-start gap-2.5 text-sm lg:text-base" style={{ color: lpMid.elevated.textMuted }}>
+                      <CheckCircle className="w-5 h-5 shrink-0 mt-0.5" style={{ color: LP_YELLOW }} />
+                      <span>{t(`landing.${k}`)}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Link href="/partner/apply" className="inline-flex items-center justify-center gap-2 w-full px-5 py-3 rounded-xl font-bold transition-all hover:scale-[1.02] active:scale-95" style={{ background: LP_YELLOW, color: LP_NAVY }}>
+                  {t('landing.pricing_store_cta')}<ChevronRight className="w-4 h-4" />
+                </Link>
               </article>
             </motion.div>
 
             {/* イベント開催者（自治体・主催者）= 要相談 */}
-            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.2 }} className="h-full">
-              <article className="rounded-2xl h-full flex flex-col p-7" style={{ background: lpMid.elevated.bg, border: `1px solid ${lpMid.elevated.border}`, boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-5" style={{ background: 'rgba(201,168,108,0.12)' }}>
-                  <Landmark className="w-6 h-6" style={{ color: lpMid.elevated.text }} />
+            <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} whileHover={{ y: -6 }} transition={{ duration: 0.4, delay: 0.2 }} className="h-full">
+              <article className="rounded-2xl h-full flex flex-col p-7 lg:p-8" style={{ background: lpMid.elevated.bg, border: `1px solid ${lpMid.elevated.border}`, boxShadow: '0 12px 32px rgba(19,41,75,0.08)' }}>
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(255,200,44,0.14)' }}>
+                    <Landmark className="w-6 h-6" style={{ color: LP_YELLOW }} />
+                  </div>
+                  <h3 className="text-base font-bold flex-1 min-w-0 leading-snug lg:text-xl" style={{ color: lpMid.elevated.text }}>{t('landing.pricing_organizer_name')}</h3>
+                  <p className="text-xl font-extrabold shrink-0 text-right lg:text-2xl" style={{ color: lpMid.elevated.text }}>{t('landing.pricing_organizer_price')}</p>
                 </div>
-                <h3 className="text-lg font-bold mb-1 lg:text-2xl" style={{ color: lpMid.elevated.text }}>{t('landing.pricing_organizer_name')}</h3>
-                <p className="text-3xl font-extrabold mb-4 lg:text-4xl" style={{ color: lpMid.elevated.text }}>{t('landing.pricing_organizer_price')}</p>
-                <p className="text-sm leading-relaxed mb-6 flex-1 lg:text-lg" style={{ color: lpMid.elevated.textMuted }}>{renderWithLineBreaks(t('landing.pricing_organizer_desc'))}</p>
+                <div className="h-px w-full mb-5" style={{ background: lpMid.elevated.border }} />
+                <ul className="space-y-3 mb-5 flex-1">
+                  {['pricing_organizer_feat1', 'pricing_organizer_feat2', 'pricing_organizer_feat3'].map((k) => (
+                    <li key={k} className="flex items-start gap-2.5 text-sm lg:text-base" style={{ color: lpMid.elevated.textMuted }}>
+                      <CheckCircle className="w-5 h-5 shrink-0 mt-0.5" style={{ color: LP_YELLOW }} />
+                      <span>{t(`landing.${k}`)}</span>
+                    </li>
+                  ))}
+                </ul>
+                <p className="text-xs leading-relaxed mb-5" style={{ color: lpMid.elevated.textMuted }}>{renderWithLineBreaks(t('landing.pricing_organizer_desc'))}</p>
                 <Link href="/contact" className="inline-flex items-center justify-center gap-2 w-full px-5 py-3 rounded-xl font-bold transition-all hover:scale-[1.02] active:scale-95" style={{ background: LP_YELLOW, color: LP_NAVY }}>
                   <Mail className="w-4 h-4" />{t('landing.pricing_organizer_cta')}
                 </Link>
@@ -1241,8 +1263,85 @@ export default function LandingPage() {
             </motion.div>
           </div>
         </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section className="relative py-12 md:py-24 px-4 overflow-hidden" style={{ background: lpMid.page.bg }}>
+        <div className="container mx-auto max-w-3xl">
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-10 lg:mb-14">
+            <GoldDivider />
+            <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4 lg:text-base" style={{ color: lpMid.page.text }}>{t('landing.faq_label')}</span>
+            <h2 className="text-2xl sm:text-3xl font-bold lg:text-4xl" style={{ color: lpMid.page.text }}>{renderWithLineBreaks(t('landing.faq_title'))}</h2>
+          </motion.div>
+          <div className="space-y-3">
+            {[1, 2, 3, 4, 5].map((n, idx) => {
+              const open = openFaq === idx;
+              return (
+                <motion.div key={n} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: idx * 0.05 }}>
+                  <div className="rounded-2xl overflow-hidden" style={{ background: lpMid.elevated.bg, border: `1px solid ${open ? LP_YELLOW : lpMid.elevated.border}`, boxShadow: '0 12px 32px rgba(19,41,75,0.08)' }}>
+                    <button type="button" onClick={() => setOpenFaq(open ? null : idx)} className="w-full flex items-center justify-between gap-4 p-5 lg:p-6 text-left transition-colors" aria-expanded={open}>
+                      <span className="text-sm font-bold lg:text-lg" style={{ color: lpMid.elevated.text }}>{t(`landing.faq_q${n}`)}</span>
+                      <motion.span animate={{ rotate: open ? 90 : 0 }} transition={{ duration: 0.2 }} className="shrink-0">
+                        <ChevronRight className="w-5 h-5" style={{ color: LP_YELLOW }} />
+                      </motion.span>
+                    </button>
+                    <AnimatePresence initial={false}>
+                      {open && (
+                        <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.25 }} style={{ overflow: 'hidden' }}>
+                          <p className="px-5 lg:px-6 pb-5 lg:pb-6 text-sm leading-relaxed lg:text-base" style={{ color: lpMid.elevated.textMuted }}>{renderWithLineBreaks(t(`landing.faq_a${n}`))}</p>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
         {/* cream → navy 自然な曲線ウェーブ */}
         <WaveDivider fill={lpPage.bg} position="bottom" />
+      </section>
+
+      {/* 主催者向けセクション（イベント主催者・自治体向けB2Bバンド） */}
+      <section className="relative py-12 md:py-24 px-4 overflow-hidden" style={{ background: lpPage.bg }}>
+        <div className="container mx-auto max-w-4xl">
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="relative rounded-3xl p-8 sm:p-12 text-center overflow-hidden"
+            style={{
+              background: 'rgba(255,255,255,0.04)',
+              border: '1px solid rgba(255, 198, 45, 0.35)',
+              boxShadow: '0 16px 44px rgba(7,16,34,0.35)',
+            }}
+          >
+            {/* 装飾グロー */}
+            <div
+              className="absolute -top-24 -right-24 w-64 h-64 rounded-full pointer-events-none"
+              style={{ backgroundColor: 'rgba(255, 198, 45, 0.12)', filter: 'blur(70px)' }}
+              aria-hidden
+            />
+            <div className="relative z-10">
+              <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4 lg:text-base" style={{ color: LP_YELLOW }}>
+                {t('landing.organizer_section_label')}
+              </span>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-5 leading-tight" style={{ color: lpPage.text }}>
+                {renderWithLineBreaks(t('landing.organizer_section_title'))}
+              </h2>
+              <p className="text-base max-w-2xl mx-auto mb-8 leading-relaxed lg:text-lg" style={{ color: lpPage.textMuted }}>
+                {renderWithLineBreaks(t('landing.organizer_section_body'))}
+              </p>
+              <Link href="/contact">
+                <motion.div whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.98 }} className="inline-block">
+                  <Button size="lg" className="text-base px-8 py-6 rounded-full font-semibold lg:text-lg" style={{ background: LP_YELLOW, color: LP_NAVY, boxShadow: '0 8px 28px rgba(255, 198, 45, 0.35)' }}>
+                    <Mail className="w-5 h-5 mr-2" />{t('landing.organizer_section_cta')}
+                  </Button>
+                </motion.div>
+              </Link>
+            </div>
+          </motion.div>
+        </div>
       </section>
 
       {/* Partner Stores Section - 流れるマーキー */}

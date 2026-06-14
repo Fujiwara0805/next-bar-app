@@ -21,7 +21,7 @@ const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const ADD_FRIEND_URL = process.env.NEXT_PUBLIC_LINE_ADD_FRIEND_URL;
 
 // 計測ノイズ防止のため source はホワイトリスト化。未知値は 'unknown' に丸める。
-const ALLOWED_SOURCES = new Set(['map', 'store_detail', 'store_page', 'event']);
+const ALLOWED_SOURCES = new Set(['map', 'store_detail', 'store_page', 'event', 'hero']);
 
 // オープンリダイレクト防止: LINEドメインのみ許可。
 const ADD_FRIEND_RE = /^https:\/\/(lin\.ee|line\.me|liff\.line\.me)\//;

@@ -17,7 +17,7 @@ import { useLanguage } from '@/lib/i18n/context';
 // NEXT_PUBLIC env はビルド時にインライン化される。
 const ADD_FRIEND_URL = process.env.NEXT_PUBLIC_LINE_ADD_FRIEND_URL;
 
-export type LineCtaSource = 'map' | 'store_detail' | 'store_page' | 'event';
+export type LineCtaSource = 'map' | 'store_detail' | 'store_page' | 'event' | 'hero';
 
 type LineFriendCtaProps = {
   /** 計測用の設置面ラベル。/api/line/cta のホワイトリストと一致させること。 */
