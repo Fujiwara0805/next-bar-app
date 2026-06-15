@@ -19,7 +19,7 @@
 import { Suspense, useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapIcon, Star, Filter, Check, Sparkles, X, Ticket, Loader2 } from 'lucide-react';
+import { MapIcon, Star, Filter, Check, Sparkles, X, Ticket, Loader2, Beer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CloseCircleButton } from '@/components/ui/close-circle-button';
 import { Card } from '@/components/ui/card';
@@ -744,13 +744,31 @@ function StoreListContent() {
                           </motion.div>
                         )}
                         <div className="flex gap-3 h-full">
-                          {store.image_urls && store.image_urls.length > 0 && (
+                          {store.image_urls && store.image_urls.length > 0 ? (
                             <motion.img
                               whileHover={{ scale: 1.05 }}
                               src={store.image_urls[0]}
                               alt={store.name}
                               className="w-24 h-24 object-cover rounded-lg flex-shrink-0"
                             />
+                          ) : (
+                            // 画像未登録の店舗はブランドのビールアイコンをプレースホルダ表示
+                            <div
+                              className="w-24 h-24 rounded-lg flex-shrink-0 flex items-center justify-center"
+                              style={{
+                                background: isEventStore
+                                  ? 'rgba(19, 41, 75, 0.10)'
+                                  : `${COLORS.deepNavy}0D`,
+                                border: `1px solid ${isEventStore ? 'rgba(19, 41, 75, 0.22)' : `${COLORS.deepNavy}1A`}`,
+                              }}
+                              aria-label={store.name}
+                            >
+                              <Beer
+                                className="w-10 h-10"
+                                strokeWidth={1.75}
+                                style={{ color: isEventStore ? EVENT_CARD_FG : COLORS.champagneGold }}
+                              />
+                            </div>
                           )}
                           
                           <div className="flex-1 min-w-0 flex flex-col">

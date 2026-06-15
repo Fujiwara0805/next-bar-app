@@ -157,8 +157,15 @@ const MARKER_RENDER_SCALE =
     ? 2
     : Math.min(3, Math.max(2, Math.ceil(window.devicePixelRatio || 1)));
 
-// 埋め込む店舗写真は「円フレームの表示サイズ × DPR」で用意し、Retinaでも鮮明に
-const MARKER_IMAGE_CANVAS_SIZE_PX = MARKER_FRAME_SIZE_PX * MARKER_RENDER_SCALE;
+// 埋め込む店舗写真の解像度。
+// 「円フレーム表示サイズ × DPR」だけだとデバイスピクセルとちょうど1:1になり、
+// SVGラスタライズ時の再サンプリングで甘くなる。さらにスーパーサンプリング係数(2)を掛け、
+// ブラウザの高品質縮小を効かせて鮮明化する（データURL肥大化を防ぐため256pxで上限）。
+const MARKER_IMAGE_SUPERSAMPLE = 2;
+const MARKER_IMAGE_SOURCE_PX = Math.min(
+  256,
+  MARKER_FRAME_SIZE_PX * MARKER_RENDER_SCALE * MARKER_IMAGE_SUPERSAMPLE
+);
 const markerImageCache = new Map<string, Promise<string | null>>();
 
 function getMarkerImageUrl(store: Store): string | null {
@@ -169,15 +176,15 @@ function getMarkerImageUrl(store: Store): string | null {
 /**
  * Cloudinary画像URLにマーカー用の最適化変換を注入する。
  * - c_fill + 正方形サイズで円フレームにちょうど収まるよう切り抜き（g_auto=被写体中心）
- * - f_auto,q_auto で配信形式・画質を自動最適化（既存方針に準拠）
- * - dpr は MARKER_IMAGE_CANVAS_SIZE_PX 側で吸収済みのため指定不要
+ * - f_auto,q_auto:good で配信形式を自動最適化しつつ、小サイズの圧縮アーティファクトを抑制
+ * - dpr は MARKER_IMAGE_SOURCE_PX 側で吸収済みのため指定不要
  * Cloudinary以外のURLはそのまま返す。
  */
 function optimizeMarkerImageUrl(url: string, sizePx: number): string {
   if (!url.includes('res.cloudinary.com') || !url.includes('/upload/')) {
     return url;
   }
-  const transform = `c_fill,g_auto,w_${sizePx},h_${sizePx},f_auto,q_auto`;
+  const transform = `c_fill,g_auto,w_${sizePx},h_${sizePx},f_auto,q_auto:good`;
   return url.replace('/upload/', `/upload/${transform}/`);
 }
 
@@ -219,7 +226,9 @@ function createMarkerSvgDataUrl(
   const radius = MARKER_FRAME_SIZE_PX / 2 - 2;
   const labelY = MARKER_FRAME_SIZE_PX + 3;
   const labelText = escapeSvgText(truncateMarkerTitle(title));
-  const borderColor = status === 'open' ? '#22c55e' : '#FFFFFF';
+  // 営業中=グリーン / 営業時間外(closed)=グレー / その他=白
+  const borderColor =
+    status === 'open' ? '#22c55e' : status === 'closed' ? '#9CA3AF' : '#FFFFFF';
   // 店舗名はネイビー(#13294b)の文字に白い縁取りを付与（paint-order="stroke" で白縁を文字背面に描画）
   const label = `
     <text x="${centerX}" y="${labelY + 11.5}" text-anchor="middle" fill="#13294b" stroke="#FFFFFF" stroke-width="3" stroke-linejoin="round" paint-order="stroke" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="10" font-weight="800">${labelText}</text>
@@ -284,8 +293,8 @@ function loadMarkerImageDataUrl(imageUrl: string): Promise<string | null> {
     image.onload = () => {
       try {
         const canvas = document.createElement('canvas');
-        canvas.width = MARKER_IMAGE_CANVAS_SIZE_PX;
-        canvas.height = MARKER_IMAGE_CANVAS_SIZE_PX;
+        canvas.width = MARKER_IMAGE_SOURCE_PX;
+        canvas.height = MARKER_IMAGE_SOURCE_PX;
         const ctx = canvas.getContext('2d');
         if (!ctx) {
           resolve(null);
@@ -295,15 +304,15 @@ function loadMarkerImageDataUrl(imageUrl: string): Promise<string | null> {
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
         const scale = Math.max(
-          MARKER_IMAGE_CANVAS_SIZE_PX / image.naturalWidth,
-          MARKER_IMAGE_CANVAS_SIZE_PX / image.naturalHeight
+          MARKER_IMAGE_SOURCE_PX / image.naturalWidth,
+          MARKER_IMAGE_SOURCE_PX / image.naturalHeight
         );
         const drawWidth = image.naturalWidth * scale;
         const drawHeight = image.naturalHeight * scale;
         ctx.drawImage(
           image,
-          (MARKER_IMAGE_CANVAS_SIZE_PX - drawWidth) / 2,
-          (MARKER_IMAGE_CANVAS_SIZE_PX - drawHeight) / 2,
+          (MARKER_IMAGE_SOURCE_PX - drawWidth) / 2,
+          (MARKER_IMAGE_SOURCE_PX - drawHeight) / 2,
           drawWidth,
           drawHeight
         );
@@ -327,7 +336,7 @@ async function createMarkerIconUrl(
 ): Promise<string> {
   const optimizedUrl =
     imageUrl && (status === 'open' || status === 'closed')
-      ? optimizeMarkerImageUrl(imageUrl, MARKER_IMAGE_CANVAS_SIZE_PX)
+      ? optimizeMarkerImageUrl(imageUrl, MARKER_IMAGE_SOURCE_PX)
       : null;
   const imageDataUrl = optimizedUrl ? await loadMarkerImageDataUrl(optimizedUrl) : null;
   return createMarkerSvgDataUrl(status, title, imageDataUrl);
@@ -1502,46 +1511,6 @@ export function MapView({
 
       {/* コントロールボタン */}
       <div className="absolute bottom-32 right-4 z-10 flex flex-col gap-2">
-        {/* コンパスON/OFFボタン */}
-        <motion.button
-          whileTap={{ scale: 0.95 }}
-          onClick={handleCompassToggle}
-          className="w-11 h-11 rounded-full flex items-center justify-center"
-          style={{
-            background: compassEnabled
-              ? colors.goldGradient
-              : colors.background,
-            border: compassEnabled
-              ? `1px solid ${colors.accent}`
-              : `1px solid ${colors.borderGold}`,
-            boxShadow: compassEnabled
-              ? colors.shadowGold
-              : `0 2px 10px rgba(0,0,0,0.3)`,
-          }}
-          aria-label={compassEnabled ? t('map_direction.disable_direction') : t('map_direction.enable_direction')}
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-            <circle
-              cx="12"
-              cy="12"
-              r="9"
-              stroke={compassEnabled ? colors.background : colors.accent}
-              strokeWidth="1.5"
-              fill="none"
-            />
-            <path
-              d="M12 2v2M12 20v2M2 12h2M20 12h2"
-              stroke={compassEnabled ? colors.background : colors.accent}
-              strokeWidth="1.5"
-              strokeLinecap="round"
-            />
-            <path
-              d="M16.24 7.76l-2.12 6.36-6.36 2.12 2.12-6.36 6.36-2.12z"
-              fill={compassEnabled ? colors.background : colors.accent}
-            />
-          </svg>
-        </motion.button>
-
         {/* ズームイン */}
         <motion.button
           whileTap={{ scale: 0.95 }}

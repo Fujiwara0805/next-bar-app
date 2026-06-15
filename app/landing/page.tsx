@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import {
-  MapPin,
   Store,
   Menu,
   X,
@@ -26,6 +25,9 @@ import {
   Loader2,
   Users,
   Landmark,
+  Plane,
+  Zap,
+  Map as MapIconLucide,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -565,7 +567,7 @@ export default function LandingPage() {
                   </a>
                 </div>
                 <div className="mt-6 pt-6" style={{ borderTop: `1px solid ${lpPage.border}` }}>
-                  <p className="text-xs text-center lg:text-base" style={{ color: lpPage.textSubtle }}>© 2025 NIKENME+<br />{t('menu.version')}</p>
+                  <p className="text-xs text-center lg:text-base" style={{ color: lpPage.textSubtle }}>© 2025 にけんめぷらす<br />{t('menu.version')}</p>
                 </div>
               </div>
             </motion.div>
@@ -583,19 +585,8 @@ export default function LandingPage() {
           />
         </motion.div>
 
-        {/* テキスト可読性のためのオーバーレイ */}
-        {/* モバイル: 下から上へのグラデーション（テキストは下部中央） */}
-        <div
-          className="absolute inset-0 z-[1] lg:hidden"
-          style={{ background: 'linear-gradient(to top, rgba(19,41,75,0.88) 0%, rgba(19,41,75,0.45) 42%, rgba(19,41,75,0.12) 100%)' }}
-          aria-hidden
-        />
-        {/* PC: 左から右へのグラデーション（テキストは左カラム） */}
-        <div
-          className="absolute inset-0 z-[1] hidden lg:block"
-          style={{ background: 'linear-gradient(to right, rgba(19,41,75,0.92) 0%, rgba(19,41,75,0.72) 32%, rgba(19,41,75,0.3) 58%, rgba(19,41,75,0) 82%)' }}
-          aria-hidden
-        />
+        {/* オーバーレイは廃止し、ヒーロー画像をクリーンに表示。
+            テキスト可読性は各テキストの textShadow のみで担保する。 */}
 
         <div className="relative z-10 h-full grid grid-cols-1 lg:grid-cols-[minmax(0,44%)_minmax(0,56%)]">
           {/* Left Column - PC only: Service description */}
@@ -625,7 +616,7 @@ export default function LandingPage() {
               >
                 <span
                   className="inline-block text-[10px] tracking-[0.32em] uppercase font-semibold mb-6"
-                  style={{ color: LP_YELLOW }}
+                  style={{ color: LP_YELLOW, textShadow: '0 1px 6px rgba(0,0,0,0.55)' }}
                 >
                   Night Discovery Platform
                 </span>
@@ -635,14 +626,14 @@ export default function LandingPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.25 }}
               >
-                <h1 className="text-2xl xl:text-[2.4rem] leading-[1.25] font-bold mb-7 tracking-tight" style={{ color: lpPage.text }}>
+                <h1 className="text-2xl xl:text-[2.4rem] leading-[1.25] font-bold mb-7 tracking-tight" style={{ color: lpPage.text, textShadow: '0 2px 18px rgba(0,0,0,0.6)' }}>
                   {t('landing.hero_pc_title').split('\n').map((line, i) => (
                     <span key={i} className="block">
                       {line}
                     </span>
                   ))}
                 </h1>
-                <p className="text-base xl:text-lg leading-[1.85] mb-10" style={{ color: lpPage.textMuted }}>
+                <p className="text-base xl:text-lg leading-[1.85] mb-10" style={{ color: lpPage.textMuted, textShadow: '0 1px 10px rgba(0,0,0,0.55)' }}>
                   {renderWithLineBreaks(t('landing.hero_pc_description'))}
                 </p>
               </motion.div>
@@ -671,7 +662,7 @@ export default function LandingPage() {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.55 }}
                 className="text-xs tracking-wider mt-6 lg:text-sm"
-                style={{ color: lpPage.textSubtle }}
+                style={{ color: lpPage.textSubtle, textShadow: '0 1px 8px rgba(0,0,0,0.5)' }}
               >
                 {t('landing.hero_subcopy')}
               </motion.p>
@@ -702,12 +693,12 @@ export default function LandingPage() {
             >
               <span
                 className="inline-block text-[10px] tracking-[0.3em] uppercase font-semibold mb-4"
-                style={{ color: LP_YELLOW, textShadow: '0 1px 4px rgba(0,0,0,0.4)' }}
+                style={{ color: LP_YELLOW, textShadow: '0 1px 6px rgba(0,0,0,0.6)' }}
               >
                 Night Discovery Platform
               </span>
               <h1 className="text-xl sm:text-2xl md:text-4xl font-bold mb-4 leading-tight tracking-tight">
-                <span style={{ color: '#FFFFFF', textShadow: '0 2px 14px rgba(0,0,0,0.5)' }}>
+                <span style={{ color: '#FFFFFF', textShadow: '0 2px 18px rgba(0,0,0,0.65)' }}>
                   {t('landing.hero_catchphrase').split('\n').map((line, i) => (
                     <span key={i} className="block">
                       {line}
@@ -718,7 +709,7 @@ export default function LandingPage() {
               {/* サービス説明（PCの説明文をモバイルでも表示） */}
               <p
                 className="text-sm sm:text-base leading-relaxed mb-6 px-2"
-                style={{ color: 'rgba(255,255,255,0.9)', textShadow: '0 1px 6px rgba(0,0,0,0.45)' }}
+                style={{ color: 'rgba(255,255,255,0.95)', textShadow: '0 1px 10px rgba(0,0,0,0.6)' }}
               >
                 {renderWithLineBreaks(t('landing.hero_pc_description'))}
               </p>
@@ -736,7 +727,7 @@ export default function LandingPage() {
                 {/* 副CTA: LINE友だち追加（LINEカラー・転換装置・source=hero） */}
                 <LineFriendCta source="hero" variant="compact" className="mt-3" />
               </div>
-              <p className="text-xs sm:text-sm tracking-wider mb-3 lg:text-base" style={{ color: 'rgba(255,255,255,0.88)', textShadow: '0 1px 6px rgba(0,0,0,0.4)' }}>
+              <p className="text-xs sm:text-sm tracking-wider mb-3 lg:text-base" style={{ color: 'rgba(255,255,255,0.92)', textShadow: '0 1px 8px rgba(0,0,0,0.55)' }}>
                 {t('landing.hero_subcopy')}
               </p>
             </motion.div>
@@ -869,7 +860,8 @@ export default function LandingPage() {
                 >
                   <div className="relative aspect-[4/3]">
                     <img src={store.image_urls?.[0] || ''} alt={store.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                    <div className="absolute inset-0" style={{ backgroundColor: 'rgba(19,41,75,0.65)' }} />
+                    {/* 画像をクリーンに見せるため全面のモヤは廃止。店名の可読性のため下部のみ薄いグラデーションを敷く */}
+                    <div className="absolute inset-x-0 bottom-0 h-1/2" style={{ background: 'linear-gradient(to top, rgba(19,41,75,0.85) 0%, rgba(19,41,75,0.3) 45%, rgba(19,41,75,0) 100%)' }} aria-hidden />
                     <div className="absolute bottom-3 left-3 right-3">
                       <h3 className="text-sm font-bold truncate lg:text-lg" style={{ color: '#FFFFFF', textShadow: '0 1px 6px rgba(0,0,0,0.8)' }}>{store.name}</h3>
                     </div>
@@ -954,76 +946,126 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* How to Use Section */}
+      {/* Use Cases Section（利用シーン） */}
       <section className="relative py-12 md:py-24 px-4 overflow-hidden" style={{ background: lpMid.page.bg }}>
         <div className="container mx-auto max-w-6xl">
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12 md:mb-16">
             <GoldDivider />
-            <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4 lg:text-base" style={{ color: lpMid.page.text }}>{t('landing.howto_subtitle')}</span>
-            <h2 className="text-2xl sm:text-3xl md:text-6xl font-bold" style={{ color: lpMid.page.text }}>{t('landing.howto_title')}</h2>
+            <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4 lg:text-base" style={{ color: lpMid.page.text }}>{t('landing.usecases_subtitle')}</span>
+            <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold" style={{ color: lpMid.page.text }}>{t('landing.usecases_title')}</h2>
           </motion.div>
-          {(() => {
-            const howtoSteps = [
-              { step: '01', num: 1, highlight: false },
-              { step: '02', num: 2, highlight: false },
-              { step: '03', num: 3, highlight: true, badge: 'common.auto_voice' as const },
-            ];
-            const stepIcons = [MapPin, Store, Phone];
-            const images = [
-              'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,w_1024/v1781495370/ChatGPT_Image_2026%E5%B9%B46%E6%9C%8814%E6%97%A5_22_26_55_2_w2ayfd.png',
-              'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,w_1024/v1781495436/ChatGPT_Image_2026%E5%B9%B46%E6%9C%8814%E6%97%A5_22_26_56_4_knwhwc.png',
-              'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,w_1024/v1781494974/%E5%B8%AD%E3%82%92%E3%82%AD%E3%83%BC%E3%83%95%E3%82%9A%E3%81%99%E3%82%8B_xuhood.png',
-            ];
-            const renderStepCard = (index: number) => {
-              const { step, num, highlight, badge } = howtoSteps[index];
-              const Icon = stepIcons[index];
-              const stepTitle = t(`landing.howto_step${num}_title`);
-              const isStep4 = num === 4;
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              // 消費者向け2枚（空席通知での店探し） + 自治体・主催者向け2枚（夜の回遊マップ）
+              { Icon: Users, audience: 'consumer' as const, n: 1 },
+              { Icon: Plane, audience: 'consumer' as const, n: 2 },
+              { Icon: Landmark, audience: 'organizer' as const, n: 4 },
+              { Icon: MapIconLucide, audience: 'organizer' as const, n: 5 },
+            ].map(({ Icon, audience, n }, index) => {
+              const isOrganizer = audience === 'organizer';
+              const caseNo = index + 1;
               return (
-                <Card className="h-full overflow-hidden group relative" style={{ background: lpMid.elevated.bg, border: `1px solid ${lpMid.elevated.border}`, boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
-                  <div className="p-6 sm:p-8 relative z-10">
-                    <div className="flex items-center justify-between mb-6">
-                      <div className="flex items-center gap-3">
-                        <span className="text-4xl font-bold lg:text-6xl" style={{ color: highlight ? LP_YELLOW : LP_ON_NAVY.textMuted }}>{step}</span>
-                        <motion.div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: `${LP_YELLOW}15`, border: `1px solid ${LP_YELLOW}25` }} animate={isStep4 ? { scale: [1, 1.1, 1] } : {}} transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}>
-                          <Icon className="w-5 h-5" style={{ color: highlight ? LP_YELLOW : lpMid.elevated.textMuted }} />
-                        </motion.div>
+                <motion.div key={n} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.1 }}>
+                  <Card className="h-full p-8 group relative overflow-hidden text-center transition-all duration-500 hover:translate-y-[-4px]" style={{ background: lpMid.elevated.bg, border: `1px solid ${isOrganizer ? 'rgba(255, 198, 45, 0.5)' : lpMid.elevated.border}`, boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
+                    <div className="relative z-10 flex flex-col items-center">
+                      {/* アイコンは両オーディエンスとも視認性の高いイエロー。主催者向けは下のソリッドバッジ＋金枠で識別 */}
+                      <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6" style={{ background: `${LP_YELLOW}15`, border: `1px solid ${LP_YELLOW}25` }}>
+                        <Icon className="w-8 h-8" style={{ color: LP_YELLOW }} strokeWidth={1.75} />
                       </div>
-                      {badge === 'common.auto_voice' && (<span className="text-[10px] font-semibold px-3 py-1 rounded-full uppercase tracking-wider" style={{ background: LP_YELLOW, color: LP_NAVY, border: '1px solid rgba(255, 198, 45, 0.55)' }}>{t('common.auto_voice')}</span>)}
+                      <span className="text-[11px] font-bold mb-3 px-2.5 py-0.5 rounded-full" style={isOrganizer ? { background: LP_YELLOW, color: LP_NAVY } : { background: `${LP_YELLOW}1A`, color: lpMid.subtitleOnElevated }}>{isOrganizer ? t('landing.usecase_organizer_badge') : `CASE ${String(caseNo).padStart(2, '0')}`}</span>
+                      <h3 className="text-lg font-bold mb-2 lg:text-2xl" style={{ color: lpMid.elevated.text }}>{t(`landing.usecase${n}_title`)}</h3>
+                      <p className="leading-relaxed text-sm lg:text-base" style={{ color: lpMid.elevated.textMuted }}>{renderWithLineBreaks(t(`landing.usecase${n}_desc`))}</p>
                     </div>
-                    <h3 className="text-xl font-bold mb-1 lg:text-3xl" style={{ color: lpMid.elevated.text }}>{stepTitle}</h3>
-                    <p className="text-xs uppercase tracking-wider mb-4 font-medium lg:text-base" style={{ color: lpMid.subtitleOnElevated }}>{t(`landing.howto_step${num}_title_en`)}</p>
-                    <p className="mb-6 leading-relaxed text-sm lg:text-lg" style={{ color: lpMid.elevated.textMuted }}>{renderWithLineBreaks(t(`landing.howto_step${num}_desc`))}</p>
-                    <div className="rounded-xl overflow-hidden relative" style={{ border: `1px solid ${lpMid.elevated.border}` }}>
-                      <img src={images[index]} alt={stepTitle} className="w-full h-auto object-cover" />
-                      {isStep4 && (<motion.div className="absolute inset-0 pointer-events-none" style={{ backgroundColor: 'rgba(255,197,45,0.12)' }} animate={{ x: ['-100%', '200%'] }} transition={{ duration: 3, repeat: Infinity, repeatDelay: 2, ease: 'easeInOut' }} />)}
-                    </div>
-                  </div>
-                  <motion.div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ backgroundColor: LP_YELLOW }} initial={{ scaleX: 0 }} whileHover={{ scaleX: 1 }} transition={{ duration: 0.3 }} />
-                </Card>
+                    <motion.div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ backgroundColor: LP_YELLOW }} initial={{ scaleX: 0 }} whileHover={{ scaleX: 1 }} transition={{ duration: 0.3 }} />
+                  </Card>
+                </motion.div>
               );
-            };
-            return (
-              <>
-                {/* モバイル: 縦並び */}
-                <div className="flex flex-col gap-6 lg:hidden">
-                  {howtoSteps.map((_, index) => (
-                    <motion.div key={index} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.1 }}>
-                      {renderStepCard(index)}
-                    </motion.div>
-                  ))}
-                </div>
-                {/* PC: グリッド */}
-                <div className="hidden lg:grid lg:grid-cols-3 gap-8">
-                  {howtoSteps.map((_, index) => (
-                    <motion.div key={index} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.15 }}>
-                      {renderStepCard(index)}
-                    </motion.div>
-                  ))}
-                </div>
-              </>
-            );
-          })()}
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section（機能） */}
+      <section className="relative py-12 md:py-24 px-4 overflow-hidden" style={{ background: lpMid.page.bg }}>
+        <div className="container mx-auto max-w-6xl">
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12 md:mb-16">
+            <GoldDivider />
+            <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4 lg:text-base" style={{ color: lpMid.page.text }}>{t('landing.features_subtitle')}</span>
+            <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold" style={{ color: lpMid.page.text }}>{t('landing.features_title')}</h2>
+          </motion.div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {[
+              { Icon: Zap, isLine: false },
+              { Icon: MapIconLucide, isLine: false },
+              { Icon: null, isLine: true },
+              { Icon: Phone, isLine: false },
+            ].map(({ Icon, isLine }, index) => {
+              const num = index + 1;
+              return (
+                <motion.div key={num} initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.1 }}>
+                  <Card className="h-full p-6 group relative overflow-hidden transition-all duration-500 hover:translate-y-[-4px]" style={{ background: lpMid.elevated.bg, border: `1px solid ${lpMid.elevated.border}`, boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
+                    <div className="relative z-10">
+                      {/* アイコンとカード名を同じ行に配置 */}
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style={{ background: `${LP_YELLOW}15`, border: `1px solid ${LP_YELLOW}25` }}>
+                          {isLine ? (
+                            <img src={LINE_BRAND_ICON_URL} alt="LINE" width={22} height={22} className="w-[22px] h-[22px] object-contain" />
+                          ) : (
+                            Icon && <Icon className="w-[22px] h-[22px]" style={{ color: LP_YELLOW }} strokeWidth={1.9} />
+                          )}
+                        </div>
+                        <h3 className="text-base font-bold lg:text-lg leading-tight" style={{ color: lpMid.elevated.text }}>{t(`landing.feature${num}_title`)}</h3>
+                      </div>
+                      <p className="leading-relaxed text-sm" style={{ color: lpMid.elevated.textMuted }}>{renderWithLineBreaks(t(`landing.feature${num}_desc`))}</p>
+                    </div>
+                    <motion.div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ backgroundColor: LP_YELLOW }} initial={{ scaleX: 0 }} whileHover={{ scaleX: 1 }} transition={{ duration: 0.3 }} />
+                  </Card>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* 主催者向けセクション（イベント主催者・自治体向けB2Bバンド・消費者訴求の直後に配置） */}
+      <section className="relative py-12 md:py-24 px-4 overflow-hidden" style={{ background: lpPage.bg }}>
+        <div className="container mx-auto max-w-4xl">
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="relative rounded-3xl p-8 sm:p-12 text-center overflow-hidden"
+            style={{
+              background: 'rgba(255,255,255,0.04)',
+              border: '1px solid rgba(255, 198, 45, 0.35)',
+              boxShadow: '0 16px 44px rgba(7,16,34,0.35)',
+            }}
+          >
+            {/* 装飾グロー */}
+            <div
+              className="absolute -top-24 -right-24 w-64 h-64 rounded-full pointer-events-none"
+              style={{ backgroundColor: 'rgba(255, 198, 45, 0.12)', filter: 'blur(70px)' }}
+              aria-hidden
+            />
+            <div className="relative z-10">
+              <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4 lg:text-base" style={{ color: LP_YELLOW }}>
+                {t('landing.organizer_section_label')}
+              </span>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-5 leading-tight" style={{ color: lpPage.text }}>
+                {renderWithLineBreaks(t('landing.organizer_section_title'))}
+              </h2>
+              <p className="text-base max-w-2xl mx-auto mb-8 leading-relaxed lg:text-lg" style={{ color: lpPage.textMuted }}>
+                {renderWithLineBreaks(t('landing.organizer_section_body'))}
+              </p>
+              <Link href="/contact">
+                <motion.div whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.98 }} className="inline-block">
+                  <Button size="lg" className="text-base px-8 py-6 rounded-full font-semibold lg:text-lg" style={{ background: LP_YELLOW, color: LP_NAVY, boxShadow: '0 8px 28px rgba(255, 198, 45, 0.35)' }}>
+                    <Mail className="w-5 h-5 mr-2" />{t('landing.organizer_section_cta')}
+                  </Button>
+                </motion.div>
+              </Link>
+            </div>
+          </motion.div>
         </div>
       </section>
 
@@ -1210,48 +1252,6 @@ export default function LandingPage() {
         </div>
         {/* cream → navy 自然な曲線ウェーブ */}
         <WaveDivider fill={lpPage.bg} position="bottom" />
-      </section>
-
-      {/* 主催者向けセクション（イベント主催者・自治体向けB2Bバンド） */}
-      <section className="relative py-12 md:py-24 px-4 overflow-hidden" style={{ background: lpPage.bg }}>
-        <div className="container mx-auto max-w-4xl">
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="relative rounded-3xl p-8 sm:p-12 text-center overflow-hidden"
-            style={{
-              background: 'rgba(255,255,255,0.04)',
-              border: '1px solid rgba(255, 198, 45, 0.35)',
-              boxShadow: '0 16px 44px rgba(7,16,34,0.35)',
-            }}
-          >
-            {/* 装飾グロー */}
-            <div
-              className="absolute -top-24 -right-24 w-64 h-64 rounded-full pointer-events-none"
-              style={{ backgroundColor: 'rgba(255, 198, 45, 0.12)', filter: 'blur(70px)' }}
-              aria-hidden
-            />
-            <div className="relative z-10">
-              <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4 lg:text-base" style={{ color: LP_YELLOW }}>
-                {t('landing.organizer_section_label')}
-              </span>
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-5 leading-tight" style={{ color: lpPage.text }}>
-                {renderWithLineBreaks(t('landing.organizer_section_title'))}
-              </h2>
-              <p className="text-base max-w-2xl mx-auto mb-8 leading-relaxed lg:text-lg" style={{ color: lpPage.textMuted }}>
-                {renderWithLineBreaks(t('landing.organizer_section_body'))}
-              </p>
-              <Link href="/contact">
-                <motion.div whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.98 }} className="inline-block">
-                  <Button size="lg" className="text-base px-8 py-6 rounded-full font-semibold lg:text-lg" style={{ background: LP_YELLOW, color: LP_NAVY, boxShadow: '0 8px 28px rgba(255, 198, 45, 0.35)' }}>
-                    <Mail className="w-5 h-5 mr-2" />{t('landing.organizer_section_cta')}
-                  </Button>
-                </motion.div>
-              </Link>
-            </div>
-          </motion.div>
-        </div>
       </section>
 
       {/* Contact Section */}
