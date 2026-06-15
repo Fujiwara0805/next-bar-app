@@ -797,15 +797,15 @@ export const translations = {
       seats_available: '空席があります',
       night_spot: 'Night Spot',
       // Hero section
-      hero_catchphrase: '近くのお店の空席通知を\n受け取れる',
+      hero_catchphrase: '空席通知を受け取れる',
       izakaya_hero_catchphrase: '「今夜、一杯どう？」\n旨い肴と酒が待っている。',
-      hero_subcopy: 'ログイン不要 ー 友だち追加で空席通知が届く ー',
+      hero_subcopy: '公式LINEアカウントを友達追加するだけで空席通知が届く',
       izakaya_hero_subcopy: 'ログイン不要 ー 地図から居酒屋の空席を確認 ー',
       hero_body: 'にけんめぷらすは、大分の夜を\n案内するはしご酒 Map 🍺です。',
       // Hero PC section
       hero_pc_badge: 'にけんめぷらす',
-      hero_pc_title: '近くのお店の空席通知を\n受け取れる',
-      hero_pc_description: '一次会前後の「次の一軒」も、空席を見てすぐ決まる。',
+      hero_pc_title: '空席通知を受け取れる',
+      hero_pc_description: '一次会前後のお店探しから\nあなたの街の飲食店回遊をサポートします',
       // Problems section
       problems_title: 'こんなお悩み、ありませんか？',
       problems_subtitle: 'Common Concerns',
@@ -2285,15 +2285,15 @@ export const translations = {
       seats_available: 'Seats available now',
       night_spot: 'Night Spot',
       // Hero section
-      hero_catchphrase: 'Get vacancy alerts for\nnearby venues',
+      hero_catchphrase: 'Get vacancy alerts',
       izakaya_hero_catchphrase: '"Fancy a drink tonight?"\nGreat food and sake await.',
-      hero_subcopy: 'No login required — Add us as a friend for vacancy alerts —',
+      hero_subcopy: 'Just add our official LINE account as a friend to get vacancy alerts.',
       izakaya_hero_subcopy: 'No login required — Find izakaya seats on the map —',
       hero_body: 'NIKENME+ is a night spot map 🍺for Oita. Find available venues instantly and reserve your seat with auto-voice call.',
       // Hero PC section
       hero_pc_badge: 'NIKENME+',
-      hero_pc_title: 'Get vacancy alerts for\nnearby venues',
-      hero_pc_description: 'Find your next spot before & after the first party — see open seats instantly.',
+      hero_pc_title: 'Get vacancy alerts',
+      hero_pc_description: 'From finding a spot before and after the first party to roaming your town\'s restaurants and bars — we support your whole night out.',
       // Problems section
       problems_title: 'Sound Familiar?',
       problems_subtitle: 'Common Concerns',
@@ -3701,15 +3701,15 @@ export const translations = {
       seats_available: '좌석 이용 가능',
       night_spot: 'Night Spot',
       // Hero section
-      hero_catchphrase: '근처 매장의 빈자리 알림을\n받기',
+      hero_catchphrase: '빈자리 알림을\n받기',
       izakaya_hero_catchphrase: '「오늘 밤 한잔?」\n맛있는 안주와 술이 기다린다.',
-      hero_subcopy: '로그인 불필요 ー 친구 추가로 빈자리 알림 도착 ー',
+      hero_subcopy: '공식 LINE 계정을 친구 추가하기만 하면 빈자리 알림이 도착합니다.',
       izakaya_hero_subcopy: '로그인 불필요 ー 지도에서 이자카야 빈자리 확인 ー',
       hero_body: 'NIKENME+는 오이타의 밤을\n안내하는 Night Spot Map 🍺입니다.',
       // Hero PC section
       hero_pc_badge: 'NIKENME+',
-      hero_pc_title: '근처 매장의 빈자리 알림을\n받기',
-      hero_pc_description: '1차 전후 「다음 한 곳」도, 빈자리를 보고 바로 결정.',
+      hero_pc_title: '빈자리 알림을\n받기',
+      hero_pc_description: '1차 전후 가게 찾기부터 당신의 동네 음식점 순례까지 서포트합니다.',
       // Problems section
       problems_title: '이런 고민, 있으신가요?',
       problems_subtitle: 'Common Concerns',
@@ -5113,15 +5113,15 @@ export const translations = {
       seats_available: '现有空座',
       night_spot: 'Night Spot',
       // Hero section
-      hero_catchphrase: '接收附近店铺的\n空位通知',
+      hero_catchphrase: '接收空位通知',
       izakaya_hero_catchphrase: '「今晚来一杯？」\n美味佳肴和美酒等着你。',
-      hero_subcopy: '无需登录 ー 加好友即可接收空位通知 ー',
+      hero_subcopy: '只需添加官方 LINE 账号为好友，即可接收空位通知。',
       izakaya_hero_subcopy: '无需登录 ー 在地图上查看居酒屋空位 ー',
       hero_body: 'NIKENME+是一款介绍大分夜生活的Night Spot Map 🍺。',
       // Hero PC section
       hero_pc_badge: 'NIKENME+',
-      hero_pc_title: '接收附近店铺的\n空位通知',
-      hero_pc_description: '聚会前后的「下一家」，看到空位即可立刻决定。',
+      hero_pc_title: '接收空位通知',
+      hero_pc_description: '从聚会前后的找店，到助您畅游所在城市的各家餐饮店。',
       // Problems section
       problems_title: '有这些烦恼吗？',
       problems_subtitle: 'Common Concerns',

@@ -212,24 +212,9 @@ export default function LandingPage() {
     ));
   };
 
-  const [heroImageIndex, setHeroImageIndex] = useState(0);
-  const nightHeroImages = [
-    
-'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1774355369/brian-jones-YBlcnXfv9OM-unsplash_orpuaz.jpg',
-    'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772501853/masahiro-miyagi-RLDNGblOqHU-unsplash_zadhp8.jpg',
-    'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1774355344/romeo-a-P8dzevR1yE4-unsplash_enlnhr.jpg',
-    'https://res.cloudinary.com/dz9trbwma/image/upload//v1774355357/jirayu-koontholjinda-QRX-K4BzCSw-unsplash_l0wztt.jpg',
-    'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772501853/patrick-tomasso-GXXYkSwndP4-unsplash_w4c9df.jpg',
-    'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772501852/jakub-dziubak-gj7BLlSzIFs-unsplash_virstu.jpg',
-    'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772501861/edgar-chaparro-Lwx-q6OdGAc-unsplash_x8q8jq.jpg',
-
-'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772501853/q-u-i-n-g-u-y-e-n-Zrp9b3PMIy8-unsplash_xjz1dm.jpg',
-
-'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772501860/drew-beamer-bTN-zKFy9uA-unsplash_kmcnyo.jpg',
-    'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772501854/kris-sevinc-NVX55qVyEkE-unsplash_pjwsez.jpg',
-    'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1774355369/brian-jones-YBlcnXfv9OM-unsplash_orpuaz.jpg',
-  ];
-  const heroImages = nightHeroImages;
+  // Hero背景画像（Cloudinary最適化: f_auto,q_auto）
+  const heroImage =
+    'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1781483273/Hero_nd2fnb.png';
 
   useEffect(() => {
     const root = document.documentElement;
@@ -248,20 +233,11 @@ export default function LandingPage() {
     };
   }, []);
 
-  // 画像をプリロードして切り替え時の空白を防ぐ（夜モード・昼モード共通）
+  // Hero画像をプリロードして初期表示の空白を防ぐ
   useEffect(() => {
-    nightHeroImages.forEach((src) => {
-      const img = new Image();
-      img.src = src;
-    });
-  }, []);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setHeroImageIndex((prev) => (prev + 1) % heroImages.length);
-    }, 4000);
-    return () => clearInterval(interval);
-  }, [heroImages.length]);
+    const img = new Image();
+    img.src = heroImage;
+  }, [heroImage]);
 
   const { scrollY } = useScroll();
   const heroOpacity = useTransform(scrollY, [0, 400], [1, 0]);
@@ -610,14 +586,35 @@ export default function LandingPage() {
 
       {/* Hero Section */}
       <section className="relative h-[100svh] lg:h-[96svh] overflow-hidden" style={{ background: lpPage.bg }}>
-        <div className="h-full grid grid-cols-1 lg:grid-cols-[minmax(0,44%)_minmax(0,56%)]">
+        {/* Hero全体を覆う背景画像（PC/モバイル共通でセクション全面） */}
+        <motion.div className="absolute inset-0 z-0" style={{ opacity: heroOpacity, scale: heroScale }}>
+          <div
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+            style={{ backgroundImage: `url('${heroImage}')` }}
+          />
+        </motion.div>
+
+        {/* テキスト可読性のためのオーバーレイ */}
+        {/* モバイル: 下から上へのグラデーション（テキストは下部中央） */}
+        <div
+          className="absolute inset-0 z-[1] lg:hidden"
+          style={{ background: 'linear-gradient(to top, rgba(19,41,75,0.88) 0%, rgba(19,41,75,0.45) 42%, rgba(19,41,75,0.12) 100%)' }}
+          aria-hidden
+        />
+        {/* PC: 左から右へのグラデーション（テキストは左カラム） */}
+        <div
+          className="absolute inset-0 z-[1] hidden lg:block"
+          style={{ background: 'linear-gradient(to right, rgba(19,41,75,0.92) 0%, rgba(19,41,75,0.72) 32%, rgba(19,41,75,0.3) 58%, rgba(19,41,75,0) 82%)' }}
+          aria-hidden
+        />
+
+        <div className="relative z-10 h-full grid grid-cols-1 lg:grid-cols-[minmax(0,44%)_minmax(0,56%)]">
           {/* Left Column - PC only: Service description */}
           <motion.aside
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6 }}
             className="hidden lg:flex flex-col justify-center px-12 xl:px-20 relative z-20"
-            style={{ background: lpPage.bg }}
           >
             {/* 装飾: 左上のイエローのドット */}
             <div
@@ -666,17 +663,17 @@ export default function LandingPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
               >
-                {/* 主CTA: LINE友だち追加で空席通知を受け取る（転換装置・source=hero） */}
-                <LineFriendCta source="hero" variant="compact" className="max-w-sm" />
-                {/* 副CTA: 地図でお店を探す */}
+                {/* 主CTA: 地図でお店を探す */}
                 <button
                   type="button"
                   onClick={handleMapClick}
-                  className="mt-3 inline-flex w-full max-w-sm items-center justify-center gap-2 rounded-full px-8 py-3 text-sm font-semibold transition-all hover:scale-[1.02] active:scale-95 lg:text-base"
+                  className="inline-flex w-full max-w-sm items-center justify-center gap-2 rounded-full px-8 py-3 text-sm font-semibold transition-all hover:scale-[1.02] active:scale-95 lg:text-base"
                   style={{ color: LP_NAVY, background: LP_YELLOW, boxShadow: '0 8px 24px rgba(255, 198, 45, 0.32)' }}
                 >
                   <Store className="w-4 h-4" />{t('landing.cta_button_primary')}
                 </button>
+                {/* 副CTA: LINE友だち追加（LINEカラー・転換装置・source=hero） */}
+                <LineFriendCta source="hero" variant="compact" className="max-w-sm mt-3" />
               </motion.div>
 
               <motion.p
@@ -691,29 +688,9 @@ export default function LandingPage() {
             </div>
           </motion.aside>
 
-          {/* Right Column (full width on mobile): Hero image carousel */}
+          {/* Right Column (full width on mobile): テキストオーバーレイ（背景画像はセクション全面に配置済み） */}
           <div className="relative flex flex-col px-4 lg:px-0">
-            <motion.div className="absolute inset-0 z-0" style={{ opacity: heroOpacity, scale: heroScale }}>
-              <AnimatePresence mode="sync">
-                <motion.div
-                  key={heroImageIndex}
-                  className="absolute inset-0"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 1.5, ease: [0.4, 0, 0.2, 1] }}
-                >
-                  <div
-                    className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-                    style={{
-                      backgroundImage: `url('${heroImages[heroImageIndex]}')`,
-                    }}
-                  />
-                </motion.div>
-              </AnimatePresence>
-            </motion.div>
-
-            {/* PC: 左パネルと画像を繋ぐ細い縦のゴールドアクセントライン */}
+            {/* PC: 左テキストと画像を繋ぐ細い縦のゴールドアクセントライン */}
             <motion.div
               className="absolute top-[18%] bottom-[18%] left-0 w-px z-10 hidden lg:block"
               style={{
@@ -739,7 +716,7 @@ export default function LandingPage() {
               >
                 Night Discovery Platform
               </span>
-              <h1 className="text-xl sm:text-2xl md:text-4xl font-bold mb-6 leading-tight tracking-tight">
+              <h1 className="text-xl sm:text-2xl md:text-4xl font-bold mb-4 leading-tight tracking-tight">
                 <span style={{ color: '#FFFFFF', textShadow: '0 2px 14px rgba(0,0,0,0.5)' }}>
                   {t('landing.hero_catchphrase').split('\n').map((line, i) => (
                     <span key={i} className="block">
@@ -748,18 +725,26 @@ export default function LandingPage() {
                   ))}
                 </span>
               </h1>
-              {/* 主CTA: LINE友だち追加で空席通知を受け取る（転換装置・source=hero） */}
+              {/* サービス説明（PCの説明文をモバイルでも表示） */}
+              <p
+                className="text-sm sm:text-base leading-relaxed mb-6 px-2"
+                style={{ color: 'rgba(255,255,255,0.9)', textShadow: '0 1px 6px rgba(0,0,0,0.45)' }}
+              >
+                {renderWithLineBreaks(t('landing.hero_pc_description'))}
+              </p>
+              {/* CTA群 */}
               <div className="mb-6 mx-auto max-w-xs">
-                <LineFriendCta source="hero" variant="compact" />
-                {/* 副CTA: 地図でお店を探す */}
+                {/* 主CTA: 地図でお店を探す */}
                 <button
                   type="button"
                   onClick={handleMapClick}
-                  className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-full px-8 py-3 text-sm font-semibold transition-all active:scale-95"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-full px-8 py-3 text-sm font-semibold transition-all active:scale-95"
                   style={{ color: LP_NAVY, background: LP_YELLOW, boxShadow: '0 8px 24px rgba(255, 198, 45, 0.35)' }}
                 >
                   <Store className="w-4 h-4" />{t('landing.cta_button_primary')}
                 </button>
+                {/* 副CTA: LINE友だち追加（LINEカラー・転換装置・source=hero） */}
+                <LineFriendCta source="hero" variant="compact" className="mt-3" />
               </div>
               <p className="text-xs sm:text-sm tracking-wider mb-3 lg:text-base" style={{ color: 'rgba(255,255,255,0.88)', textShadow: '0 1px 6px rgba(0,0,0,0.4)' }}>
                 {t('landing.hero_subcopy')}
