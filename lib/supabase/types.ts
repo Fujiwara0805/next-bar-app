@@ -864,60 +864,6 @@ export type Database = {
           },
         ]
       }
-      store_crowd_reports: {
-        Row: {
-          distance_m: number | null
-          id: string
-          is_valid: boolean
-          report_type: string
-          reported_at: string
-          source: string
-          store_id: string
-          user_id: string | null
-          user_lat: number | null
-          user_lng: number | null
-        }
-        Insert: {
-          distance_m?: number | null
-          id?: string
-          is_valid?: boolean
-          report_type: string
-          reported_at?: string
-          source?: string
-          store_id: string
-          user_id?: string | null
-          user_lat?: number | null
-          user_lng?: number | null
-        }
-        Update: {
-          distance_m?: number | null
-          id?: string
-          is_valid?: boolean
-          report_type?: string
-          reported_at?: string
-          source?: string
-          store_id?: string
-          user_id?: string | null
-          user_lat?: number | null
-          user_lng?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "store_crowd_reports_store_id_fkey"
-            columns: ["store_id"]
-            isOneToOne: false
-            referencedRelation: "stores"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "store_crowd_reports_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       store_customer_notes: {
         Row: {
           conversation_notes: string | null

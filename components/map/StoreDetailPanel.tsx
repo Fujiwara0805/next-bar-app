@@ -15,14 +15,7 @@ import {
   CreditCard,
   Loader2,
   Navigation,
-  MessageCirclePlus,
-  Gauge,
-  User as UserIcon,
-  Users as UsersIcon,
-  UsersRound,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { CROWD_STATUSES, type CrowdStatus } from '@/lib/crowd/aggregate';
 import { CloseCircleButton } from '@/components/ui/close-circle-button';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/lib/i18n/context';
@@ -33,85 +26,10 @@ import { getVacancyFreshness, formatVacancyAge } from '@/lib/vacancy/freshness';
 import { sendGAEvent } from '@/lib/analytics';
 import { useAppMode } from '@/lib/app-mode-context';
 import type { BusinessHours } from '@/lib/supabase/types';
-import { CrowdVoteModal } from '@/components/store/crowd-vote-modal';
 import { LineFriendCta } from '@/components/line/line-friend-cta';
 import type { EventAwareStore } from '@/lib/types/active-store-event';
 
 type Store = EventAwareStore;
-
-type CrowdCounts = Partial<Record<CrowdStatus, number>>;
-
-function CrowdVoteSummary({
-  counts,
-  leading,
-  title,
-  isEvent = false,
-}: {
-  counts: CrowdCounts;
-  leading: CrowdStatus | null;
-  title: string;
-  isEvent?: boolean;
-}) {
-  // イベント参加店舗ではカード全体がイエロー背景になるため、
-  // 投票結果の3アイコンとカウント数字をすべてブルワーズネイビーに統一する。
-  const EVENT_NAVY = '#13294b';
-  const EVENT_NAVY_MUTED = 'rgba(19, 41, 75, 0.45)';
-
-  const items: Array<{ status: CrowdStatus; color: string; mutedColor: string; Icon: React.ElementType }> = isEvent
-    ? [
-        { status: 'vacant', color: EVENT_NAVY, mutedColor: EVENT_NAVY_MUTED, Icon: UserIcon },
-        { status: 'wait', color: EVENT_NAVY, mutedColor: EVENT_NAVY_MUTED, Icon: UsersIcon },
-        { status: 'full', color: EVENT_NAVY, mutedColor: EVENT_NAVY_MUTED, Icon: UsersRound },
-      ]
-    : [
-        { status: 'vacant', color: '#22c55e', mutedColor: 'rgba(34, 197, 94, 0.5)', Icon: UserIcon },
-        { status: 'wait', color: '#ffc82c', mutedColor: 'rgba(255, 200, 44, 0.5)', Icon: UsersIcon },
-        { status: 'full', color: '#ef4444', mutedColor: 'rgba(239, 68, 68, 0.5)', Icon: UsersRound },
-      ];
-
-  const titleColor = isEvent ? EVENT_NAVY : 'rgba(255,255,255,0.6)';
-  const containerBg = isEvent ? 'rgba(19, 41, 75, 0.08)' : 'rgba(255,255,255,0.07)';
-  const containerShadow = isEvent
-    ? 'inset 0 1px 0 rgba(19, 41, 75, 0.08)'
-    : 'inset 0 1px 0 rgba(255,255,255,0.06)';
-  const dividerBg = isEvent ? 'rgba(19, 41, 75, 0.22)' : 'rgba(255,255,255,0.18)';
-  const inactiveCountColor = isEvent ? EVENT_NAVY_MUTED : 'rgba(253, 251, 247, 0.78)';
-
-  return (
-    <div className="flex items-center justify-center gap-2 pb-1">
-      <p className="text-[10px] font-bold leading-none tracking-normal" style={{ color: titleColor }}>
-        {title}
-      </p>
-      <div
-        className="flex items-center justify-center gap-1.5 rounded-lg px-2.5 py-1"
-        style={{ background: containerBg, boxShadow: containerShadow }}
-      >
-        {items.map(({ status, color, mutedColor, Icon }, index) => {
-          const c = counts[status] ?? 0;
-          const isLead = leading === status && c > 0;
-          return (
-            <div key={status} className="flex items-center gap-1.5">
-              {index > 0 && <div className="h-3.5 w-px" style={{ background: dividerBg }} />}
-              <div className="flex min-w-[28px] items-center justify-center gap-1">
-                <Icon
-                  className="h-3.5 w-3.5"
-                  strokeWidth={2.4}
-                  style={{ color: isLead ? color : mutedColor }}
-                />
-                <span
-                  className="text-xs font-extrabold leading-none"
-                  style={{ color: isLead ? color : inactiveCountColor }}
-                >
-                  {c}
-                </span>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
 
 interface StoreDetailPanelProps {
   store: Store;
@@ -138,60 +56,12 @@ export function StoreDetailPanel({
   const { panelDark: darkTheme, panelLight: lightTheme } = useAppMode();
   const [isExpanded, setIsExpanded] = useState(false);
   const [showReservationModal, setShowReservationModal] = useState(false);
-  const [voteModalOpen, setVoteModalOpen] = useState(false);
-  const [aiStatus, setAiStatus] = useState<CrowdStatus | null>(null);
-  const [voteCounts, setVoteCounts] = useState<CrowdCounts>({});
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setIsExpanded(false);
     if (scrollRef.current) scrollRef.current.scrollTop = 0;
   }, [store.id]);
-
-  // 直近30分の客投票を取得し、leading status をアイコン表示。
-  // `isValid`（3票以上）でなくても投票が1件以上あれば最多得票ステータスを優先表示し、
-  // 店舗側の空席アイコンの隣に投票結果アイコンを並べる。
-  useEffect(() => {
-    if (!store?.id) return;
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await fetch(`/api/stores/${store.id}/crowd-report`, { cache: 'no-store' });
-        if (!res.ok) return;
-        const json = await res.json();
-        if (cancelled) return;
-        const agg = json?.aggregate;
-        if (!agg || (agg.totalReports ?? 0) <= 0) {
-          setAiStatus(null);
-          setVoteCounts({});
-          return;
-        }
-        const counts = (agg.rawCounts ?? {}) as CrowdCounts;
-        setVoteCounts(counts);
-        // isValid (3票以上) なら集計のステータスをそのまま採用。
-        // 1〜2票の段階でも leading 投票を可視化したいので rawCounts から最多を抽出。
-        if (agg.status) {
-          setAiStatus(agg.status as CrowdStatus);
-        } else {
-          let lead: CrowdStatus | null = null;
-          let maxCount = 0;
-          for (const s of CROWD_STATUSES) {
-            const c = counts[s] ?? 0;
-            if (c > maxCount) {
-              maxCount = c;
-              lead = s;
-            }
-          }
-          setAiStatus(lead);
-        }
-      } catch {
-        // ネットワーク失敗時は表示しない（既存のステータス表示を阻害しない）
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [store?.id, voteModalOpen]);
 
   const handleDragEnd = useCallback((_: any, info: PanInfo) => {
     if (!isExpanded) {
@@ -356,7 +226,6 @@ export function StoreDetailPanel({
     borderGold: 'rgba(19, 41, 75, 0.25)',
   };
   const theme = isEventStore && !isExpanded ? eventCompactTheme : (isExpanded ? lightTheme : darkTheme);
-  const voteSummaryTitle = t('store_status.ai_aggregated_label');
   const displayBusinessHours = store.structured_business_hours as BusinessHours | null;
   const isDisplayRegularHoliday =
     displayStatus === 'closed' && isTodayClosedDay(displayBusinessHours);
@@ -413,19 +282,6 @@ export function StoreDetailPanel({
               <ChevronRight className="w-4 h-4 opacity-50" strokeWidth={3} style={{ color: darkTheme.accent }} />
             )}
           </div>
-          {!isExpanded && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-            >
-              <CrowdVoteSummary
-                counts={voteCounts}
-                leading={aiStatus}
-                title={voteSummaryTitle}
-                isEvent={isEventStore}
-              />
-            </motion.div>
-          )}
         </motion.div>
 
         {/* コンテンツ */}
@@ -608,33 +464,6 @@ export function StoreDetailPanel({
                     <p className="text-sm font-medium leading-relaxed" style={{ color: lightTheme.textMuted }}>
                       {store.description}
                     </p>
-                  </div>
-                )}
-
-                {/* 店内の混雑状況を投票する: 店舗詳細画面と同じレイアウト */}
-                {effectiveStatus !== 'closed' && (
-                  <div className="flex items-start gap-3">
-                    <Gauge className="w-5 h-5 shrink-0 mt-0.5" style={{ color: lightTheme.accent }} />
-                    <div className="flex-1">
-                      <p className="text-sm font-bold mb-2" style={{ color: lightTheme.text }}>
-                        {t('store_status.vote_section_title')}
-                      </p>
-                      <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                        <Button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setVoteModalOpen(true);
-                          }}
-                          aria-label={t('store_status.vote_section_button')}
-                          className="font-bold bg-brewer-900 text-cream-50 hover:bg-brewer-800 rounded-xl shadow-md"
-                          size="default"
-                        >
-                          <MessageCirclePlus className="w-3 h-3 mr-2" />
-                          {t('store_status.vote_section_button')}
-                        </Button>
-                      </motion.div>
-                    </div>
                   </div>
                 )}
 
@@ -908,13 +737,6 @@ export function StoreDetailPanel({
         hideButton
         externalOpen={showReservationModal}
         onExternalOpenChange={setShowReservationModal}
-      />
-
-      {/* 空席投票モーダル */}
-      <CrowdVoteModal
-        storeId={store.id}
-        isOpen={voteModalOpen}
-        onClose={() => setVoteModalOpen(false)}
       />
     </motion.div>
   );

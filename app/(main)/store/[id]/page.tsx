@@ -34,8 +34,6 @@ import {
   Ticket,
   Sparkles,
   Expand,
-  MessageCirclePlus,
-  Gauge,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CloseCircleButton } from '@/components/ui/close-circle-button';
@@ -53,7 +51,6 @@ import { FACILITY_CATEGORIES } from '@/lib/types/store-application';
 import { ImageLightbox } from '@/components/ui/ImageLightbox';
 import { sendGAEvent } from '@/lib/analytics';
 import { SponsorCampaignBanner } from '@/components/sponsors/sponsor-campaign-banner';
-import { CrowdVoteModal } from '@/components/store/crowd-vote-modal';
 import { LineFriendCta } from '@/components/line/line-friend-cta';
 import { getTodayOpenTime, isTodayClosedDay, checkIsOpenFromStructuredHours, isManualCloseActive } from '@/lib/structured-business-hours';
 import { useOptimizedLocation } from '@/lib/hooks/useOptimizedLocation';
@@ -239,9 +236,6 @@ export default function StoreDetailPage() {
   // ホバー状態
   const [isHovering, setIsHovering] = useState(false);
   const [isPhotoHovering, setIsPhotoHovering] = useState(false);
-
-  // 空席投票モーダルの開閉
-  const [voteModalOpen, setVoteModalOpen] = useState(false);
 
   // 参加中イベント＆特典
   const [activeStoreEvents, setActiveStoreEvents] = useState<StoreEventRow[]>([]);
@@ -987,35 +981,6 @@ export default function StoreDetailPage() {
               </>
             )}
 
-            {/* 店内の混雑状況を投票する: 「席をキープ」と同じレイアウト + 自動音声予約と同じボタンデザイン */}
-            {getEffectiveVacancyStatus() !== 'closed' && (
-              <>
-                <div className="flex items-start gap-3">
-                  <Gauge className="w-5 h-5 shrink-0 mt-0.5" style={{ color: COLORS.champagneGold }} />
-                  <div className="flex-1">
-                    <p className="text-sm font-bold mb-2" style={{ color: COLORS.deepNavy }}>
-                      {t('store_status.vote_section_title')}
-                    </p>
-                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                      <Button
-                        type="button"
-                        onClick={() => setVoteModalOpen(true)}
-                        aria-label={t('store_status.vote_section_button')}
-                        className="font-bold bg-brewer-900 text-cream-50 hover:bg-brewer-800 rounded-xl shadow-md"
-                        size="default"
-                      >
-                        <MessageCirclePlus className="w-3 h-3 mr-2" />
-                        {t('store_status.vote_section_button')}
-                      </Button>
-                    </motion.div>
-                  </div>
-                </div>
-                <div className="my-4">
-                  <GoldDivider />
-                </div>
-              </>
-            )}
-
             <div className="space-y-5">
               {/* 住所 */}
               <div className="flex items-start gap-3">
@@ -1439,13 +1404,6 @@ export default function StoreDetailPage() {
         isOpen={lightboxOpen}
         onClose={closeLightbox}
         alt={store.name}
-      />
-
-      {/* 空席投票モーダル */}
-      <CrowdVoteModal
-        storeId={store.id}
-        isOpen={voteModalOpen}
-        onClose={() => setVoteModalOpen(false)}
       />
 
     </div>

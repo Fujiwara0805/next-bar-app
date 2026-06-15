@@ -21,7 +21,6 @@ import {
   Clock,
   Sparkles,
   ExternalLink,
-  MessageCirclePlus,
 } from 'lucide-react';
 import { useLiff } from '@/lib/line/context';
 import { getFreshLineIdToken } from '@/lib/line/liff';
@@ -30,7 +29,6 @@ import { useAppMode } from '@/lib/app-mode-context';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { CloseCircleButton } from '@/components/ui/close-circle-button';
-import { CrowdVoteModal } from '@/components/store/crowd-vote-modal';
 
 type Stage =
   | 'init'
@@ -75,7 +73,6 @@ function StoreCheckinInner() {
   const [stage, setStage] = useState<Stage>('init');
   const [result, setResult] = useState<CheckInResult | null>(null);
   const [error, setError] = useState<ErrorPayload | null>(null);
-  const [voteModalOpen, setVoteModalOpen] = useState(false);
   const submittedRef = useRef(false);
 
   // ナビ背景色
@@ -420,15 +417,6 @@ function StoreCheckinInner() {
               >
                 マイページへ
               </Button>
-              <Button
-                onClick={() => setVoteModalOpen(true)}
-                size="lg"
-                variant="outline"
-                className="w-full rounded-xl font-bold"
-              >
-                <MessageCirclePlus className="w-4 h-4 mr-2" />
-                このお店の空席情報を投票する
-              </Button>
             </Card>
           )}
 
@@ -547,13 +535,6 @@ function StoreCheckinInner() {
           )}
         </motion.div>
       </div>
-      {result && (
-        <CrowdVoteModal
-          storeId={result.storeId}
-          isOpen={voteModalOpen}
-          onClose={() => setVoteModalOpen(false)}
-        />
-      )}
     </div>
   );
 }
