@@ -16,6 +16,8 @@ import { useLanguage } from '@/lib/i18n/context';
 
 // NEXT_PUBLIC env はビルド時にインライン化される。
 const ADD_FRIEND_URL = process.env.NEXT_PUBLIC_LINE_ADD_FRIEND_URL;
+const LINE_BRAND_ICON_URL =
+  'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1776852523/LINE_Brand_icon_zfypmz.png';
 
 export type LineCtaSource = 'map' | 'store_detail' | 'store_page' | 'event' | 'hero';
 
@@ -54,13 +56,21 @@ export function LineFriendCta({
     <a
       href={href}
       onClick={handleClick}
-      className="inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold text-white transition-transform active:scale-[0.98]"
+      className={`inline-flex ${variant === 'compact' ? 'w-fit max-w-full px-6' : 'w-full px-4'} items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold text-white transition-transform active:scale-[0.98]`}
       style={{
         backgroundColor: LINE_BRAND_COLOR,
         boxShadow: '0 6px 18px rgba(6, 199, 85, 0.28)',
       }}
     >
-      <LineGlyph />
+      <img
+        src={LINE_BRAND_ICON_URL}
+        alt=""
+        width={18}
+        height={18}
+        loading="lazy"
+        decoding="async"
+        className="h-[18px] w-[18px] shrink-0 object-contain"
+      />
       {t('lineCta.button')}
     </a>
   );
@@ -85,14 +95,5 @@ export function LineFriendCta({
       </p>
       {button}
     </div>
-  );
-}
-
-// 公式ロゴは使わず、ニュートラルな吹き出しグリフ。
-function LineGlyph() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-      <path d="M12 3C6.48 3 2 6.69 2 11.23c0 2.61 1.5 4.93 3.86 6.45-.13.5-.7 2.5-.74 2.74 0 0-.02.13.07.18.09.05.2.01.2.01.27-.04 3.13-2.05 3.66-2.43.96.14 1.95.21 2.95.21 5.52 0 10-3.69 10-8.23S17.52 3 12 3z" />
-    </svg>
   );
 }

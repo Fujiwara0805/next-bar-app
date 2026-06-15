@@ -15,7 +15,6 @@ import {
   ChevronRight,
   Phone,
   CheckCircle,
-  ChevronLeft,
   Building2,
   AlertCircle,
   MessageCircle,
@@ -198,7 +197,6 @@ export default function LandingPage() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [partnerStores, setPartnerStores] = useState<PartnerStore[]>([]);
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
-  const [concernsSlide, setConcernsSlide] = useState(0);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [activeEvents, setActiveEvents] = useState<ActiveStoreEvent[]>([]);
   const locationAttemptRef = useRef(false);
@@ -318,15 +316,6 @@ export default function LandingPage() {
     const interval = setInterval(() => { setCurrentSlide((prev) => (prev + 1) % partnerStores.length); }, 5000);
     return () => clearInterval(interval);
   }, [partnerStores.length]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setConcernsSlide((prev) => (prev + 1) % 3);
-    }, 4000);
-    return () => clearTimeout(timer);
-  }, [concernsSlide]);
-
-
 
   useEffect(() => {
     const handleScroll = () => {
@@ -662,18 +651,19 @@ export default function LandingPage() {
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
+                className="flex flex-wrap items-center gap-3"
               >
                 {/* 主CTA: 地図でお店を探す */}
                 <button
                   type="button"
                   onClick={handleMapClick}
-                  className="inline-flex w-full max-w-sm items-center justify-center gap-2 rounded-full px-8 py-3 text-sm font-semibold transition-all hover:scale-[1.02] active:scale-95 lg:text-base"
+                  className="inline-flex w-fit max-w-full items-center justify-center gap-2 rounded-full px-8 py-3 text-sm font-semibold transition-all hover:scale-[1.02] active:scale-95 lg:text-base"
                   style={{ color: LP_NAVY, background: LP_YELLOW, boxShadow: '0 8px 24px rgba(255, 198, 45, 0.32)' }}
                 >
                   <Store className="w-4 h-4" />{t('landing.cta_button_primary')}
                 </button>
                 {/* 副CTA: LINE友だち追加（LINEカラー・転換装置・source=hero） */}
-                <LineFriendCta source="hero" variant="compact" className="max-w-sm mt-3" />
+                <LineFriendCta source="hero" variant="compact" />
               </motion.div>
 
               <motion.p
@@ -738,7 +728,7 @@ export default function LandingPage() {
                 <button
                   type="button"
                   onClick={handleMapClick}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-full px-8 py-3 text-sm font-semibold transition-all active:scale-95"
+                  className="inline-flex w-fit max-w-full items-center justify-center gap-2 rounded-full px-8 py-3 text-sm font-semibold transition-all active:scale-95"
                   style={{ color: LP_NAVY, background: LP_YELLOW, boxShadow: '0 8px 24px rgba(255, 198, 45, 0.35)' }}
                 >
                   <Store className="w-4 h-4" />{t('landing.cta_button_primary')}
@@ -852,121 +842,56 @@ export default function LandingPage() {
       )}
 
 
-      {/* 課題提起セクション */}
-      <section className="relative py-12 md:py-24 px-4 overflow-hidden" style={{ background: lpMid.page.bg }}>
-        <div className="container mx-auto max-w-5xl">
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
-            <GoldDivider />
-            <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4 lg:text-base" style={{ color: lpMid.page.text }}>{t('landing.problems_subtitle')}</span>
-            <h2 className="text-2xl sm:text-3xl md:text-6xl font-bold" style={{ color: lpMid.page.text }}>{t('landing.problems_title')}</h2>
-          </motion.div>
-          {(() => {
-            const concernsData = [
-              {
-                image: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772516026/Gemini_Generated_Image_tlb0sbtlb0sbtlb0_eyduk4_c_pad_b_gen_fill_w_1024_h_1024_urgdep.png',
-                text: t('landing.problems_item1'),
-              },
-              {
-                image: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772516050/Gemini_Generated_Image_875iko875iko875i_k2i2bc_c_pad_b_gen_fill_w_1024_h_1024_zndtxt.png',
-                text: t('landing.problems_item2'),
-              },
-              {
-                image: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772516019/Gemini_Generated_Image_tr2wh5tr2wh5tr2w_c3tjmr_c_pad_b_gen_fill_w_1024_h_1024_bolppa.png',
-                text: t('landing.problems_item3'),
-              },
-            ];
-            const renderConcernCard = (index: number) => {
-              const concern = concernsData[index];
-              return (
-                <Card
-                  className="h-full overflow-hidden relative"
-                  style={{
-                    background: lpMid.elevated.bg,
-                    border: `1px solid ${lpMid.elevated.border}`,
-                    boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
-                  }}
+      {/* Partner Stores Section - 流れるマーキー */}
+      {partnerStores.length > 0 && (
+        <section className="relative py-12 md:py-24 overflow-hidden" style={{ background: lpPage.bg }}>
+          <div className="container mx-auto max-w-6xl relative z-10 px-4">
+            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
+              <GoldDivider />
+              <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4 lg:text-base" style={{ color: accentTextOnLightBg(lpPage.bg) }}>Partner Stores</span>
+              <h2 className="text-2xl sm:text-3xl md:text-6xl font-bold mb-4" style={{ color: lpPage.text }}>{t('common.partner_stores')}</h2>
+              <p className="text-lg max-w-xl mx-auto lg:text-2xl" style={{ color: lpPage.textMuted }}>{t('common.partner_stores_subtitle')}</p>
+            </motion.div>
+          </div>
+          <div className="relative w-full overflow-hidden">
+            <motion.div
+              className="flex gap-4"
+              animate={{ x: ['0%', '-50%'] }}
+              transition={{ x: { duration: partnerStores.length * 4, repeat: Infinity, ease: 'linear' } }}
+              style={{ width: 'max-content' }}
+            >
+              {[...partnerStores, ...partnerStores].map((store, index) => (
+                <div
+                  key={`${store.id}-${index}`}
+                  className="flex-shrink-0 w-[260px] sm:w-[320px] relative group cursor-pointer overflow-hidden rounded-2xl"
+                  style={{ border: '1px solid rgba(255, 198, 45, 0.35)' }}
+                  onClick={() => handleStoreCardClick(store.id)}
                 >
-                  <div className="aspect-square w-full overflow-hidden">
-                    <img
-                      src={concern.image}
-                      alt={concern.text.replace('\n', ' ')}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className="p-5 sm:p-6 text-center">
-                    <p className="text-base sm:text-lg font-bold leading-relaxed lg:text-xl" style={{ color: lpMid.elevated.text }}>
-                      {renderWithLineBreaks(concern.text)}
-                    </p>
-                  </div>
-                </Card>
-              );
-            };
-            return (
-              <>
-                {/* モバイル: スライド */}
-                <div className="block lg:hidden relative">
-                  <div className="overflow-hidden rounded-2xl">
-                    <AnimatePresence mode="wait">
-                      <motion.div
-                        key={concernsSlide}
-                        initial={{ opacity: 0, x: 80 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -80 }}
-                        transition={{ duration: 0.35 }}
-                      >
-                        {renderConcernCard(concernsSlide)}
-                      </motion.div>
-                    </AnimatePresence>
-                  </div>
-                  <button
-                    onClick={() => setConcernsSlide((prev) => (prev - 1 + concernsData.length) % concernsData.length)}
-                    className="absolute left-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 z-10"
-                    style={{ background: lpMid.fab.bg, border: `1px solid ${lpMid.fab.border}`, backdropFilter: 'blur(10px)' }}
-                  >
-                    <ChevronLeft className="w-5 h-5" style={{ color: lpMid.fab.icon }} />
-                  </button>
-                  <button
-                    onClick={() => setConcernsSlide((prev) => (prev + 1) % concernsData.length)}
-                    className="absolute right-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 z-10"
-                    style={{ background: lpMid.fab.bg, border: `1px solid ${lpMid.fab.border}`, backdropFilter: 'blur(10px)' }}
-                  >
-                    <ChevronRight className="w-5 h-5" style={{ color: lpMid.fab.icon }} />
-                  </button>
-                  <div className="flex justify-center gap-2 mt-6">
-                    {concernsData.map((_, index) => (
-                      <button
-                        key={index}
-                        onClick={() => setConcernsSlide(index)}
-                        className="h-2 rounded-full transition-all duration-300"
-                        style={{
-                          width: concernsSlide === index ? '24px' : '8px',
-                          background: concernsSlide === index ? LP_YELLOW : lpMid.dotInactive,
-                          boxShadow: concernsSlide === index ? `0 0 10px ${LP_YELLOW}60` : 'none',
-                        }}
-                      />
-                    ))}
+                  <div className="relative aspect-[4/3]">
+                    <img src={store.image_urls?.[0] || ''} alt={store.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                    <div className="absolute inset-0" style={{ backgroundColor: 'rgba(19,41,75,0.65)' }} />
+                    <div className="absolute bottom-3 left-3 right-3">
+                      <h3 className="text-sm font-bold truncate lg:text-lg" style={{ color: '#FFFFFF', textShadow: '0 1px 6px rgba(0,0,0,0.8)' }}>{store.name}</h3>
+                    </div>
                   </div>
                 </div>
-                {/* PC: 3列横並び */}
-                <div className="hidden lg:grid lg:grid-cols-3 gap-6">
-                  {concernsData.map((_, index) => (
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 0, y: 30 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: index * 0.15 }}
-                    >
-                      {renderConcernCard(index)}
-                    </motion.div>
-                  ))}
-                </div>
-              </>
-            );
-          })()}
-        </div>
-        <motion.div className="absolute bottom-0 left-0 right-0 h-px" style={{ backgroundColor: `${LP_YELLOW}40` }} />
-      </section>
+              ))}
+            </motion.div>
+          </div>
+          <div className="container mx-auto max-w-6xl relative z-10 px-4">
+            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mt-10">
+              <Button
+                onClick={() => router.push('/store-list')}
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-full font-medium transition-all hover:scale-105 min-h-[48px]"
+                style={{ background: `${LP_YELLOW}15`, border: '1px solid rgba(255, 198, 45, 0.4)', color: LP_YELLOW }}
+              >
+                <Store className="w-5 h-5" />
+                {t('common.view_all_partners')}
+              </Button>
+            </motion.div>
+          </div>
+        </section>
+      )}
 
       {/* 解決策・サービスの強みセクション */}
       <section className="relative py-12 md:py-24 px-4 overflow-hidden" style={{ background: lpMid.page.bg }}>
@@ -1045,9 +970,9 @@ export default function LandingPage() {
             ];
             const stepIcons = [MapPin, Store, Phone];
             const images = [
-              'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772413015/Gemini_Generated_Image_kklaofkklaofkkla_faupob_c_pad_b_gen_fill_w_1024_h_1024_puu1hp.png',
-              'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772413014/Gemini_Generated_Image_4et50r4et50r4et5_zo8vh4_c_pad_b_gen_fill_w_1024_h_1024_entmxs.png',
-              'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772413152/Gemini_Generated_Image_3qcvnq3qcvnq3qcv_acv91j_c_pad_w_1024_h_1024_sr05n9.png',
+              'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,w_1024/v1781495370/ChatGPT_Image_2026%E5%B9%B46%E6%9C%8814%E6%97%A5_22_26_55_2_w2ayfd.png',
+              'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,w_1024/v1781495436/ChatGPT_Image_2026%E5%B9%B46%E6%9C%8814%E6%97%A5_22_26_56_4_knwhwc.png',
+              'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,w_1024/v1781494974/%E5%B8%AD%E3%82%92%E3%82%AD%E3%83%BC%E3%83%95%E3%82%9A%E3%81%99%E3%82%8B_xuhood.png',
             ];
             const renderStepCard = (index: number) => {
               const { step, num, highlight, badge } = howtoSteps[index];
@@ -1228,7 +1153,7 @@ export default function LandingPage() {
                   <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(255,200,44,0.14)' }}>
                     <Landmark className="w-6 h-6" style={{ color: LP_YELLOW }} />
                   </div>
-                  <h3 className="text-base font-bold flex-1 min-w-0 leading-snug lg:text-xl" style={{ color: lpMid.elevated.text }}>{t('landing.pricing_organizer_name')}</h3>
+                  <h3 className="text-base font-bold flex-1 min-w-0 leading-snug lg:text-xl" style={{ color: lpMid.elevated.text }}>{renderWithLineBreaks(t('landing.pricing_organizer_name'))}</h3>
                   <p className="text-xl font-extrabold shrink-0 text-right lg:text-2xl" style={{ color: lpMid.elevated.text }}>{t('landing.pricing_organizer_price')}</p>
                 </div>
                 <div className="h-px w-full mb-5" style={{ background: lpMid.elevated.border }} />
@@ -1328,57 +1253,6 @@ export default function LandingPage() {
           </motion.div>
         </div>
       </section>
-
-      {/* Partner Stores Section - 流れるマーキー */}
-      {partnerStores.length > 0 && (
-        <section className="relative py-12 md:py-24 overflow-hidden" style={{ background: lpPage.bg }}>
-          <div className="container mx-auto max-w-6xl relative z-10 px-4">
-            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
-              <GoldDivider />
-              <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4 lg:text-base" style={{ color: accentTextOnLightBg(lpPage.bg) }}>Partner Stores</span>
-              <h2 className="text-2xl sm:text-3xl md:text-6xl font-bold mb-4" style={{ color: lpPage.text }}>{t('common.partner_stores')}</h2>
-              <p className="text-lg max-w-xl mx-auto lg:text-2xl" style={{ color: lpPage.textMuted }}>{t('common.partner_stores_subtitle')}</p>
-            </motion.div>
-          </div>
-          <div className="relative w-full overflow-hidden">
-            <motion.div
-              className="flex gap-4"
-              animate={{ x: ['0%', '-50%'] }}
-              transition={{ x: { duration: partnerStores.length * 4, repeat: Infinity, ease: 'linear' } }}
-              style={{ width: 'max-content' }}
-            >
-              {[...partnerStores, ...partnerStores].map((store, index) => (
-                <div
-                  key={`${store.id}-${index}`}
-                  className="flex-shrink-0 w-[260px] sm:w-[320px] relative group cursor-pointer overflow-hidden rounded-2xl"
-                  style={{ border: '1px solid rgba(255, 198, 45, 0.35)' }}
-                  onClick={() => handleStoreCardClick(store.id)}
-                >
-                  <div className="relative aspect-[4/3]">
-                    <img src={store.image_urls?.[0] || ''} alt={store.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                    <div className="absolute inset-0" style={{ backgroundColor: 'rgba(19,41,75,0.65)' }} />
-                    <div className="absolute bottom-3 left-3 right-3">
-                      <h3 className="text-sm font-bold truncate lg:text-lg" style={{ color: '#FFFFFF', textShadow: '0 1px 6px rgba(0,0,0,0.8)' }}>{store.name}</h3>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </motion.div>
-          </div>
-          <div className="container mx-auto max-w-6xl relative z-10 px-4">
-            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mt-10">
-              <Button
-                onClick={() => router.push('/store-list')}
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-full font-medium transition-all hover:scale-105 min-h-[48px]"
-                style={{ background: `${LP_YELLOW}15`, border: '1px solid rgba(255, 198, 45, 0.4)', color: LP_YELLOW }}
-              >
-                <Store className="w-5 h-5" />
-                {t('common.view_all_partners')}
-              </Button>
-            </motion.div>
-          </div>
-        </section>
-      )}
 
       {/* Contact Section */}
       <section className="relative py-12 md:py-24 px-4 overflow-hidden" style={{ background: lpPage.bg }}>

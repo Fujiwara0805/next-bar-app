@@ -887,7 +887,7 @@ export const translations = {
       pricing_store_price: '基本無料',
       pricing_store_price_note: '公式LINE配信は ¥1,980/月・¥19,800/年',
       pricing_store_desc: '掲載・空席更新・顧客管理は無料。お客様への公式LINE配信機能のみ有料です。',
-      pricing_organizer_name: 'イベント開催者（自治体・主催者）',
+      pricing_organizer_name: 'イベント開催者\n（自治体・主催者）',
       pricing_organizer_price: '要相談',
       pricing_organizer_desc: 'にけんめぷらすを「夜の回遊マップ」として活用したい自治体・主催者の皆さまは、お気軽にお問い合わせください。',
       pricing_organizer_cta: 'お問い合わせ',
@@ -1374,7 +1374,7 @@ export const translations = {
     lineCta: {
       headline: 'この街のイベント・今夜の特典をLINEで受け取る',
       sub: '友だち追加するだけ。配信はあなたが選んだものだけ届きます。',
-      button: 'LINEで友だち追加',
+      button: '友達登録する',
     },
     liffVacancy: {
       title: '空席通知を受け取る',
