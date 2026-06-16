@@ -855,8 +855,7 @@ function StoreListContent() {
                                   const openTime = getTodayOpenTime(sbh);
                                   if (!openTime) return null;
                                   return (
-                                    <span className="text-sm font-bold px-2 py-0.5 rounded-lg" style={{
-                                      backgroundColor: isEventStore ? `${EVENT_CARD_FG}1A` : 'rgba(34, 197, 94, 0.1)',
+                                    <span className="text-lg font-bold" style={{
                                       color: isEventStore ? EVENT_CARD_FG : '#3E8E6B',
                                     }}>
                                       {t('store_list.opens_at').replace('{time}', openTime)}

@@ -905,8 +905,7 @@ export default function StoreDetailPage() {
                         const openTime = getTodayOpenTime(sbh);
                         if (!openTime) return null;
                         return (
-                          <span className="text-sm font-bold px-2 py-0.5 rounded-lg" style={{
-                            backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                          <span className="text-lg font-bold" style={{
                             color: '#3E8E6B',
                           }}>
                             {t('store_detail.opens_at').replace('{time}', openTime)}

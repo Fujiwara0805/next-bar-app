@@ -408,7 +408,7 @@ export function StoreDetailPanel({
                     const openTime = getTodayOpenTime(displayBusinessHours);
                     if (!openTime) return null;
                     return (
-                      <span className="text-sm font-bold px-2 py-0.5 rounded-lg bg-info/10 text-info">
+                      <span className="text-xl font-bold px-2 py-0.5 rounded-lg bg-info/10 text-info">
                         {t('map.opens_at').replace('{time}', openTime)}
                       </span>
                     );
