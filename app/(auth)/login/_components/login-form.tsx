@@ -23,12 +23,9 @@ const LINE_BRAND_ICON_URL =
 
 const LINE_BRAND = '#06C755';
 
+// LP（/landing）の Hero セクションと画像を合致させる（同一の単一ビジュアル）
 const HERO_IMAGES = [
-  'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1774355369/brian-jones-YBlcnXfv9OM-unsplash_orpuaz.jpg',
-  'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772501853/masahiro-miyagi-RLDNGblOqHU-unsplash_zadhp8.jpg',
-  'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1774355344/romeo-a-P8dzevR1yE4-unsplash_enlnhr.jpg',
-  'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772501853/patrick-tomasso-GXXYkSwndP4-unsplash_w4c9df.jpg',
-  'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1772501860/drew-beamer-bTN-zKFy9uA-unsplash_kmcnyo.jpg',
+  'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1781483273/Hero_nd2fnb.png',
 ];
 
 const LP_NAVY = '#13294b';
@@ -210,10 +207,10 @@ export function LoginForm() {
           <img src={LOGO_URL} alt="NIKENME+" className="w-9 h-9" />
           <div className="flex flex-col">
             <span
-              className="text-[10px] tracking-[0.25em] uppercase font-semibold"
+              className="font-en text-[10px] tracking-[0.25em] uppercase font-semibold"
               style={{ color: COLORS.champagneGold }}
             >
-              Night Discovery Platform
+              Local Dining Map
             </span>
             <span className="text-base font-bold text-white">NIKENME+</span>
           </div>

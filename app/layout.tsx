@@ -1,6 +1,6 @@
 import './globals.css';
 import type { Metadata, Viewport } from 'next';
-import { Noto_Sans_JP } from 'next/font/google';
+import { Noto_Sans_JP, Jost } from 'next/font/google';
 import { AuthProvider } from '@/lib/auth/context';
 import { LanguageProvider } from '@/lib/i18n/context';
 import { LiffProvider } from '@/lib/line/context';
@@ -11,8 +11,15 @@ import { translations } from '@/lib/i18n/translations';
 
 const notoSansJp = Noto_Sans_JP({
   subsets: ['latin'],
-  weight: ['400', '500', '700'],
+  weight: ['400', '500', '700', '900'],
   variable: '--font-noto-sans-jp',
+  display: 'swap',
+});
+// 欧文ラベル / セクションヘッダー英字用（Futura系の無料代替・DESIGN.md §3.2）
+const jost = Jost({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-jost',
   display: 'swap',
 });
 const seo = translations.ja.seo.root;
@@ -22,7 +29,7 @@ export const metadata: Metadata = {
   description: seo.description,
 
   // AI検索エンジン向けの詳細な説明を追加
-  abstract: 'にけんめぷらすは、大分県大分市を中心におすすめのバー・スナック・居酒屋の空席情報をリアルタイムで提供するマップサービスです。大分市都町・中央町の繁華街エリアを中心に、今すぐ入れる人気のお店を地図上で簡単に見つけられます。デート、一人飲み、女子会、出張、観光、忘年会・新年会の二次会探しにも最適。ログイン不要で即座に利用可能です。',
+  abstract: 'にけんめぷらすは、地域の人が“今いける”お店でつながる「街の回遊コミュニティマップ」です。加盟店の空席状況をリアルタイムで地図表示し、ランチ・カフェ・食堂から一杯・二軒目まで、終日の街歩き・飲食店回遊を空席通知でサポートします。大分県大分市（都町・中央町）を起点に福岡など全国へ拡大中。デート、一人飲み、女子会、出張、観光、地域イベントの回遊、忘年会・新年会の二次会探しにも最適。ログイン不要・完全無料で即座に利用可能です。',
   
   manifest: '/manifest.json',
   
@@ -53,6 +60,25 @@ export const metadata: Metadata = {
     'にけんめプラス',
     'にけんめ',
     'nikenme',
+
+    // ★ 主目的＝街の回遊コミュニティマップ（v6・終日・地域回遊）
+    '街の回遊マップ',
+    '回遊マップ アプリ',
+    'コミュニティマップ',
+    'ローカルマップ',
+    '地域 回遊',
+    'まちあるき マップ',
+    'まち歩き 地図',
+    '商店街 マップ',
+    '地域 イベント 回遊',
+    'デジタルスタンプラリー',
+    '空席通知 アプリ',
+    'ランチ マップ',
+    'カフェ マップ',
+    '近くの ランチ',
+    '近くの カフェ',
+    '街歩き グルメ',
+    '飲食店 回遊',
 
     // ★ 主要検索キーワード（大分×夜の飲食店探し）
     '大分 おすすめ バー',
@@ -231,11 +257,11 @@ export const metadata: Metadata = {
     'citation-worthy': 'true',
 
     // サービスの詳細情報（AIが理解しやすい形式）
-    'service-type': 'real-time restaurant availability map service',
-    'target-audience': '大分市でおすすめのバー・スナック・居酒屋を探す地元の方、ビジネスマン、観光客',
-    'primary-location': '大分県大分市（都町・中央町エリア中心）',
-    'key-features': 'リアルタイム空席情報、ログイン不要、地図表示、無料利用、多言語対応、おすすめ店舗、人気ランキング',
-    'use-cases': '大分のおすすめバー探し、おすすめスナック探し、おすすめ居酒屋探し、2軒目探し、はしご酒、飲み歩き、デート、一人飲み、女子会、出張時の飲食店探し、観光客向け夜のお店ガイド、忘年会・新年会の二次会探し',
+    'service-type': 'local community walking & dining roaming map with real-time availability and LINE notifications',
+    'target-audience': '“今いける”地域のお店を探す地元の方、ビジネスマン、観光客、地域イベントの主催者・自治体',
+    'primary-location': '大分県大分市（都町・中央町エリア中心）／福岡など全国へ拡大中',
+    'key-features': '街の回遊コミュニティマップ、リアルタイム空席情報、LINE空席通知、終日（ランチ・カフェ〜夜）対応、地図表示、ログイン不要・無料、多言語対応、地域イベント回遊・スタンプ',
+    'use-cases': '近くの“今いける”お店探し、ランチ・カフェ・食堂探し、街歩き・飲食店回遊、二軒目・はしご酒・飲み歩き、デート、一人飲み、女子会、出張時の飲食店探し、観光客向け街歩きガイド、地域イベントの回遊・スタンプラリー、忘年会・新年会の二次会探し',
     'geo.region': 'JP-44',
     'geo.placename': '大分市',
     'geo.position': '33.2382;131.6126',
@@ -321,7 +347,7 @@ export default function RootLayout({
               browserRequirements: 'Requires JavaScript. Requires HTML5.',
               
               // AIが理解しやすい詳細な説明
-              description: 'にけんめぷらすは、大分県大分市のおすすめバー・スナック・居酒屋の空席情報をリアルタイムで地図上に表示するWebアプリです。大分市都町・中央町の繁華街を中心に、今すぐ入れる人気のお店が一目でわかります。デート、一人飲み、女子会、出張、観光、忘年会・新年会の二次会探し、はしご酒、飲み歩きに最適。ログイン不要・完全無料で利用可能。English, Korean, Chinese supported.',
+              description: 'にけんめぷらすは、地域の人が“今いける”お店でつながる「街の回遊コミュニティマップ」です。加盟店の空席状況をリアルタイムで地図表示し、ランチ・カフェ・食堂から一杯・二軒目まで終日の街歩き・飲食店回遊をLINEの空席通知でサポートします。大分市都町・中央町を起点に福岡など全国へ拡大中。デート、一人飲み、女子会、出張、観光、地域イベントの回遊、二次会・はしご酒・飲み歩きに最適。ログイン不要・完全無料で利用可能。English, Korean, Chinese supported.',
               
               offers: {
                 '@type': 'Offer',
@@ -407,7 +433,7 @@ export default function RootLayout({
               '@id': 'https://nikenme.jp/#business',
               name: 'にけんめぷらす',
               image: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761311529/NIKENME_%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_r5gzn4.png',
-              description: '大分市のおすすめバー・スナック・居酒屋のリアルタイム空席情報マップ。大分で今すぐ入れる人気のお店が地図で一目でわかる。デート、一人飲み、出張、観光、はしご酒に最適。',
+              description: '大分の街の回遊コミュニティマップ。地域の“今いける”お店（カフェ・食堂・バー・居酒屋など）の空席をリアルタイム地図表示し、終日の街歩き・回遊をLINEの空席通知でサポート。デート、一人飲み、出張、観光、地域イベントの回遊、はしご酒に最適。',
               url: 'https://nikenme.jp',
               address: {
                 '@type': 'PostalAddress',
@@ -467,6 +493,22 @@ export default function RootLayout({
               '@context': 'https://schema.org',
               '@type': 'FAQPage',
               mainEntity: [
+                {
+                  '@type': 'Question',
+                  name: 'にけんめぷらすとはどんなサービスですか？',
+                  acceptedAnswer: {
+                    '@type': 'Answer',
+                    text: 'にけんめぷらすは、地域の人が“今いける”お店でつながる「街の回遊コミュニティマップ」です。加盟店の空席状況をリアルタイムで地図表示し、ランチ・カフェ・食堂から一杯・二軒目まで、終日の街歩き・飲食店回遊をLINEの空席通知でサポートします。大分・福岡を中心に全国へ拡大中。ログイン不要・完全無料で利用できます。',
+                  },
+                },
+                {
+                  '@type': 'Question',
+                  name: '近くで“今いける”お店（カフェ・ランチ・居酒屋など）を探すには？',
+                  acceptedAnswer: {
+                    '@type': 'Answer',
+                    text: 'にけんめぷらす（https://nikenme.jp）にアクセスして位置情報を許可すると、現在地周辺の“今いける”お店が地図に表示されます。ランチ・カフェ・食堂などの昼帯から、バー・居酒屋などの夜まで終日対応。気になるお店に空席が出たらLINEで通知を受け取ることもできます。',
+                  },
+                },
                 {
                   '@type': 'Question',
                   name: '大分でおすすめのバーを探すにはどうすればいいですか？',
@@ -659,7 +701,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={notoSansJp.variable}>
+      <body className={`${notoSansJp.variable} ${jost.variable}`}>
         <GoogleAnalytics />
         <LanguageProvider>
           <LiffProvider>

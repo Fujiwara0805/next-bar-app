@@ -14,15 +14,19 @@ const badgeVariants = cva(
           'border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80',
         destructive:
           'border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80',
-        outline: 'text-foreground',
+        outline: 'border-border text-foreground',
         success:
           'border-transparent bg-success text-success-foreground',
         warning:
           'border-transparent bg-warning text-warning-foreground',
         info:
           'border-transparent bg-info text-info-foreground',
+        // soft: 淡Brass地に Navy 文字（DESIGN.md: Brass上は濃色文字でコントラスト確保）
         soft:
-          'border-brass-500/30 bg-brass-500/15 text-brass-500',
+          'border-brass-500/30 bg-brass-500/15 text-brewer-700',
+        // category: マガジンのカテゴリバッジ（英字uppercase・Jost）
+        category:
+          'border-transparent bg-secondary text-secondary-foreground font-en uppercase tracking-[0.06em]',
       },
     },
     defaultVariants: {

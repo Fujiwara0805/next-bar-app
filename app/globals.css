@@ -40,24 +40,26 @@
 
 @layer base {
   :root {
-    /* ===== 意味トークン（ダーク基調: 顧客/マイページ/マップ等） ===== */
-    --background: var(--bn-700);
-    --foreground: var(--cream-50);
+    /* ===== 意味トークン（ライト既定: 消費者マガジン基調） =====
+       DESIGN.md §7。旧ダーク既定からライトへ反転。
+       Navy はインク/Primary、Brass はアクセント、白/クリームが紙面。 */
+    --background: 0 0% 100%;         /* Page White */
+    --foreground: var(--bn-700);     /* Navy インク */
 
-    --card: var(--bn-800);
-    --card-foreground: var(--cream-50);
+    --card: 0 0% 100%;               /* 白カード */
+    --card-foreground: var(--bn-700);
 
     --popover: 0 0% 100%;
     --popover-foreground: var(--bn-700);
 
-    --primary: var(--bn-700);
+    --primary: var(--bn-700);        /* Navy */
     --primary-foreground: var(--cream-50);
 
-    --secondary: var(--brass-500);
-    --secondary-foreground: var(--bn-700);
+    --secondary: var(--brass-500);   /* Brass */
+    --secondary-foreground: var(--bn-700);  /* Brass 上は Navy 文字 */
 
     --muted: 220 17% 95%;            /* Neutral 100 */
-    --muted-foreground: 221 14% 35%; /* Neutral 600 */
+    --muted-foreground: 221 14% 35%; /* Neutral 600 = Body */
 
     --accent: var(--copper-500);
     --accent-foreground: var(--cream-50);
@@ -65,17 +67,18 @@
     --destructive: 3 48% 47%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 219 22% 89%;           /* Neutral 200 */
+    --border: 219 22% 89%;           /* Hairline #DCE1EB */
     --input: 0 0% 100%;
     --ring: var(--bn-500);
 
     --radius: 0.5rem;
   }
 
-  /* ===== ライト基調オプション（運営ダッシュボード等） =====
-     <body class="theme-light"> を付けて適用。 */
+  /* ===== 運営/店舗ダッシュボード（機能的ライト） =====
+     <body class="theme-light"> 用。ライト既定とほぼ同義だが、
+     業務画面は淡いNeutral背景(Mist)で面を締める。 */
   .theme-light {
-    --background: 220 20% 98%;       /* Neutral 50 */
+    --background: 220 20% 98%;       /* Mist / Neutral 50 */
     --foreground: var(--bn-700);
     --card: 0 0% 100%;
     --card-foreground: var(--bn-700);
@@ -111,7 +114,8 @@ textarea::placeholder {
     font-family: var(--font-noto-sans-jp), -apple-system, BlinkMacSystemFont,
       "Helvetica Neue", "Noto Sans JP", "Hiragino Kaku Gothic ProN", Arial,
       "Meiryo", sans-serif;
-    font-feature-settings: "palt" 1;
+    /* palt は本文では使わず、大きな和文見出しのみに適用（DESIGN.md §3.5） */
+    font-feature-settings: normal;
     overscroll-behavior: none;
     touch-action: pan-x pan-y;
     min-height: 100vh;
@@ -122,6 +126,7 @@ textarea::placeholder {
     line-height: 1.2;
     overflow-wrap: break-word;
     word-break: normal;
+    font-feature-settings: "palt" 1;
   }
 
   p, li, span {
@@ -174,6 +179,24 @@ textarea::placeholder {
     background: hsl(0 0% 100%);
     border: 1px solid hsl(var(--border));
     box-shadow: var(--shadow-floating);
+  }
+
+  /* ===== マガジン・ユーティリティ（DESIGN.md §3 / §4） ===== */
+  /* font-en（Jost）は tailwind.config の fontFamily.en で生成 */
+
+  /* 英字uppercaseラベル（カテゴリ/対訳見出しの英字） */
+  .section-en {
+    font-family: var(--font-jost), "Futura", "Century Gothic", system-ui, sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  /* 雑誌カード/紙面: 白＋細罫＋影なし */
+  .surface-paper {
+    background: hsl(0 0% 100%);
+    border: 1px solid hsl(var(--border));
+    box-shadow: none;
   }
 
   .brand-glow {

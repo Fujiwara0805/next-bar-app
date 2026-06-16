@@ -45,13 +45,13 @@ export default function LiffVacancyOptInPage() {
     const body = document.body;
     const prevRootBg = root.style.background;
     const prevBodyBg = body.style.background;
-    root.style.background = COLORS.deepNavy;
-    body.style.background = COLORS.deepNavy;
+    root.style.background = COLORS.cardGradient;
+    body.style.background = COLORS.cardGradient;
     return () => {
       root.style.background = prevRootBg;
       body.style.background = prevBodyBg;
     };
-  }, [COLORS.deepNavy]);
+  }, [COLORS.cardGradient]);
 
   const handleClose = () => {
     router.push('/mypage');
@@ -205,8 +205,8 @@ export default function LiffVacancyOptInPage() {
     <div
       className="min-h-screen safe-top pb-16 relative overflow-hidden"
       style={{
-        background: COLORS.luxuryGradient,
-        color: COLORS.ivory,
+        background: COLORS.cardGradient,
+        color: COLORS.deepNavy,
       }}
     >
       {/* 装飾オーラ */}
@@ -249,18 +249,18 @@ export default function LiffVacancyOptInPage() {
           className="flex flex-col items-center text-center mb-6"
         >
           <div className="flex items-center gap-1.5 mb-1">
-            <Sparkles className="w-3.5 h-3.5" style={{ color: COLORS.champagneGold }} />
+            <Sparkles className="w-3.5 h-3.5" style={{ color: COLORS.antiqueGold }} />
             <span
-              className="text-[10px] tracking-[0.25em] uppercase font-semibold"
-              style={{ color: COLORS.champagneGold }}
+              className="font-en text-[10px] tracking-[0.25em] uppercase font-semibold"
+              style={{ color: COLORS.antiqueGold }}
             >
               NIKENME+
             </span>
-            <Sparkles className="w-3.5 h-3.5" style={{ color: COLORS.champagneGold }} />
+            <Sparkles className="w-3.5 h-3.5" style={{ color: COLORS.antiqueGold }} />
           </div>
           <h1
             className="text-xl sm:text-2xl font-bold tracking-tight"
-            style={{ color: COLORS.ivory }}
+            style={{ color: COLORS.deepNavy }}
           >
             {t('liffVacancy.title')}
           </h1>
@@ -473,7 +473,7 @@ export default function LiffVacancyOptInPage() {
               {lastSavedLabel ? (
                 <p
                   className="text-[11px] text-center mt-3"
-                  style={{ color: `${COLORS.ivory}99` }}
+                  style={{ color: `${COLORS.deepNavy}99` }}
                 >
                   {t('liffVacancy.last_saved')}: {lastSavedLabel}
                 </p>

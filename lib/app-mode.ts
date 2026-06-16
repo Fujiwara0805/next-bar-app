@@ -4,6 +4,13 @@
  *
  * 機能: アプリモードのカラーパレット・特徴タグ
  *       バーモード固定
+ *
+ * 2026-06 デザイン刷新（DESIGN.md §0）:
+ *   消費者画面を「夜のダークNavy」→「街の回遊マップ・ライトマガジン」へ転換。
+ *   - Shape A / PanelDark: 値を**ライト基調**へ刷新（白/クリーム紙面・Navyインク・Brassアクセント）。
+ *     ※ PanelDark はキー名は据え置き（churn最小）だが値はライト。
+ *   - Shape B: deepNavy/ivory 等の**リテラルなブランド色名**のため値は据え置き。
+ *     消費者ページ側でライト構成に組み替える（store-list / store/[id]）。
  * ============================================
  */
 
@@ -96,28 +103,32 @@ export interface PanelLightTheme {
 // ============================================================================
 
 export const BAR_COLORS_A: ColorsShapeA = {
-  background: '#13294b',
-  surface: '#20385F',
-  surfaceLight: '#335280',
-  cardBackground: '#F7F3E9',
+  // 紙面（ライトマガジン基調・DESIGN.md §2）
+  background: '#FFFFFF',
+  surface: '#F7F8FA',
+  surfaceLight: '#EEF0F4',
+  cardBackground: '#FFFFFF',
   primary: '#13294b',
   charcoal: '#141821',
   warmGray: '#4D5567',
   accent: '#ffc82c',
   accentLight: '#ffdf85',
   accentDark: '#C49A33',
-  text: '#F7F3E9',
-  textMuted: 'rgba(247, 243, 233, 0.76)',
-  textSubtle: 'rgba(144, 164, 193, 0.9)',
-  luxuryGradient: 'linear-gradient(135deg, #13294b 0%, #20385F 100%)',
+  // テキスト（Navyインク）
+  text: '#13294b',
+  textMuted: 'rgba(19, 41, 75, 0.70)',
+  textSubtle: '#8D95A6',
+  // グラデーション（明るい面）
+  luxuryGradient: 'linear-gradient(135deg, #FFFFFF 0%, #F7F3E9 100%)',
   goldGradient: 'linear-gradient(135deg, #ffdf85 0%, #ffc82c 100%)',
-  cardGradient: 'linear-gradient(180deg, #F7F3E9 0%, #FFFFFF 100%)',
-  borderGold: 'rgba(255, 200, 44, 0.28)',
-  borderSubtle: 'rgba(255, 255, 255, 0.08)',
-  shadowGold: '0 0 32px rgba(255, 200, 44, 0.22)',
-  shadowDeep: '0 16px 40px rgba(0, 0, 0, 0.24)',
+  cardGradient: 'linear-gradient(180deg, #FFFFFF 0%, #F7F8FA 100%)',
+  // ボーダー・シャドウ（罫線中心・影は最小）
+  borderGold: 'rgba(255, 200, 44, 0.5)',
+  borderSubtle: '#DCE1EB',
+  shadowGold: '0 0 24px rgba(255, 200, 44, 0.20)',
+  shadowDeep: '0 12px 32px rgba(19, 41, 75, 0.10)',
   error: '#B3453F',
-  errorBg: 'rgba(179, 69, 63, 0.14)',
+  errorBg: 'rgba(179, 69, 63, 0.10)',
   errorBorder: 'rgba(179, 69, 63, 0.3)',
 };
 
@@ -137,17 +148,19 @@ export const BAR_COLORS_B: ColorsShapeB = {
   cardGradient: 'linear-gradient(180deg, #F7F3E9 0%, #FFFFFF 100%)',
 };
 
+// 注: キー名は据え置き（churn最小）だが、値はライトマガジンへ刷新（DESIGN.md §0）。
+// StoreDetailPanel の既定テーマ。panelLight と同様に白/Navy構成。
 export const BAR_PANEL_DARK: PanelDarkTheme = {
-  background: '#13294b',
-  surface: '#20385F',
+  background: '#FFFFFF',
+  surface: '#F7F8FA',
   accent: '#ffc82c',
   accentLight: '#ffdf85',
-  text: '#F7F3E9',
-  textMuted: 'rgba(247, 243, 233, 0.76)',
-  textSubtle: 'rgba(144, 164, 193, 0.9)',
-  borderGold: 'rgba(255, 200, 44, 0.28)',
-  borderSubtle: 'rgba(255, 255, 255, 0.08)',
-  shadowGold: '0 0 32px rgba(255, 200, 44, 0.22)',
+  text: '#13294b',
+  textMuted: 'rgba(19, 41, 75, 0.70)',
+  textSubtle: '#8D95A6',
+  borderGold: 'rgba(255, 200, 44, 0.5)',
+  borderSubtle: '#DCE1EB',
+  shadowGold: '0 8px 24px rgba(19, 41, 75, 0.10)',
   goldGradient: 'linear-gradient(135deg, #ffdf85 0%, #ffc82c 100%)',
 };
 

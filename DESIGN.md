@@ -1,81 +1,118 @@
-# DESIGN.md — NIKENME+
+# DESIGN.md — NIKENME+ / にけんめぷらす
 
-> NIKENME+ / 二軒目プラス（`next-bar` リポジトリ）のデザイン仕様書。  
-> 既存のブランドカラー **Brewer Navy `#13294b` / Brass Yellow `#ffc82c` / Cream Off-white `#F7F3E9`** を基準に、顧客画面・店舗画面・運営画面・LIFF画面で一貫したUIを実現するためのデザインシステム。
+> NIKENME+（`next-bar` リポジトリ）のデザイン仕様書。
+> **コンセプト = 「街の飲食店回遊マップ（終日・フラット）→ ローカルコミュニティマップ」**（戦略 `tasks/metagame-strategy.md` v5 / T7）。
+> ビジュアル言語は **雑誌（マガジン）型レイアウト**を採用する。マガジンハウス『BRUTUS』Web版の骨格 — 純白基調・編集的グリッド・「英字（Futura系）＋和文」のセクション見出し・罫線で構造を作る — を、**既存ブランドカラー Brewer Navy `#13294b` / Brass Yellow `#ffc82c` / Cream Off-white `#F7F3E9` を踏襲したまま**翻訳したもの。
+>
+> 旧仕様（ダークNavyの「夜の街／二軒目」基調）からの転換。**消費者画面 = ライトなマガジン基調**、**店舗管理・運営画面 = 機能的なライト基調**（マガジン装飾は持ち込まない）で一貫させる。
+
+---
+
+## 0. 転換の要点（旧仕様との差分）
+
+| 観点 | 旧（〜2026-05） | 新（本仕様） |
+|---|---|---|
+| 世界観 | 夜の街・二軒目・ナイトライフ | 終日の街歩き・飲食店回遊・ローカルコミュニティ |
+| 基調 | ダーク（Navy背景＋Cream文字） | **ライト（白/クリーム背景＋Navyインク文字）** |
+| レイアウト | 没入型ダークUI | **雑誌グリッド**（面色切替・罫線・左揃え見出し） |
+| 見出し | 装飾的タイポ | **英字uppercase（Jost）＋和文重厚見出し（Noto 800/900）** の対訳ヘッダー |
+| 影 | リッチなシャドウ/グロー | **罫線中心・影は最小** |
+| ブランド色 | Navy/Brass/Cream（背景に多用） | Navy/Brass/Cream（**インク・帯・アクセント**として規律的に使用） |
+
+ブランドカラーの三色は不変。役割を「背景の主役」から「インク（Navy）・主アクセント（Brass）・温かい紙面（Cream）」へ移す。
 
 ---
 
 ## 1. Visual Theme & Atmosphere
 
-- **デザイン方針**: 夜の街をスマートに楽しむための、上質で安心感のあるナイトライフUI。暗すぎず、軽すぎず、「大人の回遊体験」を自然に後押しする。
-- **密度**: 顧客向け画面は余白を広めに取り、視認性と操作のしやすさを優先。店舗・運営画面は情報密度をやや高め、一覧性と業務効率を重視する。
-- **キーワード**: 上質、安心、夜の街、スマート、直感的、温かみ、信頼感、回遊性。
-- **特徴**: Brewer Navy `#13294b` をメイン基調に、ブラスイエローをCTAやハイライトに使用。オフホワイトで温かみを出し、飲食店・夜の街・観光の雰囲気を過度に派手にせず表現する。
-- **適用範囲**: 顧客向けLP、店舗検索、マップ、マイページ、チェックイン、空席通知、店舗管理、運営管理、LIFF画面。
+- **デザイン方針**: 純白 `#FFFFFF` / クリーム `#F7F3E9` の明るい紙面 × Brewer Navy `#13294b` のインク文字。**雑誌的グリッドとシャープなコントラスト**で、「街を歩いて、次の一軒を見つける」終日の回遊体験を編集的に提示する。
+- **密度**: 消費者画面は余白を活かしつつ情報を碁盤目状に整列（写真＋短い文字情報のカード）。店舗・運営画面は情報密度をやや高め、一覧性・業務効率を優先。
+- **キーワード**: 終日・回遊・ローカル・編集的・明快・直感的・信頼感・街の鮮度。
+- **特徴**:
+  - セクションを **面色の切替**（白 / クリーム / 淡Neutral / Navy帯）で区切る。
+  - **Navyのチャコール帯**（`#13294b`）に Cream/白文字＋英字大見出しを置くのがアクセント（BRUTUSの暗色帯をブランド色で代替）。
+  - **「英字（Jost, uppercase）＋和文（Noto 800/900）」のセクションヘッダー**がシグネチャ。
+  - Brass はカテゴリバッジ・主要CTA・選択状態など**点のアクセント**に限定（広面積に塗らない）。
+- **適用範囲**: 顧客向けLP・マップ・店舗一覧・店舗詳細・マイページ・チェックイン・空席通知・LIFF（＝ライトマガジン）／店舗管理・運営管理（＝機能的ライト）。
 
 ---
 
 ## 2. Color Palette & Roles
 
-### Primary（ブランドカラー）
+### Brand（不変）
 
-- **Brewer Navy** (`#13294b`): メインのブランドカラー。CTAボタン、ヘッダー、ナビゲーション、重要な強調面に使用。
-- **Brass Yellow** (`#ffc82c`): セカンダリカラー。主要CTA、バッジ、通知、選択状態、特別感の演出に使用。
-- **Cream Off-white** (`#F7F3E9`): ダーク背景上の文字色、上質な余白、カード内の明るい面に使用。
+- **Brewer Navy** (`#13294b`): **インク（本文/見出し）・チャコール帯・Primary CTA・ヘッダー罫**。
+- **Brass Yellow** (`#ffc82c`): 主アクセント。カテゴリバッジ・主要CTA・選択/通知・特集の差し色。
+- **Cream Off-white** (`#F7F3E9`): 温かい紙面サーフェス。セクション交互背景・Navy帯上の文字色。
 
-### Brewer Navy Scale
+### Surface（背景・紙面）
+
+| Token | HEX | Role |
+|---|---|---|
+| Page White | `#FFFFFF` | 基本のページ/カード背景（純白） |
+| Paper Cream | `#F7F3E9` | セクション交互背景・温かい面 |
+| Mist | `#F7F8FA` | 淡いNeutralのセクション区切り（Neutral 50） |
+| Section Line | `#EEF0F4` | 薄いグレー区切り（Neutral 100） |
+| Charcoal Band | `#13294b` | 暗色帯セクション（＝Brewer Navy。白/Cream文字） |
+
+### Brewer Navy Scale（役割を更新）
+
+| Token | HEX | HSL | Role（新） |
+|---|---:|---:|---|
+| Brewer Navy 950 | `#071022` | `216 60% 7%` | 最深の帯・モーダル背面（限定） |
+| Brewer Navy 900 | `#0B1930` | `216 60% 11%` | 帯の濃淡・Active |
+| Brewer Navy 800 | `#10233D` | `216 55% 15%` | 帯のサブ面 |
+| Brewer Navy 700 | `#13294b` | `216 60% 18%` | **インク・Primary・チャコール帯** |
+| Brewer Navy 600 | `#20385F` | `216 50% 25%` | Hover/Active・帯上の罫 |
+| Brewer Navy 500 | `#335280` | `216 45% 35%` | Link・Focus Ring |
+| Brewer Navy 300 | `#90A4C1` | `216 35% 65%` | Navy帯上の副次テキスト |
+| Brewer Navy 100 | `#E1E8F3` | `216 45% 92%` | 淡い塗り・選択面 |
+
+### Accent
 
 | Token | HEX | HSL | Role |
 |---|---:|---:|---|
-| Brewer Navy 950 | `#071022` | `216 60% 7%` | 最も深いモーダル背面、夜の奥行き |
-| Brewer Navy 900 | `#0B1930` | `216 60% 11%` | Active、オーバーレイ、最深部の補助色 |
-| Brewer Navy 800 | `#10233D` | `216 55% 15%` | サブカード、深いセクション背景 |
-| Brewer Navy 700 | `#13294b` | `216 60% 18%` | ブランドPrimary、メイン背景、ボタン、ヘッダー、店舗カード |
-| Brewer Navy 600 | `#20385F` | `216 50% 25%` | Hover、Active、補助アクセント |
-| Brewer Navy 500 | `#335280` | `216 45% 35%` | Link、Focus Ring、情報要素 |
-| Brewer Navy 300 | `#90A4C1` | `216 35% 65%` | ダーク背景上の副次テキスト |
-| Brewer Navy 100 | `#E1E8F3` | `216 45% 92%` | ライト背景、薄い塗り |
+| Brass 500 | `#ffc82c` | `44 100% 59%` | 主アクセント・CTA・カテゴリバッジ |
+| Brass 300 | `#ffdf85` | `44 100% 75%` | ソフトハイライト |
+| Copper 500 | `#B87333` | `26 57% 46%` | 食の温度感・限定ラベル |
+| Cream 50 | `#F7F3E9` | `43 56% 94%` | Navy帯上の文字・温かい紙面 |
 
-### Accent（暖色）
+### Text / Foreground
 
-| Token | HEX | HSL | Role |
-|---|---:|---:|---|
-| Brass 500 | `#ffc82c` | `44 100% 59%` | セカンダリCTA、バッジ、重要通知 |
-| Brass 300 | `#ffdf85` | `44 100% 75%` | ソフトなハイライト、背景装飾 |
-| Copper 500 | `#B87333` | `26 57% 46%` | ラベルチップ、限定感、温度感のあるアクセント |
-| Cream 50 | `#F7F3E9` | `43 56% 94%` | ダーク背景上の文字、上質なオフホワイト |
+| Token | HEX | Role |
+|---|---:|---|
+| Ink (Primary) | `#13294b` | 本文・見出し（＝Navy。純黒は使わない） |
+| Body | `#4D5567` | 説明文・本文補助（Neutral 600） |
+| Muted | `#8D95A6` | 補助テキスト・プレースホルダー（Neutral 400） |
+| Inverse | `#F7F3E9` / `#FFFFFF` | Navy帯/Navy CTA上の文字 |
 
-### Semantic（意味的な色）
+### Border / Rule（雑誌は罫線で構造を作る）
 
-| Token | HEX | HSL | Role |
-|---|---:|---:|---|
-| Success | `#3E8E6B` | `153 39% 40%` | チェックイン完了、予約完了、成功トースト |
-| Warning | `#C49A33` | `42 58% 49%` | 注意、確認待ち、残席わずか |
-| Destructive | `#B3453F` | `3 48% 47%` | 削除、エラー、失敗、危険操作 |
-| Info | `#3B5A87` | `216 39% 38%` | 情報バナー、補足通知 |
+| Token | HEX | Role |
+|---|---:|---|
+| Hairline | `#DCE1EB` | カード/セクションの細罫（Neutral 200） |
+| Rule Ink | `#13294b` | 見出し下の太罫・編集的セパレータ |
+| Border on Dark | `rgba(255,255,255,0.14)` | Navy帯上の区切り |
 
-### Neutral（ニュートラル）
+### Semantic（不変）
 
-| Token | HEX | HSL | Role |
-|---|---:|---:|---|
-| Neutral 0 | `#FFFFFF` | `0 0% 100%` | 明るいカード、入力欄 |
-| Neutral 50 | `#F7F8FA` | `220 20% 98%` | ライト画面背景 |
-| Neutral 100 | `#EEF0F4` | `220 17% 95%` | 薄い背景、無効状態 |
-| Neutral 200 | `#DCE1EB` | `219 22% 89%` | ボーダー、区切り線 |
-| Neutral 400 | `#8D95A6` | `220 11% 60%` | 補助テキスト、プレースホルダー |
-| Neutral 600 | `#4D5567` | `221 14% 35%` | 本文、説明文 |
-| Neutral 900 | `#141821` | `221 24% 11%` | 見出し、強調テキスト |
+| Token | HEX | Role |
+|---|---:|---|
+| Success | `#3E8E6B` | 空席あり・完了 |
+| Warning | `#C49A33` | 残席わずか・確認待ち |
+| Destructive | `#B3453F` | 満席・削除・エラー |
+| Info | `#3B5A87` | 情報・補足 |
 
-### Surface & Borders
+### Category Accent（規律的・最小）
 
-- **Dark Background** (`#13294b`): 顧客向けダーク基調画面・マップ店舗カード・アイコン面のメイン背景。
-- **Dark Card** (`#20385F`): ダーク基調画面のカード背景・浮遊パネル。より深い階層のみ `#10233D` を使用。
-- **Light Background** (`#F7F8FA`): 運営・店舗ダッシュボードなどのライト背景。
-- **Surface White** (`#FFFFFF`): 入力欄、管理画面カード、ポップオーバー。
-- **Border** (`#DCE1EB`): ライト画面の区切り線。
-- **Dark Border** (`#20385F`): ダーク画面のカード境界、区切り線。
-- **Input Background** (`#FFFFFF`): 入力欄背景。
-- **Focus Ring** (`#335280`): フォーカスリング、キーボード操作時の強調。
+カテゴリの色分けは**ブランド三色＋Copperに限定**する。BRUTUSのカテゴリ虹色は採用しない（ブランド規律）。差別化は色数ではなく**写真・タイポ・面色**で行う。
+
+- 飲食一般 / ランチ・定食: **Brass `#ffc82c`**
+- カフェ・喫茶 / ベーカリー: **Copper `#B87333`**
+- バー・夜 / 特集の核: **Navy `#13294b`**
+- 状態（空席等）は Semantic 色＋テキストで（色だけに依存しない）。
+
+> 画面ごとに独自カラーを足さない。必要なら本ファイルに追記してから使う（§8）。
 
 ---
 
@@ -83,102 +120,69 @@
 
 ### 3.1 和文フォント
 
-NIKENME+ は、プロダクトUIとLPで同一のフォント戦略を基本とする。
+`Noto Sans JP` を主軸に、雑誌的なウェイト運用を行う。
 
-**プロダクトUI / LIFF / 管理画面**
-- `Noto Sans JP`
-- `Hiragino Kaku Gothic ProN`
-- `Meiryo`
-- `sans-serif`
+- **本文**: 400
+- **小見出し / 強調**: 700
+- **大見出し / セクション和文 / HERO**: 800〜900（重厚な雑誌見出し）
+- **フォールバック**: `-apple-system, BlinkMacSystemFont, "Helvetica Neue", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif`
 
-**LP / マーケティングページ**
-- `Noto Sans JP`
-- 必要に応じて欧文見出しのみ `Inter` または system font を併用
+### 3.2 欧文フォント（マガジン英字）
 
-### 3.2 欧文フォント
+`Jost`（Google Fonts・無料の幾何学サンセリフ／Futura系の代替）を、**英字ラベル・セクションヘッダーの英字・日付・カテゴリ表記**に使う。
 
-**プロダクトUI**
-- `-apple-system`
-- `BlinkMacSystemFont`
-- `Helvetica Neue`
-- `Arial`
+- **ウェイト**: 400 / 500 / 600 / 700
+- **用途**: uppercase ラベル（`letter-spacing: 0.06–0.1em`）、対訳ヘッダーの英字
+- **CSS変数**: `var(--font-jost)`（`app/layout.tsx` で `next/font/google` 読込）
+- **フォールバック**: `"Futura", "Century Gothic", system-ui, sans-serif`
 
-**LP / キャンペーンページ**
-- `Inter`
-- `Noto Sans`
-- `Helvetica Neue`
-- `Arial`
+> 商用ライセンスの「FOT-筑紫ゴシック」「Futura PT」は同梱しない。和文＝Noto Sans JP／英字＝Jost で雑誌トーンを再現する。
 
 ### 3.3 font-family 指定
 
 ```css
-/* NIKENME+ Product UI */
-font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue",
-  "Noto Sans JP", "Hiragino Kaku Gothic ProN", Arial,
-  "Meiryo", sans-serif;
+/* 既定（和文・本文） */
+font-family: var(--font-noto-sans-jp), -apple-system, BlinkMacSystemFont,
+  "Helvetica Neue", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
 
-/* NIKENME+ LP / Website */
-font-family: "Noto Sans JP", -apple-system, BlinkMacSystemFont,
-  "Helvetica Neue", Arial, sans-serif;
-
-/* English Label / Small Caption */
-font-family: "Inter", -apple-system, BlinkMacSystemFont,
-  "Helvetica Neue", Arial, sans-serif;
+/* 英字ラベル / セクションヘッダー英字 / 日付 */
+font-family: var(--font-jost), "Futura", "Century Gothic", system-ui, sans-serif;
+/* Tailwind では font-en ユーティリティ（fontFamily.en）で適用 */
 ```
 
-**フォールバックの考え方**
-- 操作性を重視する画面では system font を優先し、読み込み速度を担保する。
-- LPやキャンペーンページでは `Noto Sans JP` を優先し、ブランドの統一感を出す。
-- 欧文小見出しやラベルはやや字間を広げ、上質なナイトライフ感を演出する。
+### 3.4 サイズスケール
 
-### 3.4 文字サイズ・ウェイト階層
+**消費者UI / LP（PC基準。モバイルは1段下げ）**
 
-**プロダクトUI**
+| Role | Size | Weight | Font | Line-height | 用途 |
+|---|---:|---:|---|---:|---|
+| Magazine Head (H1) | 40–56px | 900 | Noto | 1.15 | HERO・特集大見出し |
+| Section H2 | 28–32px | 800 | Noto | 1.25 | セクション和文見出し |
+| Sub H3 | 20–22px | 700 | Noto | 1.35 | 機能/小見出し |
+| Card Title | 16px | 700 | Noto | 1.45 | カード見出し |
+| Body | 16px | 400 | Noto | 1.6 | 本文・説明 |
+| Lead | 18px | 400/500 | Noto | 1.6 | 導入文 |
+| English Label | 13–14px | 700 | **Jost** | 1.2 | uppercase 英字ラベル（`tracking 0.08em`） |
+| Caption | 12px | 500 | Noto | 1.5 | 注記・日付（和） |
 
-| Role | Token | Size | Weight | Line Height | Letter Spacing | 備考 |
-|---|---|---:|---:|---:|---:|---|
-| Page Title | `text-2xl` | 24px | 700 | 1.3 | 0 | ページタイトル |
-| Section Title | `text-xl` | 20px | 700 | 1.35 | 0 | セクション見出し |
-| Card Title | `text-base` | 16px | 700 | 1.5 | 0 | カード内見出し |
-| Body | `text-sm` | 14px | 400 | 1.6 | 0 | 標準本文 |
-| Body Large | `text-base` | 16px | 400 | 1.6 | 0 | LP・説明文 |
-| Caption | `text-xs` | 12px | 400 / 500 | 1.5 | 0.02em | 補足、注記 |
-| Label | `text-xs` | 12px | 700 | 1.4 | 0.08em | バッジ、英字ラベル |
-| Smallest | `text-[10px]` | 10px | 500 | 1.4 | 0.04em | アイコンラベル |
+**店舗管理 / 運営UI**
 
-**LP / Website**
-
-| Role | Size | Weight | Line Height | Letter Spacing | Color | 備考 |
-|---|---:|---:|---:|---:|---|---|
-| Hero H1 | 48px〜64px | 700 | 1.15 | 0.02em | `#F7F3E9` / `#13294b` | ファーストビュー |
-| Section H2 | 32px〜40px | 700 | 1.25 | 0.02em | `#13294b` | セクション見出し |
-| Sub H3 | 22px〜28px | 700 | 1.35 | normal | `#13294b` | 機能見出し |
-| Lead | 18px〜20px | 400 / 500 | 1.7 | normal | `#4D5567` | 導入文 |
-| Body | 16px | 400 | 1.7 | normal | `#4D5567` | 本文 |
-| Caption | 12px〜13px | 500 / 700 | 1.5 | 0.08em | `#335280` | 英字・ラベル |
-| Nav Link | 14px | 500 | 1.5 | 0.02em | `#13294b` | ヘッダーナビ |
-| CTA | 15px〜16px | 700 | 1.2 | normal | 状況に応じる | ボタン文言 |
+| Role | Size | Weight | 用途 |
+|---|---:|---:|---|
+| Page Title | 24px | 700 | ページ見出し |
+| Section Title | 20px | 700 | セクション |
+| Card/Table Title | 16px | 700 | カード/表見出し |
+| Body | 14px | 400 | 本文・表セル |
+| Label | 12px | 700 | バッジ・英字ラベル（`tracking 0.08em`） |
 
 ### 3.5 行間・字間
 
-**行間**
-- プロダクトUI本文: `1.5`〜`1.6`
-- LP本文: `1.7`
-- 見出し: `1.15`〜`1.35`
-- ボタン: `1.15`〜`1.2`
+- 本文: `line-height 1.6`（雑誌的にタイト）。Lead/長文も 1.6〜1.7。
+- 見出し: `1.15`〜`1.35`。
+- 字間: 和文本文 `normal`。**英字ラベルのみ** `0.06em`〜`0.1em`。数字/価格 `0.02em`。
+- `font-feature-settings: "palt" 1` は**大きな和文見出し限定**（本文・表・数値では使わない）。
 
-**字間**
-- プロダクトUI本文: `0`
-- LP大見出し: `0.02em`
-- 英字ラベル: `0.08em`〜`0.12em`
-- 数字・価格・カウント表示: `0.02em`〜`0.06em`
-
-**ガイドライン**
-- 顧客向け画面では、暗い背景上でも読みやすいように本文の行間をやや広めにする。
-- 店舗名・空席状況・チェックイン状態など、即時判断が必要な情報は太字と余白で強調する。
-- 英字ラベルは装飾的に使いすぎず、補助的な世界観づくりに留める。
-
-### 3.6 禁則処理・改行ルール
+### 3.6 禁則・改行
 
 ```css
 overflow-wrap: break-word;
@@ -186,246 +190,147 @@ word-break: normal;
 line-break: strict;
 ```
 
-- 店舗名・イベント名・エリア名は不自然な分割を避ける。
-- CTAボタン内の文言は原則1行。
-- モバイルでは「空いてるお店が、すぐ見つかる。」のように意味単位で改行する。
-
-### 3.7 OpenType 機能
-
-```css
-font-feature-settings: "palt" 1;
-```
-
-- LP見出しや大きなキャッチコピーでは `palt` を有効にして詰まりすぎない文字組みにする。
-- 管理画面の表・数値・コード表示では可読性を優先し、必要に応じて `palt` を無効化する。
-
-### 3.8 縦書き
-
-- 原則として横書きのみ。
-- キャンペーンビジュアルやSNS画像で縦書きを使う場合も、Web UI本体には持ち込まない。
+- 店舗名・エリア名・イベント名は不自然な分割を避ける。CTA文言は原則1行。
+- モバイルは意味単位で改行（例「街の“今いける”お店が、／すぐ見つかる。」）。
 
 ---
 
 ## 4. Component Stylings
 
-### Buttons
+### 4.1 セクションヘッダー（シグネチャ）
 
-**Primary（Navy）**
-- Background: `#13294b`
-- Text: `#F7F3E9`
-- Border: 1px solid `#13294b`
-- Hover: `#20385F`
-- Active: `#20385F`
-- Border Radius: 8px
-- Font Size: 14px〜16px
-- Font Weight: 700
-- Height: 40px〜48px
+英字uppercase（Jost）＋和文見出し（Noto 800）を**左揃え**で並べ、下に**太罫（Rule Ink）**を引く。共通コンポーネント `components/ui/section-header.tsx` を使う。
 
-**Secondary（Brass）**
-- Background: `#ffc82c`
-- Text: `#13294b`
-- Border: 1px solid `#ffc82c`
-- Hover: `#ffdf85`
-- Active: `#C49A33`
-- Border Radius: 8px
-- Font Weight: 700
+```html
+<header class="section-header">
+  <span class="en">LOCAL DINING MAP</span>
+  <h2 class="ja">街の飲食店回遊マップ</h2>
+</header>
+```
 
-**Outline**
-- Background: transparent
-- Text: `#13294b` / dark mode `#F7F3E9`
-- Border: 1px solid `#DCE1EB` / dark mode `#20385F`
-- Hover: `rgba(19, 41, 75, 0.08)`
-- Border Radius: 8px
+```css
+.section-header .en {
+  font-family: var(--font-jost), sans-serif;
+  font-size: 13px; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: #B87333; /* Copper か Navy。差し色は規律内で */
+}
+.section-header .ja {
+  font-family: var(--font-noto-sans-jp), sans-serif;
+  font-size: 28px; font-weight: 800; color: #13294b;
+  line-height: 1.25;
+}
+.section-header { border-bottom: 2px solid #13294b; padding-bottom: 8px; }
+```
 
-**Ghost**
-- Background: transparent
-- Text: `#335280`
-- Hover: `rgba(51, 82, 128, 0.10)`
-- Border Radius: 8px
+### 4.2 カード（記事/店舗サムネイル）
 
-**Destructive**
-- Background: `#B3453F`
-- Text: `#FFFFFF`
-- Hover: `rgba(179, 69, 63, 0.88)`
-- Border Radius: 8px
+- 写真（4:3 または 16:9）＋ タイトル ＋ メタ（エリア/カテゴリ/状態）。
+- **背景 白 `#FFFFFF`、細罫 `1px solid #DCE1EB`、影なし〜最小、角丸 8–12px**。
+- 情報は縦配置。区切りは余白と罫線で。Cream面の上では罫を `rgba(19,41,75,0.1)`。
 
-### Inputs
+```tsx
+<article className="rounded-[12px] border border-border bg-white overflow-hidden">
+  <div className="aspect-[4/3] bg-muted">{/* image */}</div>
+  <div className="p-4">
+    <h3 className="text-base font-bold text-foreground">店舗名</h3>
+    <p className="font-en text-[12px] tracking-[0.08em] text-[#8D95A6]">OITA / BAR</p>
+  </div>
+</article>
+```
 
-- Background: `#FFFFFF`
-- Text: `#141821`
-- Border: 1px solid `#DCE1EB`
-- Focus Border: `#335280`
-- Focus Ring: `0 0 0 3px rgba(51, 82, 128, 0.25)`
-- Placeholder: `#8D95A6`
-- Border Radius: 8px
-- Font Size: 16px
-- Height: 44px〜48px
+### 4.3 ボタン
 
-**Dark UI の入力欄**
-- Background: `#FFFFFF`
-- Text: `#141821`
-- Border: `#DCE1EB`
-- Label: `#F7F3E9`
-- Helper Text: `#90A4C1`
+**Primary（Navy）**: bg `#13294b` / text `#F7F3E9` / radius 8px / weight 700 / h 44–48px / hover `bg-primary/90`。
+**Secondary（Brass）**: bg `#ffc82c` / **text `#13294b`（白文字禁止）** / hover `bg-brass-300`。
+**Outline**: 透明 / text `#13294b` / border `#DCE1EB` / hover `bg-primary/8`。
+**Ghost**: 透明 / text `#4D5567` / hover `bg-primary/8`。
+**Destructive**: bg `#B3453F` / text 白。
 
-### Cards
+### 4.4 カテゴリバッジ
 
-**Dark Card**
-- Background: `#10233D`
-- Text: `#F7F3E9`
-- Border: 1px solid `rgba(255,255,255,0.08)`
-- Border Radius: 16px
-- Shadow: `0 16px 40px rgba(0,0,0,0.24)`
+```css
+.category-badge {
+  font-family: var(--font-jost), sans-serif;
+  font-size: 12px; font-weight: 700; letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: #ffc82c; color: #13294b;     /* 主アクセント */
+  padding: 4px 10px; border-radius: 999px;
+}
+```
 
-**Light Card**
-- Background: `#FFFFFF`
-- Text: `#141821`
-- Border: 1px solid `#DCE1EB`
-- Border Radius: 16px
-- Shadow: `0 12px 32px rgba(19,41,75,0.08)`
+- Navy アウトライン版（`border:1px solid #13294b; color:#13294b; background:transparent`）も可。
 
-**Floating Card / Sheet**
-- Background: `#FFFFFF`
-- Border Radius: 20px
-- Shadow: `0 20px 60px rgba(7,16,34,0.20)`
-- Used for: 空席カード、店舗詳細、通知設定、モーダル。
+### 4.5 入力 / フォーム
 
-### Badges
+- 背景 `#FFFFFF` / text `#141821`（=foreground） / border `1px solid #DCE1EB` / radius 8px / height 44–48px / font-size 16px。
+- Focus: border `#335280` ＋ ring `0 0 0 3px rgba(51,82,128,0.25)`。
+- Placeholder `#8D95A6`。
 
-**Brand Badge**
-- Background: `#ffc82c`
-- Text: `#13294b`
-- Border Radius: 999px
-- Font Size: 12px
-- Font Weight: 700
+### 4.6 ナビゲーション
 
-**Soft Badge**
-- Background: `rgba(255, 200, 44, 0.14)`
-- Text: `#ffc82c`
-- Border: 1px solid `rgba(255, 200, 44, 0.28)`
+- **ヘッダー**: 白背景 ＋ Navy文字 ＋ 下罫 `#DCE1EB`。Active は Navy 太字／Brass下線。
+- **Navy帯ヘッダー**（限定）: bg `#13294b` ＋ Cream文字 ＋ Active Brass。
 
-**Status Badge**
-- 空席あり: `Success`
-- 残りわずか: `Warning`
-- 満席: `Destructive`
-- 確認中: `Info`
+### 4.7 マップ / 店舗カード
 
-### Navigation
-
-**Dark Header**
-- Background: `#13294b`
-- Text: `#F7F3E9`
-- Active: `#ffc82c`
-- Border Bottom: `rgba(255,255,255,0.08)`
-
-**Light Header**
-- Background: `#FFFFFF`
-- Text: `#13294b`
-- Active: `#13294b`
-- Border Bottom: `#DCE1EB`
-
-### Map / Store Cards
-
-- 店舗名: 16px / 700 / `#141821` または `#F7F3E9`
-- エリア・ジャンル: 12px〜13px / 500 / muted color
-- 空席状態: badgeで明確に表示
-- CTA: 「詳しく見る」「チェックイン」「空席通知」
-- カードは角丸16px以上、スマホでは下部シートUIを基本とする。
+- 店舗名 16px/700/`#13294b`。エリア・カテゴリ 12–13px/Jost/`#8D95A6`。
+- 空席状態は Semantic 色のバッジ＋テキスト（色のみに依存しない）。
+- 下部シート/詳細パネルは**白背景＋細罫＋角丸16px**（旧ダークパネルを置換）。
 
 ---
 
 ## 5. Layout Principles
 
-### Spacing Scale
-
-| Token | Value | 用途 |
-|---|---:|---|
-| 2xs | 4px | アイコン間、細かな余白 |
-| xs | 8px | ラベル間、フォーム補助 |
-| sm | 12px | カード内の小余白 |
-| md | 16px | 標準余白 |
-| lg | 24px | セクション内余白 |
-| xl | 32px | カード間、主要ブロック |
-| 2xl | 48px | LPセクション余白 |
-| 3xl | 64px | ファーストビュー、セクション間 |
-| 4xl | 96px | LPの大きな余白 |
-
-### Border Radius Scale
-
-| Token | Value | 用途 |
-|---|---:|---|
-| Mini | 4px | 小さなラベル、フォーカス補助 |
-| Base | 8px | ボタン、入力欄 |
-| Card | 16px | カード、パネル |
-| Floating | 20px | ボトムシート、フローティングカード |
-| Dialog | 24px | モーダル、重要な確認画面 |
-| Full | 999px | バッジ、ピル型要素 |
-
-### Container
-
-- LP Max Width: 1120px〜1200px
-- 管理画面 Max Width: 1280px
-- フォーム画面 Max Width: 640px
-- モバイル横余白: 16px
-- デスクトップ横余白: 32px〜48px
-
-### Grid
-
-- LP Desktop: 12 column grid
-- Product Desktop: 12 column grid
-- Tablet: 8 column grid
-- Mobile: 4 column grid
-- Map UI: コンテンツカードは下部または右側パネルに集約
-
-### Layout Guidelines
-
-- 顧客向け画面では、重要CTAをファーストビュー内に1つ置く。
-- 店舗一覧・マップでは「探す → 比較する → 詳細を見る → 行動する」の導線を短くする。
-- 管理画面では左ナビ + メインコンテンツを基本とし、操作ボタンは右上または各行末に配置する。
-- LIFFでは画面下部の親指操作領域を重視し、主要CTAは下部固定も許可する。
+- **コンテナ最大幅**: LP/消費者 1120–1200px、管理 1280px、フォーム 640px。
+- **グリッド**: 12カラム。カード 3〜4カラム配置が基本。
+- **セクション区切り = 面色の切替**: `#FFFFFF` / `#F7F3E9` / `#F7F8FA` / `#13294b`帯 を交互に。**SVGウェーブ等の装飾区切りは廃止**し、面色＋罫線で区切る。
+- 見出しは**左揃え**。画像は 4:3 / 16:9。
+- セクション間余白: 中庸（48–80px）。
+- モバイル横余白 16px、PC 32–48px。
+- マップUIはカードを下部シート/右パネルに集約。
 
 ---
 
 ## 6. Depth & Elevation
 
+雑誌は**罫線で構造**を作る。影は最小限。
+
 | Level | Shadow | 用途 |
 |---|---|---|
-| Card | `0 12px 32px rgba(19,41,75,0.08)` | 通常カード |
-| Dark Card | `0 16px 40px rgba(0,0,0,0.24)` | ダーク背景上のカード |
-| Floating | `0 20px 60px rgba(7,16,34,0.20)` | ボトムシート、フローティング要素 |
-| Popup | `0 24px 80px rgba(7,16,34,0.28)` | モーダル、ポップアップ |
-| Glow | `0 0 32px rgba(255,200,44,0.22)` | Brass CTA、キャンペーン強調 |
+| Flat | none（border のみ） | カード・セクションの基本 |
+| Card (subtle) | `0 8px 24px rgba(19,41,75,0.06)` | 浮かせたいカード限定 |
+| Floating | `0 16px 40px rgba(7,16,34,0.14)` | ボトムシート・モーダル |
+| Glow | `0 0 24px rgba(255,200,44,0.20)` | Brass CTAの限定強調 |
 
-- 影は強くしすぎず、夜の奥行きを出す用途に限定する。
-- 管理画面ではシャドウよりもボーダーで構造を表現する。
-- 顧客向けLPでは、Brassの淡いグローを限定的に使い、特別感を演出する。
-- Transition: `0.2s`（hover / focus）、`0.3s`（sheet / modal / fade）。
+- Transition: `0.2s`（hover/focus）、`0.3s`（sheet/modal）。
+- 管理画面はシャドウよりボーダーで構造を表現。
 
 ---
 
 ## 7. Tailwind / CSS Tokens
 
-### `app/globals.css`
+### `app/globals.css`（ライト既定）
+
+意味トークンを**ライト基調**で定義する（旧仕様はダーク既定だった）。
 
 ```css
 :root {
-  /* Brewer Navy palette */
+  /* Brewer Navy 生スケール（HSL） */
   --bn-950: 216 60% 7%;
   --bn-900: 216 60% 11%;
   --bn-800: 216 55% 15%;
-  --bn-700: 216 60% 18%;
+  --bn-700: 216 60% 18%;   /* #13294b — ink / primary */
   --bn-600: 216 50% 25%;
   --bn-500: 216 45% 35%;
   --bn-300: 216 35% 65%;
   --bn-100: 216 45% 92%;
 
-  /* Accent */
-  --brass-500: 44 100% 59%;
+  --brass-500: 44 100% 59%;  /* #ffc82c */
   --brass-300: 44 100% 75%;
   --copper-500: 26 57% 46%;
-  --cream-50: 43 56% 94%;
+  --cream-50: 43 56% 94%;    /* #F7F3E9 */
 
-  /* Semantic */
   --success: 153 39% 40%;
   --warning: 42 58% 49%;
   --destructive: 3 48% 47%;
@@ -434,162 +339,115 @@ font-feature-settings: "palt" 1;
 
 @layer base {
   :root {
-    --background: var(--bn-700);
-    --foreground: var(--cream-50);
+    /* ===== ライト既定（消費者マガジン基調） ===== */
+    --background: 0 0% 100%;            /* 白 */
+    --foreground: var(--bn-700);        /* Navy インク */
 
-    --card: var(--bn-800);
-    --card-foreground: var(--cream-50);
+    --card: 0 0% 100%;                  /* 白カード */
+    --card-foreground: var(--bn-700);
 
     --popover: 0 0% 100%;
     --popover-foreground: var(--bn-700);
 
-    --primary: var(--bn-700);
+    --primary: var(--bn-700);           /* Navy */
     --primary-foreground: var(--cream-50);
 
-    --secondary: var(--brass-500);
-    --secondary-foreground: var(--bn-700);
+    --secondary: var(--brass-500);      /* Brass */
+    --secondary-foreground: var(--bn-700);  /* Brass上はNavy文字 */
 
-    --muted: 220 17% 95%;
-    --muted-foreground: 221 14% 35%;
+    --muted: 220 17% 95%;               /* Neutral 100 */
+    --muted-foreground: 221 14% 35%;    /* Neutral 600 = Body */
 
     --accent: var(--copper-500);
     --accent-foreground: var(--cream-50);
 
-    --border: 219 22% 89%;
+    --destructive: 3 48% 47%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 219 22% 89%;              /* Hairline #DCE1EB */
     --input: 0 0% 100%;
     --ring: var(--bn-500);
 
     --radius: 0.5rem;
   }
 
-  .theme-light {
-    --background: 220 20% 98%;
-    --foreground: var(--bn-700);
-
-    --card: 0 0% 100%;
-    --card-foreground: var(--bn-700);
-
-    --popover: 0 0% 100%;
-    --popover-foreground: var(--bn-700);
-
-    --primary: var(--bn-700);
-    --primary-foreground: var(--cream-50);
-
-    --secondary: var(--brass-500);
-    --secondary-foreground: var(--bn-700);
-
-    --muted: 220 17% 95%;
-    --muted-foreground: 221 14% 35%;
-
-    --border: 219 22% 89%;
-    --input: 0 0% 100%;
-    --ring: var(--bn-500);
-  }
+  /* 旧 .theme-light は実質ライト既定と同義（store/manage 用に維持・no-op） */
+  .theme-light { /* same as :root light */ }
 }
 ```
+
+> 旧 `:root`（ダーク）→ ライトへ反転したことで、`bg-background`/`text-foreground`/`bg-card` を使う既存箇所は自動的にライトへ追従する。
 
 ### `tailwind.config.ts`
 
 ```ts
-colors: {
-  brewer: {
-    950: "hsl(var(--bn-950))",
-    900: "hsl(var(--bn-900))",
-    800: "hsl(var(--bn-800))",
-    700: "hsl(var(--bn-700))",
-    600: "hsl(var(--bn-600))",
-    500: "hsl(var(--bn-500))",
-    300: "hsl(var(--bn-300))",
-    100: "hsl(var(--bn-100))",
-  },
-  brass: {
-    500: "hsl(var(--brass-500))",
-    300: "hsl(var(--brass-300))",
-  },
-  copper: {
-    500: "hsl(var(--copper-500))",
-  },
-  cream: {
-    50: "hsl(var(--cream-50))",
-  },
-  success: "hsl(var(--success))",
-  warning: "hsl(var(--warning))",
-  info: "hsl(var(--info))",
-}
+fontFamily: {
+  // 既定は globals.css の body で Noto。英字ラベルは font-en。
+  en: ['var(--font-jost)', 'Futura', 'Century Gothic', 'system-ui', 'sans-serif'],
+},
+borderRadius: {
+  dialog: '1.25rem',
+  floating: '1rem',
+  card: '0.75rem',   /* 雑誌寄りに控えめ */
+  lg: 'var(--radius)',
+  md: 'calc(var(--radius) - 2px)',
+  sm: 'calc(var(--radius) - 4px)',
+},
+// colors（brewer/brass/copper/cream/success/warning/info）は現状維持
 ```
 
 ### 使用ルール
 
 **推奨**
-- 基本は `bg-primary` / `text-foreground` / `bg-card` / `border-border` の意味的トークンを使う。
-- ブランド表現が必要な箇所のみ `bg-brewer-700` / `text-brass-500` / `bg-cream-50` を許可する。
-- 半透明は `bg-primary/10`、`border-secondary/40` のように Tailwind のopacity修飾子で表現する。
-- 状態色は `text-success` / `text-warning` / `text-destructive` / `text-info` を使用する。
+- 基本は意味トークン `bg-background` / `text-foreground` / `bg-card` / `border-border` / `bg-primary` / `bg-secondary`。
+- ブランド強調が要る所のみ `text-brewer-700` / `bg-brass-500` / `bg-cream-50`。
+- 英字ラベルは `font-en`（Jost）＋ `uppercase tracking-[0.08em]`。
+- 半透明は Tailwind opacity 修飾子（`bg-primary/10`）。
 
 **禁止**
-- 新規コードで `bg-blue-500` / `text-yellow-400` など Tailwind デフォルトパレット直指定を使わない。
-- `style={{ color: "#xxxxxx" }}` のようなインラインカラー指定を使わない。
-- `bg-white` / `text-black` の生指定を原則避ける。`bg-background` / `text-foreground` / `bg-card` を使う。
-- Brass Yellowの上に白文字を置かない。コントラスト不足になりやすいため、`#13294b` 系の濃色を使用する。
+- `bg-blue-500` 等 Tailwind 既定パレットの新規直指定。
+- `style={{ color: '#xxxxxx' }}` のインライン色（既存は段階的に意味トークンへ）。
+- Brass地に白文字（必ず `#13294b` 系）。
+- 画面ごとの独自カラー追加（本ファイルに追記してから）。
+- 広面積のダークNavy背景への回帰（帯・アクセントとして限定使用）。
 
 ---
 
 ## 8. Do's and Don'ts
 
-### Do（推奨）
+### Do
 
-- Brewer NavyをUI全体の軸にし、Brass YellowはCTA・バッジ・重要通知に限定して使う。
-- 顧客向け画面ではダーク基調を活用し、夜の街らしい雰囲気と視認性を両立する。
-- 店舗・運営画面では `.theme-light` を使い、業務UIとしての読みやすさを優先する。
-- CTAは「店舗を探す」「空席通知を受け取る」「チェックインする」など、行動が明確な文言にする。
-- カードやボトムシートは角丸16px以上を基本にし、柔らかく上質な印象にする。
-- 色のコントラスト比はWCAG AA以上を目標にする。
-- 4px単位のスペーシングで揃える。
-- 空席・満席・待ちありなどの状態は、色だけでなくテキストやアイコンでも伝える。
+- 白/クリームの紙面を基調に、Navyをインク、Brassを点アクセントにする。
+- セクションは面色の切替＋罫線で区切る。見出しは「英字＋和文」で左揃え。
+- カードは白＋細罫＋影最小、角丸は控えめ（8–12px）。
+- 終日・回遊の文脈で写真を選ぶ（昼の街・店内・人の流れ）。夜は数あるシーンの一つ。
+- 空席/満席/残りわずかは色＋テキスト＋アイコンで伝える。
+- コントラスト比 WCAG AA 以上。4px単位のスペーシング。
 
-### Don't（禁止）
+### Don't
 
-- 全体を黒背景に寄せすぎない。ブランドの基調は黒ではなくBrewer Navy。
-- Brass Yellowを広い面積に使いすぎない。アクセントとして使う。
-- テキスト色に純粋な `#000000` を使わない。
-- 暗い背景上に低コントラストのグレー文字を置かない。
-- 空席状況を色だけで表現しない。
-- 管理画面まで過度に夜の雰囲気へ寄せない。業務画面は明快さを優先する。
-- 画面ごとに独自カラーを追加しない。必要な場合はDESIGN.mdに追記してから使用する。
+- 全面をダークNavyに戻さない（基調はライト）。
+- Brassを広面積に塗らない／Brass上に白文字を置かない。
+- 純黒 `#000000` を本文に使わない（インクはNavy）。
+- SVGウェーブ等の装飾区切りを多用しない（面色＋罫で）。
+- 管理画面に雑誌装飾を持ち込みすぎない（明快さ優先）。
+- 影/グローを多用しない（罫線で構造を作る）。
 
 ---
 
 ## 9. Responsive Behavior
 
-### Breakpoints
-
 | Name | Width | 説明 |
 |---|---:|---|
-| Narrow Mobile | ≤ 375px | 狭いスマートフォン |
-| Mobile | ≤ 768px | 標準スマートフォン |
-| Tablet | ≤ 1024px | タブレット |
-| Desktop | > 1024px | デスクトップ |
+| Narrow Mobile | ≤ 375px | 狭いスマホ |
+| Mobile | ≤ 768px | 標準スマホ（1カラム、本文15–16px、H2 20–24px） |
+| Tablet | ≤ 1024px | 2カラム、本文16px |
+| Desktop | > 1024px | 12カラム、本文16px |
 
-### モバイル対応
-
-- 顧客向けUIはモバイルファースト。
-- 主要CTAは画面下部の親指操作領域に配置してもよい。
-- マップ画面では、店舗カードは下部シート形式を基本とする。
-- 入力欄とボタンは最小44px以上を推奨。
-- 店舗カードの情報は「店舗名 → 空席状態 → エリア/ジャンル → CTA」の順で表示する。
-
-### デスクトップ対応
-
-- LPは最大1120px〜1200pxの中央寄せ。
-- 管理画面は左サイドバー + メインコンテンツ。
-- テーブル表示では行間を十分に取り、ステータスバッジで視認性を確保する。
-- マップと店舗一覧を横並びにする場合、一覧幅は360px〜440pxを目安にする。
-
-### タッチターゲット
-
-- 最小サイズ: 44px × 44px
-- 小さなアイコンボタンでも、クリック領域は44px以上を確保する。
-- LIFF画面では下部固定CTAの高さを56px前後にする。
+- 消費者UIはモバイルファースト。主要CTAは親指圏（下部固定可、LIFFは56px前後）。
+- マップは下部シート、カードは「店舗名→空席→エリア/カテゴリ→CTA」順。
+- 英字ラベルの `letter-spacing` はモバイルでも維持。カテゴリ色はモバイルでも保つ。
+- タッチターゲット最小 44×44px。
 
 ---
 
@@ -598,197 +456,156 @@ colors: {
 ### クイックリファレンス
 
 ```txt
-Primary Color: #13294b
-Primary Dark Background: #13294b
-Primary Card: #20385F
-Secondary / Accent Yellow: #ffc82c
-Cream Foreground: #F7F3E9
-Text Dark: #141821
-Text Body: #4D5567
-Text Muted: #8D95A6
-Light Background: #F7F8FA
-Border: #DCE1EB
-Success: #3E8E6B
-Warning: #C49A33
-Destructive: #B3453F
-Info: #3B5A87
+Base: Light magazine (BRUTUS-style) on brand colors
+Page White: #FFFFFF   Paper Cream: #F7F3E9   Mist: #F7F8FA
+Ink / Primary (Navy): #13294b      Accent (Brass): #ffc82c
+Copper: #B87333        Inverse text: #F7F3E9
+Body text: #4D5567     Muted: #8D95A6     Hairline: #DCE1EB
+Success #3E8E6B / Warning #C49A33 / Destructive #B3453F / Info #3B5A87
 
-Product UI Font:
--apple-system, BlinkMacSystemFont, "Helvetica Neue",
-"Noto Sans JP", "Hiragino Kaku Gothic ProN", Arial,
-"Meiryo", sans-serif
-
-Website Font:
-"Noto Sans JP", -apple-system, BlinkMacSystemFont,
-"Helvetica Neue", Arial, sans-serif
-
-Body Size Product: 14px
-Body Size Website: 16px
-Line Height Product: 1.5〜1.6
-Line Height Website: 1.7
-Heading Weight: 700
-Button Radius: 8px
-Card Radius: 16px
-Dialog Radius: 24px
-Spacing: 4px単位
+JP font: Noto Sans JP (body 400 / subhead 700 / head 800–900)
+EN label font: Jost (var(--font-jost)) uppercase, letter-spacing 0.06–0.1em
+Body 16px / line-height 1.6 / Heading 800–900
+Button radius 8px / Card radius 8–12px / Spacing 4px grid
+Shadows minimal — use hairline rules for structure
 ```
 
-### プロンプト例
+### プロンプト例（消費者画面）
 
 ```txt
-NIKENME+ の顧客向け店舗検索画面を作成してください。
-- ブランドカラー: Brewer Navy #13294b、Brass Yellow #ffc82c、Cream #F7F3E9
-- 背景: #13294b を基調に、カードは #20385F
-- CTA: 背景 #ffc82c、文字 #13294b、角丸8px、太字
-- テキスト: ダーク背景上は #F7F3E9、補助テキストは #90A4C1
-- カード: 角丸16px、薄いボーダー、夜の街らしい上質な雰囲気
-- 空席状態: 空席あり/残りわずか/満席を色とテキストの両方で表現
-- フォント: Noto Sans JP + system font
-- モバイルファースト、下部シートUIを意識
+NIKENME+ の消費者向け画面を「街の飲食店回遊マップ」の BRUTUS風ライトマガジンで作成。
+- 背景: 白/クリーム(#F7F3E9)を交互。区切りは面色＋細罫(#DCE1EB)。SVGウェーブ等の装飾区切りは使わない。
+- インク文字＝Brewer Navy #13294b（純黒は使わない）。本文 #4D5567。
+- セクション見出し＝英字uppercase(Jost)＋和文見出し(Noto 800)＋下に太罫(Navy)。
+- カード＝白＋細罫＋影なし、角丸8–12px、写真4:3。
+- CTA＝Primary:Navy塗り/Cream文字、Secondary:Brass塗り/Navy文字。
+- カテゴリ色は Navy/Brass/Copper に限定。状態は色＋テキスト。
+- 和文 Noto Sans JP、英字ラベル Jost。モバイルファースト。
 ```
 
+### プロンプト例（管理画面）
+
 ```txt
-NIKENME+ の店舗管理画面を作成してください。
-- .theme-light を前提にしたライトUI
-- 背景 #F7F8FA、カード #FFFFFF、本文 #4D5567、見出し #141821
-- Primary CTA は #13294b、Secondary CTA は #ffc82c
-- テーブルは読みやすさ重視。ステータスバッジで空席状況を表示
-- 角丸16pxのカード、1pxの薄いボーダー、控えめなシャドウ
-- 4px単位のスペーシング
+NIKENME+ の店舗/運営管理画面（機能的ライト）を作成。
+- 背景 #F7F8FA、カード #FFFFFF、本文 #4D5567、見出し #13294b。
+- Primary CTA #13294b、Secondary #ffc82c(Navy文字)。
+- テーブルは可読性優先。ステータスはバッジ＋テキスト。
+- カード角丸8–12px、1pxの細罫(#DCE1EB)、影は控えめ。マガジン装飾は持ち込まない。
+- 4px単位のスペーシング。
 ```
 
 ---
 
 ## 11. Implementation Snippets
 
-### Primary CTA
+### Section Header（シグネチャ）
 
 ```tsx
-<Button className="bg-primary text-primary-foreground hover:bg-primary/90">
-  店舗を探す
-</Button>
+<header className="border-b-2 border-primary pb-2">
+  <span className="font-en block text-[13px] font-bold uppercase tracking-[0.1em] text-copper-500">
+    LOCAL DINING MAP
+  </span>
+  <h2 className="text-2xl md:text-3xl font-extrabold text-foreground">街の飲食店回遊マップ</h2>
+</header>
 ```
 
-### Brass CTA
+### Primary / Secondary CTA
 
 ```tsx
-<Button className="bg-secondary text-secondary-foreground hover:bg-secondary/90">
-  空席通知を受け取る
-</Button>
+<Button className="bg-primary text-primary-foreground hover:bg-primary/90">お店を探す</Button>
+<Button className="bg-secondary text-secondary-foreground hover:bg-brass-300">空席通知を受け取る</Button>
 ```
 
-### Dark Brand Card
+### Magazine Card
 
 ```tsx
-<Card className="bg-gradient-to-br from-brewer-800 to-brewer-700 text-cream-50 border border-brewer-600/40 shadow-[0_16px_40px_rgba(0,0,0,0.24)]">
-  ...
-</Card>
+<article className="rounded-card border border-border bg-card overflow-hidden">
+  <div className="aspect-[4/3] bg-muted" />
+  <div className="p-4">
+    <h3 className="text-base font-bold text-foreground">店舗名</h3>
+    <p className="font-en mt-1 text-[12px] uppercase tracking-[0.08em] text-muted-foreground">OITA · CAFE</p>
+  </div>
+</article>
+```
+
+### Category Badge
+
+```tsx
+<span className="font-en rounded-full bg-secondary px-2.5 py-1 text-[12px] font-bold uppercase tracking-[0.06em] text-secondary-foreground">
+  LUNCH
+</span>
 ```
 
 ### Status Badges
 
 ```tsx
-<span className="rounded-full bg-success/10 px-2 py-1 text-xs font-bold text-success">
-  空席あり
-</span>
-
-<span className="rounded-full bg-warning/10 px-2 py-1 text-xs font-bold text-warning">
-  残りわずか
-</span>
-
-<span className="rounded-full bg-destructive/10 px-2 py-1 text-xs font-bold text-destructive">
-  満席
-</span>
+<span className="rounded-full bg-success/10 px-2 py-1 text-xs font-bold text-success">空席あり</span>
+<span className="rounded-full bg-warning/10 px-2 py-1 text-xs font-bold text-warning">残りわずか</span>
+<span className="rounded-full bg-destructive/10 px-2 py-1 text-xs font-bold text-destructive">満席</span>
 ```
 
-### LIFF Bottom CTA
+### Navy Charcoal Band（暗色帯セクション・限定）
 
 ```tsx
-<div className="fixed inset-x-0 bottom-0 border-t border-border bg-card/95 p-4 backdrop-blur">
-  <Button className="h-14 w-full rounded-xl bg-secondary text-base font-bold text-secondary-foreground">
-    チェックインする
-  </Button>
-</div>
+<section className="bg-primary text-cream-50">
+  <span className="font-en text-[13px] uppercase tracking-[0.1em] text-brass-500">FOR ORGANIZERS</span>
+  <h2 className="text-3xl font-extrabold">イベントの回遊マップ、卒業しませんか</h2>
+</section>
 ```
 
 ---
 
 ## 12. Migration Strategy
 
-既存コードではカラー指定が散在しているため、段階的に意味的トークンへ移行する。
+`tasks/metagame-strategy.md` v5 のリポジションに同期。色指定が散在するため段階移行する。
 
-### Phase 1 — Token Definition
+### Phase 1 — Token Foundation（軸）
+- `globals.css` の `:root` を**ライト既定**へ反転。`app/layout.tsx` に `Jost`（`--font-jost`）追加。`tailwind.config.ts` に `fontFamily.en` ＋角丸調整。
+- `lib/app-mode.ts`（`useAppMode()` の参照ハブ・消費者画面36ファイルに波及）の `BAR_COLORS_A/B`・パネルテーマを**ダーク→ライトマガジン**へ書換。
 
-- `globals.css` に Brewer Navy / Brass / Cream / Semantic tokens を定義する。
-- `tailwind.config.ts` に `brewer` / `brass` / `copper` / `cream` / `success` / `warning` / `info` を追加する。
-- 既存の `bg-primary` などが新ブランドカラーへ追従する状態を作る。
+### Phase 2 — Shared UI
+- `components/ui/{button,input,select,sonner,card,badge}` のダーク決め打ちを意味トークンへ。
+- `components/ui/section-header.tsx`（英字＋和文シグネチャ）を新設。
 
-### Phase 2 — Hard-coded Color Replacement
+### Phase 3 — 主要消費者画面
+- LP（`app/landing/page.tsx`：独自 `LP_*` 定数・`WaveDivider`/`GoldDivider` を雑誌区切りへ）／マップ／店舗一覧／店舗詳細／マイページ／LIFF を各々目視パスでライトマガジン化。
 
-以下を検索し、画面単位で置換する。
-
-```txt
-#[0-9a-fA-F]{3,6}
-bg-(blue|amber|red|green|orange|yellow|purple|pink|indigo)-\d{3}
-text-(blue|amber|red|green|orange|yellow|purple|pink|indigo)-\d{3}
-style={{ color: ... }}
-style={{ backgroundColor: ... }}
-```
-
-### Phase 3 — Component Standardization
-
-- Button、Card、Badge、Input、Sheet、DialogのclassNameを統一。
-- 店舗カード、空席カード、通知カードを共通コンポーネント化する。
-- 管理画面は `.theme-light` を基準に整理する。
-
-### Phase 4 — Accessibility Review
-
-- コントラスト比を確認する。
-- 状態表示が色だけに依存していないか確認する。
-- キーボードフォーカスが見えるか確認する。
-- LIFF画面のタッチターゲットが44px以上か確認する。
+### Phase 4 — 残り画面（次パス）
+- 認証 / 店舗管理 / 運営 / 法務・情報系を、本基盤・`SectionHeader`・トークンで順次。
 
 ### Phase 5 — Visual QA
+- LP（ja/en/ko/zh）・マップ・店舗一覧/詳細・マイページ・チェックインQR・空席通知設定・店舗管理・運営管理を、スマホ/タブレット/PCで目視。
 
-- 顧客LP
-- 店舗検索
-- マップ
-- マイページ
-- チェックインQR
-- 空席通知設定
-- 店舗管理画面
-- 運営管理画面
+### 置換の検索パターン
 
-上記画面を対象に、スマホ・タブレット・PCで目視確認する。
+```txt
+#13294b / #ffc82c / #F7F3E9（インライン）→ 役割に応じ意味トークン or app-mode 経由
+bg-(blue|amber|red|green|orange|yellow|...)-\d{3}
+style={{ color: ... }} / style={{ background... }}
+bg-brewer-700 を広背景に使う箇所（→ 帯/アクセントへ限定）
+```
 
 ---
 
 ## 付録 A — 命名ルール
 
-- `primary`: Brewer Navy
-- `secondary`: Brass Yellow
-- `accent`: Copper
-- `background`: 現在テーマの背景
-- `foreground`: 現在テーマの文字色
-- `card`: カード背景
-- `muted`: 補助背景
-- `muted-foreground`: 補助テキスト
-- `destructive`: 削除・エラー
-- `success`: 成功
-- `warning`: 注意
-- `info`: 情報
-
----
+- `primary`: Brewer Navy（インク/CTA） / `secondary`: Brass / `accent`: Copper
+- `background`/`foreground`: ライト基調の背景・Navyインク
+- `card` / `muted` / `muted-foreground` / `border`(Hairline)
+- `destructive` / `success` / `warning` / `info`
+- `font-en`: Jost（英字ラベル）
 
 ## 付録 B — レビュー時チェックリスト
 
-- [ ] Tailwindデフォルト色を新規で使っていない
-- [ ] インラインカラー指定をしていない
-- [ ] Brass Yellow上の文字は濃色になっている
-- [ ] ダーク背景上の文字コントラストが十分
+- [ ] 基調がライト（白/クリーム）。広面積ダークNavyへ回帰していない
+- [ ] 見出しが「英字(Jost uppercase)＋和文(Noto 800)」＋太罫のヘッダーになっている
+- [ ] カードが白＋細罫＋影最小／角丸8–12px
+- [ ] Brass地の文字は Navy（白文字でない）／Brassを広面積に塗っていない
+- [ ] 本文インクが Navy（純黒でない）。低コントラストの灰文字が残っていない
+- [ ] セクション区切りが面色＋罫線（SVGウェーブ等の装飾に依存しない）
 - [ ] 空席状態を色だけで伝えていない
-- [ ] ボタン・入力欄の高さが44px前後ある
-- [ ] カード角丸が16px基準になっている
-- [ ] LPと管理画面でトーンを適切に分けている
-- [ ] スマホで主要CTAが押しやすい位置にある
+- [ ] Tailwind既定色/インライン色を新規追加していない
+- [ ] 英字ラベルに `font-en` ＋ `letter-spacing` が付いている
+- [ ] ボタン/入力の高さ44px前後／タッチターゲット44px以上
+- [ ] LPが ja/en/ko/zh で崩れない
 - [ ] `DESIGN.md` にない色を勝手に追加していない

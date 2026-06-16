@@ -928,17 +928,17 @@ function StoreListContent() {
                   }}
                   className="flex flex-col items-center justify-center gap-1 px-3 py-2 touch-manipulation active:scale-95 rounded-lg relative"
                   style={{
-                    background: activeFilterCount > 0 ? COLORS.champagneGold : 'rgba(5,5,5,0.7)',
+                    background: activeFilterCount > 0 ? COLORS.champagneGold : '#FFFFFF',
                     backdropFilter: 'blur(20px)',
-                    border: activeFilterCount > 0 ? `1px solid ${COLORS.champagneGold}` : `1px solid ${COLORS.champagneGold}4D`,
-                    boxShadow: `0 0 20px ${COLORS.champagneGold}33`,
+                    border: `1px solid ${activeFilterCount > 0 ? COLORS.champagneGold : 'rgba(19,41,75,0.12)'}`,
+                    boxShadow: '0 8px 24px rgba(19,41,75,0.12)',
                     minWidth: '56px',
                     minHeight: '56px',
                   }}
                   title={t('store_list.filter')}
                 >
-                  <Filter className="w-5 h-5" style={{ color: activeFilterCount > 0 ? COLORS.deepNavy : '#FFFFFF' }} />
-                  <span className="text-[10px] font-bold" style={{ color: activeFilterCount > 0 ? COLORS.deepNavy : '#FFFFFF' }}>{t('store_list.filter')}</span>
+                  <Filter className="w-5 h-5" style={{ color: COLORS.deepNavy }} />
+                  <span className="text-[10px] font-bold" style={{ color: COLORS.deepNavy }}>{t('store_list.filter')}</span>
                   {activeFilterCount > 0 && (
                     <span className="absolute -top-1 -right-1 w-5 h-5 bg-success rounded-full flex items-center justify-center text-xs font-bold text-white">
                       {activeFilterCount}
@@ -958,12 +958,11 @@ function StoreListContent() {
                   className="absolute bottom-full right-0 mb-2 w-56"
                 >
                   <div
-                    className="rounded-xl overflow-hidden"
+                    className="rounded-xl overflow-hidden bg-card"
                     style={{
-                      background: 'rgba(30, 30, 30, 0.95)',
                       backdropFilter: 'blur(12px)',
-                      border: '1px solid rgba(255,255,255,0.1)',
-                      boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
+                      border: '1px solid hsl(var(--border))',
+                      boxShadow: '0 16px 40px rgba(19,41,75,0.14)',
                     }}
                   >
                     <div className="p-2">
@@ -980,7 +979,7 @@ function StoreListContent() {
 
                       <button
                         onClick={() => setOpenNowOnly(!openNowOnly)}
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${openNowOnly ? 'bg-info/20 text-info' : ('hover:bg-cream-50/10 text-white')}`}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${openNowOnly ? 'bg-info/20 text-info' : ('hover:bg-primary/5 text-foreground')}`}
                       >
                         <img src="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1767848645/icons8-%E9%96%8B%E5%BA%97%E3%82%B5%E3%82%A4%E3%83%B3-94_a4tmzn.png" alt={t('store_list.open')} className="w-5 h-5" />
                         <span className="font-bold text-sm flex-1 text-left">{t('store_list.open')}</span>
@@ -989,7 +988,7 @@ function StoreListContent() {
 
                       <button
                         onClick={() => setEventOnly(!eventOnly)}
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${eventOnly ? 'bg-brass-500/20 text-brass-500' : ('hover:bg-cream-50/10 text-white')}`}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${eventOnly ? 'bg-brass-500/20 text-brass-500' : ('hover:bg-primary/5 text-foreground')}`}
                       >
                         <Ticket className="w-5 h-5" />
                         <span className="font-bold text-sm flex-1 text-left">イベント参加店舗</span>
@@ -998,14 +997,14 @@ function StoreListContent() {
 
                       <button
                         onClick={() => setVacantOnly(!vacantOnly)}
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${vacantOnly ? 'bg-success/20 text-success' : ('hover:bg-cream-50/10 text-white')}`}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${vacantOnly ? 'bg-success/20 text-success' : ('hover:bg-primary/5 text-foreground')}`}
                       >
                         <img src="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761311529/%E7%A9%BA%E5%B8%AD%E3%81%82%E3%82%8A_rzejgw.png" alt={t('store_list.vacant')} className="w-5 h-5" />
                         <span className="font-bold text-sm flex-1 text-left">{t('store_list.vacant')}</span>
                         {vacantOnly && <Check className="w-4 h-4 text-success" />}
                       </button>
 
-                      <div className="my-2 border-t border-white/10" />
+                      <div className="my-2 border-t border-border" />
 
                       <button
                         onClick={() => {
@@ -1014,7 +1013,7 @@ function StoreListContent() {
                           setEventOnly(false);
                           setShowFilterMenu(false);
                         }}
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${!vacantOnly && !openNowOnly && !eventOnly ? 'bg-brass-500/20 text-brass-500' : ('hover:bg-cream-50/10 text-white')}`}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${!vacantOnly && !openNowOnly && !eventOnly ? 'bg-brass-500/20 text-brass-500' : ('hover:bg-primary/5 text-foreground')}`}
                       >
                         <span className="w-5 h-5 flex items-center justify-center text-lg">🍺</span>
                         <span className="font-bold text-sm flex-1 text-left">{t('store_list.filter_show_all')}</span>

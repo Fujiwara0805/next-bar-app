@@ -14,10 +14,16 @@ const config: Config = {
         'gradient-conic':
           'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
       },
+      fontFamily: {
+        // 欧文ラベル / セクションヘッダー英字（Jost・DESIGN.md §3.2）。
+        // 和文の既定フォントは globals.css の body で Noto Sans JP を指定。
+        en: ['var(--font-jost)', 'Futura', 'Century Gothic', 'system-ui', 'sans-serif'],
+      },
       borderRadius: {
-        dialog: '1.5rem',
-        floating: '1.25rem',
-        card: '1rem',
+        // 雑誌寄りに角丸は控えめ（DESIGN.md §4 / §7）
+        dialog: '1.25rem',
+        floating: '1rem',
+        card: '0.75rem',
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',

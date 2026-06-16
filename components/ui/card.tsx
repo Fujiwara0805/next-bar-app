@@ -9,7 +9,9 @@ const Card = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      'rounded-2xl border bg-card text-card-foreground shadow-card dark:border-white/10 dark:shadow-dark-card',
+      // 雑誌カード: 白背景＋細罫＋影なし（DESIGN.md §4.2 / §6）。
+      // 浮かせたい場合は呼び出し側で shadow-card を付与。
+      'rounded-card border border-border bg-card text-card-foreground',
       className
     )}
     {...props}

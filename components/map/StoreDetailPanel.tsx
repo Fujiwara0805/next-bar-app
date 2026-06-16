@@ -408,7 +408,7 @@ export function StoreDetailPanel({
                     const openTime = getTodayOpenTime(displayBusinessHours);
                     if (!openTime) return null;
                     return (
-                      <span className="text-sm font-bold px-2 py-0.5 rounded-lg bg-success/10 text-white">
+                      <span className="text-sm font-bold px-2 py-0.5 rounded-lg bg-info/10 text-info">
                         {t('map.opens_at').replace('{time}', openTime)}
                       </span>
                     );
@@ -661,7 +661,7 @@ export function StoreDetailPanel({
               className="flex-1 py-3.5 px-4 rounded-xl font-bold transition-all touch-manipulation flex items-center justify-center gap-2"
               style={{
                 background: darkTheme.goldGradient,
-                color: darkTheme.background,
+                color: '#13294b',
                 boxShadow: darkTheme.shadowGold,
               }}
             >
@@ -687,7 +687,7 @@ export function StoreDetailPanel({
               className="flex-1 py-3.5 px-4 rounded-xl font-bold transition-all touch-manipulation flex items-center justify-center gap-2"
               style={{
                 background: isNavigating ? '#B87333' /* copper-500 */ : darkTheme.goldGradient,
-                color: darkTheme.background,
+                color: isNavigating ? '#FFFFFF' : '#13294b',
                 boxShadow: isNavigating ? 'none' : darkTheme.shadowGold,
                 opacity: isNavigating ? 0.8 : 1,
                 cursor: isNavigating ? 'not-allowed' : 'pointer',
@@ -721,7 +721,7 @@ export function StoreDetailPanel({
           className="flex-1 py-3.5 px-4 rounded-xl font-bold transition-all touch-manipulation flex items-center justify-center gap-2"
           style={{
             background: isExpanded ? 'rgba(31, 87, 164, 0.08)' : `${darkTheme.accent}15`,
-            color: isExpanded ? '#13294b' /* Brewers Dark Navy */ : darkTheme.accent,
+            color: '#13294b' /* Brewers Dark Navy（メインカラー） */,
             border: `1px solid ${isExpanded ? 'rgba(19, 41, 75, 0.25)' : darkTheme.borderGold}`,
           }}
         >

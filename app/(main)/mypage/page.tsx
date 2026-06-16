@@ -1,37 +1,25 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import {
   QrCode,
-  Ticket,
   Map,
   LogOut,
   ChevronRight,
-  Clock,
-  Sparkles,
   UserCog,
-  ChevronDown,
   Bell,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth/context';
 import { useLanguage } from '@/lib/i18n/context';
-import { supabase } from '@/lib/supabase/client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { CloseCircleButton } from '@/components/ui/close-circle-button';
 import { LoadingScreen } from '@/components/ui/loading-screen';
 import { useAppMode } from '@/lib/app-mode-context';
 import { toast } from 'sonner';
-
-const LOTTERY_STORE_THRESHOLD = 3;
-const LOTTERY_STORE_MAX = 5;
-const WINDOW_HOURS = 12;
-
-const STAMP_ICON_URL =
-  'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761355092/%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_dggltf.png';
 
 // Brewers Navy + Brass + Copper パレット（StoreDetailPanel と統一）
 const NAVY = '#13294b'; // Brewers Dark Navy
@@ -42,23 +30,12 @@ const COPPER = '#B87333'; // Copper / orange accent
 const GOLD_GRADIENT = '#ffc82c';
 const NAVY_GRADIENT = '#13294b';
 
-function tokyoDateString(): string {
-  const now = new Date();
-  const tokyoMs = now.getTime() + (9 * 60 + now.getTimezoneOffset()) * 60 * 1000;
-  return new Date(tokyoMs).toISOString().slice(0, 10);
-}
-
 export default function MyPage() {
   const router = useRouter();
   const { user, profile, accountType, signOut, loading: authLoading } = useAuth();
   const { t } = useLanguage();
   const { colorsB: COLORS } = useAppMode();
   const pageBackground = COLORS.cardGradient;
-
-  const [windowStoreCount, setWindowStoreCount] = useState(0);
-  const [hasTodayEntry, setHasTodayEntry] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [stampHelpOpen, setStampHelpOpen] = useState(false);
 
   // 背景をログイン画面と同じベースカラーで上書き
   useEffect(() => {
@@ -89,54 +66,6 @@ export default function MyPage() {
       return;
     }
   }, [authLoading, user, accountType, router]);
-
-  useEffect(() => {
-    if (!user || accountType !== 'customer') return;
-    const run = async () => {
-      setLoading(true);
-
-      const { data: latestEntry } = await supabase
-        .from('stamp_rally_entries')
-        .select('created_at')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      const now = Date.now();
-      const windowStartMs = now - WINDOW_HOURS * 60 * 60 * 1000;
-      const entryMs = latestEntry?.created_at
-        ? new Date(latestEntry.created_at).getTime()
-        : 0;
-      const cutoff = new Date(Math.max(windowStartMs, entryMs)).toISOString();
-
-      const { data: rows } = await supabase
-        .from('store_check_ins')
-        .select('store_id')
-        .eq('user_id', user.id)
-        .gte('checked_in_at', cutoff);
-      setWindowStoreCount(new Set((rows ?? []).map((r) => r.store_id)).size);
-
-      const { data: entry } = await supabase
-        .from('stamp_rally_entries')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('entry_date', tokyoDateString())
-        .maybeSingle();
-      setHasTodayEntry(!!entry);
-
-      setLoading(false);
-    };
-    run();
-  }, [user, accountType]);
-
-  const slots = useMemo(() => {
-    return Array.from({ length: LOTTERY_STORE_MAX }, (_, i) => i < windowStoreCount);
-  }, [windowStoreCount]);
-
-  const canEnterLottery =
-    windowStoreCount >= LOTTERY_STORE_THRESHOLD && !hasTodayEntry;
-  const remaining = Math.max(0, LOTTERY_STORE_THRESHOLD - windowStoreCount);
 
   const handleSignOut = async () => {
     try {
@@ -357,177 +286,6 @@ export default function MyPage() {
             </div>
           )}
 
-          {/* スタンプの貯め方 説明カード（トグル / デフォルト閉） */}
-          <div
-            className="rounded-2xl mb-4 relative overflow-hidden"
-            style={{
-              backgroundColor: `${BRASS}14`,
-              border: `1px solid ${BRASS}55`,
-            }}
-          >
-            <button
-              type="button"
-              onClick={() => setStampHelpOpen((v) => !v)}
-              className="w-full flex items-center gap-3 p-4 text-left transition-opacity hover:opacity-90"
-              aria-expanded={stampHelpOpen}
-              aria-controls="stamp-help-body"
-            >
-              <div
-                className="flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center overflow-hidden"
-                style={{ background: `${BRASS}28`, border: `1px solid ${BRASS}66` }}
-              >
-                <img
-                  src={STAMP_ICON_URL}
-                  alt="stamp"
-                  className="w-6 h-6 object-contain"
-                />
-              </div>
-              <h3 className="flex-1 font-bold text-sm" style={{ color: NAVY }}>
-                {t('mypage.stamp_explanation_title')}
-              </h3>
-              <ChevronDown
-                className="w-4 h-4 transition-transform duration-200"
-                style={{
-                  color: COPPER,
-                  transform: stampHelpOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                }}
-              />
-            </button>
-            {stampHelpOpen && (
-              <ul
-                id="stamp-help-body"
-                className="px-4 pb-4 pl-14 space-y-1.5 text-xs leading-relaxed list-disc list-outside marker:text-[#B87333]"
-                style={{ color: 'rgba(19, 41, 75, 0.85)' }}
-              >
-                <li>{t('mypage.stamp_explanation_bullet_1')}</li>
-                <li>{t('mypage.stamp_explanation_bullet_2')}</li>
-                <li>{t('mypage.stamp_explanation_bullet_3')}</li>
-                <li>{t('mypage.stamp_explanation_bullet_4')}</li>
-              </ul>
-            )}
-          </div>
-
-          {/* スタンプ進捗 */}
-          <div
-            className="rounded-2xl p-5 mb-4 bg-white relative overflow-hidden"
-            style={{
-              border: `1px solid ${BRASS}33`,
-              boxShadow: '0 12px 32px rgba(19, 41, 75, 0.08)',
-            }}
-          >
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-5 h-5" style={{ color: COPPER }} />
-                <h2 className="font-semibold text-sm" style={{ color: NAVY }}>
-                  {t('mypage.stamp_progress')}
-                </h2>
-              </div>
-              <span
-                className="text-xs flex items-center gap-1"
-                style={{ color: 'rgba(19, 41, 75, 0.6)' }}
-              >
-                <Clock className="w-3 h-3" />
-                {t('mypage.window_hint').replace('{h}', String(WINDOW_HOURS))}
-              </span>
-            </div>
-
-            <div className="grid grid-cols-5 gap-2 mb-4">
-              {slots.map((filled, i) => (
-                <div
-                  key={i}
-                  className="aspect-square rounded-xl flex items-center justify-center transition-all"
-                  style={
-                    filled
-                      ? {
-                          border: `2px solid ${BRASS}`,
-                          backgroundColor: `${BRASS}1f`,
-                          boxShadow: `0 4px 12px ${BRASS}33`,
-                        }
-                      : {
-                          border: `2px dashed ${NAVY}33`,
-                          background: NAVY_SOFT,
-                        }
-                  }
-                >
-                  {filled ? (
-                    <motion.img
-                      src={STAMP_ICON_URL}
-                      alt="stamp"
-                      className="w-full h-full object-contain p-1"
-                      initial={{ scale: 0, rotate: -20 }}
-                      animate={{ scale: 1, rotate: 0 }}
-                      transition={{
-                        type: 'spring',
-                        stiffness: 200,
-                        damping: 15,
-                        delay: i * 0.05,
-                      }}
-                    />
-                  ) : (
-                    <span
-                      className="text-xs font-semibold"
-                      style={{ color: 'rgba(19, 41, 75, 0.4)' }}
-                    >
-                      {i + 1}
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-sm" style={{ color: 'rgba(19, 41, 75, 0.7)' }}>
-                {loading
-                  ? '...'
-                  : remaining > 0
-                  ? t('mypage.remaining_hint').replace('{n}', String(remaining))
-                  : hasTodayEntry
-                  ? t('mypage.already_entered_today')
-                  : t('mypage.lottery_ready')}
-              </span>
-              <span className="text-2xl font-bold" style={{ color: NAVY }}>
-                {windowStoreCount}
-                <span
-                  className="text-xs ml-0.5"
-                  style={{ color: 'rgba(19, 41, 75, 0.5)' }}
-                >
-                  / {LOTTERY_STORE_MAX}
-                </span>
-              </span>
-            </div>
-
-            {canEnterLottery ? (
-              <Link href="/profile/stamps?enter=1">
-                <Button
-                  className="w-full h-12 font-bold rounded-xl"
-                  size="lg"
-                  style={{
-                    background: GOLD_GRADIENT,
-                    color: NAVY,
-                    boxShadow: `0 8px 22px ${BRASS}55`,
-                  }}
-                >
-                  <Ticket className="w-4 h-4 mr-2" />
-                  {t('mypage.enter_lottery')}
-                </Button>
-              </Link>
-            ) : (
-              <Link href="/profile/stamps">
-                <Button
-                  variant="outline"
-                  className="w-full h-12 font-semibold rounded-xl"
-                  style={{
-                    border: `1.5px solid ${NAVY}`,
-                    color: NAVY,
-                    background: 'transparent',
-                  }}
-                >
-                  <Ticket className="w-4 h-4 mr-2" />
-                  {t('mypage.view_stamps')}
-                </Button>
-              </Link>
-            )}
-          </div>
 
           {/* その他導線（プロフィール編集はアバター横へ統合済） */}
           <div className="space-y-2 mb-4">

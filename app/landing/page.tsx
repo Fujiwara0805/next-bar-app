@@ -105,45 +105,35 @@ const GoldDivider = () => (
  * `fill` に "上のセクション色" を渡し、`position='bottom'` なら上セクション下端に、
  * `position='top'` なら下セクション上端に絶対配置する。
  */
-const WaveDivider = ({
-  fill,
-  position = 'bottom',
-  className = '',
-}: {
+/**
+ * 旧: セクション間のSVGウェーブ。マガジン基調では装飾区切りを廃止し、
+ * 面色の切替＋余白で区切る（DESIGN.md §5）。呼び出し側を壊さないため
+ * コンポーネントは残しつつ何も描画しない。
+ */
+const WaveDivider = (_props: {
   fill: string;
   position?: 'top' | 'bottom';
   className?: string;
-}) => (
-  <svg
-    className={`absolute ${position === 'bottom' ? 'bottom-0' : 'top-0'} left-0 right-0 w-full pointer-events-none ${className}`}
-    viewBox="0 0 1440 80"
-    preserveAspectRatio="none"
-    style={{
-      display: 'block',
-      height: '60px',
-      transform: position === 'top' ? 'rotate(180deg) translateY(1px)' : 'translateY(1px)',
-    }}
-    aria-hidden
-  >
-    <path
-      d="M0,40 C240,80 480,0 720,30 C960,60 1200,20 1440,50 L1440,80 L0,80 Z"
-      fill={fill}
-    />
-  </svg>
-);
+}) => null;
 
 export default function LandingPage() {
   const router = useRouter();
   const { t, language, setLanguage } = useLanguage();
   const { colorsA: colors } = useAppMode();
 
-  /** Bar: ページ=ネイビー・カード=オフ白 */
+  /** ライトマガジン基調（DESIGN.md §0）: ページ=白・テキスト=Navyインク */
   const lpPage = {
-    bg: LP_NAVY,
-    text: LP_ON_NAVY.text,
-    textMuted: LP_ON_NAVY.textMuted,
-    textSubtle: LP_ON_NAVY.textSubtle,
-    border: LP_ON_NAVY.border,
+    bg: '#FFFFFF',
+    text: LP_NAVY,
+    textMuted: 'rgba(19, 41, 75, 0.70)',
+    textSubtle: '#8D95A6',
+    border: 'rgba(19, 41, 75, 0.10)',
+  } as const;
+  /** Hero（暗いカバー写真）の上に乗せる文字＝白を維持 */
+  const heroInk = {
+    text: '#FFFFFF',
+    textMuted: 'rgba(255, 255, 255, 0.90)',
+    textSubtle: 'rgba(255, 255, 255, 0.72)',
   } as const;
   const lpElevated = {
     bg: LP_CARD.bg,
@@ -157,7 +147,7 @@ export default function LandingPage() {
     border: LP_CARD.borderSubtle,
     icon: LP_CARD.text,
   } as const;
-  const lpDotInactive = 'rgba(255, 255, 255, 0.28)';
+  const lpDotInactive = 'rgba(19, 41, 75, 0.22)';
   const lpLinkOnElevated = LP_NAVY;
   const lpSubtitleOnElevated = colors.accentDark;
 
@@ -222,7 +212,7 @@ export default function LandingPage() {
     const prevRoot = root.style.background;
     const prevBody = body.style.background;
     const prevBodyColor = body.style.backgroundColor;
-    const bg = LP_NAVY;
+    const bg = '#FFFFFF';
     root.style.background = bg;
     body.style.background = bg;
     body.style.backgroundColor = '';
@@ -408,9 +398,9 @@ export default function LandingPage() {
       <AnimatePresence>
         {showToast && (
           <motion.div initial={{ opacity: 0, y: -20, x: '-50%' }} animate={{ opacity: 1, y: 0, x: '-50%' }} exit={{ opacity: 0, y: -20, x: '-50%' }} className="fixed top-20 left-1/2 z-50">
-            <div className="flex items-center gap-3 px-5 py-3 rounded-full" style={{ background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255, 198, 45, 0.35)', boxShadow: '0 8px 30px rgba(0,0,0,0.25)' }}>
+            <div className="flex items-center gap-3 px-5 py-3 rounded-full" style={{ background: 'rgba(19, 41, 75, 0.92)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255, 198, 45, 0.35)', boxShadow: '0 8px 30px rgba(19,41,75,0.25)' }}>
               <motion.div animate={{ scale: [1, 1.3, 1], opacity: [1, 0.7, 1] }} transition={{ duration: 1, repeat: Infinity }} className="w-2.5 h-2.5 rounded-full" style={{ background: '#4ADE80', boxShadow: '0 0 10px #4ADE80' }} />
-              <span className="text-sm font-medium lg:text-lg" style={{ color: lpPage.text }}>{t('landing.seats_available')}</span>
+              <span className="text-sm font-medium lg:text-lg" style={{ color: '#FFFFFF' }}>{t('landing.seats_available')}</span>
             </div>
           </motion.div>
         )}
@@ -618,7 +608,7 @@ export default function LandingPage() {
                   className="inline-block text-[10px] tracking-[0.32em] uppercase font-semibold mb-6"
                   style={{ color: LP_YELLOW, textShadow: '0 1px 6px rgba(0,0,0,0.55)' }}
                 >
-                  Night Discovery Platform
+                  Local Dining Map
                 </span>
               </motion.div>
               <motion.div
@@ -626,14 +616,14 @@ export default function LandingPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.25 }}
               >
-                <h1 className="text-2xl xl:text-[2.4rem] leading-[1.25] font-bold mb-7 tracking-tight" style={{ color: lpPage.text, textShadow: '0 2px 18px rgba(0,0,0,0.6)' }}>
+                <h1 className="text-2xl xl:text-[2.4rem] leading-[1.25] font-bold mb-7 tracking-tight" style={{ color: heroInk.text, textShadow: '0 2px 18px rgba(0,0,0,0.6)' }}>
                   {t('landing.hero_pc_title').split('\n').map((line, i) => (
                     <span key={i} className="block">
                       {line}
                     </span>
                   ))}
                 </h1>
-                <p className="text-base xl:text-lg leading-[1.85] mb-10" style={{ color: lpPage.textMuted, textShadow: '0 1px 10px rgba(0,0,0,0.55)' }}>
+                <p className="text-base xl:text-lg leading-[1.85] mb-10" style={{ color: heroInk.textMuted, textShadow: '0 1px 10px rgba(0,0,0,0.55)' }}>
                   {renderWithLineBreaks(t('landing.hero_pc_description'))}
                 </p>
               </motion.div>
@@ -662,7 +652,7 @@ export default function LandingPage() {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.55 }}
                 className="text-xs tracking-wider mt-6 lg:text-sm"
-                style={{ color: lpPage.textSubtle, textShadow: '0 1px 8px rgba(0,0,0,0.5)' }}
+                style={{ color: heroInk.textSubtle, textShadow: '0 1px 8px rgba(0,0,0,0.5)' }}
               >
                 {t('landing.hero_subcopy')}
               </motion.p>
@@ -695,7 +685,7 @@ export default function LandingPage() {
                 className="inline-block text-[10px] tracking-[0.3em] uppercase font-semibold mb-4"
                 style={{ color: LP_YELLOW, textShadow: '0 1px 6px rgba(0,0,0,0.6)' }}
               >
-                Night Discovery Platform
+                Local Dining Map
               </span>
               <h1 className="text-xl sm:text-2xl md:text-4xl font-bold mb-4 leading-tight tracking-tight">
                 <span style={{ color: '#FFFFFF', textShadow: '0 2px 18px rgba(0,0,0,0.65)' }}>
@@ -875,7 +865,7 @@ export default function LandingPage() {
               <Button
                 onClick={() => router.push('/store-list')}
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-full font-medium transition-all hover:scale-105 min-h-[48px]"
-                style={{ background: `${LP_YELLOW}15`, border: '1px solid rgba(255, 198, 45, 0.4)', color: LP_YELLOW }}
+                style={{ background: `${LP_YELLOW}15`, border: '1px solid rgba(255, 198, 45, 0.4)', color: LP_NAVY }}
               >
                 <Store className="w-5 h-5" />
                 {t('common.view_all_partners')}
@@ -948,7 +938,7 @@ export default function LandingPage() {
 
       {/* Use Cases Section（利用シーン） */}
       <section className="relative py-12 md:py-24 px-4 overflow-hidden" style={{ background: lpMid.page.bg }}>
-        <div className="container mx-auto max-w-6xl">
+        <div className="container mx-auto max-w-7xl">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12 md:mb-16">
             <GoldDivider />
             <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4 lg:text-base" style={{ color: lpMid.page.text }}>{t('landing.usecases_subtitle')}</span>
@@ -1036,9 +1026,10 @@ export default function LandingPage() {
             viewport={{ once: true }}
             className="relative rounded-3xl p-8 sm:p-12 text-center overflow-hidden"
             style={{
-              background: 'rgba(255,255,255,0.04)',
+              /* 主催者向け = Navyチャコール帯（DESIGN.md §11 FOR ORGANIZERS） */
+              background: LP_NAVY,
               border: '1px solid rgba(255, 198, 45, 0.35)',
-              boxShadow: '0 16px 44px rgba(7,16,34,0.35)',
+              boxShadow: '0 16px 44px rgba(19,41,75,0.22)',
             }}
           >
             {/* 装飾グロー */}
@@ -1051,10 +1042,10 @@ export default function LandingPage() {
               <span className="block text-xs font-medium tracking-[0.3em] uppercase mb-4 lg:text-base" style={{ color: LP_YELLOW }}>
                 {t('landing.organizer_section_label')}
               </span>
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-5 leading-tight" style={{ color: lpPage.text }}>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-5 leading-tight" style={{ color: '#FFFFFF' }}>
                 {renderWithLineBreaks(t('landing.organizer_section_title'))}
               </h2>
-              <p className="text-base max-w-2xl mx-auto mb-8 leading-relaxed lg:text-lg" style={{ color: lpPage.textMuted }}>
+              <p className="text-base max-w-2xl mx-auto mb-8 leading-relaxed lg:text-lg" style={{ color: 'rgba(255,255,255,0.85)' }}>
                 {renderWithLineBreaks(t('landing.organizer_section_body'))}
               </p>
               <Link href="/contact">
