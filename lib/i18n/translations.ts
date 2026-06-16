@@ -799,13 +799,13 @@ export const translations = {
       // Hero section
       hero_catchphrase: '“今いける”お店が見つかる',
       izakaya_hero_catchphrase: '「今日のお店、どこにする？」\n街のおいしい一軒へ。',
-      hero_subcopy: '公式LINEを友だち追加するだけで、近くの空席通知が届く',
+      hero_subcopy: '公式LINEを友だち追加すると空席通知が届く。',
       izakaya_hero_subcopy: 'ログイン不要 ー 地図でお店の空席を確認 ー',
       hero_body: 'にけんめぷらすは、大分の街を\n案内する飲食店回遊 Map 🍽️です。',
       // Hero PC section
       hero_pc_badge: 'にけんめぷらす',
       hero_pc_title: '“今いける”お店が見つかる',
-      hero_pc_description: 'お店探しからあなたの街の飲食店回遊を\n空席通知機能でサポートします。',
+      hero_pc_description: 'お店探しから\nあなたの街の飲食店回遊を\n空席通知機能でサポートします。',
       // Problems section
       problems_title: 'こんなお悩み、ありませんか？',
       problems_subtitle: 'Common Concerns',

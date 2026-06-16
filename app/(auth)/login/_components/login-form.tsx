@@ -212,7 +212,7 @@ export function LoginForm() {
             >
               Local Dining Map
             </span>
-            <span className="text-base font-bold text-white">NIKENME+</span>
+            <span className="text-base font-bold text-white">にけんめぷらす</span>
           </div>
         </motion.div>
 

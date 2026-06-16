@@ -648,10 +648,6 @@ export function StoreDetailPanel({
           {isExpanded ? (
             <motion.button
               key="keep-seat-btn"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.2 }}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={(e) => {
@@ -671,10 +667,6 @@ export function StoreDetailPanel({
           ) : (
             <motion.button
               key="view-details-btn"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.2 }}
               whileHover={{ scale: isNavigating ? 1 : 1.02 }}
               whileTap={{ scale: isNavigating ? 1 : 0.98 }}
               onClick={(e) => {
