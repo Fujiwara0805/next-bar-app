@@ -14,6 +14,58 @@ export type Database = {
   }
   public: {
     Tables: {
+      event_stamp_rewards: {
+        Row: {
+          claimed_store_id: string | null
+          completed_at: string
+          created_at: string
+          event_id: string
+          id: string
+          reward_claimed_at: string | null
+          user_id: string
+        }
+        Insert: {
+          claimed_store_id?: string | null
+          completed_at?: string
+          created_at?: string
+          event_id: string
+          id?: string
+          reward_claimed_at?: string | null
+          user_id: string
+        }
+        Update: {
+          claimed_store_id?: string | null
+          completed_at?: string
+          created_at?: string
+          event_id?: string
+          id?: string
+          reward_claimed_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_stamp_rewards_claimed_store_id_fkey"
+            columns: ["claimed_store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_stamp_rewards_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "platform_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_stamp_rewards_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       line_cta_clicks: {
         Row: {
           created_at: string
@@ -161,6 +213,9 @@ export type Database = {
           id: string
           image_url: string | null
           organizer_name: string | null
+          stamp_enabled: boolean
+          stamp_goal: number
+          stamp_reward_text: string | null
           start_at: string | null
           status: string
           title: string
@@ -176,6 +231,9 @@ export type Database = {
           id?: string
           image_url?: string | null
           organizer_name?: string | null
+          stamp_enabled?: boolean
+          stamp_goal?: number
+          stamp_reward_text?: string | null
           start_at?: string | null
           status?: string
           title: string
@@ -191,6 +249,9 @@ export type Database = {
           id?: string
           image_url?: string | null
           organizer_name?: string | null
+          stamp_enabled?: boolean
+          stamp_goal?: number
+          stamp_reward_text?: string | null
           start_at?: string | null
           status?: string
           title?: string

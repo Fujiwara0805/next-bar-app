@@ -49,19 +49,24 @@ const NAVY_GRADIENT =
 
 type ScannerState = 'idle' | 'starting' | 'scanning' | 'paused' | 'error';
 
+type EventStampProgress = {
+  eventId: string;
+  eventTitle: string;
+  stampCount: number;
+  stampGoal: number;
+  goalReached: boolean;
+  isNewStamp: boolean;
+  isNewlyCompleted: boolean;
+  rewardText: string | null;
+  rewardClaimedAt: string | null;
+};
+
 type CheckInResult = {
   storeId: string;
   storeName: string;
   userId: string;
   userDisplayName: string;
-  isNewStamp: boolean;
-  windowStoreCount: number;
-  lotteryThreshold: number;
-  lotteryMax: number;
-  canEnterLottery: boolean;
-  hasLotteryEntry: boolean;
-  visitDate: string;
-  windowHours: number;
+  eventStamp: EventStampProgress | null;
 };
 
 function resolveSiteUrl(): string {
@@ -792,11 +797,23 @@ export default function StoreQrPage() {
                 <div className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center bg-green-500/10">
                   <CheckCircle2 className="w-8 h-8 text-green-600" />
                 </div>
-                <h2 className="text-xl font-bold text-center mb-1" style={{ color: NAVY }}>
-                  {scanResult.isNewStamp
-                    ? t('storeScan.new_stamp')
-                    : t('storeScan.already_stamped')}
-                </h2>
+                {(() => {
+                  const es = scanResult.eventStamp;
+                  const title = !es
+                    ? '来店を記録しました'
+                    : es.isNewlyCompleted
+                    ? 'コンプリート！特典GET 🎉'
+                    : es.goalReached
+                    ? '特典 獲得済み'
+                    : es.isNewStamp
+                    ? 'スタンプを記録しました'
+                    : 'チェックイン済み';
+                  return (
+                    <h2 className="text-xl font-bold text-center mb-1" style={{ color: NAVY }}>
+                      {title}
+                    </h2>
+                  );
+                })()}
                 <p className="text-xs text-center mb-4" style={{ color: 'rgba(19, 41, 75, 0.6)' }}>
                   {scanResult.storeName}
                 </p>
@@ -813,45 +830,41 @@ export default function StoreQrPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 mb-5">
-                  <div className="rounded-xl p-3 bg-black/[0.03]">
-                    <div className="text-xs mb-1" style={{ color: 'rgba(19, 41, 75, 0.6)' }}>
-                      {t('storeScan.progress_label')}
-                    </div>
-                    <div className="text-2xl font-bold" style={{ color: NAVY }}>
-                      {scanResult.windowStoreCount}
-                      <span className="text-sm ml-1" style={{ color: 'rgba(19, 41, 75, 0.6)' }}>
-                        / {scanResult.lotteryThreshold}
+                {scanResult.eventStamp && (
+                  <div className="rounded-xl p-4 mb-5 bg-black/[0.03]">
+                    <div className="flex items-baseline justify-between mb-1">
+                      <span className="text-xs font-semibold truncate pr-2" style={{ color: COPPER }}>
+                        🎫 {scanResult.eventStamp.eventTitle}
+                      </span>
+                      <span className="text-2xl font-bold tabular-nums shrink-0" style={{ color: NAVY }}>
+                        {Math.min(scanResult.eventStamp.stampCount, scanResult.eventStamp.stampGoal)}
+                        <span className="text-sm ml-0.5" style={{ color: 'rgba(19, 41, 75, 0.6)' }}>
+                          / {scanResult.eventStamp.stampGoal}
+                        </span>
                       </span>
                     </div>
-                  </div>
-                  <div className="rounded-xl p-3 flex items-center bg-black/[0.03]">
-                    <div className="flex items-start gap-2">
-                      {scanResult.hasLotteryEntry ? (
-                        <Ticket className="w-5 h-5 mt-0.5 text-green-600" />
-                      ) : scanResult.canEnterLottery ? (
-                        <Ticket className="w-5 h-5 mt-0.5" style={{ color: COPPER }} />
-                      ) : (
-                        <Clock className="w-5 h-5 mt-0.5" style={{ color: 'rgba(19, 41, 75, 0.55)' }} />
-                      )}
-                      <div className="text-xs font-semibold leading-tight" style={{ color: NAVY }}>
-                        {scanResult.hasLotteryEntry
-                          ? t('storeScan.lottery_entered')
-                          : scanResult.canEnterLottery
-                          ? t('storeScan.lottery_ready')
-                          : t('storeScan.more_stores').replace(
-                              '{n}',
-                              String(
-                                Math.max(
-                                  0,
-                                  scanResult.lotteryThreshold - scanResult.windowStoreCount
-                                )
-                              )
-                            )}
+                    {scanResult.eventStamp.goalReached ? (
+                      <div className="flex items-start gap-2 mt-2">
+                        <Ticket className="w-5 h-5 mt-0.5 shrink-0" style={{ color: COPPER }} />
+                        <div className="text-xs font-semibold leading-tight" style={{ color: NAVY }}>
+                          コンプリート — 特典をお渡しください
+                          {scanResult.eventStamp.rewardText?.trim() && (
+                            <span className="block font-bold mt-0.5">
+                              {scanResult.eventStamp.rewardText.trim()}
+                            </span>
+                          )}
+                        </div>
                       </div>
-                    </div>
+                    ) : (
+                      <div className="flex items-center gap-2 mt-1">
+                        <Clock className="w-4 h-4" style={{ color: 'rgba(19, 41, 75, 0.55)' }} />
+                        <span className="text-xs font-semibold" style={{ color: NAVY }}>
+                          あと{Math.max(0, scanResult.eventStamp.stampGoal - scanResult.eventStamp.stampCount)}店舗でコンプリート
+                        </span>
+                      </div>
+                    )}
                   </div>
-                </div>
+                )}
 
                 <div className="flex gap-2">
                   <Button

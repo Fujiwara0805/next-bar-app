@@ -17,7 +17,7 @@
 
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import type { Database } from '@/lib/supabase/types';
+import type { EventAwareStore } from '@/lib/types/active-store-event';
 
 // ============================================================================
 // 共通モジュールのインポート
@@ -29,7 +29,9 @@ import { useAppMode } from '@/lib/app-mode-context';
 import { sendGAEvent } from '@/lib/analytics';
 import { getVacancyFreshness } from '@/lib/vacancy/freshness';
 
-type Store = Database['public']['Tables']['stores']['Row'];
+// EventAwareStore = stores Row ＋ active_event（イベント参加時に付与）。
+// イベント参加店は地図ピンを店舗写真→★アイコンに置換する（active_event の truthy 判定で分岐）。
+type Store = EventAwareStore;
 
 // ============================================================================
 // 環境変数・デバッグ設定
@@ -200,8 +202,13 @@ function truncateMarkerTitle(title: string): string {
   return title.length > 10 ? `${title.slice(0, 10)}...` : title;
 }
 
-function getMarkerIconKey(status: string, imageUrl: string | null, title: string): string {
-  return `${status}|${imageUrl ?? ''}|${title}`;
+function getMarkerIconKey(
+  status: string,
+  imageUrl: string | null,
+  title: string,
+  isEvent: boolean
+): string {
+  return `${status}|${imageUrl ?? ''}|${title}|${isEvent ? 'ev' : ''}`;
 }
 
 function createBeerSvgPaths(): string {
@@ -214,10 +221,33 @@ function createBeerSvgPaths(): string {
   `;
 }
 
+/** 中心(cx,cy)・外半径outerR・内半径innerRの5角星の path data を返す（頂点を上向きに固定）。 */
+function createStarPath(cx: number, cy: number, outerR: number, innerR: number): string {
+  const points: string[] = [];
+  for (let i = 0; i < 10; i++) {
+    const r = i % 2 === 0 ? outerR : innerR;
+    const angle = ((-90 + i * 36) * Math.PI) / 180;
+    const x = cx + r * Math.cos(angle);
+    const y = cy + r * Math.sin(angle);
+    points.push(`${x.toFixed(2)},${y.toFixed(2)}`);
+  }
+  return `M${points.join('L')}Z`;
+}
+
+/** 営業状態 → 外周リング色（イベント参加店ピン用。open/vacant=緑・full=赤・closed=灰・他=白）。
+ *  金色は使わない（イベントである主張は中央の金★が担うため、リングは営業可否のみ表す）。 */
+function statusRingColor(status: string): string {
+  if (status === 'open' || status === 'vacant') return '#22c55e';
+  if (status === 'full') return '#ef4444';
+  if (status === 'closed') return '#9CA3AF';
+  return '#FFFFFF';
+}
+
 function createMarkerSvgDataUrl(
   status: string,
   title: string,
-  imageDataUrl: string | null
+  imageDataUrl: string | null,
+  isEvent: boolean = false
 ): string {
   const iconX = (MARKER_ICON_WIDTH_PX - MARKER_FRAME_SIZE_PX) / 2;
   const iconY = 0;
@@ -235,7 +265,16 @@ function createMarkerSvgDataUrl(
   `;
 
   let body = '';
-  if (status === 'vacant' || status === 'full') {
+  if (isEvent) {
+    // イベント参加店は店舗写真を★アイコンに置換する（中央の金★がイベントの目印）。
+    // 営業可否（open/vacant=緑・full=赤・closed=灰・他=白）は外周リングの色で表現する。
+    const ringColor = statusRingColor(status);
+    const starPath = createStarPath(centerX, centerY, radius * 0.66, radius * 0.28);
+    body = `
+      <circle cx="${centerX}" cy="${centerY}" r="${radius}" fill="#13294b" stroke="${ringColor}" stroke-width="4"/>
+      <path d="${starPath}" fill="#ffc82c" stroke="#FFFFFF" stroke-width="0.8" stroke-linejoin="round"/>
+    `;
+  } else if (status === 'vacant' || status === 'full') {
     const fill = status === 'vacant' ? '#22c55e' : '#ef4444';
     const text = status === 'vacant' ? '空' : '満';
     body = `
@@ -332,14 +371,16 @@ function loadMarkerImageDataUrl(imageUrl: string): Promise<string | null> {
 async function createMarkerIconUrl(
   status: string,
   imageUrl: string | null,
-  title: string
+  title: string,
+  isEvent: boolean = false
 ): Promise<string> {
+  // イベント参加店は★アイコンを描画するため店舗写真は読み込まない（無駄な取得を避ける）。
   const optimizedUrl =
-    imageUrl && (status === 'open' || status === 'closed')
+    !isEvent && imageUrl && (status === 'open' || status === 'closed')
       ? optimizeMarkerImageUrl(imageUrl, MARKER_IMAGE_SOURCE_PX)
       : null;
   const imageDataUrl = optimizedUrl ? await loadMarkerImageDataUrl(optimizedUrl) : null;
-  return createMarkerSvgDataUrl(status, title, imageDataUrl);
+  return createMarkerSvgDataUrl(status, title, imageDataUrl, isEvent);
 }
 
 // ============================================================================
@@ -1312,7 +1353,8 @@ export function MapView({
         store.last_updated ?? store.updated_at
       ).displayStatus;
       const markerImageUrl = getMarkerImageUrl(store);
-      const markerIconKey = getMarkerIconKey(markerStatus, markerImageUrl, store.name);
+      const isEventStore = !!store.active_event;
+      const markerIconKey = getMarkerIconKey(markerStatus, markerImageUrl, store.name, isEventStore);
 
       if (existingMarkerData) {
         // 既存マーカーを再利用（位置と表示のみ更新）
@@ -1330,7 +1372,7 @@ export function MapView({
 
         if (needsIconUpdate) {
           existingMarkerData.lastIconKey = markerIconKey;
-          createMarkerIconUrl(markerStatus, markerImageUrl, store.name).then((iconUrl) => {
+          createMarkerIconUrl(markerStatus, markerImageUrl, store.name, isEventStore).then((iconUrl) => {
             const latestMarkerData = storeMarkersRef.current.get(store.id);
             if (!latestMarkerData || latestMarkerData.lastIconKey !== markerIconKey) return;
             latestMarkerData.marker.setIcon(createGoogleMarkerIcon(iconUrl));
@@ -1359,7 +1401,7 @@ export function MapView({
           position,
           map,
           title: store.name,
-          icon: createGoogleMarkerIcon(createMarkerSvgDataUrl(markerStatus, store.name, null)),
+          icon: createGoogleMarkerIcon(createMarkerSvgDataUrl(markerStatus, store.name, null, isEventStore)),
           // 高DPIで鮮明に描画するため非最適化（共有キャンバスの等倍ラスタライズを回避）。
           // 各マーカーが個別<img>になり、端末解像度でSVG/写真が再ラスタライズされる。
           optimized: false,
@@ -1368,7 +1410,7 @@ export function MapView({
           clickable: true,
         });
 
-        createMarkerIconUrl(markerStatus, markerImageUrl, store.name).then((iconUrl) => {
+        createMarkerIconUrl(markerStatus, markerImageUrl, store.name, isEventStore).then((iconUrl) => {
           const latestMarkerData = storeMarkersRef.current.get(store.id);
           if (!latestMarkerData || latestMarkerData.lastIconKey !== markerIconKey) return;
           latestMarkerData.marker.setIcon(createGoogleMarkerIcon(iconUrl));

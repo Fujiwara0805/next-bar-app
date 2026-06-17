@@ -27,19 +27,24 @@ import { CloseCircleButton } from '@/components/ui/close-circle-button';
 
 type ScannerState = 'idle' | 'starting' | 'scanning' | 'paused' | 'error';
 
+type EventStampProgress = {
+  eventId: string;
+  eventTitle: string;
+  stampCount: number;
+  stampGoal: number;
+  goalReached: boolean;
+  isNewStamp: boolean;
+  isNewlyCompleted: boolean;
+  rewardText: string | null;
+  rewardClaimedAt: string | null;
+};
+
 type CheckInResult = {
   storeId: string;
   storeName: string;
   userId: string;
   userDisplayName: string;
-  isNewStamp: boolean;
-  windowStoreCount: number;
-  lotteryThreshold: number;
-  lotteryMax: number;
-  canEnterLottery: boolean;
-  hasLotteryEntry: boolean;
-  visitDate: string;
-  windowHours: number;
+  eventStamp: EventStampProgress | null;
   customer?: {
     user_id: string;
     display_name: string;
@@ -430,14 +435,26 @@ export default function StoreScanPage() {
                 <CheckCircle2 className="w-8 h-8" style={{ color: '#3E8E6B' }} />
               </motion.div>
 
-              <h2
-                className="text-xl font-bold text-center mb-1"
-                style={{ color: COLORS.deepNavy }}
-              >
-                {result.isNewStamp
-                  ? t('storeScan.new_stamp')
-                  : t('storeScan.already_stamped')}
-              </h2>
+              {(() => {
+                const es = result.eventStamp;
+                const title = !es
+                  ? '来店を記録しました'
+                  : es.isNewlyCompleted
+                  ? 'コンプリート！特典GET 🎉'
+                  : es.goalReached
+                  ? '特典 獲得済み'
+                  : es.isNewStamp
+                  ? 'スタンプを記録しました'
+                  : 'チェックイン済み';
+                return (
+                  <h2
+                    className="text-xl font-bold text-center mb-1"
+                    style={{ color: COLORS.deepNavy }}
+                  >
+                    {title}
+                  </h2>
+                );
+              })()}
               <p
                 className="text-xs text-center mb-4"
                 style={{ color: COLORS.warmGray }}
@@ -535,63 +552,50 @@ export default function StoreScanPage() {
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-3 mb-5">
+              {result.eventStamp && (
                 <div
-                  className="rounded-xl p-3"
+                  className="rounded-xl p-4 mb-5"
                   style={{ background: 'rgba(0, 0, 0, 0.03)' }}
                 >
-                  <div
-                    className="text-xs mb-1"
-                    style={{ color: COLORS.warmGray }}
-                  >
-                    {t('storeScan.progress_label')}
-                  </div>
-                  <div
-                    className="text-2xl font-bold"
-                    style={{ color: COLORS.deepNavy }}
-                  >
-                    {result.windowStoreCount}
+                  <div className="flex items-baseline justify-between mb-1">
                     <span
-                      className="text-sm ml-1"
-                      style={{ color: COLORS.warmGray }}
+                      className="text-xs font-semibold truncate pr-2"
+                      style={{ color: COLORS.champagneGold }}
                     >
-                      / {result.lotteryThreshold}
+                      🎫 {result.eventStamp.eventTitle}
+                    </span>
+                    <span
+                      className="text-2xl font-bold tabular-nums shrink-0"
+                      style={{ color: COLORS.deepNavy }}
+                    >
+                      {Math.min(result.eventStamp.stampCount, result.eventStamp.stampGoal)}
+                      <span className="text-sm ml-0.5" style={{ color: COLORS.warmGray }}>
+                        / {result.eventStamp.stampGoal}
+                      </span>
                     </span>
                   </div>
-                </div>
-                <div
-                  className="rounded-xl p-3 flex items-center"
-                  style={{ background: 'rgba(0, 0, 0, 0.03)' }}
-                >
-                  <div className="flex items-start gap-2">
-                    {result.hasLotteryEntry ? (
-                      <Ticket className="w-5 h-5 mt-0.5" style={{ color: '#3E8E6B' }} />
-                    ) : result.canEnterLottery ? (
-                      <Ticket className="w-5 h-5 mt-0.5" style={{ color: COLORS.champagneGold }} />
-                    ) : (
-                      <Clock className="w-5 h-5 mt-0.5" style={{ color: COLORS.warmGray }} />
-                    )}
-                    <div
-                      className="text-xs font-semibold leading-tight"
-                      style={{ color: COLORS.charcoal }}
-                    >
-                      {result.hasLotteryEntry
-                        ? t('storeScan.lottery_entered')
-                        : result.canEnterLottery
-                        ? t('storeScan.lottery_ready')
-                        : t('storeScan.more_stores').replace(
-                            '{n}',
-                            String(
-                              Math.max(
-                                0,
-                                result.lotteryThreshold - result.windowStoreCount
-                              )
-                            )
-                          )}
+                  {result.eventStamp.goalReached ? (
+                    <div className="flex items-start gap-2 mt-2">
+                      <Ticket className="w-5 h-5 mt-0.5 shrink-0" style={{ color: COLORS.champagneGold }} />
+                      <div className="text-xs font-semibold leading-tight" style={{ color: COLORS.charcoal }}>
+                        コンプリート — 特典をお渡しください
+                        {result.eventStamp.rewardText?.trim() && (
+                          <span className="block font-bold mt-0.5" style={{ color: COLORS.deepNavy }}>
+                            {result.eventStamp.rewardText.trim()}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="flex items-center gap-2 mt-1">
+                      <Clock className="w-4 h-4" style={{ color: COLORS.warmGray }} />
+                      <span className="text-xs font-semibold" style={{ color: COLORS.charcoal }}>
+                        あと{Math.max(0, result.eventStamp.stampGoal - result.eventStamp.stampCount)}店舗でコンプリート
+                      </span>
+                    </div>
+                  )}
                 </div>
-              </div>
+              )}
 
               <div className="flex gap-2">
                 <Button

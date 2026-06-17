@@ -36,6 +36,9 @@ type FormState = {
   image_url: string;
   external_url: string;
   status: PlatformEventStatus;
+  stamp_enabled: boolean;
+  stamp_goal: string;
+  stamp_reward_text: string;
 };
 
 const emptyForm: FormState = {
@@ -48,6 +51,9 @@ const emptyForm: FormState = {
   image_url: '',
   external_url: '',
   status: 'draft',
+  stamp_enabled: true,
+  stamp_goal: '3',
+  stamp_reward_text: '',
 };
 
 function toDateInputValue(iso: string | null): string {
@@ -157,6 +163,9 @@ export default function PlatformEventsPage() {
       image_url: event.image_url ?? '',
       external_url: event.external_url ?? '',
       status: event.status,
+      stamp_enabled: event.stamp_enabled ?? true,
+      stamp_goal: String(event.stamp_goal ?? 3),
+      stamp_reward_text: event.stamp_reward_text ?? '',
     });
     setFormOpen(true);
   };
@@ -410,6 +419,44 @@ export default function PlatformEventsPage() {
           <div className="grid grid-cols-2 gap-2">
             <Input type="date" value={form.start_at} onChange={(e) => setForm((prev) => ({ ...prev, start_at: e.target.value }))} />
             <Input type="date" value={form.end_at} onChange={(e) => setForm((prev) => ({ ...prev, end_at: e.target.value }))} />
+          </div>
+          {/* スタンプラリー設定（回遊×特典） */}
+          <div className="rounded-lg border p-3 space-y-2" style={{ borderColor: '#d6c19a', background: '#fffaf0' }}>
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-bold" style={{ color: '#13294b' }}>
+                🎫 スタンプラリー
+              </span>
+              <label className="inline-flex items-center gap-1.5 text-xs font-semibold cursor-pointer" style={{ color: '#13294b' }}>
+                <input
+                  type="checkbox"
+                  checked={form.stamp_enabled}
+                  onChange={(e) => setForm((prev) => ({ ...prev, stamp_enabled: e.target.checked }))}
+                />
+                有効にする
+              </label>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold whitespace-nowrap" style={{ color: '#7a6b50' }}>ゴール店舗数</span>
+              <Input
+                type="number"
+                min={1}
+                max={20}
+                value={form.stamp_goal}
+                disabled={!form.stamp_enabled}
+                onChange={(e) => setForm((prev) => ({ ...prev, stamp_goal: e.target.value }))}
+                className="w-24"
+              />
+            </div>
+            <Input
+              placeholder="コンプリート特典（例: ドリンク1杯無料）"
+              value={form.stamp_reward_text}
+              disabled={!form.stamp_enabled}
+              maxLength={200}
+              onChange={(e) => setForm((prev) => ({ ...prev, stamp_reward_text: e.target.value }))}
+            />
+            <p className="text-[11px] leading-relaxed" style={{ color: '#7a6b50' }}>
+              参加店を {form.stamp_goal || '—'} 店チェックインでコンプリート → 特典をアンロック（来店QR／会員証QRで記録）。
+            </p>
           </div>
           <div className="space-y-2">
             {form.image_url ? (

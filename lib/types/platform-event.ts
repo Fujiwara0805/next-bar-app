@@ -11,6 +11,9 @@ export type PlatformEvent = {
   image_url: string | null;
   external_url: string | null;
   status: PlatformEventStatus;
+  stamp_enabled: boolean;
+  stamp_goal: number;
+  stamp_reward_text: string | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;

@@ -38,22 +38,27 @@ type Stage =
   | 'success'
   | 'error';
 
+type EventStampProgress = {
+  eventId: string;
+  eventTitle: string;
+  stampCount: number;
+  stampGoal: number;
+  goalReached: boolean;
+  isNewStamp: boolean;
+  isNewlyCompleted: boolean;
+  rewardText: string | null;
+  rewardClaimedAt: string | null;
+};
+
 type CheckInResult = {
   storeId: string;
   storeName: string;
   userId: string;
   userDisplayName: string;
-  isNewStamp: boolean;
-  windowStoreCount: number;
-  lotteryThreshold: number;
-  lotteryMax: number;
-  canEnterLottery: boolean;
-  hasLotteryEntry: boolean;
-  visitDate: string;
-  windowHours: number;
   source: string;
   distanceM: number;
   thresholdM: number;
+  eventStamp: EventStampProgress | null;
 };
 
 type ErrorPayload = {
@@ -308,14 +313,26 @@ function StoreCheckinInner() {
                 <CheckCircle2 className="w-8 h-8" style={{ color: '#3E8E6B' }} />
               </motion.div>
 
-              <h2
-                className="text-xl font-bold text-center mb-1"
-                style={{ color: COLORS.deepNavy }}
-              >
-                {result.isNewStamp
+              {(() => {
+                const es = result.eventStamp;
+                const title = !es
+                  ? '来店を記録しました'
+                  : es.isNewlyCompleted
+                  ? 'コンプリート！特典GET 🎉'
+                  : es.goalReached
+                  ? '特典を獲得済みです'
+                  : es.isNewStamp
                   ? 'スタンプを獲得しました'
-                  : '本日チェックイン済みです (12時間以内)'}
-              </h2>
+                  : '本日チェックイン済みです';
+                return (
+                  <h2
+                    className="text-xl font-bold text-center mb-1"
+                    style={{ color: COLORS.deepNavy }}
+                  >
+                    {title}
+                  </h2>
+                );
+              })()}
               <p
                 className="text-xs text-center mb-4"
                 style={{ color: 'rgba(19, 41, 75, 0.6)' }}
@@ -344,67 +361,83 @@ function StoreCheckinInner() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3 mb-5">
-                <div
-                  className="rounded-xl p-3"
-                  style={{ background: 'rgba(0, 0, 0, 0.03)' }}
-                >
+              {result.eventStamp && (
+                <div className="mb-5">
                   <div
-                    className="text-xs mb-1"
-                    style={{ color: 'rgba(19, 41, 75, 0.6)' }}
+                    className="rounded-xl p-4"
+                    style={{ background: 'rgba(0, 0, 0, 0.03)' }}
                   >
-                    スタンプ進捗
-                  </div>
-                  <div
-                    className="text-2xl font-bold"
-                    style={{ color: COLORS.deepNavy }}
-                  >
-                    {result.windowStoreCount}
-                    <span
-                      className="text-sm ml-1"
-                      style={{ color: 'rgba(19, 41, 75, 0.6)' }}
-                    >
-                      / {result.lotteryThreshold}
-                    </span>
-                  </div>
-                </div>
-                <div
-                  className="rounded-xl p-3 flex items-center"
-                  style={{ background: 'rgba(0, 0, 0, 0.03)' }}
-                >
-                  <div className="flex items-start gap-2">
-                    {result.hasLotteryEntry ? (
-                      <Ticket
-                        className="w-5 h-5 mt-0.5"
-                        style={{ color: '#3E8E6B' }}
-                      />
-                    ) : result.canEnterLottery ? (
-                      <Ticket
-                        className="w-5 h-5 mt-0.5"
+                    <div className="flex items-baseline justify-between mb-2">
+                      <div
+                        className="text-xs font-semibold truncate pr-2"
                         style={{ color: COLORS.champagneGold }}
-                      />
-                    ) : (
-                      <Clock
-                        className="w-5 h-5 mt-0.5"
-                        style={{ color: 'rgba(19, 41, 75, 0.6)' }}
-                      />
-                    )}
-                    <div
-                      className="text-xs font-semibold leading-tight"
-                      style={{ color: COLORS.charcoal }}
-                    >
-                      {result.hasLotteryEntry
-                        ? '本日応募済み'
-                        : result.canEnterLottery
-                        ? '抽選応募可能'
-                        : `あと${Math.max(
-                            0,
-                            result.lotteryThreshold - result.windowStoreCount
-                          )}店舗で応募可能`}
+                      >
+                        🎫 {result.eventStamp.eventTitle}
+                      </div>
+                      <div
+                        className="text-2xl font-bold tabular-nums shrink-0"
+                        style={{ color: COLORS.deepNavy }}
+                      >
+                        {Math.min(result.eventStamp.stampCount, result.eventStamp.stampGoal)}
+                        <span
+                          className="text-sm ml-0.5"
+                          style={{ color: 'rgba(19, 41, 75, 0.6)' }}
+                        >
+                          / {result.eventStamp.stampGoal}
+                        </span>
+                      </div>
+                    </div>
+                    {/* スタンプドット */}
+                    <div className="flex flex-wrap gap-1.5 mb-1">
+                      {Array.from({ length: result.eventStamp.stampGoal }).map((_, i) => {
+                        const filled = i < result.eventStamp!.stampCount;
+                        return (
+                          <div
+                            key={i}
+                            className="w-6 h-6 rounded-full flex items-center justify-center"
+                            style={{
+                              background: filled ? COLORS.champagneGold : 'rgba(0,0,0,0.06)',
+                              color: filled ? COLORS.deepNavy : 'transparent',
+                            }}
+                          >
+                            <CheckCircle2 className="w-4 h-4" />
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
+
+                  {result.eventStamp.goalReached ? (
+                    <div
+                      className="mt-3 rounded-xl p-4"
+                      style={{
+                        background: `${COLORS.champagneGold}1f`,
+                        border: `1px solid ${COLORS.champagneGold}66`,
+                      }}
+                    >
+                      <div className="flex items-center gap-2 mb-1">
+                        <Ticket className="w-5 h-5" style={{ color: COLORS.champagneGold }} />
+                        <span className="text-sm font-bold" style={{ color: COLORS.deepNavy }}>
+                          特典をGET
+                        </span>
+                      </div>
+                      <p className="text-sm font-semibold" style={{ color: COLORS.deepNavy }}>
+                        {result.eventStamp.rewardText?.trim() || 'コンプリート特典をお受け取りいただけます'}
+                      </p>
+                      <p className="text-[11px] mt-1.5" style={{ color: 'rgba(19, 41, 75, 0.6)' }}>
+                        この画面をお店のスタッフにお見せください。
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="mt-2 flex items-center gap-1.5 justify-center">
+                      <Clock className="w-3.5 h-3.5" style={{ color: 'rgba(19, 41, 75, 0.6)' }} />
+                      <span className="text-xs font-semibold" style={{ color: COLORS.charcoal }}>
+                        あと{Math.max(0, result.eventStamp.stampGoal - result.eventStamp.stampCount)}店舗でコンプリート
+                      </span>
+                    </div>
+                  )}
                 </div>
-              </div>
+              )}
 
               <Button
                 onClick={handleClose}

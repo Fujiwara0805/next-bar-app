@@ -17,9 +17,9 @@ import { createClient } from '@supabase/supabase-js';
 import { verifyLineIdToken } from '@/lib/line/verify-id-token';
 import { haversineMeters, effectiveGeofenceThreshold } from '@/lib/geo/distance';
 import {
-  snapshotPreInsertWindow,
-  aggregatePostInsert,
-} from '@/lib/check-in/aggregate';
+  snapshotEventStampPre,
+  finalizeEventStamp,
+} from '@/lib/check-in/event-stamp';
 import type { Database } from '@/lib/supabase/types';
 
 export const dynamic = 'force-dynamic';
@@ -199,11 +199,11 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // INSERT 前のスタンプ状態をスナップショット
+  // INSERT 前にイベントスタンプの状態をスナップショット（対象イベントが無ければ null）
   const now = new Date();
-  const pre = await snapshotPreInsertWindow(admin, customer.id, store.id, now);
+  const stampPre = await snapshotEventStampPre(admin, customer.id, store.id, now);
 
-  // INSERT (重複は 23505 で許容: 既存窓内に同店スタンプ済み)
+  // INSERT (重複は 23505 で許容: 同日同店は既チェックイン)
   const { error: insertErr } = await admin.from('store_check_ins').insert({
     user_id: customer.id,
     store_id: store.id,
@@ -221,14 +221,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'insert_failed' }, { status: 500 });
   }
 
-  // 集計
-  const aggregate = await aggregatePostInsert(
-    admin,
-    customer.id,
-    pre.cutoffIso,
-    pre.wasAlreadyStamped,
-    now
-  );
+  // イベントスタンプ集計（ゴール到達なら特典アンロックを記録）
+  const eventStamp = stampPre
+    ? await finalizeEventStamp(admin, customer.id, stampPre, now)
+    : null;
 
   const userDisplayName =
     customer.line_display_name || customer.display_name || 'ゲスト';
@@ -241,6 +237,6 @@ export async function POST(request: NextRequest) {
     source: 'store_qr',
     distanceM: Math.round(distanceM),
     thresholdM: Math.round(threshold),
-    ...aggregate,
+    eventStamp,
   });
 }

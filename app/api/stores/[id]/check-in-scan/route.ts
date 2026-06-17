@@ -13,9 +13,9 @@ import {
   verifyCustomerCheckInToken,
 } from '@/lib/qr/signature';
 import {
-  snapshotPreInsertWindow,
-  aggregatePostInsert,
-} from '@/lib/check-in/aggregate';
+  snapshotEventStampPre,
+  finalizeEventStamp,
+} from '@/lib/check-in/event-stamp';
 import { CUSTOMER_IDENTITY_SELECT } from '@/lib/customer-identity';
 import type { Database } from '@/lib/supabase/types';
 import type { ProfileAttrs, StoreCustomerMemo } from '@/lib/types/store-customer';
@@ -110,7 +110,7 @@ export async function POST(
   }
 
   const now = new Date();
-  const pre = await snapshotPreInsertWindow(admin, customer.id, store.id, now);
+  const stampPre = await snapshotEventStampPre(admin, customer.id, store.id, now);
 
   const { error: insertErr } = await admin.from('store_check_ins').insert({
     user_id: customer.id,
@@ -124,13 +124,9 @@ export async function POST(
     return NextResponse.json({ error: 'insert_failed' }, { status: 500 });
   }
 
-  const aggregate = await aggregatePostInsert(
-    admin,
-    customer.id,
-    pre.cutoffIso,
-    pre.wasAlreadyStamped,
-    now
-  );
+  const eventStamp = stampPre
+    ? await finalizeEventStamp(admin, customer.id, stampPre, now)
+    : null;
 
   const userDisplayName =
     customer.line_display_name || customer.display_name || 'ゲスト';
@@ -170,6 +166,6 @@ export async function POST(
       attributes: (customer.profile_attributes ?? {}) as ProfileAttrs,
       memo: memoErr ? null : ((memoRow ?? null) as StoreCustomerMemo | null),
     },
-    ...aggregate,
+    eventStamp,
   });
 }

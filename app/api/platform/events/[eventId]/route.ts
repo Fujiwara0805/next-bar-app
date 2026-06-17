@@ -18,7 +18,18 @@ type EventPayload = {
   image_url?: unknown;
   external_url?: unknown;
   status?: unknown;
+  stamp_enabled?: unknown;
+  stamp_goal?: unknown;
+  stamp_reward_text?: unknown;
 };
+
+/** スタンプゴール: 1〜20 の整数にクランプ（不正値は既定3） */
+function parseStampGoal(value: unknown): number {
+  const n =
+    typeof value === 'number' ? value : typeof value === 'string' ? Number(value) : NaN;
+  if (!Number.isFinite(n)) return 3;
+  return Math.min(20, Math.max(1, Math.round(n)));
+}
 
 const STATUSES: PlatformEventStatus[] = ['draft', 'published', 'archived'];
 
@@ -69,6 +80,9 @@ function parsePayload(raw: EventPayload) {
     image_url: nullableString(raw.image_url, 1000),
     external_url: nullableString(raw.external_url, 1000),
     status,
+    stamp_enabled: raw.stamp_enabled === false ? false : true,
+    stamp_goal: parseStampGoal(raw.stamp_goal),
+    stamp_reward_text: nullableString(raw.stamp_reward_text, 200),
   };
 }
 
