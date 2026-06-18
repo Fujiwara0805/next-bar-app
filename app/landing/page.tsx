@@ -130,10 +130,13 @@ export default function LandingPage() {
     border: 'rgba(19, 41, 75, 0.10)',
   } as const;
   /** Hero（暗いカバー写真）の上に乗せる文字＝白を維持 */
+  // Hero テキストはメインカラー（Brewer Navy）。明るいイラスト上の可読性は白ハロー影で確保。
   const heroInk = {
-    text: '#FFFFFF',
-    textMuted: 'rgba(255, 255, 255, 0.90)',
-    textSubtle: 'rgba(255, 255, 255, 0.72)',
+    text: '#13294b',
+    textMuted: 'rgba(19, 41, 75, 0.86)',
+    textSubtle: 'rgba(19, 41, 75, 0.68)',
+    shadowLg: '0 2px 16px rgba(255, 255, 255, 0.9)',
+    shadow: '0 1px 10px rgba(255, 255, 255, 0.85)',
   } as const;
   const lpElevated = {
     bg: LP_CARD.bg,
@@ -204,7 +207,7 @@ export default function LandingPage() {
 
   // Hero背景画像（Cloudinary最適化: f_auto,q_auto）
   const heroImage =
-    'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1781483273/Hero_nd2fnb.png';
+    'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1781778978/ChatGPT_Image_2026%E5%B9%B46%E6%9C%8818%E6%97%A5_14_55_01_or6gya.png';
 
   useEffect(() => {
     const root = document.documentElement;
@@ -575,8 +578,24 @@ export default function LandingPage() {
           />
         </motion.div>
 
-        {/* オーバーレイは廃止し、ヒーロー画像をクリーンに表示。
-            テキスト可読性は各テキストの textShadow のみで担保する。 */}
+        {/* 可読性オーバーレイ（明るいイラスト上で Navy テキストを持ち上げる）。
+            PC=左側を強めた横グラデ／モバイル=下側を強めた縦グラデ。イラストの右側・上側は素のまま残す。 */}
+        <div
+          className="absolute inset-0 z-[5] hidden lg:block pointer-events-none"
+          style={{
+            background:
+              'linear-gradient(90deg, rgba(247,243,233,0.95) 0%, rgba(247,243,233,0.82) 26%, rgba(247,243,233,0.38) 48%, rgba(247,243,233,0) 64%)',
+          }}
+          aria-hidden
+        />
+        <div
+          className="absolute inset-0 z-[5] lg:hidden pointer-events-none"
+          style={{
+            background:
+              'linear-gradient(180deg, rgba(247,243,233,0.12) 0%, rgba(247,243,233,0.45) 40%, rgba(247,243,233,0.78) 70%, rgba(247,243,233,0.92) 100%)',
+          }}
+          aria-hidden
+        />
 
         <div className="relative z-10 h-full grid grid-cols-1 lg:grid-cols-[minmax(0,44%)_minmax(0,56%)]">
           {/* Left Column - PC only: Service description */}
@@ -606,7 +625,7 @@ export default function LandingPage() {
               >
                 <span
                   className="inline-block text-[10px] tracking-[0.32em] uppercase font-semibold mb-6"
-                  style={{ color: LP_YELLOW, textShadow: '0 1px 6px rgba(0,0,0,0.55)' }}
+                  style={{ color: heroInk.text, textShadow: heroInk.shadow }}
                 >
                   Local Dining Map
                 </span>
@@ -616,14 +635,14 @@ export default function LandingPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.25 }}
               >
-                <h1 className="text-2xl xl:text-[2.4rem] leading-[1.25] font-bold mb-7 tracking-tight" style={{ color: heroInk.text, textShadow: '0 2px 18px rgba(0,0,0,0.6)' }}>
+                <h1 className="text-2xl xl:text-[2.4rem] leading-[1.25] font-bold mb-7 tracking-tight" style={{ color: heroInk.text, textShadow: heroInk.shadowLg }}>
                   {t('landing.hero_pc_title').split('\n').map((line, i) => (
                     <span key={i} className="block">
                       {line}
                     </span>
                   ))}
                 </h1>
-                <p className="text-base xl:text-lg leading-[1.85] mb-10" style={{ color: heroInk.textMuted, textShadow: '0 1px 10px rgba(0,0,0,0.55)' }}>
+                <p className="text-base xl:text-lg leading-[1.85] mb-10" style={{ color: heroInk.textMuted, textShadow: heroInk.shadow }}>
                   {renderWithLineBreaks(t('landing.hero_pc_description'))}
                 </p>
               </motion.div>
@@ -652,7 +671,7 @@ export default function LandingPage() {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.55 }}
                 className="text-xs tracking-wider mt-6 lg:text-sm"
-                style={{ color: heroInk.textSubtle, textShadow: '0 1px 8px rgba(0,0,0,0.5)' }}
+                style={{ color: heroInk.textSubtle, textShadow: heroInk.shadow }}
               >
                 {t('landing.hero_subcopy')}
               </motion.p>
@@ -683,12 +702,12 @@ export default function LandingPage() {
             >
               <span
                 className="inline-block text-[10px] tracking-[0.3em] uppercase font-semibold mb-4"
-                style={{ color: LP_YELLOW, textShadow: '0 1px 6px rgba(0,0,0,0.6)' }}
+                style={{ color: heroInk.text, textShadow: heroInk.shadow }}
               >
                 Local Dining Map
               </span>
               <h1 className="text-xl sm:text-2xl md:text-4xl font-bold mb-4 leading-tight tracking-tight">
-                <span style={{ color: '#FFFFFF', textShadow: '0 2px 18px rgba(0,0,0,0.65)' }}>
+                <span style={{ color: heroInk.text, textShadow: heroInk.shadowLg }}>
                   {t('landing.hero_catchphrase').split('\n').map((line, i) => (
                     <span key={i} className="block">
                       {line}
@@ -699,7 +718,7 @@ export default function LandingPage() {
               {/* サービス説明（PCの説明文をモバイルでも表示） */}
               <p
                 className="text-sm sm:text-base leading-relaxed mb-6 px-2"
-                style={{ color: 'rgba(255,255,255,0.95)', textShadow: '0 1px 10px rgba(0,0,0,0.6)' }}
+                style={{ color: heroInk.textMuted, textShadow: heroInk.shadow }}
               >
                 {renderWithLineBreaks(t('landing.hero_pc_description'))}
               </p>
@@ -717,7 +736,7 @@ export default function LandingPage() {
                 {/* 副CTA: LINE友だち追加（LINEカラー・転換装置・source=hero） */}
                 <LineFriendCta source="hero" variant="compact" className="mt-3" />
               </div>
-              <p className="text-xs sm:text-sm tracking-wider mb-3 lg:text-base" style={{ color: 'rgba(255,255,255,0.92)', textShadow: '0 1px 8px rgba(0,0,0,0.55)' }}>
+              <p className="text-xs sm:text-sm tracking-wider mb-3 lg:text-base" style={{ color: heroInk.textSubtle, textShadow: heroInk.shadow }}>
                 {t('landing.hero_subcopy')}
               </p>
             </motion.div>
