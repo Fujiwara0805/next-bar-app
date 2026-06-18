@@ -1,7 +1,7 @@
 {
   "name": "にけんめぷらす",
   "short_name": "にけんめぷらす",
-  "description": "大分のバー・カフェの空席情報マップ",
+  "description": "“今いける”お店が見つかる、街の回遊コミュニティマップ＋空席通知。大分発・全国へ拡大中。",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
