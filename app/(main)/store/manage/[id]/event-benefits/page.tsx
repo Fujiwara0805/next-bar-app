@@ -70,6 +70,12 @@ export default function StoreEventBenefitsPage() {
   >({});
   const [historyLoading, setHistoryLoading] = useState<string | null>(null);
 
+  // 紙クーポン使用報告
+  type PaperReport = { distributed_count: number; redeemed_count: number; reported_at: string | null };
+  const [paperByEvent, setPaperByEvent] = useState<Record<string, PaperReport>>({});
+  const [paperDraft, setPaperDraft] = useState<Record<string, { distributed: string; redeemed: string }>>({});
+  const [paperSaving, setPaperSaving] = useState<string | null>(null);
+
   useEffect(() => {
     const root = document.documentElement;
     const body = document.body;
@@ -132,6 +138,90 @@ export default function StoreEventBenefitsPage() {
     if (!user || !storeId || !accountType) return;
     fetchEvents();
   }, [user, storeId, accountType, fetchEvents]);
+
+  // 参加イベントの紙クーポン報告を取得
+  useEffect(() => {
+    const token = session?.access_token;
+    if (!token || !storeId || events.length === 0) return;
+    let cancelled = false;
+    (async () => {
+      const entries = await Promise.all(
+        events.map(async (event) => {
+          try {
+            const res = await fetch(
+              `/api/stores/${storeId}/events/${event.id}/paper-coupons`,
+              { cache: 'no-store', headers: { Authorization: `Bearer ${token}` } }
+            );
+            if (!res.ok) return null;
+            const json = await res.json();
+            return json.report ? ([event.id, json.report as PaperReport] as const) : null;
+          } catch {
+            return null;
+          }
+        })
+      );
+      if (cancelled) return;
+      const map: Record<string, PaperReport> = {};
+      const drafts: Record<string, { distributed: string; redeemed: string }> = {};
+      entries.forEach((e) => {
+        if (!e) return;
+        map[e[0]] = e[1];
+        drafts[e[0]] = {
+          distributed: String(e[1].distributed_count ?? 0),
+          redeemed: String(e[1].redeemed_count ?? 0),
+        };
+      });
+      setPaperByEvent(map);
+      setPaperDraft((prev) => ({ ...drafts, ...prev }));
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [events, storeId, session?.access_token]);
+
+  const savePaperReport = useCallback(
+    async (eventId: string) => {
+      if (!storeId) return;
+      const token = session?.access_token;
+      if (!token) return;
+      const draft = paperDraft[eventId] ?? { distributed: '0', redeemed: '0' };
+      setPaperSaving(eventId);
+      try {
+        const res = await fetch(
+          `/api/stores/${storeId}/events/${eventId}/paper-coupons`,
+          {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              distributed_count: Number(draft.distributed) || 0,
+              redeemed_count: Number(draft.redeemed) || 0,
+            }),
+          }
+        );
+        const json = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(json?.error ?? `save_failed:${res.status}`);
+        const report = json.report as PaperReport;
+        setPaperByEvent((prev) => ({ ...prev, [eventId]: report }));
+        setPaperDraft((prev) => ({
+          ...prev,
+          [eventId]: {
+            distributed: String(report.distributed_count),
+            redeemed: String(report.redeemed_count),
+          },
+        }));
+        toast.success('紙クーポンの使用枚数を報告しました', { position: 'top-center', duration: 1800 });
+      } catch (error) {
+        console.error('[event-benefits] paper report error', error);
+        toast.error('報告に失敗しました', { position: 'top-center' });
+      } finally {
+        setPaperSaving(null);
+      }
+    },
+    [storeId, session?.access_token, paperDraft]
+  );
 
   const fetchHistory = useCallback(
     async (eventId: string) => {
@@ -317,6 +407,9 @@ export default function StoreEventBenefitsPage() {
             const recording = recordingEventId === event.id;
             const expanded = expandedEventId === event.id;
             const history = historiesByEvent[event.id] ?? [];
+            const paper = paperByEvent[event.id];
+            const pDraft = paperDraft[event.id] ?? { distributed: '', redeemed: '' };
+            const savingPaper = paperSaving === event.id;
             return (
               <motion.div
                 key={event.id}
@@ -378,6 +471,80 @@ export default function StoreEventBenefitsPage() {
                       <p className="text-sm font-bold" style={{ color: COLORS.deepNavy }}>
                         {formatDateTime(lastAt)}
                       </p>
+                    </div>
+                  </div>
+
+                  {/* 紙クーポン使用報告（イベント終了時に運営へ報告） */}
+                  <div
+                    className="rounded-xl p-3 mb-3"
+                    style={{
+                      background: 'rgba(19, 41, 75, 0.03)',
+                      border: '1px solid rgba(19, 41, 75, 0.10)',
+                    }}
+                  >
+                    <p className="text-[11px] font-bold mb-2 inline-flex items-center gap-1" style={{ color: COLORS.warmGray }}>
+                      <Gift className="w-3 h-3" /> 紙クーポン使用報告
+                    </p>
+                    <div className="grid grid-cols-2 gap-2 mb-2">
+                      <label className="block">
+                        <span className="text-[10px] font-bold" style={{ color: COLORS.warmGray }}>配布枚数</span>
+                        <input
+                          type="number"
+                          min={0}
+                          inputMode="numeric"
+                          value={pDraft.distributed}
+                          onChange={(e) =>
+                            setPaperDraft((prev) => ({
+                              ...prev,
+                              [event.id]: { distributed: e.target.value, redeemed: prev[event.id]?.redeemed ?? '' },
+                            }))
+                          }
+                          placeholder="0"
+                          className="mt-1 w-full px-3 py-2 rounded-lg text-sm font-bold outline-none"
+                          style={{ background: '#FFFFFF', border: '1px solid #DCE1EB', color: COLORS.deepNavy }}
+                        />
+                      </label>
+                      <label className="block">
+                        <span className="text-[10px] font-bold" style={{ color: COLORS.warmGray }}>使用枚数</span>
+                        <input
+                          type="number"
+                          min={0}
+                          inputMode="numeric"
+                          value={pDraft.redeemed}
+                          onChange={(e) =>
+                            setPaperDraft((prev) => ({
+                              ...prev,
+                              [event.id]: { distributed: prev[event.id]?.distributed ?? '', redeemed: e.target.value },
+                            }))
+                          }
+                          placeholder="0"
+                          className="mt-1 w-full px-3 py-2 rounded-lg text-sm font-bold outline-none"
+                          style={{ background: '#FFFFFF', border: '1px solid #DCE1EB', color: COLORS.deepNavy }}
+                        />
+                      </label>
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[10px]" style={{ color: COLORS.warmGray }}>
+                        {paper?.reported_at ? `報告済 ${formatDateTime(paper.reported_at)}` : '未報告'}
+                      </span>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        disabled={savingPaper}
+                        onClick={() => savePaperReport(event.id)}
+                        className="text-xs font-bold"
+                        style={{ borderColor: '#13294b', color: '#13294b' }}
+                      >
+                        {savingPaper ? (
+                          <>
+                            <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                            報告中…
+                          </>
+                        ) : (
+                          '使用枚数を報告'
+                        )}
+                      </Button>
                     </div>
                   </div>
 

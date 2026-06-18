@@ -57,7 +57,7 @@ export default function ProfileEditPage() {
       toast.error(t('profileEdit.display_name_required'), {
         position: 'top-center',
         duration: 2000,
-        className: 'bg-gray-100'
+        className: 'bg-muted'
       });
       return;
     }
@@ -77,7 +77,7 @@ export default function ProfileEditPage() {
           description: t('profileEdit.confirmation_email_sent_desc'),
           position: 'top-center',
           duration: 1000,
-          className: 'bg-gray-100'
+          className: 'bg-muted'
         });
       }
 
@@ -98,7 +98,7 @@ export default function ProfileEditPage() {
       toast.success(t('profileEdit.profile_updated'), {
         position: 'top-center',
         duration: 1000,
-        className: 'bg-gray-100'
+        className: 'bg-muted'
       });
 
       router.push('/profile');
@@ -108,7 +108,7 @@ export default function ProfileEditPage() {
         description: error instanceof Error ? error.message : t('profileEdit.unknown_error'),
         position: 'top-center',
         duration: 3000,
-        className: 'bg-gray-100'
+        className: 'bg-muted'
       });
     } finally {
       setLoading(false);

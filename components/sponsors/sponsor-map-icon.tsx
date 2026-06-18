@@ -60,7 +60,7 @@ export function SponsorMapIcon() {
           />
         ) : (
           <div
-            className="rounded-xl shadow-lg bg-gradient-to-br from-[#ffc82c] to-[#B87333] flex items-center justify-center text-white font-bold text-xs"
+            className="rounded-xl shadow-lg bg-gradient-to-br from-[#ffc82c] to-[#B87333] flex items-center justify-center text-[#13294b] font-bold text-xs"
             style={{ width: size, height: size }}
           >
             {icon.company_name.charAt(0)}
@@ -101,7 +101,7 @@ export function SponsorMapIcon() {
                   </div>
                 )}
 
-                <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 text-[7px] font-bold bg-black/60 text-white px-1 py-px rounded">
+                <span className="font-en absolute -bottom-1 left-1/2 -translate-x-1/2 text-[7px] font-bold tracking-[0.06em] bg-[#13294b]/70 text-[#F7F3E9] px-1 py-px rounded">
                   AD
                 </span>
               </div>

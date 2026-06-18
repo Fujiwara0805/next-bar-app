@@ -21,6 +21,7 @@ type EventPayload = {
   stamp_enabled?: unknown;
   stamp_goal?: unknown;
   stamp_reward_text?: unknown;
+  cost_total?: unknown;
 };
 
 /** スタンプゴール: 1〜20 の整数にクランプ（不正値は既定3） */
@@ -29,6 +30,14 @@ function parseStampGoal(value: unknown): number {
     typeof value === 'number' ? value : typeof value === 'string' ? Number(value) : NaN;
   if (!Number.isFinite(n)) return 3;
   return Math.min(20, Math.max(1, Math.round(n)));
+}
+
+/** イベント費用: 0以上の整数（円）。未入力/不正は null */
+function parseCost(value: unknown): number | null {
+  if (value === null || value === undefined || value === '') return null;
+  const n = typeof value === 'number' ? value : typeof value === 'string' ? Number(value) : NaN;
+  if (!Number.isFinite(n) || n < 0) return null;
+  return Math.round(n);
 }
 
 const STATUSES: PlatformEventStatus[] = ['draft', 'published', 'archived'];
@@ -83,6 +92,7 @@ function parsePayload(raw: EventPayload) {
     stamp_enabled: raw.stamp_enabled === false ? false : true,
     stamp_goal: parseStampGoal(raw.stamp_goal),
     stamp_reward_text: nullableString(raw.stamp_reward_text, 200),
+    cost_total: parseCost(raw.cost_total),
   };
 }
 

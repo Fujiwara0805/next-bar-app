@@ -522,7 +522,7 @@ export function SponsorAdSlotsTab({ sponsorId }: Props) {
                                   >
                                     <div className="flex items-center gap-3 min-w-0">
                                       {displayImage ? (
-                                        <div className="w-10 h-10 rounded-lg bg-gray-200 overflow-hidden shrink-0">
+                                        <div className="w-10 h-10 rounded-lg bg-muted overflow-hidden shrink-0">
                                           <img src={displayImage} alt="" className="w-full h-full object-cover" />
                                         </div>
                                       ) : (
@@ -592,7 +592,7 @@ export function SponsorAdSlotsTab({ sponsorId }: Props) {
         <div className="flex gap-2 pt-4">
           <button
             onClick={() => setContractDeleteOpen(false)}
-            className="flex-1 py-2.5 rounded-lg text-sm font-medium border border-gray-200 text-gray-600 hover:bg-gray-50"
+            className="flex-1 py-2.5 rounded-lg text-sm font-medium border border-border text-muted-foreground hover:bg-muted"
           >
             戻る
           </button>
@@ -610,11 +610,11 @@ export function SponsorAdSlotsTab({ sponsorId }: Props) {
       <CustomModal isOpen={slotFormOpen} onClose={() => setSlotFormOpen(false)} size="lg">
         <div className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1">枠タイプ</label>
+            <label className="block text-xs font-semibold text-muted-foreground mb-1">枠タイプ</label>
             <select
               value={slotType}
               onChange={(e) => setSlotType(e.target.value as SlotType)}
-              className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-brass-500"
+              className="w-full px-3 py-2 rounded-lg border border-border text-sm text-foreground focus:outline-none focus:border-brass-500"
             >
               {(Object.keys(SLOT_TYPE_LABELS) as SlotType[]).map((k) => (
                 <option key={k} value={k}>{SLOT_TYPE_LABELS[k]}</option>
@@ -622,7 +622,7 @@ export function SponsorAdSlotsTab({ sponsorId }: Props) {
             </select>
           </div>
           <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1">優先度 (1-100)</label>
+            <label className="block text-xs font-semibold text-muted-foreground mb-1">優先度 (1-100)</label>
             <input
               type="text"
               inputMode="numeric"
@@ -631,11 +631,11 @@ export function SponsorAdSlotsTab({ sponsorId }: Props) {
                 const v = e.target.value.replace(/[^0-9]/g, '');
                 setSlotPriority(v === '' ? 1 : Math.min(100, Number(v)));
               }}
-              className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-brass-500"
+              className="w-full px-3 py-2 rounded-lg border border-border text-sm text-foreground focus:outline-none focus:border-brass-500"
             />
           </div>
           <div className="flex gap-2 pt-2">
-            <button onClick={() => setSlotFormOpen(false)} className="flex-1 py-2.5 rounded-lg text-sm font-medium border border-gray-200 text-gray-600 hover:bg-gray-50">
+            <button onClick={() => setSlotFormOpen(false)} className="flex-1 py-2.5 rounded-lg text-sm font-medium border border-border text-muted-foreground hover:bg-muted">
               キャンセル
             </button>
             <button onClick={handleCreateSlot} disabled={saving} className="flex-1 py-2.5 rounded-lg text-sm font-semibold disabled:opacity-50" style={{ background: C.accent, color: C.accentForeground }}>
@@ -655,13 +655,13 @@ export function SponsorAdSlotsTab({ sponsorId }: Props) {
           {/* Image upload (not for cta_button) */}
           {creativeSlotType !== 'cta_button' && (
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1">{guide.label}</label>
-              <p className="text-xs text-gray-400 mb-2">{guide.hint}</p>
+              <label className="block text-xs font-semibold text-muted-foreground mb-1">{guide.label}</label>
+              <p className="text-xs text-muted-foreground mb-2">{guide.hint}</p>
 
               {form.imageUrl ? (
                 <div className="relative">
                   <div
-                    className="rounded-xl overflow-hidden border border-gray-200"
+                    className="rounded-xl overflow-hidden border border-border"
                     style={{
                       aspectRatio: creativeSlotType === 'campaign_banner' ? '3/1' : '1/1',
                       maxHeight: creativeSlotType === 'campaign_banner' ? '160px' : '240px',
@@ -693,8 +693,8 @@ export function SponsorAdSlotsTab({ sponsorId }: Props) {
                   ) : (
                     <>
                       <Upload className="w-8 h-8 mb-2 text-brass-500" />
-                      <span className="text-xs font-bold text-gray-400">画像をアップロード</span>
-                      <span className="text-xs text-gray-300 mt-1">JPEG, PNG, WebP（10MB以下）</span>
+                      <span className="text-xs font-bold text-muted-foreground">画像をアップロード</span>
+                      <span className="text-xs text-muted-foreground mt-1">JPEG, PNG, WebP（10MB以下）</span>
                     </>
                   )}
                 </label>
@@ -713,12 +713,12 @@ export function SponsorAdSlotsTab({ sponsorId }: Props) {
 
           {/* CTA settings (all types) */}
           <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1">遷移先URL</label>
+            <label className="block text-xs font-semibold text-muted-foreground mb-1">遷移先URL</label>
             <input
               type="url"
               value={form.ctaUrl}
               onChange={(e) => setForm(prev => ({ ...prev, ctaUrl: e.target.value }))}
-              className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-brass-500"
+              className="w-full px-3 py-2 rounded-lg border border-border text-sm text-foreground focus:outline-none focus:border-brass-500"
               placeholder="https://..."
             />
           </div>
@@ -727,7 +727,7 @@ export function SponsorAdSlotsTab({ sponsorId }: Props) {
           {(creativeSlotType === 'cta_button' || creativeSlotType === 'modal') && (
             <>
               <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">
+                <label className="block text-xs font-semibold text-muted-foreground mb-1">
                   CTAテキスト {creativeSlotType === 'cta_button' && <span className="text-destructive">*</span>}
                 </label>
                 <div className="relative">
@@ -740,27 +740,27 @@ export function SponsorAdSlotsTab({ sponsorId }: Props) {
                       }
                     }}
                     maxLength={CTA_TEXT_MAX_LENGTH}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-brass-500"
+                    className="w-full px-3 py-2 rounded-lg border border-border text-sm text-foreground focus:outline-none focus:border-brass-500"
                     placeholder="詳しくはこちら"
                   />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
                     {form.ctaText.length}/{CTA_TEXT_MAX_LENGTH}
                   </span>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1">ボタン背景色</label>
+                  <label className="block text-xs font-semibold text-muted-foreground mb-1">ボタン背景色</label>
                   <div className="flex items-center gap-2">
-                    <input type="color" value={form.ctaColor} onChange={(e) => setForm(prev => ({ ...prev, ctaColor: e.target.value }))} className="w-9 h-9 rounded-lg border border-gray-200 cursor-pointer" />
-                    <input type="text" value={form.ctaColor} onChange={(e) => setForm(prev => ({ ...prev, ctaColor: e.target.value }))} className="flex-1 px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-brass-500" />
+                    <input type="color" value={form.ctaColor} onChange={(e) => setForm(prev => ({ ...prev, ctaColor: e.target.value }))} className="w-9 h-9 rounded-lg border border-border cursor-pointer" />
+                    <input type="text" value={form.ctaColor} onChange={(e) => setForm(prev => ({ ...prev, ctaColor: e.target.value }))} className="flex-1 px-3 py-2 rounded-lg border border-border text-sm text-foreground focus:outline-none focus:border-brass-500" />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1">テキスト色</label>
+                  <label className="block text-xs font-semibold text-muted-foreground mb-1">テキスト色</label>
                   <div className="flex items-center gap-2">
-                    <input type="color" value={form.ctaTextColor} onChange={(e) => setForm(prev => ({ ...prev, ctaTextColor: e.target.value }))} className="w-9 h-9 rounded-lg border border-gray-200 cursor-pointer" />
-                    <input type="text" value={form.ctaTextColor} onChange={(e) => setForm(prev => ({ ...prev, ctaTextColor: e.target.value }))} className="flex-1 px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-brass-500" />
+                    <input type="color" value={form.ctaTextColor} onChange={(e) => setForm(prev => ({ ...prev, ctaTextColor: e.target.value }))} className="w-9 h-9 rounded-lg border border-border cursor-pointer" />
+                    <input type="text" value={form.ctaTextColor} onChange={(e) => setForm(prev => ({ ...prev, ctaTextColor: e.target.value }))} className="flex-1 px-3 py-2 rounded-lg border border-border text-sm text-foreground focus:outline-none focus:border-brass-500" />
                   </div>
                 </div>
               </div>
@@ -770,15 +770,15 @@ export function SponsorAdSlotsTab({ sponsorId }: Props) {
           {/* Modal-specific: display config */}
           {creativeSlotType === 'modal' && (
             <div className="space-y-3 pt-2">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">表示設定</p>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">表示設定</p>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1">アニメーション</label>
+                  <label className="block text-xs font-semibold text-muted-foreground mb-1">アニメーション</label>
                   <select
                     value={form.animation}
                     onChange={(e) => setForm(prev => ({ ...prev, animation: e.target.value as CreativeFormState['animation'] }))}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-brass-500"
+                    className="w-full px-3 py-2 rounded-lg border border-border text-sm text-foreground focus:outline-none focus:border-brass-500"
                   >
                     {ANIMATION_OPTIONS.map((opt) => (
                       <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -786,27 +786,27 @@ export function SponsorAdSlotsTab({ sponsorId }: Props) {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1">表示回数上限/セッション</label>
+                  <label className="block text-xs font-semibold text-muted-foreground mb-1">表示回数上限/セッション</label>
                   <input
                     type="number"
                     min={1}
                     max={10}
                     value={form.frequencyCapPerSession}
                     onChange={(e) => setForm(prev => ({ ...prev, frequencyCapPerSession: Math.max(1, Math.min(10, Number(e.target.value))) }))}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-brass-500"
+                    className="w-full px-3 py-2 rounded-lg border border-border text-sm text-foreground focus:outline-none focus:border-brass-500"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1">自動閉じ（秒）</label>
+                  <label className="block text-xs font-semibold text-muted-foreground mb-1">自動閉じ（秒）</label>
                   <input
                     type="text"
                     inputMode="numeric"
                     value={form.autoCloseSeconds}
                     onChange={(e) => setForm(prev => ({ ...prev, autoCloseSeconds: e.target.value.replace(/[^0-9]/g, '') }))}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-brass-500"
+                    className="w-full px-3 py-2 rounded-lg border border-border text-sm text-foreground focus:outline-none focus:border-brass-500"
                     placeholder="空欄=自動閉じなし"
                   />
                 </div>
@@ -818,7 +818,7 @@ export function SponsorAdSlotsTab({ sponsorId }: Props) {
                       onChange={(e) => setForm(prev => ({ ...prev, showCloseButton: e.target.checked }))}
                       className="w-4 h-4 rounded border-border accent-brass-500"
                     />
-                    <span className="text-xs font-semibold text-gray-600">閉じるボタン表示</span>
+                    <span className="text-xs font-semibold text-muted-foreground">閉じるボタン表示</span>
                   </label>
                 </div>
               </div>
@@ -828,37 +828,37 @@ export function SponsorAdSlotsTab({ sponsorId }: Props) {
           {/* Map icon specific: position & size */}
           {creativeSlotType === 'map_icon' && (
             <div className="space-y-3 pt-2">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">アイコン位置・サイズ</p>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">アイコン位置・サイズ</p>
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1">上 (px)</label>
+                  <label className="block text-xs font-semibold text-muted-foreground mb-1">上 (px)</label>
                   <input
                     type="text"
                     inputMode="numeric"
                     value={form.iconPositionTop}
                     onChange={(e) => setForm(prev => ({ ...prev, iconPositionTop: e.target.value.replace(/[^0-9]/g, '') }))}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-brass-500"
+                    className="w-full px-3 py-2 rounded-lg border border-border text-sm text-foreground focus:outline-none focus:border-brass-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1">左 (px)</label>
+                  <label className="block text-xs font-semibold text-muted-foreground mb-1">左 (px)</label>
                   <input
                     type="text"
                     inputMode="numeric"
                     value={form.iconPositionLeft}
                     onChange={(e) => setForm(prev => ({ ...prev, iconPositionLeft: e.target.value.replace(/[^0-9]/g, '') }))}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-brass-500"
+                    className="w-full px-3 py-2 rounded-lg border border-border text-sm text-foreground focus:outline-none focus:border-brass-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1">サイズ (px)</label>
+                  <label className="block text-xs font-semibold text-muted-foreground mb-1">サイズ (px)</label>
                   <input
                     type="number"
                     min={24}
                     max={96}
                     value={form.iconSize}
                     onChange={(e) => setForm(prev => ({ ...prev, iconSize: Math.max(24, Math.min(96, Number(e.target.value))) }))}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-brass-500"
+                    className="w-full px-3 py-2 rounded-lg border border-border text-sm text-foreground focus:outline-none focus:border-brass-500"
                   />
                 </div>
               </div>
@@ -887,7 +887,7 @@ export function SponsorAdSlotsTab({ sponsorId }: Props) {
                   className="overflow-hidden"
                 >
                   <div className="rounded-xl p-4 bg-brewer-950" style={{ border: '1px solid rgba(201,168,108,0.2)' }}>
-                    <p className="text-[10px] text-gray-500 mb-2 text-center">実際の表示イメージ</p>
+                    <p className="text-[10px] text-muted-foreground mb-2 text-center">実際の表示イメージ</p>
                     <CreativePreview form={form} slotType={creativeSlotType} />
                   </div>
                 </motion.div>
@@ -899,7 +899,7 @@ export function SponsorAdSlotsTab({ sponsorId }: Props) {
           <div className="flex gap-2 pt-2">
             <button
               onClick={() => setCreativeFormOpen(false)}
-              className="flex-1 py-2.5 rounded-lg text-sm font-medium border border-gray-200 text-gray-600 hover:bg-gray-50"
+              className="flex-1 py-2.5 rounded-lg text-sm font-medium border border-border text-muted-foreground hover:bg-muted"
             >
               キャンセル
             </button>
@@ -950,7 +950,7 @@ function CreativePreview({ form, slotType }: { form: CreativeFormState; slotType
     return (
       <div className="flex justify-center py-3">
         <div className="relative">
-          <span className="absolute -top-2 -left-1 text-[8px] font-medium bg-white/90 text-gray-600 px-1 py-0.5 rounded-full">PR</span>
+          <span className="absolute -top-2 -left-1 text-[8px] font-medium bg-white/90 text-muted-foreground px-1 py-0.5 rounded-full">PR</span>
           <span className="px-5 py-3 rounded-full text-sm font-bold shadow-lg inline-flex items-center gap-2" style={{ backgroundColor: form.ctaColor, color: form.ctaTextColor }}>
             {form.imageUrl && <img src={form.imageUrl} alt="" className="w-5 h-5 rounded-full object-cover" />}
             {form.ctaText || 'ボタンテキスト'}
@@ -963,7 +963,7 @@ function CreativePreview({ form, slotType }: { form: CreativeFormState; slotType
   if (slotType === 'map_icon') {
     return (
       <div className="relative bg-brewer-800 rounded-lg" style={{ height: 160 }}>
-        <p className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[10px] text-gray-500">マップ領域</p>
+        <p className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[10px] text-muted-foreground">マップ領域</p>
         <div
           className="absolute"
           style={{ top: `${Math.min(parseInt(form.iconPositionTop) || 16, 120)}px`, left: `${Math.min(parseInt(form.iconPositionLeft) || 16, 200)}px` }}
@@ -971,8 +971,8 @@ function CreativePreview({ form, slotType }: { form: CreativeFormState; slotType
           {form.imageUrl ? (
             <img src={form.imageUrl} alt="" className="rounded-lg object-cover shadow-md" style={{ width: form.iconSize, height: form.iconSize }} />
           ) : (
-            <div className="rounded-lg bg-gray-600 flex items-center justify-center" style={{ width: form.iconSize, height: form.iconSize }}>
-              <ImageIcon className="w-4 h-4 text-gray-400" />
+            <div className="rounded-lg bg-muted flex items-center justify-center" style={{ width: form.iconSize, height: form.iconSize }}>
+              <ImageIcon className="w-4 h-4 text-muted-foreground" />
             </div>
           )}
           <span className="absolute -top-1 -right-1 text-[7px] bg-warning text-warning-foreground px-1 rounded">AD</span>

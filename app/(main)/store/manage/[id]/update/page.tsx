@@ -299,7 +299,7 @@ export default function StoreUpdatePage() {
       toast.error('予約データの取得に失敗しました', { 
         position: 'top-center',
         duration: 3000,
-        className: 'bg-gray-100'
+        className: 'bg-muted'
       });
     } finally {
       setLoadingReservations(false);
@@ -485,7 +485,7 @@ export default function StoreUpdatePage() {
       toast.error('エラーが発生しました', { 
         position: 'top-center',
         duration: 3000,
-        className: 'bg-gray-100'
+        className: 'bg-muted'
       });
       return;
     }
@@ -498,7 +498,7 @@ export default function StoreUpdatePage() {
         toast.error('セッションが切れています', {
           position: 'top-center',
           duration: 3000,
-          className: 'bg-gray-100'
+          className: 'bg-muted'
         });
         return;
       }
@@ -560,7 +560,7 @@ export default function StoreUpdatePage() {
       toast.success(successMessage, { 
         position: 'top-center',
         duration: 2000,
-        className: 'bg-gray-100'
+        className: 'bg-muted'
       });
       
       // 状態を更新
@@ -580,7 +580,7 @@ export default function StoreUpdatePage() {
       toast.error('更新に失敗しました', { 
         position: 'top-center',
         duration: 3000,
-        className: 'bg-gray-100'
+        className: 'bg-muted'
       });
     } finally {
       setLoading(false);
@@ -615,7 +615,7 @@ export default function StoreUpdatePage() {
       toast.success('予約カードを削除しました', {
         position: 'top-center',
         duration: 2000,
-        className: 'bg-gray-100'
+        className: 'bg-muted'
       });
     } catch (error) {
       console.error('Error deleting reservation:', error);
@@ -726,14 +726,14 @@ export default function StoreUpdatePage() {
       toast.success('CSVファイルを出力しました', {
         position: 'top-center',
         duration: 2000,
-        className: 'bg-gray-100'
+        className: 'bg-muted'
       });
     } catch (error) {
       console.error('Error exporting CSV:', error);
       toast.error('CSV出力に失敗しました', {
         position: 'top-center',
         duration: 3000,
-        className: 'bg-gray-100'
+        className: 'bg-muted'
       });
     }
   };
@@ -746,7 +746,7 @@ export default function StoreUpdatePage() {
       toast.error('ログアウトに失敗しました', {
         position: 'top-center',
         duration: 3000,
-        className: 'bg-gray-100'
+        className: 'bg-muted'
       });
     }
   };

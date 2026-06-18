@@ -58,7 +58,7 @@ export function InstantReservationButton({
     if (!guestName.trim()) {
       toast.error(t('reservation.error_name_required'), {
         position: 'top-center',
-        className: 'bg-gray-100'
+        className: 'bg-muted'
       });
       return;
     }
@@ -66,7 +66,7 @@ export function InstantReservationButton({
     if (!guestPhone.trim()) {
       toast.error(t('reservation.error_phone_required'), {
         position: 'top-center',
-        className: 'bg-gray-100'
+        className: 'bg-muted'
       });
       return;
     }
@@ -77,7 +77,7 @@ export function InstantReservationButton({
       toast.error(t('reservation.error_phone_invalid'), {
         description: t('reservation.error_phone_example'),
         position: 'top-center',
-        className: 'bg-gray-100'
+        className: 'bg-muted'
       });
       return;
     }
@@ -128,7 +128,7 @@ export function InstantReservationButton({
         description: t('reservation.success_description'),
         duration: 5000,
         position: 'top-center',
-        className: 'bg-gray-100'
+        className: 'bg-muted'
       });
 
       // ステータストラッカーを表示
@@ -139,7 +139,7 @@ export function InstantReservationButton({
       toast.error(t('reservation.error_failed'), {
         description: error instanceof Error ? error.message : t('common.unknown_error'),
         position: 'top-center',
-        className: 'bg-gray-100'
+        className: 'bg-muted'
       });
       setRequesting(false);
     }

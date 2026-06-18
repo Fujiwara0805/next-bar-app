@@ -90,7 +90,7 @@ export function ArrivalToggleButton({ reservation, onUpdate }: ArrivalToggleButt
         {
           position: 'top-center',
           duration: 2000,
-          className: 'bg-gray-100',
+          className: 'bg-muted',
         }
       );
     } catch (error) {
@@ -102,7 +102,7 @@ export function ArrivalToggleButton({ reservation, onUpdate }: ArrivalToggleButt
       toast.error('更新に失敗しました', {
         position: 'top-center',
         duration: 3000,
-        className: 'bg-gray-100',
+        className: 'bg-muted',
       });
     } finally {
       setIsUpdating(false);

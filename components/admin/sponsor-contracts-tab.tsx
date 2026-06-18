@@ -296,11 +296,11 @@ export function SponsorContractsTab({ sponsorId }: Props) {
       >
         <div className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1">プランタイプ</label>
+            <label className="block text-xs font-semibold text-muted-foreground mb-1">プランタイプ</label>
             <select
               value={planType}
               onChange={(e) => setPlanType(e.target.value as PlanType)}
-              className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-brass-500"
+              className="w-full px-3 py-2 rounded-lg border border-border text-sm text-foreground focus:outline-none focus:border-brass-500"
             >
               {(Object.keys(PLAN_LABELS) as PlanType[]).map((k) => (
                 <option key={k} value={k}>{PLAN_LABELS[k]}</option>
@@ -309,27 +309,27 @@ export function SponsorContractsTab({ sponsorId }: Props) {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1">開始日</label>
+              <label className="block text-xs font-semibold text-muted-foreground mb-1">開始日</label>
               <input
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-brass-500"
+                className="w-full px-3 py-2 rounded-lg border border-border text-sm text-foreground focus:outline-none focus:border-brass-500"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1">終了日</label>
+              <label className="block text-xs font-semibold text-muted-foreground mb-1">終了日</label>
               <input
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
                 disabled={planType !== 'custom'}
-                className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-brass-500 disabled:opacity-60"
+                className="w-full px-3 py-2 rounded-lg border border-border text-sm text-foreground focus:outline-none focus:border-brass-500 disabled:opacity-60"
               />
             </div>
           </div>
           <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1">金額（円）</label>
+            <label className="block text-xs font-semibold text-muted-foreground mb-1">金額（円）</label>
             <input
               type="text"
               inputMode="numeric"
@@ -338,22 +338,22 @@ export function SponsorContractsTab({ sponsorId }: Props) {
                 const v = e.target.value.replace(/[^0-9]/g, '');
                 setAmount(v === '' ? 0 : Number(v));
               }}
-              className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-brass-500"
+              className="w-full px-3 py-2 rounded-lg border border-border text-sm text-foreground focus:outline-none focus:border-brass-500"
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1">備考</label>
+            <label className="block text-xs font-semibold text-muted-foreground mb-1">備考</label>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-brass-500 resize-none"
+              className="w-full px-3 py-2 rounded-lg border border-border text-sm text-foreground focus:outline-none focus:border-brass-500 resize-none"
               rows={2}
             />
           </div>
           <div className="flex gap-2 pt-2">
             <button
               onClick={() => setCreateOpen(false)}
-              className="flex-1 py-2.5 rounded-lg text-sm font-medium border border-gray-200 text-gray-600 hover:bg-gray-50"
+              className="flex-1 py-2.5 rounded-lg text-sm font-medium border border-border text-muted-foreground hover:bg-muted"
             >
               キャンセル
             </button>
@@ -384,11 +384,11 @@ export function SponsorContractsTab({ sponsorId }: Props) {
             </div>
           )}
           <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1">プランタイプ</label>
+            <label className="block text-xs font-semibold text-muted-foreground mb-1">プランタイプ</label>
             <select
               value={renewPlanType}
               onChange={(e) => setRenewPlanType(e.target.value as PlanType)}
-              className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-brass-500"
+              className="w-full px-3 py-2 rounded-lg border border-border text-sm text-foreground focus:outline-none focus:border-brass-500"
             >
               {(Object.keys(PLAN_LABELS) as PlanType[]).map((k) => (
                 <option key={k} value={k}>{PLAN_LABELS[k]}</option>
@@ -397,29 +397,29 @@ export function SponsorContractsTab({ sponsorId }: Props) {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1">開始日</label>
+              <label className="block text-xs font-semibold text-muted-foreground mb-1">開始日</label>
               <input
                 type="date"
                 value={renewStartDate}
                 onChange={(e) => setRenewStartDate(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-brass-500"
+                className="w-full px-3 py-2 rounded-lg border border-border text-sm text-foreground focus:outline-none focus:border-brass-500"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1">終了日</label>
+              <label className="block text-xs font-semibold text-muted-foreground mb-1">終了日</label>
               <input
                 type="date"
                 value={renewEndDate}
                 onChange={(e) => setRenewEndDate(e.target.value)}
                 disabled={renewPlanType !== 'custom'}
-                className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-brass-500 disabled:opacity-60"
+                className="w-full px-3 py-2 rounded-lg border border-border text-sm text-foreground focus:outline-none focus:border-brass-500 disabled:opacity-60"
               />
             </div>
           </div>
           <div className="flex gap-2 pt-2">
             <button
               onClick={() => setRenewOpen(false)}
-              className="flex-1 py-2.5 rounded-lg text-sm font-medium border border-gray-200 text-gray-600 hover:bg-gray-50"
+              className="flex-1 py-2.5 rounded-lg text-sm font-medium border border-border text-muted-foreground hover:bg-muted"
             >
               キャンセル
             </button>
@@ -445,7 +445,7 @@ export function SponsorContractsTab({ sponsorId }: Props) {
         <div className="flex gap-2 pt-4">
           <button
             onClick={() => setCancelOpen(false)}
-            className="flex-1 py-2.5 rounded-lg text-sm font-medium border border-gray-200 text-gray-600 hover:bg-gray-50"
+            className="flex-1 py-2.5 rounded-lg text-sm font-medium border border-border text-muted-foreground hover:bg-muted"
           >
             戻る
           </button>
@@ -469,7 +469,7 @@ export function SponsorContractsTab({ sponsorId }: Props) {
         <div className="flex gap-2 pt-4">
           <button
             onClick={() => setDeleteOpen(false)}
-            className="flex-1 py-2.5 rounded-lg text-sm font-medium border border-gray-200 text-gray-600 hover:bg-gray-50"
+            className="flex-1 py-2.5 rounded-lg text-sm font-medium border border-border text-muted-foreground hover:bg-muted"
           >
             戻る
           </button>

@@ -205,6 +205,7 @@ export type Database = {
       platform_events: {
         Row: {
           area_label: string | null
+          cost_total: number | null
           created_at: string
           created_by: string | null
           description: string | null
@@ -223,6 +224,7 @@ export type Database = {
         }
         Insert: {
           area_label?: string | null
+          cost_total?: number | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -241,6 +243,7 @@ export type Database = {
         }
         Update: {
           area_label?: string | null
+          cost_total?: number | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -1018,6 +1021,60 @@ export type Database = {
           },
           {
             foreignKeyName: "store_event_benefit_redemptions_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      store_event_paper_coupons: {
+        Row: {
+          created_at: string
+          distributed_count: number
+          event_id: string
+          id: string
+          notes: string | null
+          redeemed_count: number
+          reported_at: string | null
+          store_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          distributed_count?: number
+          event_id: string
+          id?: string
+          notes?: string | null
+          redeemed_count?: number
+          reported_at?: string | null
+          store_id: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          distributed_count?: number
+          event_id?: string
+          id?: string
+          notes?: string | null
+          redeemed_count?: number
+          reported_at?: string | null
+          store_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_event_paper_coupons_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "platform_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_event_paper_coupons_store_id_fkey"
             columns: ["store_id"]
             isOneToOne: false
             referencedRelation: "stores"

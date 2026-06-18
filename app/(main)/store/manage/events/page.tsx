@@ -1,8 +1,10 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import {
+  BarChart3,
   CalendarDays,
   CheckCircle2,
   Edit,
@@ -39,6 +41,7 @@ type FormState = {
   stamp_enabled: boolean;
   stamp_goal: string;
   stamp_reward_text: string;
+  cost_total: string;
 };
 
 const emptyForm: FormState = {
@@ -54,6 +57,7 @@ const emptyForm: FormState = {
   stamp_enabled: true,
   stamp_goal: '3',
   stamp_reward_text: '',
+  cost_total: '',
 };
 
 function toDateInputValue(iso: string | null): string {
@@ -87,6 +91,7 @@ function statusBadge(status: PlatformEventStatus) {
 
 export default function PlatformEventsPage() {
   const { colors: C } = useAdminTheme();
+  const router = useRouter();
   const { session, loading: authLoading } = useAuth();
   const accessToken = session?.access_token;
   const [events, setEvents] = useState<PlatformEvent[]>([]);
@@ -166,6 +171,7 @@ export default function PlatformEventsPage() {
       stamp_enabled: event.stamp_enabled ?? true,
       stamp_goal: String(event.stamp_goal ?? 3),
       stamp_reward_text: event.stamp_reward_text ?? '',
+      cost_total: event.cost_total != null ? String(event.cost_total) : '',
     });
     setFormOpen(true);
   };
@@ -309,9 +315,18 @@ export default function PlatformEventsPage() {
     {
       key: 'actions',
       header: '',
-      width: '100px',
+      width: '136px',
       render: (event) => (
         <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+          <button
+            type="button"
+            title="費用対効果"
+            onClick={() => router.push(`/store/manage/events/${event.id}/roi`)}
+            className="p-1.5 rounded-md"
+            style={{ color: C.info }}
+          >
+            <BarChart3 className="w-4 h-4" />
+          </button>
           <button
             type="button"
             onClick={() => openEdit(event)}
@@ -399,6 +414,17 @@ export default function PlatformEventsPage() {
                   </div>
                   <AdminStatusBadge label={badge.label} variant={badge.variant} dot />
                 </div>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    router.push(`/store/manage/events/${event.id}/roi`);
+                  }}
+                  className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold"
+                  style={{ color: C.info }}
+                >
+                  <BarChart3 className="w-3.5 h-3.5" /> 費用対効果を見る
+                </button>
               </div>
             );
           }}
@@ -419,6 +445,21 @@ export default function PlatformEventsPage() {
           <div className="grid grid-cols-2 gap-2">
             <Input type="date" value={form.start_at} onChange={(e) => setForm((prev) => ({ ...prev, start_at: e.target.value }))} />
             <Input type="date" value={form.end_at} onChange={(e) => setForm((prev) => ({ ...prev, end_at: e.target.value }))} />
+          </div>
+          {/* 費用対効果（ROI）用のイベント総費用 */}
+          <div className="rounded-lg border p-3 space-y-1.5" style={{ borderColor: '#DCE1EB', background: '#F7F8FA' }}>
+            <span className="text-sm font-bold" style={{ color: '#13294b' }}>💰 イベント費用（円）</span>
+            <Input
+              type="number"
+              min={0}
+              inputMode="numeric"
+              placeholder="例: 150000"
+              value={form.cost_total}
+              onChange={(e) => setForm((prev) => ({ ...prev, cost_total: e.target.value }))}
+            />
+            <p className="text-[11px] leading-relaxed" style={{ color: '#7a6b50' }}>
+              チラシ・紙クーポン・広告などの総費用。費用対効果レポート（コスト/チェックイン・コスト/消込）の算出に使用します。
+            </p>
           </div>
           {/* スタンプラリー設定（回遊×特典） */}
           <div className="rounded-lg border p-3 space-y-2" style={{ borderColor: '#d6c19a', background: '#fffaf0' }}>

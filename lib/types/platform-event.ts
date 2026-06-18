@@ -14,6 +14,8 @@ export type PlatformEvent = {
   stamp_enabled: boolean;
   stamp_goal: number;
   stamp_reward_text: string | null;
+  /** イベント総費用（円・運営入力）。費用対効果(ROI)算出に使用 */
+  cost_total: number | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;

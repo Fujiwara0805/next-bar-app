@@ -17,23 +17,32 @@ export interface AdminKpiCardProps {
   badge?: string;
 }
 
-// Brewer Navy + Yellow ブランドカラー基調（DESIGN.md 準拠）
-// 白文字が読みやすいようにネイビー系を優先、アクセントは黄色い光沢で表現
-const KPI_GRADIENTS = {
-    gold: '#13294b',     // Navy flat
-    teal: '#13294b',     // Navy flat
-    blue: '#13294b',     // Navy flat
-    purple: '#13294b',   // Navy flat
-    amber: '#B87333',    // Copper flat
-    rose: '#B87333',     // Copper flat
+// freee 風: 白カード＋細罫の機能的ライト。アクセントはアイコンチップの色のみ。
+// gradient prop はアイコンチップのアクセント色として再解釈する（DESIGN.md 規律内: Navy/Copper/Brass/緑）。
+const KPI_ACCENTS = {
+    gold: '#13294b',     // Navy
+    teal: '#13294b',     // Navy
+    blue: '#3B5A87',     // Info navy
+    purple: '#13294b',   // Navy
+    amber: '#B87333',    // Copper
+    rose: '#B87333',     // Copper
     green: '#3E8E6B',
     slate: '#4D5567',
 } as const;
 
-export type KpiGradientKey = keyof typeof KPI_GRADIENTS;
+export type KpiGradientKey = keyof typeof KPI_ACCENTS;
 
 export function getKpiGradient(key: KpiGradientKey): string {
-  return KPI_GRADIENTS[key];
+  return KPI_ACCENTS[key];
+}
+
+/** hex を rgba 背景（薄塗り）へ */
+function tint(hex: string, alpha: number): string {
+  const h = hex.replace('#', '');
+  const r = parseInt(h.slice(0, 2), 16);
+  const g = parseInt(h.slice(2, 4), 16);
+  const b = parseInt(h.slice(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
 export function AdminKpiCard({
@@ -46,40 +55,46 @@ export function AdminKpiCard({
   index = 0,
   badge,
 }: AdminKpiCardProps) {
+  const { colors: C } = useAdminTheme();
+  const accent = gradient; // 再解釈: アクセント色
   const content = (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.06, duration: 0.4 }}
-      whileHover={{ scale: 1.02, y: -2 }}
-      whileTap={{ scale: 0.98 }}
-      className="relative rounded-2xl p-5 overflow-hidden cursor-pointer min-w-[180px]"
-      style={{ background: gradient }}
+      whileHover={{ y: -2 }}
+      whileTap={{ scale: 0.99 }}
+      className="relative rounded-xl p-5 overflow-hidden cursor-pointer min-w-[180px]"
+      style={{ background: C.bgCard, border: `1px solid ${C.border}` }}
     >
       <div className="relative z-10 flex flex-col gap-1">
         <div className="flex items-center justify-between">
-          <Icon className="w-5 h-5 text-white/80" />
+          <span
+            className="w-9 h-9 rounded-lg flex items-center justify-center"
+            style={{ background: tint(accent, 0.1) }}
+          >
+            <Icon style={{ color: accent, width: 18, height: 18 }} />
+          </span>
           {badge && (
-            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-white/20 text-white tracking-wide">
+            <span
+              className="font-en text-[10px] font-bold px-2 py-0.5 rounded-full tracking-[0.06em]"
+              style={{ background: '#ffc82c', color: '#13294b' }}
+            >
               {badge}
             </span>
           )}
         </div>
-        <span className="text-3xl font-bold text-white mt-2 tracking-tight">
+        <span className="text-3xl font-bold mt-3 tracking-tight" style={{ color: C.text }}>
           {value}
         </span>
-        <span className="text-sm text-white/80 font-medium">{label}</span>
+        <span className="text-sm font-medium" style={{ color: C.textMuted }}>{label}</span>
         {subLabel && (
-          <span className="text-xs text-white/60 mt-0.5">{subLabel}</span>
+          <span className="text-xs mt-0.5" style={{ color: C.textSubtle }}>{subLabel}</span>
         )}
       </div>
       {href && (
-        <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
+        <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: C.textSubtle }} />
       )}
-      <div
-        className="absolute top-0 right-0 w-24 h-24 rounded-full opacity-10"
-        style={{ background: 'white', transform: 'translate(30%, -30%)' }}
-      />
     </motion.div>
   );
 

@@ -333,24 +333,16 @@ export default function StoreManagePage() {
     <div className="min-h-screen" style={{ background: C.bg }}>
       <div className="max-w-6xl mx-auto px-4 md:px-8 py-8 space-y-8">
         {/* Header */}
-        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight" style={{ color: C.text }}>
-              ダッシュボード
-            </h1>
-            <p className="text-sm mt-1" style={{ color: C.textSubtle }}>
-              NIKENME+ 管理画面
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full" style={{ background: C.successBg, color: C.success }}>
-              <span className="relative flex h-1.5 w-1.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ backgroundColor: C.success }} />
-                <span className="relative inline-flex rounded-full h-1.5 w-1.5" style={{ backgroundColor: C.success }} />
-              </span>
-              システム稼働中
-            </span>
-          </div>
+        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}>
+          <span className="font-en block text-[12px] font-bold uppercase tracking-[0.1em]" style={{ color: C.textSubtle }}>
+            DASHBOARD
+          </span>
+          <h1 className="text-2xl font-bold tracking-tight" style={{ color: C.text }}>
+            ダッシュボード
+          </h1>
+          <p className="text-sm mt-1" style={{ color: C.textSubtle }}>
+            にけんめぷらす 運営管理
+          </p>
         </motion.div>
 
         {/* KPI Cards */}

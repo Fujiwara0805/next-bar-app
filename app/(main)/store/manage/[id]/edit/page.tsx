@@ -445,13 +445,13 @@ export default function StoreEditPage() {
           toast.success(`店舗情報を取得しました${ratingText}`, {
             position: 'top-center',
             duration: 2000,
-            className: 'bg-gray-100'
+            className: 'bg-muted'
           });
         } else {
           toast.error('店舗情報の取得に失敗しました', {
             position: 'top-center',
             duration: 3000,
-            className: 'bg-gray-100'
+            className: 'bg-muted'
           });
         }
       }
@@ -479,7 +479,7 @@ export default function StoreEditPage() {
       toast.error('住所を入力してください', { 
         position: 'top-center',
         duration: 3000,
-        className: 'bg-gray-100'
+        className: 'bg-muted'
       });
       return false;
     }
@@ -496,7 +496,7 @@ export default function StoreEditPage() {
         toast.success('位置情報を取得しました', {
           position: 'top-center',
           duration: 1000,
-          className: 'bg-gray-100'
+          className: 'bg-muted'
         });
         setGeocoding(false);
         return true;
@@ -509,7 +509,7 @@ export default function StoreEditPage() {
     toast.error('位置情報を取得できませんでした', {
       position: 'top-center',
       duration: 3000,
-      className: 'bg-gray-100'
+      className: 'bg-muted'
     });
     return false;
   };
@@ -538,7 +538,7 @@ export default function StoreEditPage() {
       toast.error('画像は最大5枚までアップロードできます', { 
         position: 'top-center',
         duration: 3000,
-        className: 'bg-gray-100'
+        className: 'bg-muted'
       });
       return;
     }
@@ -555,7 +555,7 @@ export default function StoreEditPage() {
           toast.error(`${file.name}は10MBを超えています`, { 
             position: 'top-center',
             duration: 3000,
-            className: 'bg-gray-100'
+            className: 'bg-muted'
           });
           continue;
         }
@@ -585,14 +585,14 @@ export default function StoreEditPage() {
       toast.success('画像をアップロードしました', { 
         position: 'top-center',
         duration: 1000,
-        className: 'bg-gray-100'
+        className: 'bg-muted'
       });
     } catch (error) {
       console.error('Error uploading image:', error);
       toast.error('画像のアップロードに失敗しました', { 
         position: 'top-center',
         duration: 3000,
-        className: 'bg-gray-100'
+        className: 'bg-muted'
       });
     } finally {
       setUploadingImage(false);
@@ -631,14 +631,14 @@ export default function StoreEditPage() {
       toast.success('画像を削除しました', { 
         position: 'top-center',
         duration: 1000,
-        className: 'bg-gray-100'
+        className: 'bg-muted'
       });
     } catch (error) {
       console.error('Error deleting image:', error);
       toast.error('画像の削除に失敗しました', { 
         position: 'top-center',
         duration: 3000,
-        className: 'bg-gray-100'
+        className: 'bg-muted'
       });
     } finally {
       setUploadingImage(false);
@@ -652,7 +652,7 @@ export default function StoreEditPage() {
       toast.error('エラーが発生しました', { 
         position: 'top-center',
         duration: 3000,
-        className: 'bg-gray-100'
+        className: 'bg-muted'
       });
       return;
     }
@@ -661,7 +661,7 @@ export default function StoreEditPage() {
       toast.error('店舗名を入力してください', { 
         position: 'top-center',
         duration: 3000,
-        className: 'bg-gray-100'
+        className: 'bg-muted'
       });
       return;
     }
@@ -670,7 +670,7 @@ export default function StoreEditPage() {
       toast.error('住所を入力してください', { 
         position: 'top-center',
         duration: 3000,
-        className: 'bg-gray-100'
+        className: 'bg-muted'
       });
       return;
     }
@@ -681,7 +681,7 @@ export default function StoreEditPage() {
         toast.error('位置情報を取得してください', { 
           position: 'top-center',
           duration: 3000,
-          className: 'bg-gray-100'
+          className: 'bg-muted'
         });
         return;
       }
@@ -743,7 +743,7 @@ export default function StoreEditPage() {
       toast.success('更新が完了しました', { 
         position: 'top-center',
         duration: 1000,
-        className: 'bg-gray-100'
+        className: 'bg-muted'
       });
       router.push(`/store/manage/${params.id}/update`);
     } catch (error) {
@@ -751,7 +751,7 @@ export default function StoreEditPage() {
       toast.error('更新に失敗しました', { 
         position: 'top-center',
         duration: 3000,
-        className: 'bg-gray-100'
+        className: 'bg-muted'
       });
     } finally {
       setLoading(false);

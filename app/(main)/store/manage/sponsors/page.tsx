@@ -403,7 +403,7 @@ export default function SponsorsPage() {
           <div className="flex gap-2 pt-2">
             <button
               onClick={() => setFormOpen(false)}
-              className="flex-1 py-2.5 rounded-lg text-sm font-medium border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
+              className="flex-1 py-2.5 rounded-lg text-sm font-medium border border-border text-muted-foreground hover:bg-muted transition-colors"
             >
               キャンセル
             </button>
@@ -421,7 +421,7 @@ export default function SponsorsPage() {
         <div className="flex gap-2 pt-4">
           <button
             onClick={() => setDeleteOpen(false)}
-            className="flex-1 py-2.5 rounded-lg text-sm font-medium border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
+            className="flex-1 py-2.5 rounded-lg text-sm font-medium border border-border text-muted-foreground hover:bg-muted transition-colors"
           >
             キャンセル
           </button>

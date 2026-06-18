@@ -1,0 +1,247 @@
+'use client';
+
+/**
+ * 運営: イベント費用対効果（ROI）ダッシュボード
+ * /store/manage/events/[eventId]/roi
+ * 紙クーポン・デジタル特典を横断し、費用入力に対する効率指標を可視化する。
+ */
+
+import { useCallback, useEffect, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
+import {
+  ArrowLeft, BarChart3, Loader2, Users, Footprints, Store as StoreIcon,
+  Ticket, Banknote,
+} from 'lucide-react';
+import { useAdminTheme } from '@/lib/admin-theme-context';
+import { useAuth } from '@/lib/auth/context';
+import { AdminKpiCard, AdminKpiGrid, getKpiGradient } from '@/components/admin/admin-kpi-card';
+import { AdminDataTable, type AdminColumn } from '@/components/admin/admin-data-table';
+
+type RoiMetrics = {
+  cost_total: number | null;
+  participating_stores: number;
+  check_ins_total: number;
+  unique_customers: number;
+  digital_redemptions: number;
+  stamp_rewards_claimed: number;
+  paper_distributed: number;
+  paper_redeemed: number;
+  paper_reported_stores: number;
+  total_redemptions: number;
+  cost_per_check_in: number | null;
+  cost_per_redemption: number | null;
+  paper_redemption_rate: number | null;
+};
+
+type PaperReport = {
+  store_id: string;
+  store_name: string;
+  distributed_count: number;
+  redeemed_count: number;
+  reported_at: string | null;
+};
+
+type RoiResponse = {
+  event: { id: string; title: string; cost_total: number | null; start_at: string | null; end_at: string | null };
+  metrics: RoiMetrics;
+  paper_reports: PaperReport[];
+};
+
+const yen = (n: number | null) => (n === null ? '—' : `¥${n.toLocaleString('ja-JP')}`);
+const pct = (n: number | null) => (n === null ? '—' : `${Math.round(n * 100)}%`);
+function fmtDate(iso: string | null) {
+  if (!iso) return '未設定';
+  const d = new Date(iso);
+  if (!Number.isFinite(d.getTime())) return '未設定';
+  return d.toLocaleDateString('ja-JP', { timeZone: 'Asia/Tokyo', month: '2-digit', day: '2-digit' });
+}
+
+export default function EventRoiPage() {
+  const { colors: C } = useAdminTheme();
+  const router = useRouter();
+  const params = useParams();
+  const eventId = params?.eventId as string;
+  const { session, loading: authLoading } = useAuth();
+  const accessToken = session?.access_token;
+
+  const [data, setData] = useState<RoiResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchRoi = useCallback(async () => {
+    if (!accessToken || !eventId) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/platform/events/${eventId}/roi`, {
+        cache: 'no-store',
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      if (!res.ok) throw new Error(`fetch_failed:${res.status}`);
+      setData(await res.json());
+    } catch (err) {
+      console.error('[roi] fetch error', err);
+      setError('費用対効果データの取得に失敗しました');
+    } finally {
+      setLoading(false);
+    }
+  }, [accessToken, eventId]);
+
+  useEffect(() => {
+    if (authLoading) return;
+    fetchRoi();
+  }, [authLoading, fetchRoi]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: C.bg }}>
+        <Loader2 className="w-8 h-8 animate-spin" style={{ color: C.accent }} />
+      </div>
+    );
+  }
+
+  const m = data?.metrics;
+  const paperColumns: AdminColumn<PaperReport>[] = [
+    {
+      key: 'store',
+      header: '店舗',
+      width: '2fr',
+      render: (r) => <span className="text-sm font-semibold" style={{ color: C.text }}>{r.store_name}</span>,
+    },
+    {
+      key: 'distributed',
+      header: '配布',
+      width: '1fr',
+      render: (r) => <span className="text-sm" style={{ color: C.textMuted }}>{r.distributed_count}</span>,
+    },
+    {
+      key: 'redeemed',
+      header: '使用',
+      width: '1fr',
+      render: (r) => <span className="text-sm font-bold" style={{ color: C.text }}>{r.redeemed_count}</span>,
+    },
+    {
+      key: 'rate',
+      header: '消込率',
+      width: '1fr',
+      render: (r) => (
+        <span className="text-sm" style={{ color: C.textMuted }}>
+          {r.distributed_count > 0 ? `${Math.round((r.redeemed_count / r.distributed_count) * 100)}%` : '—'}
+        </span>
+      ),
+    },
+    {
+      key: 'reported',
+      header: '報告',
+      width: '1fr',
+      render: (r) => (
+        <span className="text-xs" style={{ color: r.reported_at ? C.success : C.textSubtle }}>
+          {r.reported_at ? '報告済' : '未報告'}
+        </span>
+      ),
+    },
+  ];
+
+  return (
+    <div className="min-h-screen" style={{ background: C.bg }}>
+      <div className="max-w-6xl mx-auto px-6 md:px-8 py-8 space-y-6">
+        {/* Header */}
+        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}>
+          <button
+            type="button"
+            onClick={() => router.push('/store/manage/events')}
+            className="inline-flex items-center gap-1.5 text-sm font-medium mb-3"
+            style={{ color: C.textMuted }}
+          >
+            <ArrowLeft className="w-4 h-4" /> イベント管理へ戻る
+          </button>
+          <div className="flex items-center gap-2">
+            <BarChart3 className="w-5 h-5" style={{ color: C.accent }} />
+            <span className="font-en text-[12px] font-bold uppercase tracking-[0.1em]" style={{ color: C.textSubtle }}>
+              EVENT ROI
+            </span>
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight" style={{ color: C.text }}>
+            {data?.event.title ?? 'イベント'}
+          </h1>
+          <p className="text-sm mt-1" style={{ color: C.textSubtle }}>
+            費用対効果 ／ {fmtDate(data?.event.start_at ?? null)} - {fmtDate(data?.event.end_at ?? null)}
+          </p>
+        </motion.div>
+
+        {error && (
+          <div className="rounded-xl p-4 text-sm" style={{ background: C.dangerBg, color: C.danger, border: `1px solid ${C.border}` }}>
+            {error}
+          </div>
+        )}
+
+        {m && (
+          <>
+            {/* 主要KPI */}
+            <AdminKpiGrid>
+              <AdminKpiCard icon={Banknote} label="イベント費用" value={yen(m.cost_total)} gradient={getKpiGradient('gold')} index={0} />
+              <AdminKpiCard icon={Footprints} label="チェックイン" value={m.check_ins_total} subLabel={`ユニーク ${m.unique_customers}人`} gradient={getKpiGradient('blue')} index={1} />
+              <AdminKpiCard icon={Ticket} label="特典消込（合計）" value={m.total_redemptions} subLabel={`デジタル ${m.digital_redemptions} / 紙 ${m.paper_redeemed}`} gradient={getKpiGradient('amber')} index={2} />
+              <AdminKpiCard icon={StoreIcon} label="参加店舗" value={m.participating_stores} gradient={getKpiGradient('green')} index={3} />
+            </AdminKpiGrid>
+
+            {/* 効率指標 */}
+            <section>
+              <h2 className="text-sm font-bold tracking-wide mb-3" style={{ color: C.text }}>効率指標</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {[
+                  { label: 'コスト / チェックイン', value: yen(m.cost_per_check_in), hint: '1チェックインあたりの費用' },
+                  { label: 'コスト / 特典消込', value: yen(m.cost_per_redemption), hint: '1消込あたりの費用（紙＋デジタル）' },
+                  { label: '紙クーポン消込率', value: pct(m.paper_redemption_rate), hint: `使用 ${m.paper_redeemed} / 配布 ${m.paper_distributed}` },
+                ].map((item) => (
+                  <div key={item.label} className="rounded-xl p-4" style={{ background: C.bgCard, border: `1px solid ${C.border}` }}>
+                    <p className="text-xs font-medium" style={{ color: C.textSubtle }}>{item.label}</p>
+                    <p className="text-2xl font-bold mt-1.5 tracking-tight" style={{ color: C.text }}>{item.value}</p>
+                    <p className="text-[11px] mt-1" style={{ color: C.textSubtle }}>{item.hint}</p>
+                  </div>
+                ))}
+              </div>
+              {m.cost_total === null && (
+                <p className="text-xs mt-2" style={{ color: C.warning }}>
+                  ※ イベント費用が未入力のため、コスト系指標は算出できません。イベント編集で費用を入力してください。
+                </p>
+              )}
+            </section>
+
+            {/* 紙クーポン報告（店舗別内訳） */}
+            <section>
+              <div className="flex items-center gap-2 mb-3">
+                <h2 className="text-sm font-bold tracking-wide" style={{ color: C.text }}>紙クーポン報告（店舗別）</h2>
+                <span className="text-xs" style={{ color: C.textSubtle }}>
+                  {m.paper_reported_stores} / {m.participating_stores} 店が報告済
+                </span>
+              </div>
+              <AdminDataTable
+                columns={paperColumns}
+                data={data?.paper_reports ?? []}
+                keyExtractor={(r) => r.store_id}
+                emptyIcon={<Ticket className="w-12 h-12" style={{ color: C.textSubtle }} />}
+                emptyTitle="紙クーポンの報告がまだありません"
+                emptyDescription="加盟店が特典管理から使用枚数を報告すると、ここに集計されます"
+                mobileCardRender={(r) => (
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-semibold" style={{ color: C.text }}>{r.store_name}</p>
+                      <p className="text-xs mt-0.5" style={{ color: C.textSubtle }}>
+                        配布 {r.distributed_count} / 使用 {r.redeemed_count}
+                      </p>
+                    </div>
+                    <span className="text-xs font-bold" style={{ color: r.reported_at ? C.success : C.textSubtle }}>
+                      {r.reported_at ? '報告済' : '未報告'}
+                    </span>
+                  </div>
+                )}
+              />
+            </section>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
