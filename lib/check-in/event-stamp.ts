@@ -212,3 +212,64 @@ export async function finalizeEventStamp(
     rewardClaimedAt,
   };
 }
+
+/** 読み取り専用の進捗（チェックインを伴わない常設表示用） */
+export type EventStampReadProgress = {
+  eventId: string;
+  stampCount: number;
+  stampGoal: number;
+  goalReached: boolean;
+  rewardClaimedAt: string | null;
+};
+
+/**
+ * 指定イベント × ユーザーの現在のスタンプ進捗を読み取り専用で返す（副作用なし）。
+ * イベントが未公開／スタンプ無効なら null。店舗詳細の常設表示などから使う。
+ */
+export async function getEventStampProgress(
+  admin: Admin,
+  userId: string,
+  eventId: string,
+  now: Date = new Date()
+): Promise<EventStampReadProgress | null> {
+  const { data: event } = await admin
+    .from('platform_events')
+    .select('id, stamp_enabled, stamp_goal, start_at, status')
+    .eq('id', eventId)
+    .maybeSingle();
+  if (!event || event.status !== 'published' || !event.stamp_enabled) return null;
+
+  const { data: parts } = await admin
+    .from('store_event_participations')
+    .select('store_id')
+    .eq('event_id', eventId)
+    .eq('is_participating', true);
+  const participatingStoreIds = Array.from(
+    new Set((parts ?? []).map((p) => p.store_id))
+  );
+
+  const startIso = event.start_at ?? FAR_PAST_ISO;
+  const visited = await distinctVisitedStores(
+    admin,
+    userId,
+    participatingStoreIds,
+    startIso,
+    now.toISOString()
+  );
+  const stampCount = visited.size;
+  const stampGoal = event.stamp_goal ?? 3;
+  const goalReached = stampCount >= stampGoal;
+
+  let rewardClaimedAt: string | null = null;
+  if (goalReached) {
+    const { data: row } = await admin
+      .from('event_stamp_rewards')
+      .select('reward_claimed_at')
+      .eq('user_id', userId)
+      .eq('event_id', eventId)
+      .maybeSingle();
+    rewardClaimedAt = row?.reward_claimed_at ?? null;
+  }
+
+  return { eventId, stampCount, stampGoal, goalReached, rewardClaimedAt };
+}

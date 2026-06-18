@@ -239,6 +239,19 @@ export default function StoreDetailPage() {
 
   // 参加中イベント＆特典
   const [activeStoreEvents, setActiveStoreEvents] = useState<StoreEventRow[]>([]);
+  // ログイン中ユーザーの、このイベント群におけるスタンプ進捗（常設表示用・eventId キー）
+  const [eventStampProgress, setEventStampProgress] = useState<
+    Record<
+      string,
+      {
+        eventId: string;
+        stampCount: number;
+        stampGoal: number;
+        goalReached: boolean;
+        rewardClaimedAt: string | null;
+      }
+    >
+  >({});
 
   // ============================================
   // ライトボックスを開く・閉じる関数
@@ -420,6 +433,36 @@ export default function StoreDetailPage() {
       cancelled = true;
     };
   }, [params.id]);
+
+  // ログイン中ユーザーのスタンプ進捗を取得（stamp_enabled イベントのみ・未ログインなら出さない）
+  useEffect(() => {
+    const stampEvents = activeStoreEvents.filter((event) => event.stamp_enabled);
+    if (stampEvents.length === 0) {
+      setEventStampProgress({});
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data: sessionData } = await supabase.auth.getSession();
+        const token = sessionData.session?.access_token;
+        if (!token) return;
+        const ids = stampEvents.map((event) => event.id).join(',');
+        const res = await fetch(
+          `/api/me/event-stamp-progress?eventIds=${encodeURIComponent(ids)}`,
+          { headers: { Authorization: `Bearer ${token}` }, cache: 'no-store' }
+        );
+        if (!res.ok) return;
+        const json = await res.json();
+        if (!cancelled) setEventStampProgress(json.progress ?? {});
+      } catch (error) {
+        console.warn('[store/detail] fetch stamp progress warning', error);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [activeStoreEvents]);
 
   useEffect(() => {
     if (store && userLocation) {
@@ -972,6 +1015,18 @@ export default function StoreDetailPage() {
                             特典: {benefit}
                           </p>
                         )}
+                        {(() => {
+                          const progress = eventStampProgress[event.id];
+                          if (!progress) return null;
+                          return (
+                            <p className="text-sm font-bold leading-relaxed mt-1" style={{ color: '#13294b' }}>
+                              🎫 あなたのスタンプ {Math.min(progress.stampCount, progress.stampGoal)}/{progress.stampGoal}
+                              {progress.goalReached && (
+                                <span> — {progress.rewardClaimedAt ? '特典引換済み' : '特典GET！'}</span>
+                              )}
+                            </p>
+                          );
+                        })()}
                       </div>
                     );
                   })}

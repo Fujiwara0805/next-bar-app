@@ -69,6 +69,19 @@ type CheckInResult = {
   eventStamp: EventStampProgress | null;
 };
 
+function fmtClaimedAt(iso: string | null | undefined): string {
+  if (!iso) return '';
+  const date = new Date(iso);
+  if (!Number.isFinite(date.getTime())) return '';
+  return date.toLocaleString('ja-JP', {
+    timeZone: 'Asia/Tokyo',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
 function resolveSiteUrl(): string {
   const env =
     process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL;
@@ -153,6 +166,10 @@ export default function StoreQrPage() {
   const [scannerError, setScannerError] = useState<string>('');
   const [scanResult, setScanResult] = useState<CheckInResult | null>(null);
   const [scanResultError, setScanResultError] = useState<string | null>(null);
+  // 特典引換（goalReached の顧客に店舗が手渡した記録）
+  const [claimedAt, setClaimedAt] = useState<string | null>(null);
+  const [claiming, setClaiming] = useState(false);
+  const [claimError, setClaimError] = useState<string | null>(null);
   const printRef = useRef<HTMLDivElement>(null);
   const scannerRef = useRef<any>(null);
   const scannerLockRef = useRef(false);
@@ -291,6 +308,9 @@ export default function StoreQrPage() {
     setScannerError('');
     setScanResult(null);
     setScanResultError(null);
+    setClaimedAt(null);
+    setClaimError(null);
+    setClaiming(false);
   }, [stopScanner]);
 
   const submitCheckIn = useCallback(
@@ -319,7 +339,10 @@ export default function StoreQrPage() {
           );
           return;
         }
-        setScanResult(json as CheckInResult);
+        const r = json as CheckInResult;
+        setScanResult(r);
+        setClaimedAt(r.eventStamp?.rewardClaimedAt ?? null);
+        setClaimError(null);
       } catch (err) {
         console.error('[store/qr] scan submit error', err);
         setScanResultError(t('storeScan.error.unknown'));
@@ -327,6 +350,42 @@ export default function StoreQrPage() {
     },
     [storeId, t]
   );
+
+  const handleClaimReward = useCallback(async () => {
+    if (!scanResult?.eventStamp || claiming) return;
+    setClaiming(true);
+    setClaimError(null);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      if (!token) {
+        setClaimError(t('storeScan.redeem_error'));
+        return;
+      }
+      const res = await fetch(`/api/stores/${storeId}/event-stamp-claim`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          userId: scanResult.userId,
+          eventId: scanResult.eventStamp.eventId,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json?.ok) {
+        setClaimError(t('storeScan.redeem_error'));
+        return;
+      }
+      setClaimedAt(json.rewardClaimedAt ?? new Date().toISOString());
+    } catch (err) {
+      console.error('[store/qr] claim error', err);
+      setClaimError(t('storeScan.redeem_error'));
+    } finally {
+      setClaiming(false);
+    }
+  }, [scanResult, claiming, storeId, t]);
 
   const handleDecodedText = useCallback(
     (decoded: string) => {
@@ -401,6 +460,9 @@ export default function StoreQrPage() {
     setScannerError('');
     setScanResult(null);
     setScanResultError(null);
+    setClaimedAt(null);
+    setClaimError(null);
+    setClaiming(false);
     startScanner();
   }, [startScanner, stopScanner]);
 
@@ -411,6 +473,9 @@ export default function StoreQrPage() {
     setScannerError('');
     setScanResult(null);
     setScanResultError(null);
+    setClaimedAt(null);
+    setClaimError(null);
+    setClaiming(false);
     startScanner();
     return () => {
       stopScanner();
@@ -844,16 +909,46 @@ export default function StoreQrPage() {
                       </span>
                     </div>
                     {scanResult.eventStamp.goalReached ? (
-                      <div className="flex items-start gap-2 mt-2">
-                        <Ticket className="w-5 h-5 mt-0.5 shrink-0" style={{ color: COPPER }} />
-                        <div className="text-xs font-semibold leading-tight" style={{ color: NAVY }}>
-                          コンプリート — 特典をお渡しください
-                          {scanResult.eventStamp.rewardText?.trim() && (
-                            <span className="block font-bold mt-0.5">
-                              {scanResult.eventStamp.rewardText.trim()}
-                            </span>
-                          )}
+                      <div className="mt-2 space-y-2">
+                        <div className="flex items-start gap-2">
+                          <Ticket className="w-5 h-5 mt-0.5 shrink-0" style={{ color: COPPER }} />
+                          <div className="text-xs font-semibold leading-tight" style={{ color: NAVY }}>
+                            コンプリート — 特典をお渡しください
+                            {scanResult.eventStamp.rewardText?.trim() && (
+                              <span className="block font-bold mt-0.5">
+                                {scanResult.eventStamp.rewardText.trim()}
+                              </span>
+                            )}
+                          </div>
                         </div>
+                        {claimedAt ? (
+                          <div
+                            className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold"
+                            style={{ background: 'rgba(62, 142, 107, 0.12)', color: '#3E8E6B' }}
+                          >
+                            <CheckCircle2 className="w-4 h-4" />
+                            {t('storeScan.reward_redeemed')}（{fmtClaimedAt(claimedAt)}）
+                          </div>
+                        ) : (
+                          <>
+                            <Button
+                              type="button"
+                              size="sm"
+                              onClick={handleClaimReward}
+                              disabled={claiming}
+                              className="w-full rounded-xl font-bold"
+                              style={{ background: GOLD_GRADIENT, color: NAVY }}
+                            >
+                              <Ticket className="w-4 h-4 mr-1.5" />
+                              {claiming ? t('storeScan.redeeming') : t('storeScan.redeem_reward')}
+                            </Button>
+                            {claimError && (
+                              <p className="text-xs text-center" style={{ color: '#DC2626' }}>
+                                {claimError}
+                              </p>
+                            )}
+                          </>
+                        )}
                       </div>
                     ) : (
                       <div className="flex items-center gap-2 mt-1">

@@ -96,6 +96,10 @@ export default function StoreScanPage() {
   const [errorMsg, setErrorMsg] = useState<string>('');
   const [result, setResult] = useState<CheckInResult | null>(null);
   const [resultError, setResultError] = useState<string | null>(null);
+  // 特典引換（goalReached の顧客に店舗が手渡した記録）
+  const [claimedAt, setClaimedAt] = useState<string | null>(null);
+  const [claiming, setClaiming] = useState(false);
+  const [claimError, setClaimError] = useState<string | null>(null);
 
   const isAuthorized = useMemo(() => {
     if (authLoading || !user) return false;
@@ -169,7 +173,10 @@ export default function StoreScanPage() {
           );
           return;
         }
-        setResult(json as CheckInResult);
+        const r = json as CheckInResult;
+        setResult(r);
+        setClaimedAt(r.eventStamp?.rewardClaimedAt ?? null);
+        setClaimError(null);
       } catch (err) {
         console.error('[store/scan] submit error', err);
         setResultError(t('storeScan.error.unknown'));
@@ -177,6 +184,42 @@ export default function StoreScanPage() {
     },
     [storeId, t]
   );
+
+  const handleClaimReward = useCallback(async () => {
+    if (!result?.eventStamp || claiming) return;
+    setClaiming(true);
+    setClaimError(null);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      if (!token) {
+        setClaimError(t('storeScan.redeem_error'));
+        return;
+      }
+      const res = await fetch(`/api/stores/${storeId}/event-stamp-claim`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          userId: result.userId,
+          eventId: result.eventStamp.eventId,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json?.ok) {
+        setClaimError(t('storeScan.redeem_error'));
+        return;
+      }
+      setClaimedAt(json.rewardClaimedAt ?? new Date().toISOString());
+    } catch (err) {
+      console.error('[store/scan] claim error', err);
+      setClaimError(t('storeScan.redeem_error'));
+    } finally {
+      setClaiming(false);
+    }
+  }, [result, claiming, storeId, t]);
 
   const handleDecodedText = useCallback(
     (decoded: string) => {
@@ -264,6 +307,9 @@ export default function StoreScanPage() {
     setErrorMsg('');
     setResult(null);
     setResultError(null);
+    setClaimedAt(null);
+    setClaimError(null);
+    setClaiming(false);
     startScanner();
   };
 
@@ -575,16 +621,46 @@ export default function StoreScanPage() {
                     </span>
                   </div>
                   {result.eventStamp.goalReached ? (
-                    <div className="flex items-start gap-2 mt-2">
-                      <Ticket className="w-5 h-5 mt-0.5 shrink-0" style={{ color: COLORS.champagneGold }} />
-                      <div className="text-xs font-semibold leading-tight" style={{ color: COLORS.charcoal }}>
-                        コンプリート — 特典をお渡しください
-                        {result.eventStamp.rewardText?.trim() && (
-                          <span className="block font-bold mt-0.5" style={{ color: COLORS.deepNavy }}>
-                            {result.eventStamp.rewardText.trim()}
-                          </span>
-                        )}
+                    <div className="mt-2 space-y-2">
+                      <div className="flex items-start gap-2">
+                        <Ticket className="w-5 h-5 mt-0.5 shrink-0" style={{ color: COLORS.champagneGold }} />
+                        <div className="text-xs font-semibold leading-tight" style={{ color: COLORS.charcoal }}>
+                          コンプリート — 特典をお渡しください
+                          {result.eventStamp.rewardText?.trim() && (
+                            <span className="block font-bold mt-0.5" style={{ color: COLORS.deepNavy }}>
+                              {result.eventStamp.rewardText.trim()}
+                            </span>
+                          )}
+                        </div>
                       </div>
+                      {claimedAt ? (
+                        <div
+                          className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold"
+                          style={{ background: 'rgba(62, 142, 107, 0.12)', color: '#3E8E6B' }}
+                        >
+                          <CheckCircle2 className="w-4 h-4" />
+                          {t('storeScan.reward_redeemed')}（{fmtDate(claimedAt)}）
+                        </div>
+                      ) : (
+                        <>
+                          <Button
+                            type="button"
+                            size="sm"
+                            onClick={handleClaimReward}
+                            disabled={claiming}
+                            className="w-full rounded-xl font-bold"
+                            style={{ background: COLORS.goldGradient, color: COLORS.deepNavy }}
+                          >
+                            <Ticket className="w-4 h-4 mr-1.5" />
+                            {claiming ? t('storeScan.redeeming') : t('storeScan.redeem_reward')}
+                          </Button>
+                          {claimError && (
+                            <p className="text-xs text-center" style={{ color: '#DC2626' }}>
+                              {claimError}
+                            </p>
+                          )}
+                        </>
+                      )}
                     </div>
                   ) : (
                     <div className="flex items-center gap-2 mt-1">
