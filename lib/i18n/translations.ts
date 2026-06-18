@@ -805,7 +805,7 @@ export const translations = {
       // Hero PC section
       hero_pc_badge: 'にけんめぷらす',
       hero_pc_title: '“今いける”お店が見つかる',
-      hero_pc_description: 'お店探しから\nあなたの街の飲食店回遊を\n空席通知機能でサポートします。',
+      hero_pc_description: 'お店探しからあなたの街の飲食店回遊を\n空席通知機能でサポートします。',
       // Problems section
       problems_title: 'こんなお悩み、ありませんか？',
       problems_subtitle: 'Common Concerns',
