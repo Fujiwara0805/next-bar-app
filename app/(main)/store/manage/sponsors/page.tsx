@@ -33,7 +33,6 @@ export default function SponsorsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [currentPage, setCurrentPage] = useState(1);
-  const [navigatingId, setNavigatingId] = useState<string | null>(null);
 
   // Modal states
   const [formOpen, setFormOpen] = useState(false);
@@ -169,7 +168,6 @@ export default function SponsorsPage() {
   };
 
   const handleSponsorClick = (id: string) => {
-    setNavigatingId(id);
     router.push(`/store/manage/sponsors/${id}`);
   };
 
@@ -244,11 +242,6 @@ export default function SponsorsPage() {
                   width: '2fr',
                   render: (s: Sponsor) => (
                     <div className="flex items-center gap-3 relative">
-                      {navigatingId === s.id && (
-                        <div className="absolute inset-0 z-10 flex items-center justify-center">
-                          <Loader2 className="w-4 h-4 animate-spin" style={{ color: C.accent }} />
-                        </div>
-                      )}
                       <div className="w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold shrink-0" style={{ background: C.accentBg, color: C.accent }}>
                         {s.company_name.charAt(0)}
                       </div>

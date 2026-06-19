@@ -74,6 +74,10 @@ interface MapViewProps {
   enableCompass?: boolean;
   onBoundsChange?: (bounds: google.maps.LatLngBounds, zoom: number) => void;
   selectedStoreId?: string | null;
+  /** イベント別表示時など、参加店の★アイコン区別を抑制する */
+  suppressEventMarker?: boolean;
+  /** 値が変わったら、表示中の stores に地図をフィット（イベント別表示の自動ズーム用） */
+  fitBoundsKey?: string | null;
 }
 
 interface GeolocationState {
@@ -1051,8 +1055,11 @@ export function MapView({
   enableCompass = true,
   onBoundsChange,
   selectedStoreId,
+  suppressEventMarker = false,
+  fitBoundsKey = null,
 }: MapViewProps) {
   const { colorsA: colors } = useAppMode();
+  const lastFitKeyRef = useRef<string | null>(null);
 
   // Refs
   const mapRef = useRef<HTMLDivElement>(null);
@@ -1247,18 +1254,47 @@ export function MapView({
 
   useEffect(() => {
     if (
-      mapInstanceRef.current && 
-      currentPosition && 
-      mapReady && 
-      isInitialized && 
+      mapInstanceRef.current &&
+      currentPosition &&
+      mapReady &&
+      isInitialized &&
       !initialCenterSetRef.current &&
-      !geoLocation?.isDefault
+      !geoLocation?.isDefault &&
+      !fitBoundsKey  // イベント別表示中は GPS 初期移動より店舗フィットを優先
     ) {
       debugLog('Setting initial camera position', currentPosition);
       mapInstanceRef.current.panTo(currentPosition);
       initialCenterSetRef.current = true;
     }
-  }, [isInitialized, mapReady, currentPosition, geoLocation?.isDefault]);
+  }, [isInitialized, mapReady, currentPosition, geoLocation?.isDefault, fitBoundsKey]);
+
+  // ============================================================================
+  // fitBoundsKey 変化時に、表示中の店舗へ地図をフィット（イベント別表示の自動ズーム）
+  // ============================================================================
+  useEffect(() => {
+    if (!fitBoundsKey) {
+      lastFitKeyRef.current = null;
+      return;
+    }
+    if (!mapReady || !mapInstanceRef.current) return;
+    if (lastFitKeyRef.current === fitBoundsKey) return; // 同一キーで再フィットしない
+
+    const valid = stores.filter(
+      (s) => Number.isFinite(s.latitude) && Number.isFinite(s.longitude)
+    );
+    if (valid.length === 0) return;
+
+    const map = mapInstanceRef.current;
+    const bounds = new google.maps.LatLngBounds();
+    valid.forEach((s) => bounds.extend({ lat: s.latitude, lng: s.longitude }));
+    map.fitBounds(bounds, 80);
+    // 1店舗のみだと寄りすぎるため上限ズームを抑える
+    google.maps.event.addListenerOnce(map, 'idle', () => {
+      const z = map.getZoom();
+      if (valid.length === 1 && z && z > 15) map.setZoom(15);
+    });
+    lastFitKeyRef.current = fitBoundsKey;
+  }, [fitBoundsKey, mapReady, stores]);
 
   // ============================================================================
   // コンパスボタンハンドラー
@@ -1353,7 +1389,7 @@ export function MapView({
         store.last_updated ?? store.updated_at
       ).displayStatus;
       const markerImageUrl = getMarkerImageUrl(store);
-      const isEventStore = !!store.active_event;
+      const isEventStore = !!store.active_event && !suppressEventMarker;
       const markerIconKey = getMarkerIconKey(markerStatus, markerImageUrl, store.name, isEventStore);
 
       if (existingMarkerData) {
@@ -1440,7 +1476,7 @@ export function MapView({
         debugLog('Created new marker for store', store.id);
       }
     });
-  }, [stores, onStoreClick, mapReady]);
+  }, [stores, onStoreClick, mapReady, suppressEventMarker]);
 
   // ============================================================================
   // 選択された店舗のマーカーをアニメーション（スワイプ時も反映）

@@ -209,6 +209,10 @@ export default function StoreDetailPage() {
         return t('store_detail.facility_heading_women_bar');
       case 'pricing':
         return t('store_detail.facility_heading_pricing');
+      case 'daytime':
+        return t('store_detail.facility_heading_daytime');
+      case 'specialty':
+        return t('store_detail.facility_heading_specialty');
       default:
         return key;
     }
@@ -1398,6 +1402,8 @@ export default function StoreDetailPage() {
                         women_family: { bg: 'rgba(201, 168, 108, 0.08)', border: 'rgba(201, 168, 108, 0.15)', text: COLORS.antiqueGold, badgeBg: 'rgba(201, 168, 108, 0.15)', badgeBorder: 'rgba(201, 168, 108, 0.25)' },
                         workspace: { bg: 'rgba(59, 130, 246, 0.08)', border: 'rgba(59, 130, 246, 0.15)', text: '#2563eb', badgeBg: 'rgba(59, 130, 246, 0.15)', badgeBorder: 'rgba(59, 130, 246, 0.25)' },
                         pricing: { bg: 'rgba(62, 142, 107, 0.08)', border: 'rgba(62, 142, 107, 0.15)', text: '#3E8E6B', badgeBg: 'rgba(62, 142, 107, 0.15)', badgeBorder: 'rgba(62, 142, 107, 0.25)' },
+                        daytime: { bg: 'rgba(245, 158, 11, 0.08)', border: 'rgba(245, 158, 11, 0.18)', text: '#B45309', badgeBg: 'rgba(245, 158, 11, 0.15)', badgeBorder: 'rgba(245, 158, 11, 0.28)' },
+                        specialty: { bg: 'rgba(255, 198, 45, 0.10)', border: 'rgba(201, 168, 108, 0.25)', text: '#9A6B16', badgeBg: 'rgba(255, 198, 45, 0.18)', badgeBorder: 'rgba(201, 168, 108, 0.35)' },
                       };
                       const allCatItems = Object.values(cats).flatMap(c => [...c.items]);
                       // 初めての方歓迎、女性バーテンダー在籍も含める（DB既存データ対応）

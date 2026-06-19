@@ -468,7 +468,7 @@ export default function LandingPage() {
                       }}
                     >
                       <div className="p-2">
-                        <p className="text-xs px-3 py-2 font-bold lg:text-base" style={{ color: lpPage.textMuted }}>
+                        <p className="text-xs px-3 py-2 font-bold lg:text-base" style={{ color: 'rgba(255,255,255,0.72)' }}>
                           {t('language_selector.title') || t('menu.language')}
                         </p>
                         {SUPPORTED_LANGUAGES.map((lang) => (
@@ -480,7 +480,7 @@ export default function LandingPage() {
                                 ? 'bg-brass-500/20'
                                 : 'hover:bg-cream-50/10'
                             }`}
-                            style={{ color: language === lang ? LP_YELLOW : lpPage.text }}
+                            style={{ color: language === lang ? LP_YELLOW : '#FFFFFF' }}
                           >
                             <span className="text-xl lg:text-3xl">{LANGUAGE_META[lang].flag}</span>
                             <span className="font-bold text-sm flex-1 text-left lg:text-lg">
@@ -805,7 +805,7 @@ export default function LandingPage() {
                   transition={{ delay: index * 0.05 }}
                   whileHover={{ scale: 1.01 }}
                   whileTap={{ scale: 0.99 }}
-                  onClick={() => router.push('/store-list?event=true')}
+                  onClick={() => router.push(`/map?event=${encodeURIComponent(event.id)}&et=${encodeURIComponent(event.title)}`)}
                   className="w-full text-left rounded-2xl overflow-hidden block"
                   style={{
                     background: LP_YELLOW,

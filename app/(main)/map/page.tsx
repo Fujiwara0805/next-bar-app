@@ -452,7 +452,7 @@ function ErrorBanner({ error, retryCount, onRetry }: ErrorBannerProps) {
 function MapPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const { colorsA: colors } = useAppMode();
   const { user, accountType, store: authStore, profile: authProfile } = useAuth();
 
@@ -469,7 +469,11 @@ function MapPageContent() {
   const [isNavigating, setIsNavigating] = useState(false);
   const [selectedStoreIndex, setSelectedStoreIndex] = useState(0);
   const [isUpdatingOpenStatus, setIsUpdatingOpenStatus] = useState(false);
-  const eventOnly = searchParams?.get('event') === 'true';
+  // `?event=` は true（全イベント参加店）と event-id（特定イベントの参加店のみ）の両対応。
+  const eventParam = searchParams?.get('event') || null;
+  const eventOnly = eventParam === 'true';
+  const eventId = eventParam && eventParam !== 'true' ? eventParam : null;
+  const eventTitle = searchParams?.get('et') || null;
 
   const { location: userLocation, refreshLocation } = useOptimizedLocation();
   const { stores, isLoading, error, retryCount, fetchStores, refreshStores } = useStores();
@@ -808,7 +812,10 @@ function MapPageContent() {
 
   // マーカーの付け外しによるチラつきを避けるため、マップ上は全店舗を安定表示する
   const filteredStores = useMemo(() => {
-    const visibleStores = stores.filter((store) => !eventOnly || !!store.active_event);
+    const visibleStores = stores.filter((store) =>
+      (!eventOnly || !!store.active_event) &&
+      (!eventId || (store.active_event_ids ?? []).includes(eventId))
+    );
     return visibleStores.map(store => {
       // 閉店ボタンによる臨時休業中（12時間以内）は営業時間に関係なく 'closed' に固定
       if (isManualCloseActive(store)) {
@@ -828,7 +835,7 @@ function MapPageContent() {
       }
       return store;
     });
-  }, [stores, eventOnly]);
+  }, [stores, eventOnly, eventId]);
 
   // stores から最新データを導出（IDのみ保持し、表示はstoresから取得）
   const selectedStore = useMemo(() => {
@@ -1038,7 +1045,7 @@ function MapPageContent() {
                 className="flex flex-col items-center"
               >
                 <Button
-                  onClick={() => router.push(eventOnly ? '/store-list?event=true' : '/store-list')}
+                  onClick={() => router.push(eventParam ? `/store-list?event=${encodeURIComponent(eventParam)}` : '/store-list')}
                   className="flex flex-col items-center justify-center gap-1 px-3 py-2 touch-manipulation active:scale-95 rounded-xl"
                   style={{
                     background: colors.background,
@@ -1092,6 +1099,34 @@ function MapPageContent() {
         </motion.div>
       </header>
 
+      {/* イベント別表示バナー（特定イベントの参加店のみ表示中） */}
+      {eventId && (
+        <div className="absolute top-20 left-3 right-20 z-20 safe-top pointer-events-none">
+          <div
+            className="inline-flex max-w-full items-center gap-2 rounded-full pl-3 pr-1.5 py-1.5 pointer-events-auto"
+            style={{
+              background: `${colors.background}F2`,
+              border: `1px solid ${colors.borderGold}`,
+              backdropFilter: 'blur(12px)',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
+            }}
+          >
+            <span className="text-sm font-bold truncate" style={{ color: colors.text }}>
+              🎊 {eventTitle || t('map.event_filter_label')}
+            </span>
+            <button
+              type="button"
+              onClick={() => router.replace('/map', { scroll: false })}
+              className="shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
+              style={{ background: colors.accent, color: '#13294b' }}
+              aria-label={t('map.event_filter_clear')}
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* マップ */}
       <MapView
         stores={filteredStores}
@@ -1099,6 +1134,8 @@ function MapPageContent() {
         onStoreClick={handleStoreSelect}
         onBoundsChange={handleBoundsChange}
         selectedStoreId={selectedStore?.id || null}
+        suppressEventMarker={!!eventId}
+        fitBoundsKey={eventId}
       />
 
       {/* 店舗詳細パネル（スライドアップ対応） */}

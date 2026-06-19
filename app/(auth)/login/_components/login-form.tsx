@@ -24,8 +24,9 @@ const LINE_BRAND_ICON_URL =
 const LINE_BRAND = '#06C755';
 
 // LP（/landing）の Hero セクションと画像を合致させる（同一の単一ビジュアル）
+// ※ app/landing/page.tsx の heroImage と同一URLを維持すること
 const HERO_IMAGES = [
-  'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1781483273/Hero_nd2fnb.png',
+  'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1781778978/ChatGPT_Image_2026%E5%B9%B46%E6%9C%8818%E6%97%A5_14_55_01_or6gya.png',
 ];
 
 const LP_NAVY = '#13294b';
@@ -238,7 +239,12 @@ export function LoginForm() {
             className="text-base xl:text-lg leading-relaxed"
             style={{ color: 'rgba(255,255,255,0.82)' }}
           >
-            {t('landing.hero_pc_description')}
+            {t('landing.hero_pc_description').split('\n').map((line, i, arr) => (
+              <span key={i}>
+                {line}
+                {i < arr.length - 1 && <br />}
+              </span>
+            ))}
           </motion.p>
 
           {/* Floating availability chip */}

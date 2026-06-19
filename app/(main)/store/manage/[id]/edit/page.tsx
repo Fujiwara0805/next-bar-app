@@ -43,6 +43,7 @@ import {
   OTHER_FACILITIES,
   normalizePaymentMethods,
 } from '@/lib/types/store-application';
+import { CustomFacilityInput } from '@/components/store/custom-facility-input';
 import { useAppMode } from '@/lib/app-mode-context';
 
 type Store = Database['public']['Tables']['stores']['Row'];
@@ -765,10 +766,10 @@ export default function StoreEditPage() {
       Object.entries(cats).map(([key, cat]) => [key, {
         ...cat,
         bgColor: key === 'newcomer' || key === 'atmosphere' ? 'rgba(31, 64, 104, 0.05)' :
-                 key === 'women' || key === 'women_family' || key === 'workspace' ? 'rgba(201, 168, 108, 0.05)' :
+                 key === 'women' || key === 'women_family' || key === 'workspace' || key === 'daytime' || key === 'specialty' ? 'rgba(201, 168, 108, 0.05)' :
                  'rgba(34, 197, 94, 0.05)',
         borderColor: key === 'newcomer' || key === 'atmosphere' ? 'rgba(31, 64, 104, 0.15)' :
-                     key === 'women' || key === 'women_family' || key === 'workspace' ? 'rgba(201, 168, 108, 0.15)' :
+                     key === 'women' || key === 'women_family' || key === 'workspace' || key === 'daytime' || key === 'specialty' ? 'rgba(201, 168, 108, 0.15)' :
                      'rgba(34, 197, 94, 0.15)',
       }])
     );
@@ -1309,6 +1310,12 @@ export default function StoreEditPage() {
                   ))}
                 </div>
               </div>
+
+              <CustomFacilityInput
+                facilities={facilities}
+                onAdd={(v) => setFacilities((prev) => (prev.includes(v) ? prev : [...prev, v]))}
+                onRemove={(v) => setFacilities((prev) => prev.filter((f) => f !== v))}
+              />
             </Card>
 
             {/* ========== 店舗画像セクション ========== */}

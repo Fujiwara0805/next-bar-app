@@ -17,8 +17,6 @@ import { useAuth } from '@/lib/auth/context';
 import { useLanguage } from '@/lib/i18n/context';
 import { supabase } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
-import { CloseCircleButton } from '@/components/ui/close-circle-button';
-import { LoadingScreen } from '@/components/ui/loading-screen';
 
 const REFRESH_INTERVAL_SEC = 90;
 const SCANNER_REGION_ID = 'mypage-qr-scanner-region';
@@ -29,7 +27,6 @@ const NAVY = '#13294b';
 const BRASS = '#ffc82c';
 const COPPER = '#B87333';
 const GOLD_GRADIENT = '#ffc82c';
-const NAVY_GRADIENT = '#13294b';
 
 function getCustomerDeviceId(): string {
   const existing = localStorage.getItem(CUSTOMER_DEVICE_ID_KEY);
@@ -44,9 +41,15 @@ function getCustomerDeviceId(): string {
   return generated;
 }
 
-export default function MyPageQrPage() {
+/**
+ * 会員証QR（来店チェックイン用）＋ 店舗QRスキャナー。
+ * 旧 `/mypage/qr` ページを会員証ページ（/mypage）にインライン統合したもの。
+ * 認証・プロフィール必須チェックは親（/mypage）が行う前提で、本コンポーネントは
+ * 表示と更新・スキャナーのみを担う。
+ */
+export function MembershipQr({ displayName }: { displayName: string }) {
   const router = useRouter();
-  const { user, accountType, profile, loading: authLoading } = useAuth();
+  const { user } = useAuth();
   const { t } = useLanguage();
 
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
@@ -60,48 +63,6 @@ export default function MyPageQrPage() {
   const [scannerError, setScannerError] = useState<string | null>(null);
   const scannerRef = useRef<any>(null);
   const scannerLockRef = useRef(false);
-
-  useEffect(() => {
-    const root = document.documentElement;
-    const body = document.body;
-    const prevRoot = root.style.background;
-    const prevBody = body.style.background;
-    root.style.background = BG_OFFWHITE;
-    body.style.background = BG_OFFWHITE;
-    return () => {
-      root.style.background = prevRoot;
-      body.style.background = prevBody;
-    };
-  }, []);
-
-  useEffect(() => {
-    if (authLoading) return;
-    if (!user) {
-      router.replace('/login?redirect=/mypage/qr');
-      return;
-    }
-    if (accountType !== 'customer') {
-      router.replace('/mypage');
-      return;
-    }
-    // プロフィール必須項目（住所エリア / 年齢 / 職業 / 性別）が未入力なら QR を表示しない
-    const attrs = (profile?.profile_attributes ?? {}) as {
-      address?: string;
-      age?: string;
-      occupation?: string;
-      gender?: string;
-    };
-    const isComplete = Boolean(
-      attrs.address?.trim() &&
-        attrs.age?.trim() &&
-        attrs.occupation?.trim() &&
-        attrs.gender?.trim()
-    );
-    if (profile && !isComplete) {
-      router.replace('/mypage');
-      return;
-    }
-  }, [authLoading, user, accountType, profile, router]);
 
   const resolveSiteUrl = (): string => {
     const env =
@@ -155,9 +116,9 @@ export default function MyPageQrPage() {
   }, [user, t]);
 
   useEffect(() => {
-    if (authLoading || !user || accountType !== 'customer') return;
+    if (!user) return;
     regenerate();
-  }, [authLoading, user, accountType, regenerate]);
+  }, [user, regenerate]);
 
   useEffect(() => {
     if (!qrDataUrl) return;
@@ -256,170 +217,128 @@ export default function MyPageQrPage() {
     };
   }, [scannerOpen, startScanner, stopScanner]);
 
-  if (authLoading || !user || accountType !== 'customer') {
-    return <LoadingScreen size="lg" />;
-  }
-
-  const displayName =
-    profile?.display_name ?? user.email?.split('@')[0] ?? t('mypageQr.guest_fallback');
-
   return (
-    <div className="min-h-screen pb-16" style={{ background: BG_OFFWHITE }}>
-      <header
-        className="sticky top-0 z-20 safe-top"
-        style={{ background: NAVY_GRADIENT, borderBottom: `1px solid ${BRASS}33` }}
+    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="mb-4">
+      <div
+        className="rounded-2xl p-6 mb-3 relative overflow-hidden"
+        style={{
+          background: 'white',
+          border: `1px solid ${BRASS}33`,
+          boxShadow: '0 12px 32px rgba(19, 41, 75, 0.10)',
+        }}
       >
-        <div className="relative flex items-center justify-center p-4 max-w-md mx-auto">
-          <h1 className="text-lg font-light tracking-[0.2em]" style={{ color: '#F7F3E9' }}>
-            {t('mypageQr.title')}
-          </h1>
-          <div className="absolute right-3 top-1/2 -translate-y-1/2">
-            <CloseCircleButton
-              size="md"
-              aria-label={t('common.close')}
-              onClick={() => router.push('/mypage')}
-            />
-          </div>
+        <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ background: GOLD_GRADIENT }} />
+        <div className="flex items-center justify-center gap-2 mb-4">
+          <span
+            className="text-xs font-semibold uppercase tracking-[0.2em]"
+            style={{ color: COPPER }}
+          >
+            {t('mypageQr.badge')}
+          </span>
         </div>
-      </header>
-
-      <div className="max-w-md mx-auto px-4 py-6">
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-          <div className="mb-6 text-center">
-            <div className="inline-flex items-center gap-2 mb-2">
-              <div className="h-px w-6" style={{ background: BRASS }} />
-              <span
-                className="text-xs font-semibold uppercase tracking-[0.2em]"
-                style={{ color: COPPER }}
-              >
-                {t('mypageQr.badge')}
-              </span>
-              <div className="h-px w-6" style={{ background: BRASS }} />
-            </div>
-            <h2 className="text-xl font-bold mb-1" style={{ color: NAVY }}>
-              {t('mypageQr.title')}
-            </h2>
-            <p className="text-sm" style={{ color: 'rgba(19, 41, 75, 0.65)' }}>
-              {t('mypageQr.subtitle')}
-            </p>
-          </div>
-
+        <div className="flex flex-col items-center">
           <div
-            className="rounded-2xl p-6 mb-4 relative overflow-hidden"
+            className="p-4 rounded-2xl"
             style={{
-              background: 'white',
-              border: `1px solid ${BRASS}33`,
-              boxShadow: '0 12px 32px rgba(19, 41, 75, 0.10)',
+              background: BG_OFFWHITE,
+              border: `1px solid ${BRASS}50`,
+              boxShadow: `0 4px 14px ${BRASS}22`,
             }}
           >
-            <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ background: GOLD_GRADIENT }} />
-            <div className="flex flex-col items-center">
+            {generating && !qrDataUrl ? (
+              <div className="w-[240px] h-[240px] flex items-center justify-center">
+                <Loader2 className="w-8 h-8 animate-spin" style={{ color: COPPER }} />
+              </div>
+            ) : qrDataUrl ? (
+              <img
+                src={qrDataUrl}
+                alt="Customer Check-in QR"
+                className={`w-[240px] h-[240px] transition-opacity ${
+                  generating ? 'opacity-40' : 'opacity-100'
+                }`}
+              />
+            ) : (
               <div
-                className="p-4 rounded-2xl"
-                style={{
-                  background: BG_OFFWHITE,
-                  border: `1px solid ${BRASS}50`,
-                  boxShadow: `0 4px 14px ${BRASS}22`,
-                }}
+                className="w-[240px] h-[240px] flex items-center justify-center text-sm"
+                style={{ color: 'rgba(19, 41, 75, 0.6)' }}
               >
-                {generating && !qrDataUrl ? (
-                  <div className="w-[280px] h-[280px] flex items-center justify-center">
-                    <Loader2 className="w-8 h-8 animate-spin" style={{ color: COPPER }} />
-                  </div>
-                ) : qrDataUrl ? (
-                  <img
-                    src={qrDataUrl}
-                    alt="Customer Check-in QR"
-                    className={`w-[280px] h-[280px] transition-opacity ${
-                      generating ? 'opacity-40' : 'opacity-100'
-                    }`}
-                  />
-                ) : (
-                  <div
-                    className="w-[280px] h-[280px] flex items-center justify-center text-sm"
-                    style={{ color: 'rgba(19, 41, 75, 0.6)' }}
-                  >
-                    {t('mypageQr.generate_failed')}
-                  </div>
-                )}
+                {t('mypageQr.generate_failed')}
               </div>
-
-              <div className="mt-4 flex items-center gap-2 text-sm" style={{ color: NAVY }}>
-                <QrCode className="w-4 h-4" style={{ color: COPPER }} />
-                <span className="font-semibold">{displayName}</span>
-              </div>
-
-              <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-                <div
-                  className="basis-full flex items-center justify-center gap-1.5 text-xs"
-                  style={{ color: 'rgba(19, 41, 75, 0.6)' }}
-                >
-                  <RefreshCw className="w-3.5 h-3.5" />
-                  <span>
-                    {generating
-                      ? t('mypageQr.refreshing')
-                      : t('mypageQr.refresh_in').replace('{n}', String(secondsLeft))}
-                  </span>
-                </div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => regenerate()}
-                  disabled={generating}
-                  style={{
-                    background: 'white',
-                    color: NAVY,
-                    border: `1.5px solid ${BRASS}60`,
-                  }}
-                >
-                  {t('mypageQr.tap_to_refresh')}
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={() => setScannerOpen(true)}
-                  disabled={generating}
-                  style={{
-                    background: GOLD_GRADIENT,
-                    color: NAVY,
-                    border: `1.5px solid ${BRASS}`,
-                  }}
-                  className="rounded-xl font-bold"
-                >
-                  <ScanLine className="w-4 h-4 mr-2" />
-                  {t('mypageQr.store_scan_start')}
-                </Button>
-              </div>
-
-              {error && <p className="mt-3 text-xs text-destructive">{error}</p>}
-            </div>
+            )}
           </div>
 
-          <div
-            className="rounded-2xl p-5 relative overflow-hidden"
-            style={{
-              background: 'white',
-              border: `1px solid ${BRASS}33`,
-              boxShadow: '0 12px 32px rgba(19, 41, 75, 0.08)',
-            }}
-          >
-            <div className="flex items-center gap-2 mb-3">
-              <Info className="w-4 h-4" style={{ color: COPPER }} />
-              <h3 className="font-semibold text-sm" style={{ color: NAVY }}>
-                {t('mypageQr.how_to_use_title')}
-              </h3>
-            </div>
-            <ol
-              className="text-sm space-y-2 list-decimal ml-5"
-              style={{ color: 'rgba(19, 41, 75, 0.75)' }}
+          <div className="mt-4 flex items-center gap-2 text-sm" style={{ color: NAVY }}>
+            <QrCode className="w-4 h-4" style={{ color: COPPER }} />
+            <span className="font-semibold">{displayName}</span>
+          </div>
+
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+            <div
+              className="basis-full flex items-center justify-center gap-1.5 text-xs"
+              style={{ color: 'rgba(19, 41, 75, 0.6)' }}
             >
-              <li>{t('mypageQr.how_to_use_1')}</li>
-              <li>{t('mypageQr.how_to_use_2')}</li>
-              <li>
-                {t('mypageQr.how_to_use_3').replace('{sec}', String(REFRESH_INTERVAL_SEC))}
-              </li>
-            </ol>
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span>
+                {generating
+                  ? t('mypageQr.refreshing')
+                  : t('mypageQr.refresh_in').replace('{n}', String(secondsLeft))}
+              </span>
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => regenerate()}
+              disabled={generating}
+              style={{
+                background: 'white',
+                color: NAVY,
+                border: `1.5px solid ${BRASS}60`,
+              }}
+            >
+              {t('mypageQr.tap_to_refresh')}
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => setScannerOpen(true)}
+              disabled={generating}
+              style={{
+                background: GOLD_GRADIENT,
+                color: NAVY,
+                border: `1.5px solid ${BRASS}`,
+              }}
+              className="rounded-xl font-bold"
+            >
+              <ScanLine className="w-4 h-4 mr-2" />
+              {t('mypageQr.store_scan_start')}
+            </Button>
           </div>
-        </motion.div>
+
+          {error && <p className="mt-3 text-xs text-destructive">{error}</p>}
+        </div>
+      </div>
+
+      <div
+        className="rounded-2xl p-5 relative overflow-hidden"
+        style={{
+          background: 'white',
+          border: `1px solid ${BRASS}33`,
+          boxShadow: '0 12px 32px rgba(19, 41, 75, 0.08)',
+        }}
+      >
+        <div className="flex items-center gap-2 mb-3">
+          <Info className="w-4 h-4" style={{ color: COPPER }} />
+          <h3 className="font-semibold text-sm" style={{ color: NAVY }}>
+            {t('mypageQr.how_to_use_title')}
+          </h3>
+        </div>
+        <ol
+          className="text-sm space-y-2 list-decimal ml-5"
+          style={{ color: 'rgba(19, 41, 75, 0.75)' }}
+        >
+          <li>{t('mypageQr.how_to_use_1')}</li>
+          <li>{t('mypageQr.how_to_use_2')}</li>
+          <li>{t('mypageQr.how_to_use_3').replace('{sec}', String(REFRESH_INTERVAL_SEC))}</li>
+        </ol>
       </div>
 
       {/* 店舗QRスキャナーモーダル */}
@@ -495,6 +414,6 @@ export default function MyPageQrPage() {
           </div>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }

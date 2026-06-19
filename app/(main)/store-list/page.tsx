@@ -129,6 +129,8 @@ function StoreListContent() {
   const [vacantOnly, setVacantOnly] = useState(false);
   const [openNowOnly, setOpenNowOnly] = useState(false);
   const [eventOnly, setEventOnly] = useState(false);
+  // 特定イベントの参加店のみ表示（/map?event=<id> から引き継ぐ）
+  const [eventId, setEventId] = useState<string | null>(null);
   const [showFilterMenu, setShowFilterMenu] = useState(false);
   
   const [showConcierge, setShowConcierge] = useState(false);
@@ -218,12 +220,15 @@ function StoreListContent() {
     
     const vacant = searchParams.get('vacant') === 'true';
     const openNow = searchParams.get('open') === 'true';
-    const event = searchParams.get('event') === 'true';
+    const eventRaw = searchParams.get('event');
+    const event = eventRaw === 'true';
+    const evId = eventRaw && eventRaw !== 'true' ? eventRaw : null;
     const concierge = searchParams.get('concierge');
 
     setVacantOnly(vacant);
     setOpenNowOnly(openNow);
     setEventOnly(event);
+    setEventId(evId);
 
     if (concierge) {
       try {
@@ -428,7 +433,9 @@ function StoreListContent() {
       result = result.filter(store => isStoreCurrentlyOpen(store));
     }
 
-    if (eventOnly) {
+    if (eventId) {
+      result = result.filter(store => (store.active_event_ids ?? []).includes(eventId));
+    } else if (eventOnly) {
       result = result.filter(store => !!store.active_event);
     }
 
@@ -450,7 +457,7 @@ function StoreListContent() {
 
     setFilteredStores(result);
     resetDisplayCount();
-  }, [stores, vacantOnly, openNowOnly, eventOnly, conciergeFilters, isConciergeActive, resetDisplayCount]);
+  }, [stores, vacantOnly, openNowOnly, eventOnly, eventId, conciergeFilters, isConciergeActive, resetDisplayCount]);
 
   useEffect(() => {
     if (!isInitializedRef.current) return;
@@ -458,10 +465,10 @@ function StoreListContent() {
     updateUrlParams({
       vacant: vacantOnly ? 'true' : null,
       open: openNowOnly ? 'true' : null,
-      event: eventOnly ? 'true' : null,
+      event: eventId ? eventId : eventOnly ? 'true' : null,
       concierge: isConciergeActive && conciergeFilters.length > 0 ? conciergeFilters.join(',') : null,
     });
-  }, [vacantOnly, openNowOnly, eventOnly, isConciergeActive, conciergeFilters, updateUrlParams]);
+  }, [vacantOnly, openNowOnly, eventOnly, eventId, isConciergeActive, conciergeFilters, updateUrlParams]);
 
   const fetchStoresOnly = async () => {
     if (!userLocation) return;

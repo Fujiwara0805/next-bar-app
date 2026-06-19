@@ -8,7 +8,6 @@ import {
   QrCode,
   Map,
   LogOut,
-  ChevronRight,
   UserCog,
   Bell,
 } from 'lucide-react';
@@ -19,6 +18,7 @@ import { Button } from '@/components/ui/button';
 import { CloseCircleButton } from '@/components/ui/close-circle-button';
 import { LoadingScreen } from '@/components/ui/loading-screen';
 import { useAppMode } from '@/lib/app-mode-context';
+import { MembershipQr } from '@/components/mypage/membership-qr';
 import { toast } from 'sonner';
 
 // Brewers Navy + Brass + Copper パレット（StoreDetailPanel と統一）
@@ -190,58 +190,9 @@ export default function MyPage() {
             </div>
           </div>
 
-          {/* チェックインQR表示誘導（プロフィール未入力時はガード表示） */}
+          {/* 会員証QR（旧 /mypage/qr を会員証ページにインライン統合。プロフィール未入力時はガード表示） */}
           {isProfileComplete ? (
-            <Link href="/mypage/qr" className="block mb-4">
-              <div
-                className="rounded-2xl p-5 transition-all hover:translate-y-[-2px] relative overflow-hidden bg-white"
-                style={{
-                  boxShadow:
-                    '0 18px 48px rgba(19, 41, 75, 0.12), 0 4px 12px rgba(19, 41, 75, 0.06)',
-                  border: `1px solid ${BRASS}33`,
-                }}
-              >
-                <div
-                  className="absolute top-0 left-0 right-0 h-[3px]"
-                  style={{ background: GOLD_GRADIENT }}
-                />
-                <div className="relative flex items-center gap-4">
-                  <div
-                    className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0"
-                    style={{
-                      background: `${BRASS}18`,
-                      border: `1px solid ${BRASS}44`,
-                    }}
-                  >
-                    <QrCode className="w-7 h-7" style={{ color: NAVY }} />
-                  </div>
-                  <div className="flex-1">
-                    <h2
-                      className="font-bold text-base mb-0.5"
-                      style={{ color: NAVY }}
-                    >
-                      {t('mypage.qr_cta_title')}
-                    </h2>
-                    <p
-                      className="text-xs"
-                      style={{ color: 'rgba(19, 41, 75, 0.62)' }}
-                    >
-                      {t('mypage.qr_cta_desc')}
-                    </p>
-                  </div>
-                  <span
-                    className="inline-flex h-10 w-10 items-center justify-center rounded-xl"
-                    style={{
-                      background: NAVY,
-                      color: BRASS,
-                      boxShadow: '0 6px 18px rgba(19, 41, 75, 0.22)',
-                    }}
-                  >
-                    <ChevronRight className="w-5 h-5" />
-                  </span>
-                </div>
-              </div>
-            </Link>
+            <MembershipQr displayName={displayName} />
           ) : (
             <div
               className="rounded-2xl p-5 mb-4 relative overflow-hidden"
@@ -287,36 +238,39 @@ export default function MyPage() {
           )}
 
 
-          {/* その他導線（プロフィール編集はアバター横へ統合済） */}
+          {/* その他導線（空席通知の設定・お店を探すは左右2カラムで同じ行に表示） */}
           <div className="space-y-2 mb-4">
-            <Link href="/liff/vacancy">
-              <Button
-                variant="outline"
-                className="w-full justify-start h-12 rounded-xl font-medium"
-                style={{
-                  background: 'white',
-                  border: `1px solid ${BRASS}55`,
-                  color: NAVY,
-                }}
-              >
-                <Bell className="w-4 h-4 mr-2" style={{ color: COPPER }} />
-                空席通知の設定
-              </Button>
-            </Link>
-            <Link href="/map">
-              <Button
-                variant="outline"
-                className="w-full justify-start h-12 rounded-xl font-medium"
-                style={{
-                  background: 'white',
-                  border: `1px solid ${BRASS}55`,
-                  color: NAVY,
-                }}
-              >
-                <Map className="w-4 h-4 mr-2" style={{ color: COPPER }} />
-                {t('mypage.find_stores')}
-              </Button>
-            </Link>
+            <div className="grid grid-cols-2 gap-2">
+              {/* 空席通知の設定 = 銅/琥珀トーン */}
+              <Link href="/liff/vacancy" className="block">
+                <Button
+                  variant="outline"
+                  className="w-full justify-center h-12 rounded-xl font-bold text-xs px-2"
+                  style={{
+                    background: '#FBEFD9',
+                    border: `1px solid ${COPPER}66`,
+                    color: '#8A531A',
+                  }}
+                >
+                  <Bell className="w-4 h-4 mr-1.5 shrink-0" style={{ color: COPPER }} />
+                  空席通知の設定
+                </Button>
+              </Link>
+              {/* お店を探す = ネイビー塗り（主アクション） */}
+              <Link href="/map" className="block">
+                <Button
+                  className="w-full justify-center h-12 rounded-xl font-bold text-xs px-2"
+                  style={{
+                    background: NAVY,
+                    border: `1px solid ${NAVY}`,
+                    color: BRASS,
+                  }}
+                >
+                  <Map className="w-4 h-4 mr-1.5 shrink-0" style={{ color: BRASS }} />
+                  {t('mypage.find_stores')}
+                </Button>
+              </Link>
+            </div>
             <Button
               variant="outline"
               className="w-full justify-start h-12 rounded-xl font-medium"
