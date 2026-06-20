@@ -7,6 +7,7 @@ import { LiffProvider } from '@/lib/line/context';
 import { AppModeProvider } from '@/lib/app-mode-context';
 import { Toaster } from '@/components/ui/sonner';
 import { GoogleAnalytics } from '@/components/analytics/GoogleAnalytics';
+import { ScrollReset } from '@/components/scroll-reset';
 import { translations } from '@/lib/i18n/translations';
 
 const notoSansJp = Noto_Sans_JP({
@@ -703,6 +704,7 @@ export default function RootLayout({
         />
       </head>
       <body className={`${notoSansJp.variable} ${jost.variable}`}>
+        <ScrollReset />
         <GoogleAnalytics />
         <LanguageProvider>
           <LiffProvider>

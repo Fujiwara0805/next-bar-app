@@ -905,7 +905,12 @@ function MapPageContent() {
 
   return (
     <div
-      className="relative h-screen flex flex-col touch-manipulation"
+      // フルスクリーンのマップはビューポートに固定する。
+      // relative + h-screen(=100vh) だと、モバイルではアドレスバー分だけ
+      // ドキュメントがスクロール可能になり、直前ページ（店舗一覧を最後まで
+      // スクロールした状態など）のスクロール位置を引き継いで画面全体が
+      // 上にずれてしまう。fixed inset-0 ならスクロールに連動せず常に全面表示。
+      className="fixed inset-0 flex flex-col touch-manipulation"
       style={{ background: colors.background }}
     >
       {/* エラーバナー */}
