@@ -16,6 +16,8 @@ export type PlatformEvent = {
   stamp_reward_text: string | null;
   /** イベント総費用（円・運営入力）。費用対効果(ROI)算出に使用 */
   cost_total: number | null;
+  /** 公式LINEで告知する電子クーポン番号（例: #1111）。会員証スキャン消込の照合用 */
+  redemption_code?: string | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;
@@ -50,4 +52,8 @@ export type StoreEventBenefitRedemption = {
   redeemed_at: string;
   created_by: string | null;
   created_at: string;
+  /** per-user 消込（会員証スキャン）の場合の対象会員 */
+  user_id?: string | null;
+  /** per-user 消込の表示名（API 側で付与） */
+  customer_name?: string | null;
 };

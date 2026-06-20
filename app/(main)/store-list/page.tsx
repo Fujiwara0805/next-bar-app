@@ -714,7 +714,7 @@ function StoreListContent() {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.9 }}
-                      transition={{ delay: index * 0.1 }}
+                      transition={{ delay: Math.min(index, 8) * 0.05 }}
                       whileTap={{ scale: 0.97 }}
                       className="cursor-pointer"
                       onClick={() => {
@@ -738,7 +738,7 @@ function StoreListContent() {
                           <motion.div
                             initial={{ scale: 0, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
-                            transition={{ delay: index * 0.1 + 0.2 }}
+                            transition={{ delay: Math.min(index, 8) * 0.05 + 0.2 }}
                             className="absolute top-2 right-2 z-10 px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5"
                             style={{
                               background: COLORS.champagneGold,
@@ -749,6 +749,17 @@ function StoreListContent() {
                             <Sparkles className="w-3.5 h-3.5" />
                             <span>No.{index + 1}</span>
                           </motion.div>
+                        )}
+                        {isEventStore && store.active_event && (
+                          <div
+                            className="-mt-4 -mx-4 mb-3 px-3 py-1.5"
+                            style={{ background: EVENT_CARD_FG }}
+                          >
+                            <p className="text-[11px] font-bold truncate leading-tight" style={{ color: EVENT_CARD_BG }}>
+                              🎊 {store.active_event.title}
+                              {store.active_event.benefit_text?.trim() ? `・特典: ${store.active_event.benefit_text.trim()}` : ''}
+                            </p>
+                          </div>
                         )}
                         <div className="flex gap-3 h-full">
                           {store.image_urls && store.image_urls.length > 0 ? (
@@ -875,25 +886,6 @@ function StoreListContent() {
                               
                               {store.status_message && (
                                 <p className="text-sm font-bold line-clamp-2 pt-1" style={{ color: isEventStore ? EVENT_CARD_FG : COLORS.deepNavy }}>{store.status_message}</p>
-                              )}
-
-                              {isEventStore && store.active_event && (
-                                <div
-                                  className="mt-2 rounded-lg px-2.5 py-1.5"
-                                  style={{
-                                    background: `${EVENT_CARD_FG}14`,
-                                    border: `1px solid ${EVENT_CARD_FG}33`,
-                                  }}
-                                >
-                                  <p className="text-[11px] font-bold inline-flex items-center gap-1 leading-tight" style={{ color: EVENT_CARD_FG }}>
-                                    🎊 {store.active_event.title}
-                                  </p>
-                                  {store.active_event.benefit_text?.trim() && (
-                                    <p className="text-xs font-bold leading-snug line-clamp-2" style={{ color: EVENT_CARD_FG }}>
-                                      特典: {store.active_event.benefit_text.trim()}
-                                    </p>
-                                  )}
-                                </div>
                               )}
 
                               {isConciergeActive && matchScore > 0 && (

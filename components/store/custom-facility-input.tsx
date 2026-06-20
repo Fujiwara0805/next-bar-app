@@ -39,7 +39,7 @@ export function CustomFacilityInput({
         ✏️ オリジナル項目を追加
       </p>
       <p className="text-xs mb-2" style={{ color: 'rgba(19,41,75,0.6)' }}>
-        一覧に無い設備・サービス・名物などを自由に追加できます（例: からあげ専門、岩がき、テラスBBQ）。
+        一覧に無い設備・サービス・名物などを自由に追加できます。
       </p>
       <div className="flex gap-2">
         <input

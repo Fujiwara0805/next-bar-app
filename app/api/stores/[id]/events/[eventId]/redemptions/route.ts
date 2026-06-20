@@ -14,6 +14,8 @@ type RedemptionRow = {
   redeemed_at: string;
   created_by: string | null;
   created_at: string;
+  user_id?: string | null;
+  customer_name?: string | null;
 };
 
 export async function GET(
@@ -31,9 +33,10 @@ export async function GET(
     ? Math.floor(limitParam)
     : 100;
 
+  // user_id 列が無い環境でも壊れないよう '*' で取得
   const { data, error } = await (auth.ctx.admin as any)
     .from('store_event_benefit_redemptions')
-    .select('id, event_id, store_id, redeemed_at, created_by, created_at')
+    .select('*')
     .eq('store_id', params.id)
     .eq('event_id', params.eventId)
     .order('redeemed_at', { ascending: false })
@@ -48,6 +51,24 @@ export async function GET(
   }
 
   const rows = (data ?? []) as RedemptionRow[];
+
+  // user_id を持つ行に顧客名を付与（per-user 消込の可視化）
+  const userIds = Array.from(
+    new Set(rows.map((r) => r.user_id).filter((v): v is string => !!v))
+  );
+  if (userIds.length > 0) {
+    const { data: users } = await (auth.ctx.admin as any)
+      .from('users')
+      .select('id, display_name, line_display_name')
+      .in('id', userIds);
+    const nameById = new Map<string, string>();
+    (users ?? []).forEach((u: any) => {
+      nameById.set(u.id, u.line_display_name || u.display_name || 'ゲスト');
+    });
+    rows.forEach((r) => {
+      if (r.user_id) r.customer_name = nameById.get(r.user_id) ?? 'ゲスト';
+    });
+  }
 
   // 全件カウントを別途取得（limit より多い場合に備えて）
   const { count, error: countErr } = await (auth.ctx.admin as any)

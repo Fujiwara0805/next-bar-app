@@ -87,6 +87,58 @@ export async function GET(
   if (drErr && !isMissingTable(drErr)) console.warn('[roi] digital redemption warning', drErr);
   const digitalRedemptions = typeof digitalCount === 'number' ? digitalCount : 0;
 
+  // per-user 消込（会員証スキャン）の明細 — 「どの顧客がいつ消し込んだか」を把握
+  type PerUserRedemption = {
+    id: string;
+    user_id: string;
+    customer_name: string;
+    store_id: string;
+    store_name: string;
+    redeemed_at: string;
+  };
+  let perUserRedemptions: PerUserRedemption[] = [];
+  const { data: redemptionRows, error: redErr } = await admin
+    .from('store_event_benefit_redemptions')
+    .select('*')
+    .eq('event_id', eventId)
+    .order('redeemed_at', { ascending: false })
+    .limit(200);
+  if (redErr && !isMissingTable(redErr)) {
+    console.warn('[roi] per-user redemption warning', redErr);
+  }
+  const withUser = (redemptionRows ?? []).filter((r: any) => r.user_id);
+  if (withUser.length > 0) {
+    const uids = Array.from(new Set(withUser.map((r: any) => r.user_id)));
+    const { data: users } = await admin
+      .from('users')
+      .select('id, display_name, line_display_name')
+      .in('id', uids);
+    const nameById = new Map<string, string>();
+    (users ?? []).forEach((u: any) =>
+      nameById.set(u.id, u.line_display_name || u.display_name || 'ゲスト')
+    );
+    // 店舗名を補完（参加店以外で消込された場合も考慮）
+    const missingStoreIds = withUser
+      .map((r: any) => r.store_id)
+      .filter((sid: string) => sid && !storeNameById.has(sid));
+    if (missingStoreIds.length > 0) {
+      const { data: extraStores } = await admin
+        .from('stores')
+        .select('id, name')
+        .in('id', Array.from(new Set(missingStoreIds)));
+      (extraStores ?? []).forEach((s: any) => storeNameById.set(s.id, s.name));
+    }
+    perUserRedemptions = withUser.map((r: any) => ({
+      id: r.id,
+      user_id: r.user_id,
+      customer_name: nameById.get(r.user_id) ?? 'ゲスト',
+      store_id: r.store_id,
+      store_name: storeNameById.get(r.store_id) ?? '—',
+      redeemed_at: r.redeemed_at,
+    }));
+  }
+  const perUserUniqueCustomers = new Set(perUserRedemptions.map((r) => r.user_id)).size;
+
   // スタンプ達成（特典受取済）
   const { count: stampClaimedCount, error: srErr } = await admin
     .from('event_stamp_rewards')
@@ -131,6 +183,8 @@ export async function GET(
     check_ins_total: checkInsTotal,
     unique_customers: uniqueCustomers,
     digital_redemptions: digitalRedemptions,
+    per_user_redemptions: perUserRedemptions.length,
+    per_user_unique_customers: perUserUniqueCustomers,
     stamp_rewards_claimed: stampRewardsClaimed,
     paper_distributed: paperDistributed,
     paper_redeemed: paperRedeemed,
@@ -153,5 +207,6 @@ export async function GET(
     },
     metrics,
     paper_reports: paperReports,
+    per_user_redemptions: perUserRedemptions,
   });
 }

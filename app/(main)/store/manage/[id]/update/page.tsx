@@ -199,6 +199,8 @@ export default function StoreUpdatePage() {
   
   // 臨時休業中かどうかを表示するためのstate
   const [isManualClosed, setIsManualClosed] = useState(false);
+  // 読み込み時点の空席ステータス（更新時に「能動的に閉店へ変更したか」を判定するため）
+  const [initialVacancyStatus, setInitialVacancyStatus] = useState<'vacant' | 'open' | 'full' | 'closed'>('closed');
 
   const fetchStore = useCallback(async () => {
     // 認証情報が揃っていない場合は早期リターン
@@ -248,9 +250,12 @@ export default function StoreUpdatePage() {
         // 臨時休業中（manual_closed: true）の場合は 'closed' を選択状態に
         if (storeData.manual_closed) {
           setVacancyStatus('closed');
+          setInitialVacancyStatus('closed');
           setIsManualClosed(true);
         } else {
-          setVacancyStatus(storeData.vacancy_status as 'vacant' | 'open' | 'full' | 'closed');
+          const loaded = storeData.vacancy_status as 'vacant' | 'open' | 'full' | 'closed';
+          setVacancyStatus(loaded);
+          setInitialVacancyStatus(loaded);
           setIsManualClosed(false);
         }
         
@@ -505,7 +510,15 @@ export default function StoreUpdatePage() {
 
       const isClosed = vacancyStatus === 'closed';
       const now = new Date().toISOString();
-      
+
+      // 「閉店」状態のまま更新ボタンを押しただけで意図せず臨時休業にならないようにする。
+      // 臨時休業（manual_closed）にするのは、
+      //   ① 元々臨時休業だった（その状態を維持して更新する）
+      //   ② このセッションで能動的に他ステータスから「閉店」へ変更した
+      // のいずれかの場合のみ。自動的に閉店表示になっていた店をそのまま更新した場合は維持しない。
+      const changedToClosed = isClosed && initialVacancyStatus !== 'closed';
+      const shouldManualClose = isClosed && (isManualClosed || changedToClosed);
+
       /**
        * 更新データの構築
        * ここで明示的に closed_reason を制御します。
@@ -517,19 +530,19 @@ export default function StoreUpdatePage() {
         vacant_seats: vacancyStatus === 'vacant' && vacantSeats !== null ? vacantSeats : null,
         last_updated: now,
         updated_at: now,
-        manual_closed: isClosed, // 閉店ならtrue, それ以外はfalse
+        manual_closed: shouldManualClose,
       };
 
-      if (isClosed) {
+      if (shouldManualClose) {
         // --- 閉店（臨時休業）にする場合 ---
         updateData.closed_reason = 'manual';
         updateData.manual_closed_at = now;
       } else {
-        // --- 営業再開（空席あり/混雑/満席）にする場合 ---
+        // --- 臨時休業フラグを立てない場合（営業再開／自動閉店の維持） ---
         // 【重要】closed_reasonをnullにする
         updateData.closed_reason = null;
         updateData.manual_closed_at = null;
-        
+
         // API同期のキャッシュを無効化し、次回同期で正確な情報を取得させる
         updateData.last_is_open_check_at = null;
       }
@@ -550,9 +563,9 @@ export default function StoreUpdatePage() {
 
       // 成功メッセージ
       let successMessage = '更新が完了しました';
-      if (isClosed) {
-        successMessage = '閉店を設定しました';
-      } else if (isManualClosed) {
+      if (shouldManualClose) {
+        successMessage = '臨時休業を設定しました';
+      } else if (isManualClosed && !isClosed) {
         // 臨時休業中から営業中に変更した場合
         successMessage = '営業を再開しました';
       }
@@ -564,7 +577,8 @@ export default function StoreUpdatePage() {
       });
       
       // 状態を更新
-      setIsManualClosed(isClosed);
+      setIsManualClosed(shouldManualClose);
+      setInitialVacancyStatus(vacancyStatus);
       
       if (accountType === 'store') {
         fetchStore();
@@ -852,7 +866,7 @@ export default function StoreUpdatePage() {
                     style={{ color: COLORS.deepNavy }}
                   >
                     <QrCode className="w-4 h-4 shrink-0" />
-                    {t('store_qr.title')}
+                    会員証の読取・QR提示
                   </button>
                 </div>
               </div>

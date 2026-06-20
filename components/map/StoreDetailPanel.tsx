@@ -292,6 +292,14 @@ export function StoreDetailPanel({
         >
           {/* --- コンパクトビュー (常時表示) --- */}
           <div className="space-y-3">
+            {isEventStore && store.active_event && (
+              <div className="-mx-4 -mt-1 px-4 py-1.5" style={{ background: '#13294b' }}>
+                <p className="text-[11px] font-bold truncate leading-tight" style={{ color: '#ffc82c' }}>
+                  🎊 {store.active_event.title}
+                  {store.active_event.benefit_text?.trim() ? `・特典: ${store.active_event.benefit_text.trim()}` : ''}
+                </p>
+              </div>
+            )}
             <div className="flex gap-4">
               {store.image_urls && store.image_urls.length > 0 ? (
                 <img
@@ -422,25 +430,6 @@ export function StoreDetailPanel({
                 <p className="text-sm font-bold line-clamp-2" style={{ color: theme.textMuted }}>
                   {store.status_message}
                 </p>
-              </div>
-            )}
-
-            {isEventStore && store.active_event && (
-              <div
-                className="rounded-lg px-2.5 py-1.5"
-                style={{
-                  background: 'rgba(255, 200, 44, 0.14)',
-                  border: '1px solid rgba(255, 200, 44, 0.45)',
-                }}
-              >
-                <p className="text-[11px] font-bold leading-tight" style={{ color: '#13294b' }}>
-                  🎊 {store.active_event.title}
-                </p>
-                {store.active_event.benefit_text?.trim() && (
-                  <p className="text-xs font-bold leading-snug line-clamp-2" style={{ color: '#13294b' }}>
-                    特典: {store.active_event.benefit_text.trim()}
-                  </p>
-                )}
               </div>
             )}
 

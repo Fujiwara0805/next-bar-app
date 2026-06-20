@@ -19,6 +19,7 @@ import { CloseCircleButton } from '@/components/ui/close-circle-button';
 import { LoadingScreen } from '@/components/ui/loading-screen';
 import { useAppMode } from '@/lib/app-mode-context';
 import { MembershipQr } from '@/components/mypage/membership-qr';
+import { VisitHistory } from '@/components/mypage/visit-history';
 import { toast } from 'sonner';
 
 // Brewers Navy + Brass + Copper パレット（StoreDetailPanel と統一）
@@ -237,6 +238,8 @@ export default function MyPage() {
             </div>
           )}
 
+          {/* 来店履歴 */}
+          <VisitHistory />
 
           {/* その他導線（空席通知の設定・お店を探すは左右2カラムで同じ行に表示） */}
           <div className="space-y-2 mb-4">

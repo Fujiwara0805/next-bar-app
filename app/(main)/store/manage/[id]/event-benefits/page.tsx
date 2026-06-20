@@ -21,9 +21,11 @@ import {
   ChevronDown,
   ChevronUp,
 } from 'lucide-react';
+import { ScanLine } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { CloseCircleButton } from '@/components/ui/close-circle-button';
+import { MembershipRedeemScanner } from '@/components/store/membership-redeem-scanner';
 import { useAuth } from '@/lib/auth/context';
 import { useAppMode } from '@/lib/app-mode-context';
 import { supabase } from '@/lib/supabase/client';
@@ -64,6 +66,7 @@ export default function StoreEventBenefitsPage() {
   const [events, setEvents] = useState<StoreEventRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [recordingEventId, setRecordingEventId] = useState<string | null>(null);
+  const [scanEvent, setScanEvent] = useState<{ id: string; title: string } | null>(null);
   const [expandedEventId, setExpandedEventId] = useState<string | null>(null);
   const [historiesByEvent, setHistoriesByEvent] = useState<
     Record<string, StoreEventBenefitRedemption[]>
@@ -295,6 +298,15 @@ export default function StoreEventBenefitsPage() {
     [storeId, session?.access_token, expandedEventId, fetchHistory]
   );
 
+  // 会員証QR消込の成功時: 件数と履歴を最新化
+  const handleRedeemed = useCallback(
+    (eventId: string) => {
+      fetchEvents();
+      if (expandedEventId === eventId) fetchHistory(eventId);
+    },
+    [fetchEvents, expandedEventId, fetchHistory]
+  );
+
   const toggleHistory = useCallback(
     (eventId: string) => {
       if (expandedEventId === eventId) {
@@ -428,6 +440,14 @@ export default function StoreEventBenefitsPage() {
                     <h3 className="text-base font-bold leading-tight flex-1" style={{ color: COLORS.deepNavy }}>
                       {event.title}
                     </h3>
+                    {event.redemption_code && (
+                      <span
+                        className="shrink-0 text-[11px] font-bold px-2 py-1 rounded-lg"
+                        style={{ background: 'rgba(19,41,75,0.06)', color: COLORS.deepNavy }}
+                      >
+                        クーポン番号 {event.redemption_code}
+                      </span>
+                    )}
                   </div>
 
                   {benefit && (
@@ -550,14 +570,25 @@ export default function StoreEventBenefitsPage() {
 
                   <Button
                     type="button"
-                    disabled={recording}
-                    onClick={() => recordRedemption(event.id)}
-                    className="w-full py-3 rounded-xl font-bold text-sm shadow-md"
+                    onClick={() => setScanEvent({ id: event.id, title: event.title })}
+                    className="w-full py-3 rounded-xl font-bold text-sm shadow-md mb-2"
                     style={{
                       background: COLORS.goldGradient,
                       color: COLORS.deepNavy,
                       boxShadow: '0 6px 18px rgba(201, 168, 108, 0.28)',
                     }}
+                  >
+                    <ScanLine className="w-4 h-4 mr-1.5" />
+                    会員証QRで消込（顧客に記録）
+                  </Button>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={recording}
+                    onClick={() => recordRedemption(event.id)}
+                    className="w-full py-2.5 rounded-xl font-bold text-xs"
+                    style={{ borderColor: 'rgba(19,41,75,0.25)', color: COLORS.deepNavy }}
                   >
                     {recording ? (
                       <>
@@ -567,7 +598,7 @@ export default function StoreEventBenefitsPage() {
                     ) : (
                       <>
                         <Plus className="w-4 h-4 mr-1.5" />
-                        特典利用を記録
+                        QRなしで件数のみ記録
                       </>
                     )}
                   </Button>
@@ -614,6 +645,14 @@ export default function StoreEventBenefitsPage() {
                               <span className="inline-flex items-center gap-1.5">
                                 <CalendarDays className="w-3 h-3" style={{ color: '#13294b' }} />
                                 {formatDateTime(row.redeemed_at)}
+                                {row.customer_name && (
+                                  <span
+                                    className="ml-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold"
+                                    style={{ background: 'rgba(255,200,44,0.18)', color: '#13294b' }}
+                                  >
+                                    {row.customer_name}
+                                  </span>
+                                )}
                               </span>
                             </li>
                           ))}
@@ -627,6 +666,16 @@ export default function StoreEventBenefitsPage() {
           })
         )}
       </div>
+
+      {scanEvent && (
+        <MembershipRedeemScanner
+          storeId={storeId}
+          eventId={scanEvent.id}
+          eventTitle={scanEvent.title}
+          onClose={() => setScanEvent(null)}
+          onRedeemed={() => handleRedeemed(scanEvent.id)}
+        />
+      )}
     </div>
   );
 }

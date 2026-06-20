@@ -42,6 +42,7 @@ type FormState = {
   stamp_goal: string;
   stamp_reward_text: string;
   cost_total: string;
+  redemption_code: string;
 };
 
 const emptyForm: FormState = {
@@ -58,6 +59,7 @@ const emptyForm: FormState = {
   stamp_goal: '3',
   stamp_reward_text: '',
   cost_total: '',
+  redemption_code: '',
 };
 
 function toDateInputValue(iso: string | null): string {
@@ -172,6 +174,7 @@ export default function PlatformEventsPage() {
       stamp_goal: String(event.stamp_goal ?? 3),
       stamp_reward_text: event.stamp_reward_text ?? '',
       cost_total: event.cost_total != null ? String(event.cost_total) : '',
+      redemption_code: event.redemption_code ?? '',
     });
     setFormOpen(true);
   };
@@ -315,30 +318,32 @@ export default function PlatformEventsPage() {
     {
       key: 'actions',
       header: '',
-      width: '136px',
+      width: '160px',
       render: (event) => (
-        <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-start gap-1" onClick={(e) => e.stopPropagation()}>
           <button
             type="button"
             title="費用対効果"
             onClick={() => router.push(`/store/manage/events/${event.id}/roi`)}
-            className="p-1.5 rounded-md"
+            className="flex flex-col items-center gap-0.5 p-1.5 rounded-md"
             style={{ color: C.info }}
           >
             <BarChart3 className="w-4 h-4" />
+            <span className="text-[10px] font-semibold leading-none">費用対効果</span>
           </button>
           <button
             type="button"
             onClick={() => openEdit(event)}
-            className="p-1.5 rounded-md"
+            className="flex flex-col items-center gap-0.5 p-1.5 rounded-md"
             style={{ color: C.accent }}
           >
             <Edit className="w-4 h-4" />
+            <span className="text-[10px] font-semibold leading-none">編集</span>
           </button>
           <button
             type="button"
             onClick={() => deleteEvent(event)}
-            className="p-1.5 rounded-md"
+            className="flex flex-col items-center gap-0.5 p-1.5 rounded-md"
             style={{ color: C.danger }}
           >
             {deletingId === event.id ? (
@@ -346,6 +351,7 @@ export default function PlatformEventsPage() {
             ) : (
               <Trash2 className="w-4 h-4" />
             )}
+            <span className="text-[10px] font-semibold leading-none">削除</span>
           </button>
         </div>
       ),
@@ -459,6 +465,19 @@ export default function PlatformEventsPage() {
             />
             <p className="text-[11px] leading-relaxed" style={{ color: '#7a6b50' }}>
               チラシ・紙クーポン・広告などの総費用。費用対効果レポート（コスト/チェックイン・コスト/消込）の算出に使用します。
+            </p>
+          </div>
+          {/* 電子クーポン番号（公式LINE告知用・会員証スキャン消込の照合） */}
+          <div className="rounded-lg border p-3 space-y-1.5" style={{ borderColor: '#DCE1EB', background: '#F7F8FA' }}>
+            <span className="text-sm font-bold" style={{ color: '#13294b' }}>🎟 電子クーポン番号</span>
+            <Input
+              placeholder="例: #1111"
+              value={form.redemption_code}
+              maxLength={40}
+              onChange={(e) => setForm((prev) => ({ ...prev, redemption_code: e.target.value }))}
+            />
+            <p className="text-[11px] leading-relaxed" style={{ color: '#7a6b50' }}>
+              公式LINEで告知する電子クーポンの番号。加盟店は会員証QRをスキャンして消込でき、顧客×消込が本イベントの費用対効果に記録されます。
             </p>
           </div>
           {/* スタンプラリー設定（回遊×特典） */}

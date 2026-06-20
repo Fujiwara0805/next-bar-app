@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Plus, Search, Loader2, Building2, Trash2, Edit,
-  ChevronLeft, ChevronRight, Globe, Mail, Phone, CheckCircle2, XCircle,
+  ChevronLeft, ChevronRight, CheckCircle2, XCircle,
   FileText,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -267,20 +267,6 @@ export default function SponsorsPage() {
                   hideOnMobile: true,
                   render: (s: Sponsor) => (
                     <span className="text-sm font-medium" style={{ color: C.text }}>{contractCounts[s.id] ?? 0}</span>
-                  ),
-                },
-                {
-                  key: 'contact',
-                  header: '連絡先',
-                  width: '120px',
-                  hideOnMobile: true,
-                  render: (s: Sponsor) => (
-                    <div className="flex items-center gap-1.5">
-                      {s.contact_email && <Mail className="w-3.5 h-3.5" style={{ color: C.textSubtle }} />}
-                      {s.contact_phone && <Phone className="w-3.5 h-3.5" style={{ color: C.textSubtle }} />}
-                      {s.website_url && <Globe className="w-3.5 h-3.5" style={{ color: C.textSubtle }} />}
-                      {!s.contact_email && !s.contact_phone && !s.website_url && <span className="text-xs" style={{ color: C.textSubtle }}>—</span>}
-                    </div>
                   ),
                 },
                 {

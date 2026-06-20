@@ -29,9 +29,20 @@ type RoiMetrics = {
   paper_redeemed: number;
   paper_reported_stores: number;
   total_redemptions: number;
+  per_user_redemptions?: number;
+  per_user_unique_customers?: number;
   cost_per_check_in: number | null;
   cost_per_redemption: number | null;
   paper_redemption_rate: number | null;
+};
+
+type PerUserRedemption = {
+  id: string;
+  user_id: string;
+  customer_name: string;
+  store_id: string;
+  store_name: string;
+  redeemed_at: string;
 };
 
 type PaperReport = {
@@ -46,6 +57,7 @@ type RoiResponse = {
   event: { id: string; title: string; cost_total: number | null; start_at: string | null; end_at: string | null };
   metrics: RoiMetrics;
   paper_reports: PaperReport[];
+  per_user_redemptions?: PerUserRedemption[];
 };
 
 const yen = (n: number | null) => (n === null ? '—' : `¥${n.toLocaleString('ja-JP')}`);
@@ -143,6 +155,39 @@ export default function EventRoiPage() {
     },
   ];
 
+  const fmtDateTime = (iso: string) => {
+    const d = new Date(iso);
+    if (!Number.isFinite(d.getTime())) return '—';
+    return d.toLocaleString('ja-JP', {
+      timeZone: 'Asia/Tokyo',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  const redemptionColumns: AdminColumn<PerUserRedemption>[] = [
+    {
+      key: 'customer',
+      header: '顧客',
+      width: '2fr',
+      render: (r) => <span className="text-sm font-semibold" style={{ color: C.text }}>{r.customer_name}</span>,
+    },
+    {
+      key: 'store',
+      header: '消込店舗',
+      width: '2fr',
+      render: (r) => <span className="text-sm" style={{ color: C.textMuted }}>{r.store_name}</span>,
+    },
+    {
+      key: 'redeemed_at',
+      header: '消込日時',
+      width: '2fr',
+      render: (r) => <span className="text-sm" style={{ color: C.textMuted }}>{fmtDateTime(r.redeemed_at)}</span>,
+    },
+  ];
+
   return (
     <div className="min-h-screen" style={{ background: C.bg }}>
       <div className="max-w-6xl mx-auto px-6 md:px-8 py-8 space-y-6">
@@ -235,6 +280,33 @@ export default function EventRoiPage() {
                     <span className="text-xs font-bold" style={{ color: r.reported_at ? C.success : C.textSubtle }}>
                       {r.reported_at ? '報告済' : '未報告'}
                     </span>
+                  </div>
+                )}
+              />
+            </section>
+
+            {/* 会員証スキャンによる消込（顧客×消込） */}
+            <section>
+              <div className="flex items-center gap-2 mb-3">
+                <h2 className="text-sm font-bold tracking-wide" style={{ color: C.text }}>会員証スキャン消込（顧客別）</h2>
+                <span className="text-xs" style={{ color: C.textSubtle }}>
+                  {m.per_user_unique_customers ?? 0} 名 / {m.per_user_redemptions ?? 0} 件
+                </span>
+              </div>
+              <AdminDataTable
+                columns={redemptionColumns}
+                data={data?.per_user_redemptions ?? []}
+                keyExtractor={(r) => r.id}
+                emptyIcon={<Ticket className="w-12 h-12" style={{ color: C.textSubtle }} />}
+                emptyTitle="会員証スキャンによる消込はまだありません"
+                emptyDescription="加盟店が会員証QRをスキャンして消し込むと、顧客名とともにここに記録されます"
+                mobileCardRender={(r) => (
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-semibold" style={{ color: C.text }}>{r.customer_name}</p>
+                      <p className="text-xs mt-0.5" style={{ color: C.textSubtle }}>{r.store_name}</p>
+                    </div>
+                    <span className="text-xs" style={{ color: C.textSubtle }}>{fmtDateTime(r.redeemed_at)}</span>
                   </div>
                 )}
               />

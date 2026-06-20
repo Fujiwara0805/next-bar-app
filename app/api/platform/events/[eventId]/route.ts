@@ -22,6 +22,7 @@ type EventPayload = {
   stamp_goal?: unknown;
   stamp_reward_text?: unknown;
   cost_total?: unknown;
+  redemption_code?: unknown;
 };
 
 /** スタンプゴール: 1〜20 の整数にクランプ（不正値は既定3） */
@@ -93,7 +94,19 @@ function parsePayload(raw: EventPayload) {
     stamp_goal: parseStampGoal(raw.stamp_goal),
     stamp_reward_text: nullableString(raw.stamp_reward_text, 200),
     cost_total: parseCost(raw.cost_total),
+    redemption_code: nullableString(raw.redemption_code, 40),
   };
+}
+
+/** redemption_code 列が未作成(マイグレーション未適用)の環境を検出 */
+function isMissingRedemptionCodeColumn(
+  error: { code?: string; message?: string } | null
+) {
+  return (
+    !!error &&
+    (error.code === '42703' || error.code === 'PGRST204') &&
+    /redemption_code/.test(error.message ?? '')
+  );
 }
 
 export async function PATCH(
@@ -116,12 +129,23 @@ export async function PATCH(
     return NextResponse.json({ error: 'invalid_payload' }, { status: 400 });
   }
 
-  const { data, error } = await (auth.ctx.admin as any)
+  const updateRow = { ...payload, updated_at: new Date().toISOString() };
+  let { data, error } = await (auth.ctx.admin as any)
     .from('platform_events')
-    .update({ ...payload, updated_at: new Date().toISOString() })
+    .update(updateRow)
     .eq('id', params.eventId)
     .select('*')
     .single();
+  // redemption_code 列が未作成なら除外して再試行（マイグレーション前でも動作）
+  if (error && isMissingRedemptionCodeColumn(error)) {
+    const { redemption_code: _omit, ...withoutCode } = updateRow;
+    ({ data, error } = await (auth.ctx.admin as any)
+      .from('platform_events')
+      .update(withoutCode)
+      .eq('id', params.eventId)
+      .select('*')
+      .single());
+  }
   if (error) {
     if (error.code === '42P01') {
       return NextResponse.json({ error: 'table_missing' }, { status: 501 });
