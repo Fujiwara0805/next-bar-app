@@ -99,7 +99,7 @@ function parsePayload(raw: EventPayload) {
 }
 
 /** redemption_code 列が未作成(マイグレーション未適用)の環境を検出 */
-export function isMissingRedemptionCodeColumn(
+function isMissingRedemptionCodeColumn(
   error: { code?: string; message?: string } | null
 ) {
   return (
