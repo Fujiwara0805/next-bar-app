@@ -209,28 +209,6 @@ export default function LiffVacancyOptInPage() {
         color: COLORS.deepNavy,
       }}
     >
-      {/* 装飾オーラ */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div
-          className="absolute -top-40 -right-40 h-[34rem] w-[34rem] rounded-full"
-          style={{
-            backgroundColor: `${COLORS.champagneGold}1f`,
-          }}
-        />
-        <div
-          className="absolute -bottom-56 -left-48 h-[34rem] w-[34rem] rounded-full"
-          style={{
-            backgroundColor: `${COLORS.midnightBlue}33`,
-          }}
-        />
-        <div
-          className="absolute top-0 left-0 right-0 h-[2px]"
-          style={{
-            backgroundColor: COLORS.champagneGold,
-          }}
-        />
-      </div>
-
       {/* 右上の閉じるボタン */}
       <div className="absolute top-3 right-3 z-20 safe-top">
         <CloseCircleButton
