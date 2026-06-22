@@ -199,8 +199,6 @@ export default function StoreUpdatePage() {
   
   // 臨時休業中かどうかを表示するためのstate
   const [isManualClosed, setIsManualClosed] = useState(false);
-  // 読み込み時点の空席ステータス（更新時に「能動的に閉店へ変更したか」を判定するため）
-  const [initialVacancyStatus, setInitialVacancyStatus] = useState<'vacant' | 'open' | 'full' | 'closed'>('closed');
 
   const fetchStore = useCallback(async () => {
     // 認証情報が揃っていない場合は早期リターン
@@ -250,12 +248,10 @@ export default function StoreUpdatePage() {
         // 臨時休業中（manual_closed: true）の場合は 'closed' を選択状態に
         if (storeData.manual_closed) {
           setVacancyStatus('closed');
-          setInitialVacancyStatus('closed');
           setIsManualClosed(true);
         } else {
           const loaded = storeData.vacancy_status as 'vacant' | 'open' | 'full' | 'closed';
           setVacancyStatus(loaded);
-          setInitialVacancyStatus(loaded);
           setIsManualClosed(false);
         }
         
@@ -511,13 +507,11 @@ export default function StoreUpdatePage() {
       const isClosed = vacancyStatus === 'closed';
       const now = new Date().toISOString();
 
-      // 「閉店」状態のまま更新ボタンを押しただけで意図せず臨時休業にならないようにする。
-      // 臨時休業（manual_closed）にするのは、
-      //   ① 元々臨時休業だった（その状態を維持して更新する）
-      //   ② このセッションで能動的に他ステータスから「閉店」へ変更した
-      // のいずれかの場合のみ。自動的に閉店表示になっていた店をそのまま更新した場合は維持しない。
-      const changedToClosed = isClosed && initialVacancyStatus !== 'closed';
-      const shouldManualClose = isClosed && (isManualClosed || changedToClosed);
+      // 「閉店」状態での更新では、新たに臨時休業(manual_closed)へは一切変更しない。
+      // 既に臨時休業だった場合のみその状態を維持する。
+      // （営業時間外などで自動的に「閉店」表示になっている店が、更新操作によって
+      //   誤って臨時休業＝開店時刻になっても自動再開されない状態 へ変わるのを防ぐ。）
+      const shouldManualClose = isClosed && isManualClosed;
 
       /**
        * 更新データの構築
@@ -578,7 +572,6 @@ export default function StoreUpdatePage() {
       
       // 状態を更新
       setIsManualClosed(shouldManualClose);
-      setInitialVacancyStatus(vacancyStatus);
       
       if (accountType === 'store') {
         fetchStore();
