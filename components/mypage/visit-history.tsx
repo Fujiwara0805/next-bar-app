@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { History, Loader2, MapPin, Store as StoreIcon } from 'lucide-react';
+import { History, Loader2, MapPin, Store as StoreIcon, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase/client';
 
@@ -35,8 +35,10 @@ function formatVisitDate(iso: string): string {
  * `/api/me/check-ins` から自分の来店履歴を取得して新しい順で表示する。
  */
 export function VisitHistory() {
-  const [loading, setLoading] = useState(true);
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
+  const [fetched, setFetched] = useState(false);
   const [history, setHistory] = useState<VisitRow[]>([]);
   const [uniqueStoreCount, setUniqueStoreCount] = useState(0);
   const [showAll, setShowAll] = useState(false);
@@ -61,6 +63,7 @@ export function VisitHistory() {
       const json = await res.json();
       setHistory(json.history ?? []);
       setUniqueStoreCount(json.unique_store_count ?? 0);
+      setFetched(true);
     } catch {
       setError(true);
     } finally {
@@ -68,21 +71,30 @@ export function VisitHistory() {
     }
   }, []);
 
+  // 開いた初回のみ取得（遅延ロードで会員ページを軽く保つ）
   useEffect(() => {
-    fetchHistory();
-  }, [fetchHistory]);
+    if (open && !fetched && !loading) {
+      fetchHistory();
+    }
+  }, [open, fetched, loading, fetchHistory]);
 
   const visible = showAll ? history : history.slice(0, 5);
 
   return (
     <div
-      className="rounded-2xl p-5 mb-4 bg-white relative overflow-hidden"
+      className="rounded-2xl mb-4 bg-white relative overflow-hidden"
       style={{
         border: `1px solid ${BRASS}33`,
         boxShadow: '0 8px 22px rgba(19, 41, 75, 0.08)',
       }}
     >
-      <div className="flex items-center justify-between mb-3">
+      {/* 折りたたみヘッダー（タップで開閉） */}
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center justify-between p-5 transition-colors hover:bg-black/[0.02]"
+        aria-expanded={open}
+      >
         <div className="flex items-center gap-2">
           <span
             className="inline-flex items-center justify-center w-9 h-9 rounded-xl"
@@ -91,19 +103,27 @@ export function VisitHistory() {
             <History className="w-4 h-4" style={{ color: COPPER }} />
           </span>
           <h3 className="font-bold text-sm" style={{ color: NAVY }}>
-            来店履歴
+            来店履歴を見る
           </h3>
         </div>
-        {!loading && !error && history.length > 0 && (
-          <span
-            className="text-xs font-bold px-2 py-0.5 rounded-full"
-            style={{ background: `${NAVY}0D`, color: NAVY }}
-          >
-            {history.length}回 / {uniqueStoreCount}店
-          </span>
-        )}
-      </div>
+        <div className="flex items-center gap-2">
+          {fetched && history.length > 0 && (
+            <span
+              className="text-xs font-bold px-2 py-0.5 rounded-full"
+              style={{ background: `${NAVY}0D`, color: NAVY }}
+            >
+              {history.length}回 / {uniqueStoreCount}店
+            </span>
+          )}
+          <ChevronDown
+            className="w-5 h-5 transition-transform"
+            style={{ color: COPPER, transform: open ? 'rotate(180deg)' : 'none' }}
+          />
+        </div>
+      </button>
 
+      {open && (
+      <div className="px-5 pb-5">
       {loading ? (
         <div className="flex items-center justify-center py-6">
           <Loader2 className="w-5 h-5 animate-spin" style={{ color: COPPER }} />
@@ -174,6 +194,8 @@ export function VisitHistory() {
             </button>
           )}
         </>
+      )}
+      </div>
       )}
     </div>
   );

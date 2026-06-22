@@ -27,6 +27,7 @@ import { sendGAEvent } from '@/lib/analytics';
 import { useAppMode } from '@/lib/app-mode-context';
 import type { BusinessHours } from '@/lib/supabase/types';
 import { LineFriendCta } from '@/components/line/line-friend-cta';
+import { EventParticipationCta } from '@/components/map/event-participation-cta';
 import type { EventAwareStore } from '@/lib/types/active-store-event';
 
 type Store = EventAwareStore;
@@ -299,6 +300,13 @@ export function StoreDetailPanel({
                   {store.active_event.benefit_text?.trim() ? `・特典: ${store.active_event.benefit_text.trim()}` : ''}
                 </p>
               </div>
+            )}
+            {/* イベント参加店: スタンプ獲得のためのログイン/参加導線 */}
+            {isEventStore && store.active_event && (
+              <EventParticipationCta
+                eventId={store.active_event.id}
+                eventTitle={store.active_event.title}
+              />
             )}
             <div className="flex gap-4">
               {store.image_urls && store.image_urls.length > 0 ? (

@@ -20,6 +20,7 @@ import {
   Building2,
   ChevronDown,
   ChevronUp,
+  Ticket,
 } from 'lucide-react';
 import { ScanLine } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -78,6 +79,9 @@ export default function StoreEventBenefitsPage() {
   const [paperByEvent, setPaperByEvent] = useState<Record<string, PaperReport>>({});
   const [paperDraft, setPaperDraft] = useState<Record<string, { distributed: string; redeemed: string }>>({});
   const [paperSaving, setPaperSaving] = useState<string | null>(null);
+  // クーポン番号での消込（公式LINEで配信された電子クーポン番号を手入力）
+  const [codeDraft, setCodeDraft] = useState<Record<string, string>>({});
+  const [codeSubmitting, setCodeSubmitting] = useState<string | null>(null);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -296,6 +300,68 @@ export default function StoreEventBenefitsPage() {
       }
     },
     [storeId, session?.access_token, expandedEventId, fetchHistory]
+  );
+
+  // クーポン番号で消し込む（公式LINEで配信された番号 #1111 等をイベントの番号と照合）
+  const redeemByCode = useCallback(
+    async (eventId: string) => {
+      if (!storeId) return;
+      const code = (codeDraft[eventId] ?? '').trim();
+      if (!code) {
+        toast.error('クーポン番号を入力してください', { position: 'top-center' });
+        return;
+      }
+      setCodeSubmitting(eventId);
+      try {
+        const token = session?.access_token;
+        if (!token) throw new Error('session_missing');
+        const res = await fetch(
+          `/api/stores/${storeId}/events/${eventId}/redeem-code`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ code }),
+          }
+        );
+        const json = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          const msg =
+            json?.error === 'code_mismatch'
+              ? 'クーポン番号が一致しません'
+              : json?.error === 'no_code_configured'
+                ? 'このイベントにはクーポン番号が設定されていません'
+                : '消込に失敗しました';
+          toast.error(msg, { position: 'top-center' });
+          return;
+        }
+        toast.success('クーポン番号で消込しました', { position: 'top-center', duration: 1500 });
+        setCodeDraft((prev) => ({ ...prev, [eventId]: '' }));
+        // 楽観更新
+        setEvents((prev) =>
+          prev.map((event) =>
+            event.id === eventId
+              ? {
+                  ...event,
+                  stats: {
+                    redemption_count: (event.stats?.redemption_count ?? 0) + 1,
+                    last_redeemed_at: new Date().toISOString(),
+                  },
+                }
+              : event
+          )
+        );
+        if (expandedEventId === eventId) fetchHistory(eventId);
+      } catch (error) {
+        console.error('[event-benefits] redeem-code error', error);
+        toast.error('消込に失敗しました', { position: 'top-center' });
+      } finally {
+        setCodeSubmitting(null);
+      }
+    },
+    [storeId, codeDraft, session?.access_token, expandedEventId, fetchHistory]
   );
 
   // 会員証QR消込の成功時: 件数と履歴を最新化
@@ -581,6 +647,51 @@ export default function StoreEventBenefitsPage() {
                     <ScanLine className="w-4 h-4 mr-1.5" />
                     会員証QRで消込（顧客に記録）
                   </Button>
+
+                  {/* クーポン番号で消し込む（公式LINEで配信された番号を手入力） */}
+                  {event.redemption_code && (
+                    <div
+                      className="mb-2 rounded-xl p-3"
+                      style={{ background: 'rgba(19,41,75,0.04)', border: '1px solid rgba(19,41,75,0.10)' }}
+                    >
+                      <div className="flex items-center gap-1.5 mb-2">
+                        <Ticket className="w-3.5 h-3.5" style={{ color: COLORS.deepNavy }} />
+                        <span className="text-[11px] font-bold" style={{ color: COLORS.deepNavy }}>
+                          クーポン番号で消し込む
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          inputMode="text"
+                          value={codeDraft[event.id] ?? ''}
+                          onChange={(e) =>
+                            setCodeDraft((prev) => ({ ...prev, [event.id]: e.target.value }))
+                          }
+                          placeholder={`例: ${event.redemption_code}`}
+                          className="flex-1 px-3 py-2 rounded-lg text-sm font-bold outline-none"
+                          style={{ background: '#FFFFFF', border: '1px solid #DCE1EB', color: COLORS.deepNavy }}
+                        />
+                        <Button
+                          type="button"
+                          size="sm"
+                          disabled={codeSubmitting === event.id}
+                          onClick={() => redeemByCode(event.id)}
+                          className="text-xs font-bold shrink-0"
+                          style={{ background: COLORS.deepNavy, color: '#ffc82c' }}
+                        >
+                          {codeSubmitting === event.id ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            '消込'
+                          )}
+                        </Button>
+                      </div>
+                      <p className="text-[10px] mt-1.5" style={{ color: COLORS.warmGray }}>
+                        お客様が提示した電子クーポンの番号を入力して消し込みます。
+                      </p>
+                    </div>
+                  )}
 
                   <Button
                     type="button"

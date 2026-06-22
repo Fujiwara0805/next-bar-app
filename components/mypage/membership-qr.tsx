@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import {
@@ -341,10 +342,11 @@ export function MembershipQr({ displayName }: { displayName: string }) {
         </ol>
       </div>
 
-      {/* 店舗QRスキャナーモーダル */}
-      {scannerOpen && (
+      {/* 店舗QRスキャナーモーダル（会員証モーダル等の transform 配下でも全画面表示
+          できるよう、body 直下へポータルで描画する。z-index はモーダル(50)より上） */}
+      {scannerOpen && typeof document !== 'undefined' && createPortal(
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center"
+          className="fixed inset-0 z-[60] flex items-center justify-center"
           style={{ background: 'rgba(10, 10, 10, 0.92)' }}
         >
           <div className="w-full max-w-md mx-auto px-4">
@@ -412,7 +414,8 @@ export function MembershipQr({ displayName }: { displayName: string }) {
               </div>
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </motion.div>
   );

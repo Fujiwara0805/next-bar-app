@@ -22,6 +22,8 @@ export type Database = {
           event_id: string
           id: string
           reward_claimed_at: string | null
+          submit_note: string | null
+          submitted_at: string | null
           user_id: string
         }
         Insert: {
@@ -31,6 +33,8 @@ export type Database = {
           event_id: string
           id?: string
           reward_claimed_at?: string | null
+          submit_note?: string | null
+          submitted_at?: string | null
           user_id: string
         }
         Update: {
@@ -40,6 +44,8 @@ export type Database = {
           event_id?: string
           id?: string
           reward_claimed_at?: string | null
+          submit_note?: string | null
+          submitted_at?: string | null
           user_id?: string
         }
         Relationships: [
@@ -214,6 +220,7 @@ export type Database = {
           id: string
           image_url: string | null
           organizer_name: string | null
+          redemption_code: string | null
           stamp_enabled: boolean
           stamp_goal: number
           stamp_reward_text: string | null
@@ -233,6 +240,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           organizer_name?: string | null
+          redemption_code?: string | null
           stamp_enabled?: boolean
           stamp_goal?: number
           stamp_reward_text?: string | null
@@ -252,6 +260,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           organizer_name?: string | null
+          redemption_code?: string | null
           stamp_enabled?: boolean
           stamp_goal?: number
           stamp_reward_text?: string | null
@@ -994,6 +1003,7 @@ export type Database = {
           id: string
           redeemed_at: string
           store_id: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -1002,6 +1012,7 @@ export type Database = {
           id?: string
           redeemed_at?: string
           store_id: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -1010,6 +1021,7 @@ export type Database = {
           id?: string
           redeemed_at?: string
           store_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -1024,6 +1036,13 @@ export type Database = {
             columns: ["store_id"]
             isOneToOne: false
             referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_event_benefit_redemptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -1357,6 +1376,42 @@ export type Database = {
           {
             foreignKeyName: "stores_owner_id_fkey"
             columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_event_participations: {
+        Row: {
+          event_id: string
+          id: string
+          joined_at: string
+          user_id: string
+        }
+        Insert: {
+          event_id: string
+          id?: string
+          joined_at?: string
+          user_id: string
+        }
+        Update: {
+          event_id?: string
+          id?: string
+          joined_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_event_participations_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "platform_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_event_participations_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]

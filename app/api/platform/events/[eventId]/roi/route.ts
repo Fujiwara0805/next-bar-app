@@ -148,6 +148,43 @@ export async function GET(
   if (srErr && !isMissingTable(srErr)) console.warn('[roi] stamp reward warning', srErr);
   const stampRewardsClaimed = typeof stampClaimedCount === 'number' ? stampClaimedCount : 0;
 
+  // スタンプ満了「送信」一覧（会員が全スタンプ達成→運営に送信した記録）
+  type StampSubmission = {
+    user_id: string;
+    customer_name: string;
+    submitted_at: string;
+    submit_note: string | null;
+  };
+  let stampSubmissions: StampSubmission[] = [];
+  const { data: submittedRows, error: subErr } = await admin
+    .from('event_stamp_rewards')
+    .select('user_id, submitted_at, submit_note')
+    .eq('event_id', eventId)
+    .not('submitted_at', 'is', null)
+    .order('submitted_at', { ascending: false })
+    .limit(500);
+  // submitted_at/submit_note 列が未作成(42703)でも落とさず空扱い
+  if (subErr && !isMissingTable(subErr) && subErr.code !== '42703') {
+    console.warn('[roi] stamp submission warning', subErr);
+  }
+  if ((submittedRows ?? []).length > 0) {
+    const uids = Array.from(new Set((submittedRows ?? []).map((r: any) => r.user_id)));
+    const { data: subUsers } = await admin
+      .from('users')
+      .select('id, display_name, line_display_name')
+      .in('id', uids);
+    const subNameById = new Map<string, string>();
+    (subUsers ?? []).forEach((u: any) =>
+      subNameById.set(u.id, u.line_display_name || u.display_name || 'ゲスト')
+    );
+    stampSubmissions = (submittedRows ?? []).map((r: any) => ({
+      user_id: r.user_id,
+      customer_name: subNameById.get(r.user_id) ?? 'ゲスト',
+      submitted_at: r.submitted_at,
+      submit_note: r.submit_note ?? null,
+    }));
+  }
+
   // 紙クーポン報告（参加店ごと）
   const { data: paperRows, error: pErr } = await admin
     .from('store_event_paper_coupons')
@@ -186,6 +223,7 @@ export async function GET(
     per_user_redemptions: perUserRedemptions.length,
     per_user_unique_customers: perUserUniqueCustomers,
     stamp_rewards_claimed: stampRewardsClaimed,
+    stamp_submissions: stampSubmissions.length,
     paper_distributed: paperDistributed,
     paper_redeemed: paperRedeemed,
     paper_reported_stores: paperReportedStores,
@@ -208,5 +246,6 @@ export async function GET(
     metrics,
     paper_reports: paperReports,
     per_user_redemptions: perUserRedemptions,
+    stamp_submissions: stampSubmissions,
   });
 }

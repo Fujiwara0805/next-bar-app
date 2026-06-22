@@ -31,6 +31,7 @@ type RoiMetrics = {
   total_redemptions: number;
   per_user_redemptions?: number;
   per_user_unique_customers?: number;
+  stamp_submissions?: number;
   cost_per_check_in: number | null;
   cost_per_redemption: number | null;
   paper_redemption_rate: number | null;
@@ -53,11 +54,19 @@ type PaperReport = {
   reported_at: string | null;
 };
 
+type StampSubmission = {
+  user_id: string;
+  customer_name: string;
+  submitted_at: string;
+  submit_note: string | null;
+};
+
 type RoiResponse = {
   event: { id: string; title: string; cost_total: number | null; start_at: string | null; end_at: string | null };
   metrics: RoiMetrics;
   paper_reports: PaperReport[];
   per_user_redemptions?: PerUserRedemption[];
+  stamp_submissions?: StampSubmission[];
 };
 
 const yen = (n: number | null) => (n === null ? '—' : `¥${n.toLocaleString('ja-JP')}`);
@@ -188,6 +197,27 @@ export default function EventRoiPage() {
     },
   ];
 
+  const submissionColumns: AdminColumn<StampSubmission>[] = [
+    {
+      key: 'customer',
+      header: '会員',
+      width: '2fr',
+      render: (r) => <span className="text-sm font-semibold" style={{ color: C.text }}>{r.customer_name}</span>,
+    },
+    {
+      key: 'submitted_at',
+      header: '送信日時',
+      width: '2fr',
+      render: (r) => <span className="text-sm" style={{ color: C.textMuted }}>{fmtDateTime(r.submitted_at)}</span>,
+    },
+    {
+      key: 'note',
+      header: 'メッセージ',
+      width: '2fr',
+      render: (r) => <span className="text-sm" style={{ color: C.textSubtle }}>{r.submit_note || '—'}</span>,
+    },
+  ];
+
   return (
     <div className="min-h-screen" style={{ background: C.bg }}>
       <div className="max-w-6xl mx-auto px-6 md:px-8 py-8 space-y-6">
@@ -307,6 +337,35 @@ export default function EventRoiPage() {
                       <p className="text-xs mt-0.5" style={{ color: C.textSubtle }}>{r.store_name}</p>
                     </div>
                     <span className="text-xs" style={{ color: C.textSubtle }}>{fmtDateTime(r.redeemed_at)}</span>
+                  </div>
+                )}
+              />
+            </section>
+
+            {/* スタンプ満了「送信」一覧（会員が全スタンプ達成→運営に送信） */}
+            <section>
+              <div className="flex items-center gap-2 mb-3">
+                <h2 className="text-sm font-bold tracking-wide" style={{ color: C.text }}>スタンプ達成・送信（会員別）</h2>
+                <span className="text-xs" style={{ color: C.textSubtle }}>
+                  {m.stamp_submissions ?? 0} 件
+                </span>
+              </div>
+              <AdminDataTable
+                columns={submissionColumns}
+                data={data?.stamp_submissions ?? []}
+                keyExtractor={(r) => r.user_id}
+                emptyIcon={<Ticket className="w-12 h-12" style={{ color: C.textSubtle }} />}
+                emptyTitle="スタンプ達成の送信はまだありません"
+                emptyDescription="会員が全スタンプを集めて「送信」すると、会員名とともにここに記録されます"
+                mobileCardRender={(r) => (
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-semibold" style={{ color: C.text }}>{r.customer_name}</p>
+                      <span className="text-xs" style={{ color: C.textSubtle }}>{fmtDateTime(r.submitted_at)}</span>
+                    </div>
+                    {r.submit_note && (
+                      <p className="text-xs mt-1" style={{ color: C.textSubtle }}>{r.submit_note}</p>
+                    )}
                   </div>
                 )}
               />

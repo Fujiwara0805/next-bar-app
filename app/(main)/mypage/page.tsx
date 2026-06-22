@@ -20,6 +20,8 @@ import { LoadingScreen } from '@/components/ui/loading-screen';
 import { useAppMode } from '@/lib/app-mode-context';
 import { MembershipQr } from '@/components/mypage/membership-qr';
 import { VisitHistory } from '@/components/mypage/visit-history';
+import { EventStampBoards } from '@/components/mypage/event-stamp-boards';
+import { CustomModal } from '@/components/ui/custom-modal';
 import { toast } from 'sonner';
 
 // Brewers Navy + Brass + Copper パレット（StoreDetailPanel と統一）
@@ -37,6 +39,7 @@ export default function MyPage() {
   const { t } = useLanguage();
   const { colorsB: COLORS } = useAppMode();
   const pageBackground = COLORS.cardGradient;
+  const [qrModalOpen, setQrModalOpen] = useState(false);
 
   // 背景をログイン画面と同じベースカラーで上書き
   useEffect(() => {
@@ -191,9 +194,42 @@ export default function MyPage() {
             </div>
           </div>
 
-          {/* 会員証QR（旧 /mypage/qr を会員証ページにインライン統合。プロフィール未入力時はガード表示） */}
+          {/* 会員証QR（プロフィール入力済みなら「会員証を見せる」ボタン→モーダル表示で画面をコンパクトに） */}
           {isProfileComplete ? (
-            <MembershipQr displayName={displayName} />
+            <button
+              type="button"
+              onClick={() => setQrModalOpen(true)}
+              className="w-full flex items-center gap-3 rounded-2xl p-4 mb-4 bg-white relative overflow-hidden transition-colors hover:bg-black/[0.02]"
+              style={{
+                border: `1px solid ${BRASS}33`,
+                boxShadow: '0 8px 22px rgba(19, 41, 75, 0.08)',
+              }}
+            >
+              <div
+                className="absolute top-0 left-0 right-0 h-[3px]"
+                style={{ background: GOLD_GRADIENT }}
+              />
+              <span
+                className="inline-flex items-center justify-center w-11 h-11 rounded-xl flex-shrink-0"
+                style={{ background: `${BRASS}18`, border: `1px solid ${BRASS}50` }}
+              >
+                <QrCode className="w-5 h-5" style={{ color: COPPER }} />
+              </span>
+              <span className="min-w-0 flex-1 text-left">
+                <span className="block font-bold text-sm" style={{ color: NAVY }}>
+                  会員証を見せる
+                </span>
+                <span className="block text-xs mt-0.5" style={{ color: 'rgba(19,41,75,0.6)' }}>
+                  お店でQRを提示してチェックイン・特典消込
+                </span>
+              </span>
+              <span
+                className="text-xs font-bold px-3 py-1.5 rounded-lg flex-shrink-0"
+                style={{ background: NAVY, color: BRASS }}
+              >
+                表示
+              </span>
+            </button>
           ) : (
             <div
               className="rounded-2xl p-5 mb-4 relative overflow-hidden"
@@ -237,6 +273,9 @@ export default function MyPage() {
               </Link>
             </div>
           )}
+
+          {/* 参加中イベントのスタンプボード（参加した会員のみ表示） */}
+          <EventStampBoards />
 
           {/* 来店履歴 */}
           <VisitHistory />
@@ -290,6 +329,15 @@ export default function MyPage() {
           </div>
         </motion.div>
       </div>
+
+      {/* 会員証QR モーダル（開いたときだけ生成・閉じたら停止） */}
+      <CustomModal
+        isOpen={qrModalOpen}
+        onClose={() => setQrModalOpen(false)}
+        title="会員証"
+      >
+        <MembershipQr displayName={displayName} />
+      </CustomModal>
     </div>
   );
 }
