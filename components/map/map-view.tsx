@@ -215,13 +215,12 @@ function getMarkerIconKey(
   return `${status}|${imageUrl ?? ''}|${title}|${isEvent ? 'ev' : ''}`;
 }
 
-function createBeerSvgPaths(): string {
+function createUtensilsSvgPaths(): string {
+  // lucide「Utensils」アイコン（24x24 viewBox）
   return `
-    <path d="M4 8h11v11a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V8Z"/>
-    <path d="M15 10h2a3 3 0 0 1 0 6h-2"/>
-    <path d="M5 8a3 3 0 0 1 5-3 3 3 0 0 1 5 3"/>
-    <path d="M8 12v6"/>
-    <path d="M11 12v6"/>
+    <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/>
+    <path d="M7 2v20"/>
+    <path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/>
   `;
 }
 
@@ -297,7 +296,7 @@ function createMarkerSvgDataUrl(
     body = `
       <circle cx="${centerX}" cy="${centerY}" r="${radius}" fill="#13294b" stroke="${borderColor}" stroke-width="3"/>
       <g transform="translate(${centerX - 12} ${centerY - 12})" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-        ${createBeerSvgPaths()}
+        ${createUtensilsSvgPaths()}
       </g>
     `;
   }

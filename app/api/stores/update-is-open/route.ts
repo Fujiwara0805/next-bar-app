@@ -15,7 +15,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { checkIsOpenFromGooglePlaceId } from '@/lib/business-hours';
 import { checkIsOpenFromStructuredHours } from '@/lib/structured-business-hours';
-import type { BusinessHours } from '@/lib/supabase/types';
+import type { BusinessHours } from '@/lib/types/business-hours';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 
 // stores の営業状態更新は service_role で行う（anonによる全列UPDATE素通しRLSを撤廃したため）。

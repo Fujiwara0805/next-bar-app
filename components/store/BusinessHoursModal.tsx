@@ -5,7 +5,7 @@ import { CustomModal } from '@/components/ui/custom-modal';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import type { BusinessHours } from '@/lib/supabase/types';
+import type { BusinessHours } from '@/lib/types/business-hours';
 import { useAppMode } from '@/lib/app-mode-context';
 
 const DAYS: Array<{ key: keyof Required<BusinessHours>; label: string }> = [

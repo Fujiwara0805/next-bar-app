@@ -41,7 +41,8 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/lib/supabase/client';
-import type { Database, BusinessHours } from '@/lib/supabase/types';
+import type { Database } from '@/lib/supabase/types';
+import type { BusinessHours } from '@/lib/types/business-hours';
 import { useLanguage } from '@/lib/i18n/context';
 import { useAppMode } from '@/lib/app-mode-context';
 import { translations } from '@/lib/i18n/translations';
@@ -256,6 +257,9 @@ export default function StoreDetailPage() {
       }
     >
   >({});
+  // ログイン状態と、ユーザーが参加(opt-in)済みのイベントID群（スタンプ表示の出し分け用）
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [joinedEventIds, setJoinedEventIds] = useState<Set<string>>(new Set());
 
   // ============================================
   // ライトボックスを開く・閉じる関数
@@ -467,6 +471,37 @@ export default function StoreDetailPage() {
       cancelled = true;
     };
   }, [activeStoreEvents]);
+
+  // ログイン状態 & 参加(opt-in)済みイベントIDを取得（スタンプ表示の出し分けに使用）
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      if (cancelled) return;
+      if (!token) {
+        setIsLoggedIn(false);
+        setJoinedEventIds(new Set());
+        return;
+      }
+      setIsLoggedIn(true);
+      try {
+        const res = await fetch('/api/me/event-participations', {
+          headers: { Authorization: `Bearer ${token}` },
+          cache: 'no-store',
+        });
+        if (res.ok) {
+          const json = await res.json();
+          if (!cancelled) setJoinedEventIds(new Set<string>(json.eventIds ?? []));
+        }
+      } catch {
+        /* noop */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (store && userLocation) {
@@ -1019,13 +1054,42 @@ export default function StoreDetailPage() {
                             特典: {benefit}
                           </p>
                         )}
-                        {(() => {
+                        {event.stamp_enabled && (() => {
+                          const joined = joinedEventIds.has(event.id);
+                          // 未ログイン → ログイン誘導
+                          if (!isLoggedIn) {
+                            return (
+                              <button
+                                type="button"
+                                onClick={() => router.push(`/login?redirect=/store/${params.id}`)}
+                                className="text-sm font-bold leading-relaxed mt-1 underline underline-offset-2 text-left"
+                                style={{ color: '#13294b' }}
+                              >
+                                🎫 ログインしてイベントに参加しよう
+                              </button>
+                            );
+                          }
+                          // ログイン済み・未参加 → 会員ページへ誘導
+                          if (!joined) {
+                            return (
+                              <button
+                                type="button"
+                                onClick={() => router.push('/mypage')}
+                                className="text-sm font-bold leading-relaxed mt-1 underline underline-offset-2 text-left"
+                                style={{ color: '#13294b' }}
+                              >
+                                🎫 会員ページからイベントに参加しよう
+                              </button>
+                            );
+                          }
+                          // ログイン済み・参加済み → スタンプ数を表示
                           const progress = eventStampProgress[event.id];
-                          if (!progress) return null;
+                          const goal = progress?.stampGoal ?? event.stamp_goal ?? 3;
+                          const count = Math.min(progress?.stampCount ?? 0, goal);
                           return (
                             <p className="text-sm font-bold leading-relaxed mt-1" style={{ color: '#13294b' }}>
-                              🎫 あなたのスタンプ {Math.min(progress.stampCount, progress.stampGoal)}/{progress.stampGoal}
-                              {progress.goalReached && (
+                              🎫 あなたのスタンプ {count}/{goal}
+                              {progress?.goalReached && (
                                 <span> — {progress.rewardClaimedAt ? '特典引換済み' : '特典GET！'}</span>
                               )}
                             </p>

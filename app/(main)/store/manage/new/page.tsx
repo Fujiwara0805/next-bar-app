@@ -40,7 +40,7 @@ import { toast } from 'sonner';
 
 // 構造化営業時間モーダル
 import { BusinessHoursModal } from '@/components/store/BusinessHoursModal';
-import type { BusinessHours } from '@/lib/supabase/types';
+import type { BusinessHours } from '@/lib/types/business-hours';
 import {
   FACILITY_CATEGORIES,
   OTHER_FACILITIES,

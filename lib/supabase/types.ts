@@ -1647,11 +1647,3 @@ export const Constants = {
     Enums: {},
   },
 } as const
-
-export type BusinessHours = {
-  [key in 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday']?: {
-    open: string;
-    close: string;
-    closed?: boolean;
-  };
-};

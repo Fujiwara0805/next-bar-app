@@ -21,6 +21,7 @@ import { useAppMode } from '@/lib/app-mode-context';
 import { MembershipQr } from '@/components/mypage/membership-qr';
 import { VisitHistory } from '@/components/mypage/visit-history';
 import { EventStampBoards } from '@/components/mypage/event-stamp-boards';
+import { EventJoinPrompt } from '@/components/mypage/event-join-prompt';
 import { CustomModal } from '@/components/ui/custom-modal';
 import { toast } from 'sonner';
 
@@ -40,6 +41,8 @@ export default function MyPage() {
   const { colorsB: COLORS } = useAppMode();
   const pageBackground = COLORS.cardGradient;
   const [qrModalOpen, setQrModalOpen] = useState(false);
+  // 参加すると stamp ボードを再取得するためのキー
+  const [boardsRefreshKey, setBoardsRefreshKey] = useState(0);
 
   // 背景をログイン画面と同じベースカラーで上書き
   useEffect(() => {
@@ -274,8 +277,11 @@ export default function MyPage() {
             </div>
           )}
 
+          {/* 開催中イベントへの参加プロンプト（未参加の開催中イベントがあれば表示） */}
+          <EventJoinPrompt onJoined={() => setBoardsRefreshKey((k) => k + 1)} />
+
           {/* 参加中イベントのスタンプボード（参加した会員のみ表示） */}
-          <EventStampBoards />
+          <EventStampBoards key={boardsRefreshKey} />
 
           {/* 来店履歴 */}
           <VisitHistory />

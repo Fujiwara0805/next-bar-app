@@ -44,9 +44,8 @@ import {
 import { useOptimizedLocation, DEFAULT_LOCATION } from '@/lib/hooks/useOptimizedLocation';
 import { sendGAEvent } from '@/lib/analytics';
 import { StoreDetailPanel } from '@/components/map/StoreDetailPanel';
-import { EventParticipationCta } from '@/components/map/event-participation-cta';
 import { checkIsOpenFromStructuredHours, isManualCloseActive } from '@/lib/structured-business-hours';
-import type { BusinessHours } from '@/lib/supabase/types';
+import type { BusinessHours } from '@/lib/types/business-hours';
 import { SponsorMapIcon } from '@/components/sponsors/sponsor-map-icon';
 import { UserPushSubscription } from '@/components/user-push-subscription';
 import {
@@ -1125,7 +1124,9 @@ function MapPageContent() {
           : activeEvents[0] ?? null;
         if (!chip) return null;
         return (
-          <div className="absolute top-20 left-1/2 -translate-x-1/2 z-20 safe-top pointer-events-none w-[min(78%,360px)]">
+          // 左右の固定アイコン群（左:広告 / 右:店舗一覧・更新・プロフィール）と
+          // 重ならないよう left-20/right-20 の中央ゾーンに収める
+          <div className="absolute top-20 left-20 right-20 z-20 safe-top pointer-events-none">
             <div className="flex flex-col items-center gap-2 pointer-events-auto">
               <button
                 type="button"
@@ -1144,13 +1145,10 @@ function MapPageContent() {
                 }}
                 aria-label={chip.title}
               >
-                <span className="text-sm font-bold truncate" style={{ color: '#F7F3E9' }}>
+                <span className="text-sm font-bold truncate" style={{ color: '#13294b' }}>
                   🎊 {chip.title}
                 </span>
               </button>
-
-              {/* 特定イベント絞り込み中のみ: 参加/ログイン導線を集約表示 */}
-              {eventId && <EventParticipationCta eventId={eventId} />}
 
               {/* イベント絞り込み中はリセット（全店表示）可能 */}
               {isFiltered && (

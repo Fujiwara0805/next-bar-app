@@ -25,7 +25,7 @@ import { getTodayOpenTime, isTodayClosedDay, checkIsOpenFromStructuredHours, isM
 import { getVacancyFreshness, formatVacancyAge } from '@/lib/vacancy/freshness';
 import { sendGAEvent } from '@/lib/analytics';
 import { useAppMode } from '@/lib/app-mode-context';
-import type { BusinessHours } from '@/lib/supabase/types';
+import type { BusinessHours } from '@/lib/types/business-hours';
 import { LineFriendCta } from '@/components/line/line-friend-cta';
 import type { EventAwareStore } from '@/lib/types/active-store-event';
 

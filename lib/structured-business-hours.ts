@@ -6,7 +6,7 @@
  * - タイムゾーンは Asia/Tokyo 固定
  */
 
-import type { BusinessHours } from '@/lib/supabase/types';
+import type { BusinessHours } from '@/lib/types/business-hours';
 
 const DAY_KEYS: Array<keyof Required<BusinessHours>> = [
   'sunday',
