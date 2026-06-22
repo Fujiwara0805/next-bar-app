@@ -326,13 +326,13 @@ export default function PlatformEventsPage() {
         <div className="flex items-start gap-1" onClick={(e) => e.stopPropagation()}>
           <button
             type="button"
-            title="費用対効果"
+            title="効果測定"
             onClick={() => router.push(`/store/manage/events/${event.id}/roi`)}
             className="flex flex-col items-center gap-0.5 p-1.5 rounded-md"
             style={{ color: C.info }}
           >
             <BarChart3 className="w-4 h-4" />
-            <span className="text-[10px] font-semibold leading-none">費用対効果</span>
+            <span className="text-[10px] font-semibold leading-none">効果測定</span>
           </button>
           <button
             type="button"
@@ -432,7 +432,7 @@ export default function PlatformEventsPage() {
                   className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold"
                   style={{ color: C.info }}
                 >
-                  <BarChart3 className="w-3.5 h-3.5" /> 費用対効果を見る
+                  <BarChart3 className="w-3.5 h-3.5" /> 効果測定を見る
                 </button>
               </div>
             );
@@ -455,7 +455,7 @@ export default function PlatformEventsPage() {
             <Input type="date" value={form.start_at} onChange={(e) => setForm((prev) => ({ ...prev, start_at: e.target.value }))} />
             <Input type="date" value={form.end_at} onChange={(e) => setForm((prev) => ({ ...prev, end_at: e.target.value }))} />
           </div>
-          {/* 費用対効果（ROI）用のイベント総費用 */}
+          {/* 効果測定（ROI）用のイベント総費用 */}
           <div className="rounded-lg border p-3 space-y-1.5" style={{ borderColor: '#DCE1EB', background: '#F7F8FA' }}>
             <span className="text-sm font-bold" style={{ color: '#13294b' }}>💰 イベント費用（円）</span>
             <Input
@@ -467,7 +467,7 @@ export default function PlatformEventsPage() {
               onChange={(e) => setForm((prev) => ({ ...prev, cost_total: e.target.value }))}
             />
             <p className="text-[11px] leading-relaxed" style={{ color: '#7a6b50' }}>
-              チラシ・紙クーポン・広告などの総費用。費用対効果レポート（コスト/チェックイン・コスト/消込）の算出に使用します。
+              チラシ・紙クーポン・広告などの総費用。効果測定レポート（コスト/チェックイン・コスト/消込）の算出に使用します。
             </p>
           </div>
           {/* クーポン設定（紙クーポン or 電子クーポン番号） */}
@@ -485,7 +485,7 @@ export default function PlatformEventsPage() {
             </div>
             {form.uses_paper_coupon ? (
               <p className="text-[11px] leading-relaxed" style={{ color: '#7a6b50' }}>
-                紙クーポンを使用します。加盟店は特典管理画面から配布・使用枚数を報告し、費用対効果レポートに集計されます。
+                紙クーポンを使用します。加盟店は特典管理画面から配布・使用枚数を報告し、効果測定レポートに集計されます。
               </p>
             ) : (
               <>
@@ -496,7 +496,7 @@ export default function PlatformEventsPage() {
                   onChange={(e) => setForm((prev) => ({ ...prev, redemption_code: e.target.value }))}
                 />
                 <p className="text-[11px] leading-relaxed" style={{ color: '#7a6b50' }}>
-                  電子クーポンの番号。参加した会員の会員証ページに表示され、加盟店は会員証QRのスキャンで消込できます（顧客×消込が費用対効果に記録）。
+                  電子クーポンの番号。参加した会員の会員証ページに表示され、加盟店は会員証QRのスキャンで消込できます（顧客×消込が効果測定に記録）。
                 </p>
               </>
             )}

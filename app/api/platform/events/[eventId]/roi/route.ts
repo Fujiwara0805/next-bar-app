@@ -67,10 +67,12 @@ export async function GET(
   let uniqueCustomers = 0;
   const checkInsByStore = new Map<string, number>();
   const uniqueCustByStore = new Map<string, Set<string>>();
+  // 参加店ごとの来店者明細（誰がどの店に何回来たか）。store_id → user_id → {visits,last}
+  const visitorsByStore = new Map<string, Map<string, { visits: number; last: string | null }>>();
   if (storeIds.length > 0) {
     let q = admin
       .from('store_check_ins')
-      .select('user_id, store_id', { count: 'exact' })
+      .select('user_id, store_id, checked_in_at', { count: 'exact' })
       .in('store_id', storeIds);
     if (event.start_at) q = q.gte('checked_in_at', event.start_at);
     if (event.end_at) q = q.lte('checked_in_at', event.end_at);
@@ -84,6 +86,18 @@ export async function GET(
       checkInsByStore.set(r.store_id, (checkInsByStore.get(r.store_id) ?? 0) + 1);
       if (!uniqueCustByStore.has(r.store_id)) uniqueCustByStore.set(r.store_id, new Set());
       if (r.user_id) uniqueCustByStore.get(r.store_id)!.add(r.user_id);
+      if (r.user_id) {
+        if (!visitorsByStore.has(r.store_id)) visitorsByStore.set(r.store_id, new Map());
+        const vmap = visitorsByStore.get(r.store_id)!;
+        const ts: string | null = r.checked_in_at ?? null;
+        const prev = vmap.get(r.user_id);
+        if (prev) {
+          prev.visits += 1;
+          if (ts && (!prev.last || ts > prev.last)) prev.last = ts;
+        } else {
+          vmap.set(r.user_id, { visits: 1, last: ts });
+        }
+      }
     }
   }
 
@@ -96,14 +110,16 @@ export async function GET(
   const digitalRedemptions = typeof digitalCount === 'number' ? digitalCount : 0;
 
   const digitalByStore = new Map<string, number>();
+  const digitalUserStoreSet = new Set<string>(); // `${user_id}:${store_id}` = この店でデジタル消込した会員
   {
     const { data: redStoreRows } = await admin
       .from('store_event_benefit_redemptions')
-      .select('store_id')
+      .select('user_id, store_id')
       .eq('event_id', eventId)
       .limit(10000);
     for (const r of (redStoreRows ?? []) as any[]) {
       if (r.store_id) digitalByStore.set(r.store_id, (digitalByStore.get(r.store_id) ?? 0) + 1);
+      if (r.user_id && r.store_id) digitalUserStoreSet.add(`${r.user_id}:${r.store_id}`);
     }
   }
 
@@ -229,12 +245,82 @@ export async function GET(
   const paperRedeemed = paperReports.reduce((s, r) => s + r.redeemed_count, 0);
   const paperReportedStores = paperReports.filter((r) => r.reported_at).length;
 
+  // 来店者の解決（参加店ごとの来店者明細用）。チェックインした全会員の表示名＋属性を一括取得。
+  // 属性（性別/年代/職業/住所）は会員証ページで入力された profile_attributes に格納されている。
+  type VisitorAttrs = { gender: string; age: string; occupation: string; address: string };
+  const visitorUids = new Set<string>();
+  visitorsByStore.forEach((vmap) => vmap.forEach((_v, uid) => visitorUids.add(uid)));
+  const visitorNameById = new Map<string, string>();
+  const visitorAttrsById = new Map<string, VisitorAttrs>();
+  if (visitorUids.size > 0) {
+    const { data: vUsers } = await admin
+      .from('users')
+      .select('id, display_name, line_display_name, profile_attributes')
+      .in('id', Array.from(visitorUids));
+    (vUsers ?? []).forEach((u: any) => {
+      visitorNameById.set(u.id, u.line_display_name || u.display_name || 'ゲスト');
+      const a = (u.profile_attributes && typeof u.profile_attributes === 'object' && !Array.isArray(u.profile_attributes))
+        ? (u.profile_attributes as Record<string, unknown>)
+        : {};
+      visitorAttrsById.set(u.id, {
+        gender: typeof a.gender === 'string' ? a.gender : '',
+        age: typeof a.age === 'string' ? a.age : '',
+        occupation: typeof a.occupation === 'string' ? a.occupation : '',
+        address: typeof a.address === 'string' ? a.address : '',
+      });
+    });
+  }
+
   // 参加店ごとの総合内訳（主催者へ提供するレポート用）。
-  // 紙クーポン配布/使用・デジタル消込・来店(チェックイン)・ユニーク客数を1行にまとめる。
+  // 紙クーポン配布/使用・デジタル消込・来店(チェックイン)・ユニーク客数・スタンプ達成を1行にまとめる。
+  // スタンプ達成（店舗別）= 全スタンプを達成し運営へ送信した会員のうち、当該店に来店した人数。
+  // visitors = 各店に来店した会員の明細（誰が・何回・最終来店・消込/達成）。展開行で表示。
+  type VisitorDetail = {
+    user_id: string;
+    customer_name: string;
+    visits: number;
+    last_checked_in_at: string | null;
+    digital_redeemed: boolean;
+    stamp_completed: boolean;
+    gender: string;
+    age: string;
+    occupation: string;
+    address: string;
+  };
+  const stampCompleterUids = new Set(stampSubmissions.map((s) => s.user_id));
   const paperByStoreId = new Map(paperReports.map((p) => [p.store_id, p]));
   const storeBreakdown = storeIds
     .map((sid) => {
       const paper = paperByStoreId.get(sid);
+      const visitorSet = uniqueCustByStore.get(sid);
+      let stampCompletions = 0;
+      if (visitorSet) {
+        visitorSet.forEach((uid) => { if (stampCompleterUids.has(uid)) stampCompletions++; });
+      }
+      const vmap = visitorsByStore.get(sid);
+      const visitors: VisitorDetail[] = vmap
+        ? Array.from(vmap.entries())
+            .map(([uid, v]) => {
+              const attrs = visitorAttrsById.get(uid);
+              return {
+                user_id: uid,
+                customer_name: visitorNameById.get(uid) ?? 'ゲスト',
+                visits: v.visits,
+                last_checked_in_at: v.last,
+                digital_redeemed: digitalUserStoreSet.has(`${uid}:${sid}`),
+                stamp_completed: stampCompleterUids.has(uid),
+                gender: attrs?.gender ?? '',
+                age: attrs?.age ?? '',
+                occupation: attrs?.occupation ?? '',
+                address: attrs?.address ?? '',
+              };
+            })
+            .sort((a, b) =>
+              b.visits !== a.visits
+                ? b.visits - a.visits
+                : (b.last_checked_in_at ?? '').localeCompare(a.last_checked_in_at ?? '')
+            )
+        : [];
       return {
         store_id: sid,
         store_name: storeNameById.get(sid) ?? '—',
@@ -244,6 +330,8 @@ export async function GET(
         digital_redemptions: digitalByStore.get(sid) ?? 0,
         check_ins: checkInsByStore.get(sid) ?? 0,
         unique_customers: uniqueCustByStore.get(sid)?.size ?? 0,
+        stamp_completions: stampCompletions,
+        visitors,
       };
     })
     .sort(

@@ -1,17 +1,17 @@
 'use client';
 
 /**
- * 運営: イベント費用対効果（ROI）ダッシュボード
+ * 運営: イベント効果測定（ROI）ダッシュボード
  * /store/manage/events/[eventId]/roi
  * 紙クーポン・デジタル特典を横断し、費用入力に対する効率指標を可視化する。
  */
 
 import { useCallback, useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import {
-  ArrowLeft, BarChart3, Loader2, Users, Footprints, Store as StoreIcon,
-  Ticket, Banknote, Download,
+  BarChart3, Loader2, Footprints, Store as StoreIcon,
+  Ticket, Banknote, Download, Users,
 } from 'lucide-react';
 import { useAdminTheme } from '@/lib/admin-theme-context';
 import { useAuth } from '@/lib/auth/context';
@@ -61,6 +61,19 @@ type StampSubmission = {
   submit_note: string | null;
 };
 
+type VisitorDetail = {
+  user_id: string;
+  customer_name: string;
+  visits: number;
+  last_checked_in_at: string | null;
+  digital_redeemed: boolean;
+  stamp_completed: boolean;
+  gender: string;
+  age: string;
+  occupation: string;
+  address: string;
+};
+
 type StoreBreakdown = {
   store_id: string;
   store_name: string;
@@ -70,6 +83,8 @@ type StoreBreakdown = {
   digital_redemptions: number;
   check_ins: number;
   unique_customers: number;
+  stamp_completions: number;
+  visitors: VisitorDetail[];
 };
 
 type RoiResponse = {
@@ -89,10 +104,36 @@ function fmtDate(iso: string | null) {
   if (!Number.isFinite(d.getTime())) return '未設定';
   return d.toLocaleDateString('ja-JP', { timeZone: 'Asia/Tokyo', month: '2-digit', day: '2-digit' });
 }
+function fmtDateTime(iso: string | null) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  if (!Number.isFinite(d.getTime())) return '—';
+  return d.toLocaleString('ja-JP', {
+    timeZone: 'Asia/Tokyo',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+// 会員証ページで入力された属性（profile_attributes）のラベル化
+const GENDER_LABEL: Record<string, string> = {
+  female: '女性',
+  male: '男性',
+  other: 'その他',
+  prefer_not_to_say: '未回答',
+};
+/** 年齢(数値文字列)を年代に変換。例: "28" → "20代" */
+function ageBand(age: string): string {
+  const n = parseInt(age, 10);
+  if (!Number.isFinite(n) || n <= 0) return age || '未回答';
+  if (n < 10) return '10歳未満';
+  if (n >= 100) return '100代以上';
+  return `${Math.floor(n / 10) * 10}代`;
+}
 
 export default function EventRoiPage() {
   const { colors: C } = useAdminTheme();
-  const router = useRouter();
   const params = useParams();
   const eventId = params?.eventId as string;
   const { session, loading: authLoading } = useAuth();
@@ -115,7 +156,7 @@ export default function EventRoiPage() {
       setData(await res.json());
     } catch (err) {
       console.error('[roi] fetch error', err);
-      setError('費用対効果データの取得に失敗しました');
+      setError('効果測定データの取得に失敗しました');
     } finally {
       setLoading(false);
     }
@@ -135,106 +176,11 @@ export default function EventRoiPage() {
   }
 
   const m = data?.metrics;
-  const paperColumns: AdminColumn<PaperReport>[] = [
-    {
-      key: 'store',
-      header: '店舗',
-      width: '2fr',
-      render: (r) => <span className="text-sm font-semibold" style={{ color: C.text }}>{r.store_name}</span>,
-    },
-    {
-      key: 'distributed',
-      header: '配布',
-      width: '1fr',
-      render: (r) => <span className="text-sm" style={{ color: C.textMuted }}>{r.distributed_count}</span>,
-    },
-    {
-      key: 'redeemed',
-      header: '使用',
-      width: '1fr',
-      render: (r) => <span className="text-sm font-bold" style={{ color: C.text }}>{r.redeemed_count}</span>,
-    },
-    {
-      key: 'rate',
-      header: '消込率',
-      width: '1fr',
-      render: (r) => (
-        <span className="text-sm" style={{ color: C.textMuted }}>
-          {r.distributed_count > 0 ? `${Math.round((r.redeemed_count / r.distributed_count) * 100)}%` : '—'}
-        </span>
-      ),
-    },
-    {
-      key: 'reported',
-      header: '報告',
-      width: '1fr',
-      render: (r) => (
-        <span className="text-xs" style={{ color: r.reported_at ? C.success : C.textSubtle }}>
-          {r.reported_at ? '報告済' : '未報告'}
-        </span>
-      ),
-    },
-  ];
-
-  const fmtDateTime = (iso: string) => {
-    const d = new Date(iso);
-    if (!Number.isFinite(d.getTime())) return '—';
-    return d.toLocaleString('ja-JP', {
-      timeZone: 'Asia/Tokyo',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
-
-  const redemptionColumns: AdminColumn<PerUserRedemption>[] = [
-    {
-      key: 'customer',
-      header: '顧客',
-      width: '2fr',
-      render: (r) => <span className="text-sm font-semibold" style={{ color: C.text }}>{r.customer_name}</span>,
-    },
-    {
-      key: 'store',
-      header: '消込店舗',
-      width: '2fr',
-      render: (r) => <span className="text-sm" style={{ color: C.textMuted }}>{r.store_name}</span>,
-    },
-    {
-      key: 'redeemed_at',
-      header: '消込日時',
-      width: '2fr',
-      render: (r) => <span className="text-sm" style={{ color: C.textMuted }}>{fmtDateTime(r.redeemed_at)}</span>,
-    },
-  ];
-
-  const submissionColumns: AdminColumn<StampSubmission>[] = [
-    {
-      key: 'customer',
-      header: '会員',
-      width: '2fr',
-      render: (r) => <span className="text-sm font-semibold" style={{ color: C.text }}>{r.customer_name}</span>,
-    },
-    {
-      key: 'submitted_at',
-      header: '送信日時',
-      width: '2fr',
-      render: (r) => <span className="text-sm" style={{ color: C.textMuted }}>{fmtDateTime(r.submitted_at)}</span>,
-    },
-    {
-      key: 'note',
-      header: 'メッセージ',
-      width: '2fr',
-      render: (r) => <span className="text-sm" style={{ color: C.textSubtle }}>{r.submit_note || '—'}</span>,
-    },
-  ];
-
   const storeBreakdownColumns: AdminColumn<StoreBreakdown>[] = [
     {
       key: 'store',
       header: '参加店',
-      width: '2.4fr',
+      width: '2.2fr',
       render: (r) => <span className="text-sm font-semibold" style={{ color: C.text }}>{r.store_name}</span>,
     },
     {
@@ -264,6 +210,12 @@ export default function EventRoiPage() {
         </span>
       ),
     },
+    {
+      key: 'stamp',
+      header: 'スタンプ達成',
+      width: '1.1fr',
+      render: (r) => <span className="text-sm font-semibold" style={{ color: C.text }}>{r.stamp_completions}</span>,
+    },
   ];
 
   // 主催者へ提供するための参加店レポートを CSV で書き出す
@@ -274,9 +226,9 @@ export default function EventRoiPage() {
       const s = String(v);
       return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
     };
-    const header = ['参加店', '紙クーポン配布', '紙クーポン使用', '紙クーポン報告', 'デジタル消込', 'スタンプ来店数', 'ユニーク客数'];
+    const header = ['参加店', '紙クーポン配布', '紙クーポン使用', '紙クーポン報告', 'デジタル消込', 'スタンプ来店数', 'ユニーク客数', 'スタンプ達成'];
     const body = rows.map((r) =>
-      [r.store_name, r.paper_distributed, r.paper_redeemed, r.paper_reported ? '報告済' : '未報告', r.digital_redemptions, r.check_ins, r.unique_customers]
+      [r.store_name, r.paper_distributed, r.paper_redeemed, r.paper_reported ? '報告済' : '未報告', r.digital_redemptions, r.check_ins, r.unique_customers, r.stamp_completions]
         .map(esc)
         .join(',')
     );
@@ -291,19 +243,73 @@ export default function EventRoiPage() {
     URL.revokeObjectURL(url);
   };
 
+  // 主催者提供用: 個人名を除いた匿名の会員属性CSV（性別・年代・職業など会員証ページの入力情報）。
+  // 全店の来店者をユーザー単位で集約し、イベント全体の重複来店を1会員にまとめて出力する。
+  const exportAttributesCsv = () => {
+    if (!data) return;
+    const esc = (v: string | number) => {
+      const s = String(v);
+      return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+    const byUser = new Map<
+      string,
+      {
+        gender: string; age: string; occupation: string; address: string;
+        visits: number; stores: Set<string>; digital: boolean; stamp: boolean; last: string | null;
+      }
+    >();
+    for (const s of data.store_breakdown ?? []) {
+      for (const v of s.visitors) {
+        const cur = byUser.get(v.user_id);
+        if (cur) {
+          cur.visits += v.visits;
+          cur.stores.add(s.store_id);
+          cur.digital = cur.digital || v.digital_redeemed;
+          cur.stamp = cur.stamp || v.stamp_completed;
+          if (v.last_checked_in_at && (!cur.last || v.last_checked_in_at > cur.last)) cur.last = v.last_checked_in_at;
+        } else {
+          byUser.set(v.user_id, {
+            gender: v.gender, age: v.age, occupation: v.occupation, address: v.address,
+            visits: v.visits, stores: new Set([s.store_id]),
+            digital: v.digital_redeemed, stamp: v.stamp_completed, last: v.last_checked_in_at,
+          });
+        }
+      }
+    }
+    const header = ['性別', '年代', '職業', '住所エリア', '来店店舗数', '総来店回数', '最終来店日時', 'デジタル消込', 'スタンプ達成'];
+    const body = Array.from(byUser.values())
+      .sort((a, b) => b.visits - a.visits)
+      .map((u) =>
+        [
+          GENDER_LABEL[u.gender] || u.gender || '未回答',
+          ageBand(u.age),
+          u.occupation || '未回答',
+          u.address || '',
+          u.stores.size,
+          u.visits,
+          fmtDateTime(u.last),
+          u.digital ? '○' : '',
+          u.stamp ? '○' : '',
+        ]
+          .map(esc)
+          .join(',')
+      );
+    const csv = [header.join(','), ...body].join('\n');
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const title = (data.event.title ?? 'event').replace(/[\\/:*?"<>|]/g, '_');
+    a.download = `${title}_会員属性（匿名）.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="min-h-screen" style={{ background: C.bg }}>
       <div className="max-w-6xl mx-auto px-6 md:px-8 py-8 space-y-6">
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}>
-          <button
-            type="button"
-            onClick={() => router.push('/store/manage/events')}
-            className="inline-flex items-center gap-1.5 text-sm font-medium mb-3"
-            style={{ color: C.textMuted }}
-          >
-            <ArrowLeft className="w-4 h-4" /> イベント管理へ戻る
-          </button>
           <div className="flex items-center gap-2">
             <BarChart3 className="w-5 h-5" style={{ color: C.accent }} />
             <span className="font-en text-[12px] font-bold uppercase tracking-[0.1em]" style={{ color: C.textSubtle }}>
@@ -314,7 +320,7 @@ export default function EventRoiPage() {
             {data?.event.title ?? 'イベント'}
           </h1>
           <p className="text-sm mt-1" style={{ color: C.textSubtle }}>
-            費用対効果 ／ {fmtDate(data?.event.start_at ?? null)} - {fmtDate(data?.event.end_at ?? null)}
+            効果測定 ／ {fmtDate(data?.event.start_at ?? null)} - {fmtDate(data?.event.end_at ?? null)}
           </p>
         </motion.div>
 
@@ -357,23 +363,49 @@ export default function EventRoiPage() {
               )}
             </section>
 
-            {/* 参加店ごとの総合内訳（主催者へ提供するレポート） */}
+            {/* 参加店ごとの内訳（紙クーポン報告・会員証スキャン消込・スタンプ達成を1つの表に統合） */}
             <section>
               <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <h2 className="text-sm font-bold tracking-wide" style={{ color: C.text }}>参加店ごとの内訳</h2>
                   <span className="text-xs" style={{ color: C.textSubtle }}>全 {m.participating_stores} 店</span>
+                  <span className="text-[11px]" style={{ color: C.textSubtle }}>・行をタップで来店した会員を表示</span>
                 </div>
-                <button
-                  type="button"
-                  onClick={exportCsv}
-                  disabled={!data?.store_breakdown?.length}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-opacity disabled:opacity-50"
-                  style={{ background: C.accent, color: '#13294b' }}
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  CSVで書き出す（主催者提供用）
-                </button>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={exportCsv}
+                    disabled={!data?.store_breakdown?.length}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-opacity disabled:opacity-50"
+                    style={{ background: C.accent, color: '#13294b' }}
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    店舗別レポートCSV
+                  </button>
+                  <button
+                    type="button"
+                    onClick={exportAttributesCsv}
+                    disabled={!data?.store_breakdown?.some((s) => s.visitors.length > 0)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-opacity disabled:opacity-50"
+                    style={{ background: C.bgCard, color: C.text, border: `1px solid ${C.border}` }}
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    会員属性CSV（匿名）
+                  </button>
+                </div>
+              </div>
+              {/* 統合サマリー: 紙クーポン報告・会員証消込・スタンプ達成の全体総数 */}
+              <div className="flex flex-wrap gap-2 mb-3">
+                {[
+                  { label: '紙クーポン報告済', value: `${m.paper_reported_stores} / ${m.participating_stores} 店` },
+                  { label: '会員証スキャン消込', value: `${m.per_user_redemptions ?? 0} 件（${m.per_user_unique_customers ?? 0} 名）` },
+                  { label: 'スタンプ達成・送信', value: `${m.stamp_submissions ?? 0} 件` },
+                ].map((chip) => (
+                  <div key={chip.label} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs" style={{ background: C.bgCard, border: `1px solid ${C.border}` }}>
+                    <span style={{ color: C.textSubtle }}>{chip.label}</span>
+                    <span className="font-bold" style={{ color: C.text }}>{chip.value}</span>
+                  </div>
+                ))}
               </div>
               <AdminDataTable
                 columns={storeBreakdownColumns}
@@ -381,103 +413,54 @@ export default function EventRoiPage() {
                 keyExtractor={(r) => r.store_id}
                 emptyIcon={<StoreIcon className="w-12 h-12" style={{ color: C.textSubtle }} />}
                 emptyTitle="参加店がまだありません"
-                emptyDescription="加盟店がイベントに参加すると、紙クーポン・消込・スタンプ来店がここに集計されます"
+                emptyDescription="加盟店がイベントに参加すると、紙クーポン・会員証消込・スタンプ達成がここに集計されます"
                 mobileCardRender={(r) => (
                   <div>
                     <div className="flex items-center justify-between">
                       <p className="text-sm font-semibold" style={{ color: C.text }}>{r.store_name}</p>
                       <span className="text-xs" style={{ color: C.textSubtle }}>来店 {r.check_ins}（{r.unique_customers}名）</span>
                     </div>
-                    <div className="flex items-center gap-3 mt-1 text-xs" style={{ color: C.textMuted }}>
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1 text-xs" style={{ color: C.textMuted }}>
                       <span>紙 {r.paper_redeemed}/{r.paper_distributed}{!r.paper_reported && '（未報告）'}</span>
                       <span>デジタル消込 {r.digital_redemptions}</span>
+                      <span>スタンプ達成 {r.stamp_completions}</span>
                     </div>
                   </div>
                 )}
-              />
-            </section>
-
-            {/* 紙クーポン報告（店舗別内訳） */}
-            <section>
-              <div className="flex items-center gap-2 mb-3">
-                <h2 className="text-sm font-bold tracking-wide" style={{ color: C.text }}>紙クーポン報告（店舗別）</h2>
-                <span className="text-xs" style={{ color: C.textSubtle }}>
-                  {m.paper_reported_stores} / {m.participating_stores} 店が報告済
-                </span>
-              </div>
-              <AdminDataTable
-                columns={paperColumns}
-                data={data?.paper_reports ?? []}
-                keyExtractor={(r) => r.store_id}
-                emptyIcon={<Ticket className="w-12 h-12" style={{ color: C.textSubtle }} />}
-                emptyTitle="紙クーポンの報告がまだありません"
-                emptyDescription="加盟店が特典管理から使用枚数を報告すると、ここに集計されます"
-                mobileCardRender={(r) => (
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-semibold" style={{ color: C.text }}>{r.store_name}</p>
-                      <p className="text-xs mt-0.5" style={{ color: C.textSubtle }}>
-                        配布 {r.distributed_count} / 使用 {r.redeemed_count}
-                      </p>
-                    </div>
-                    <span className="text-xs font-bold" style={{ color: r.reported_at ? C.success : C.textSubtle }}>
-                      {r.reported_at ? '報告済' : '未報告'}
-                    </span>
-                  </div>
-                )}
-              />
-            </section>
-
-            {/* 会員証スキャンによる消込（顧客×消込） */}
-            <section>
-              <div className="flex items-center gap-2 mb-3">
-                <h2 className="text-sm font-bold tracking-wide" style={{ color: C.text }}>会員証スキャン消込（顧客別）</h2>
-                <span className="text-xs" style={{ color: C.textSubtle }}>
-                  {m.per_user_unique_customers ?? 0} 名 / {m.per_user_redemptions ?? 0} 件
-                </span>
-              </div>
-              <AdminDataTable
-                columns={redemptionColumns}
-                data={data?.per_user_redemptions ?? []}
-                keyExtractor={(r) => r.id}
-                emptyIcon={<Ticket className="w-12 h-12" style={{ color: C.textSubtle }} />}
-                emptyTitle="会員証スキャンによる消込はまだありません"
-                emptyDescription="加盟店が会員証QRをスキャンして消し込むと、顧客名とともにここに記録されます"
-                mobileCardRender={(r) => (
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-semibold" style={{ color: C.text }}>{r.customer_name}</p>
-                      <p className="text-xs mt-0.5" style={{ color: C.textSubtle }}>{r.store_name}</p>
-                    </div>
-                    <span className="text-xs" style={{ color: C.textSubtle }}>{fmtDateTime(r.redeemed_at)}</span>
-                  </div>
-                )}
-              />
-            </section>
-
-            {/* スタンプ満了「送信」一覧（会員が全スタンプ達成→運営に送信） */}
-            <section>
-              <div className="flex items-center gap-2 mb-3">
-                <h2 className="text-sm font-bold tracking-wide" style={{ color: C.text }}>スタンプ達成・送信（会員別）</h2>
-                <span className="text-xs" style={{ color: C.textSubtle }}>
-                  {m.stamp_submissions ?? 0} 件
-                </span>
-              </div>
-              <AdminDataTable
-                columns={submissionColumns}
-                data={data?.stamp_submissions ?? []}
-                keyExtractor={(r) => r.user_id}
-                emptyIcon={<Ticket className="w-12 h-12" style={{ color: C.textSubtle }} />}
-                emptyTitle="スタンプ達成の送信はまだありません"
-                emptyDescription="会員が全スタンプを集めて「送信」すると、会員名とともにここに記録されます"
-                mobileCardRender={(r) => (
+                renderExpanded={(r) => (
                   <div>
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-semibold" style={{ color: C.text }}>{r.customer_name}</p>
-                      <span className="text-xs" style={{ color: C.textSubtle }}>{fmtDateTime(r.submitted_at)}</span>
+                    <div className="flex items-center gap-2 mb-2">
+                      <Users className="w-3.5 h-3.5" style={{ color: C.textSubtle }} />
+                      <span className="text-xs font-bold" style={{ color: C.text }}>来店した会員（誰がこの店に入ったか）</span>
+                      <span className="text-xs" style={{ color: C.textSubtle }}>{r.visitors.length} 名</span>
                     </div>
-                    {r.submit_note && (
-                      <p className="text-xs mt-1" style={{ color: C.textSubtle }}>{r.submit_note}</p>
+                    {r.visitors.length === 0 ? (
+                      <p className="text-xs" style={{ color: C.textSubtle }}>この店への来店記録はまだありません。</p>
+                    ) : (
+                      <div className="space-y-1.5">
+                        {r.visitors.map((v) => (
+                          <div
+                            key={v.user_id}
+                            className="flex items-center justify-between gap-3 rounded-lg px-3 py-2"
+                            style={{ background: C.bgCard, border: `1px solid ${C.border}` }}
+                          >
+                            <div className="min-w-0">
+                              <p className="text-sm font-medium truncate" style={{ color: C.text }}>{v.customer_name}</p>
+                              <p className="text-[11px]" style={{ color: C.textSubtle }}>
+                                最終来店 {fmtDateTime(v.last_checked_in_at)} ・ {v.visits}回
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              {v.digital_redeemed && (
+                                <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold" style={{ background: C.accentBg, color: C.accent }}>消込</span>
+                              )}
+                              {v.stamp_completed && (
+                                <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold" style={{ background: C.successBg, color: C.success }}>達成</span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     )}
                   </div>
                 )}

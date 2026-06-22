@@ -272,18 +272,16 @@ export default function SponsorsPage() {
                 {
                   key: 'actions',
                   header: '',
-                  width: '80px',
+                  width: '120px',
                   render: (s: Sponsor) => (
-                    <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-                      <button onClick={() => openEdit(s)} className="p-1.5 rounded-md transition-colors" style={{ color: C.accent }}
-                        onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = C.accentBg; }}
-                        onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}>
-                        <Edit className="w-3.5 h-3.5" />
+                    <div className="flex items-start gap-1" onClick={(e) => e.stopPropagation()}>
+                      <button type="button" onClick={() => openEdit(s)} className="flex flex-col items-center gap-0.5 p-1.5 rounded-md" style={{ color: C.accent }}>
+                        <Edit className="w-4 h-4" />
+                        <span className="text-[10px] font-semibold leading-none">編集</span>
                       </button>
-                      <button onClick={() => { setDeleteTarget(s); setDeleteOpen(true); }} className="p-1.5 rounded-md transition-colors" style={{ color: C.danger }}
-                        onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = C.dangerBg; }}
-                        onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}>
-                        <Trash2 className="w-3.5 h-3.5" />
+                      <button type="button" onClick={() => { setDeleteTarget(s); setDeleteOpen(true); }} className="flex flex-col items-center gap-0.5 p-1.5 rounded-md" style={{ color: C.danger }}>
+                        <Trash2 className="w-4 h-4" />
+                        <span className="text-[10px] font-semibold leading-none">削除</span>
                       </button>
                     </div>
                   ),
