@@ -12,7 +12,7 @@ import {
   Megaphone,
   Sparkles,
   ChevronRight,
-  Building2,
+  Utensils,
   Users,
   Gift,
 } from 'lucide-react';
@@ -139,7 +139,7 @@ export default function StoreEngagementMenuPage() {
                   border: `1px solid rgba(201, 168, 108, 0.2)`,
                 }}
               >
-                <Building2 className="w-6 h-6" style={{ color: COLORS.warmGray }} />
+                <Utensils className="w-6 h-6" style={{ color: COLORS.warmGray }} />
               </div>
             )}
             <div className="flex-1 min-w-0">

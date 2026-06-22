@@ -19,7 +19,7 @@
 import { Suspense, useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapIcon, Star, Filter, Check, Sparkles, X, Ticket, Loader2, Beer } from 'lucide-react';
+import { MapIcon, Star, Filter, Check, Sparkles, X, Ticket, Loader2, Utensils } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CloseCircleButton } from '@/components/ui/close-circle-button';
 import { Card } from '@/components/ui/card';
@@ -597,6 +597,7 @@ function StoreListContent() {
     setVacantOnly(false);
     setOpenNowOnly(false);
     setEventOnly(false);
+    setEventId(null);
     clearConciergeFilter();
     if (typeof window !== 'undefined') {
       const url = new URL(window.location.href);
@@ -655,10 +656,10 @@ function StoreListContent() {
           
           <div className="flex items-center justify-between mt-3">
             <p className="text-sm font-bold" style={{ color: COLORS.warmGray }}>{filteredStores.length}{t('store_list.results_count')}</p>
-            {(vacantOnly || openNowOnly || eventOnly || isConciergeActive) && (
+            {(vacantOnly || openNowOnly || eventOnly || eventId || isConciergeActive) && (
               <button onClick={clearAllFilters} className="text-sm font-bold hover:underline flex items-center gap-1" style={{ color: COLORS.royalNavy }}>
                 <X className="w-3 h-3" />
-                {t('store_list.filter_clear')}
+                {(eventOnly || eventId) ? '全店を表示' : t('store_list.filter_clear')}
               </button>
             )}
           </div>
@@ -671,9 +672,9 @@ function StoreListContent() {
         ) : filteredStores.length === 0 ? (
           <div className="text-center py-12">
             <p className="font-bold" style={{ color: COLORS.warmGray }}>
-              {(isConciergeActive || vacantOnly || openNowOnly || eventOnly) ? t('store_list.no_matching_stores') : t('store_list.no_stores')}
+              {(isConciergeActive || vacantOnly || openNowOnly || eventOnly || eventId) ? t('store_list.no_matching_stores') : t('store_list.no_stores')}
             </p>
-            {(vacantOnly || openNowOnly || eventOnly || isConciergeActive) && (
+            {(vacantOnly || openNowOnly || eventOnly || eventId || isConciergeActive) && (
               <button onClick={clearAllFilters} className="mt-4 font-bold hover:underline" style={{ color: COLORS.champagneGold }}>
                 {t('store_list.show_all_stores')}
               </button>
@@ -755,7 +756,7 @@ function StoreListContent() {
                             className="-mt-4 -mx-4 mb-3 px-3 py-1.5"
                             style={{ background: EVENT_CARD_FG }}
                           >
-                            <p className="text-[11px] font-bold truncate leading-tight" style={{ color: EVENT_CARD_BG }}>
+                            <p className="text-[11px] font-bold truncate leading-tight" style={{ color: '#F7F3E9' }}>
                               🎊 {store.active_event.title}
                               {store.active_event.benefit_text?.trim() ? `・特典: ${store.active_event.benefit_text.trim()}` : ''}
                             </p>
@@ -770,7 +771,7 @@ function StoreListContent() {
                               className="w-24 h-24 object-cover rounded-lg flex-shrink-0"
                             />
                           ) : (
-                            // 画像未登録の店舗はブランドのビールアイコンをプレースホルダ表示
+                            // 画像未登録の店舗は Utensils アイコンをプレースホルダ表示
                             <div
                               className="w-24 h-24 rounded-lg flex-shrink-0 flex items-center justify-center"
                               style={{
@@ -781,7 +782,7 @@ function StoreListContent() {
                               }}
                               aria-label={store.name}
                             >
-                              <Beer
+                              <Utensils
                                 className="w-10 h-10"
                                 strokeWidth={1.75}
                                 style={{ color: isEventStore ? EVENT_CARD_FG : COLORS.champagneGold }}

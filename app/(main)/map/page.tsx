@@ -21,7 +21,7 @@
 import { useEffect, useState, Suspense, useRef, useCallback, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { List, RefreshCw, AlertCircle, User, Building2 } from 'lucide-react';
+import { List, RefreshCw, AlertCircle, User, Utensils } from 'lucide-react';
 import { LoadingScreen } from '@/components/ui/loading-screen';
 import { MapView } from '@/components/map/map-view';
 import { Button } from '@/components/ui/button';
@@ -44,6 +44,7 @@ import {
 import { useOptimizedLocation, DEFAULT_LOCATION } from '@/lib/hooks/useOptimizedLocation';
 import { sendGAEvent } from '@/lib/analytics';
 import { StoreDetailPanel } from '@/components/map/StoreDetailPanel';
+import { EventParticipationCta } from '@/components/map/event-participation-cta';
 import { checkIsOpenFromStructuredHours, isManualCloseActive } from '@/lib/structured-business-hours';
 import type { BusinessHours } from '@/lib/supabase/types';
 import { SponsorMapIcon } from '@/components/sponsors/sponsor-map-icon';
@@ -837,6 +838,16 @@ function MapPageContent() {
     });
   }, [stores, eventOnly, eventId]);
 
+  // マップ上にあるアクティブイベント（参加店に紐づくイベント）の一覧
+  const activeEvents = useMemo(() => {
+    const m = new Map<string, { id: string; title: string }>();
+    for (const s of stores) {
+      const ev = s.active_event;
+      if (ev && !m.has(ev.id)) m.set(ev.id, { id: ev.id, title: ev.title });
+    }
+    return Array.from(m.values());
+  }, [stores]);
+
   // stores から最新データを導出（IDのみ保持し、表示はstoresから取得）
   const selectedStore = useMemo(() => {
     if (!selectedStoreId) return null;
@@ -1033,7 +1044,7 @@ function MapPageContent() {
                       style={{ border: `1.5px solid ${colors.accent}` }}
                     />
                   ) : user && (accountType === 'store' || accountType === 'platform') ? (
-                    <Building2 className="w-5 h-5" style={{ color: colors.text }} />
+                    <Utensils className="w-5 h-5" style={{ color: colors.text }} />
                   ) : (
                     <User className="w-5 h-5" style={{ color: colors.text }} />
                   )}
@@ -1104,33 +1115,58 @@ function MapPageContent() {
         </motion.div>
       </header>
 
-      {/* イベント別表示バナー（特定イベントの参加店のみ表示中） */}
-      {eventId && (
-        <div className="absolute top-20 left-3 right-20 z-20 safe-top pointer-events-none">
-          <div
-            className="inline-flex max-w-full items-center gap-2 rounded-full pl-3 pr-1.5 py-1.5 pointer-events-auto"
-            style={{
-              background: `${colors.background}F2`,
-              border: `1px solid ${colors.borderGold}`,
-              backdropFilter: 'blur(12px)',
-              boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
-            }}
-          >
-            <span className="text-sm font-bold truncate" style={{ color: colors.text }}>
-              🎊 {eventTitle || t('map.event_filter_label')}
-            </span>
-            <button
-              type="button"
-              onClick={() => router.replace('/map', { scroll: false })}
-              className="shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
-              style={{ background: colors.accent, color: '#13294b' }}
-              aria-label={t('map.event_filter_clear')}
-            >
-              ✕
-            </button>
+      {/* イベント名チップ（上部中央）
+          - 絞り込み中: イベント名（オフホワイト）＋ 参加/ログイン導線 ＋「全店を表示」リセット
+          - 未絞り込みでイベント有: タップでそのイベントの参加店のみ表示に切替 */}
+      {(() => {
+        const isFiltered = !!eventId || eventOnly;
+        const chip = eventId
+          ? { id: eventId, title: eventTitle || activeEvents.find((e) => e.id === eventId)?.title || 'イベント' }
+          : activeEvents[0] ?? null;
+        if (!chip) return null;
+        return (
+          <div className="absolute top-20 left-1/2 -translate-x-1/2 z-20 safe-top pointer-events-none w-[min(78%,360px)]">
+            <div className="flex flex-col items-center gap-2 pointer-events-auto">
+              <button
+                type="button"
+                onClick={() => {
+                  if (isFiltered) return;
+                  router.push(
+                    `/map?event=${encodeURIComponent(chip.id)}&et=${encodeURIComponent(chip.title)}`
+                  );
+                }}
+                className="inline-flex max-w-full items-center gap-1.5 rounded-full px-4 py-2"
+                style={{
+                  background: `${colors.background}F2`,
+                  border: `1px solid ${colors.borderGold}`,
+                  backdropFilter: 'blur(12px)',
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
+                }}
+                aria-label={chip.title}
+              >
+                <span className="text-sm font-bold truncate" style={{ color: '#F7F3E9' }}>
+                  🎊 {chip.title}
+                </span>
+              </button>
+
+              {/* 特定イベント絞り込み中のみ: 参加/ログイン導線を集約表示 */}
+              {eventId && <EventParticipationCta eventId={eventId} />}
+
+              {/* イベント絞り込み中はリセット（全店表示）可能 */}
+              {isFiltered && (
+                <button
+                  type="button"
+                  onClick={() => router.replace('/map', { scroll: false })}
+                  className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-bold"
+                  style={{ background: colors.accent, color: '#13294b' }}
+                >
+                  ✕ 全店を表示
+                </button>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* マップ */}
       <MapView

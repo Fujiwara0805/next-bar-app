@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence, PanInfo } from 'framer-motion';
 import {
-  Building2,
+  Utensils,
   Star,
   ChevronLeft,
   ChevronRight,
@@ -27,7 +27,6 @@ import { sendGAEvent } from '@/lib/analytics';
 import { useAppMode } from '@/lib/app-mode-context';
 import type { BusinessHours } from '@/lib/supabase/types';
 import { LineFriendCta } from '@/components/line/line-friend-cta';
-import { EventParticipationCta } from '@/components/map/event-participation-cta';
 import type { EventAwareStore } from '@/lib/types/active-store-event';
 
 type Store = EventAwareStore;
@@ -292,22 +291,8 @@ export function StoreDetailPanel({
           style={{ WebkitOverflowScrolling: 'touch' }}
         >
           {/* --- コンパクトビュー (常時表示) --- */}
+          {/* イベント名・参加/ログイン導線はマップ上部中央のイベントチップに集約 */}
           <div className="space-y-3">
-            {isEventStore && store.active_event && (
-              <div className="-mx-4 -mt-1 px-4 py-1.5" style={{ background: '#13294b' }}>
-                <p className="text-[11px] font-bold truncate leading-tight" style={{ color: '#ffc82c' }}>
-                  🎊 {store.active_event.title}
-                  {store.active_event.benefit_text?.trim() ? `・特典: ${store.active_event.benefit_text.trim()}` : ''}
-                </p>
-              </div>
-            )}
-            {/* イベント参加店: スタンプ獲得のためのログイン/参加導線 */}
-            {isEventStore && store.active_event && (
-              <EventParticipationCta
-                eventId={store.active_event.id}
-                eventTitle={store.active_event.title}
-              />
-            )}
             <div className="flex gap-4">
               {store.image_urls && store.image_urls.length > 0 ? (
                 <img
@@ -321,7 +306,7 @@ export function StoreDetailPanel({
                   className="w-24 h-24 rounded-xl flex items-center justify-center flex-shrink-0"
                   style={{ background: isExpanded ? '#EEE8DA' /* cream tint */ : (isEventStore ? '#f4b800' : darkTheme.background) }}
                 >
-                  <Building2 className="w-12 h-12" style={{ color: theme.textMuted }} />
+                  <Utensils className="w-12 h-12" style={{ color: theme.textMuted }} />
                 </div>
               )}
 

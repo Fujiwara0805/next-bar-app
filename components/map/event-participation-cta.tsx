@@ -108,7 +108,7 @@ export function EventParticipationCta({
         style={{ background: NAVY, color: BRASS }}
       >
         <LogIn className="w-4 h-4" />
-        スタンプ獲得にはログインが必要（メール / LINE）
+        ログインしてイベントに参加（メール / LINE）
       </button>
     );
   }
@@ -133,7 +133,7 @@ export function EventParticipationCta({
         style={{ background: 'rgba(19,41,75,0.06)', color: NAVY }}
       >
         <CheckCircle2 className="w-4 h-4" style={{ color: '#2E7D32' }} />
-        参加中・会員証QRでスタンプを集めよう
+        参加中（会員証QRを提示）
       </div>
     );
   }

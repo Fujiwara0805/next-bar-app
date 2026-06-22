@@ -32,7 +32,7 @@ import {
   UserCheck,
   Sparkles,
   Store as StoreIcon,
-  Building2,
+  Utensils,
   Megaphone,
   QrCode,
   CalendarDays,
@@ -848,7 +848,7 @@ export default function StoreUpdatePage() {
                     border: `1px solid rgba(201, 168, 108, 0.2)`,
                   }}
                 >
-                  <Building2 className="w-8 h-8" style={{ color: COLORS.warmGray }} />
+                  <Utensils className="w-8 h-8" style={{ color: COLORS.warmGray }} />
                 </div>
               )}
               <div className="flex-1 min-w-0 flex flex-col justify-center">

@@ -47,9 +47,10 @@ export function CustomFacilityInput({
           value={value}
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={(e) => {
+            // Enter では追加しない（「追加」ボタンでのみ追加）。
+            // ただしフォームの意図しない送信は防ぐ。
             if (e.key === 'Enter') {
               e.preventDefault();
-              commit();
             }
           }}
           maxLength={30}
