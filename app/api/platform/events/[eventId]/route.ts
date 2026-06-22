@@ -23,6 +23,7 @@ type EventPayload = {
   stamp_reward_text?: unknown;
   cost_total?: unknown;
   redemption_code?: unknown;
+  uses_paper_coupon?: unknown;
 };
 
 /** スタンプゴール: 1〜20 の整数にクランプ（不正値は既定3） */
@@ -95,6 +96,7 @@ function parsePayload(raw: EventPayload) {
     stamp_reward_text: nullableString(raw.stamp_reward_text, 200),
     cost_total: parseCost(raw.cost_total),
     redemption_code: nullableString(raw.redemption_code, 40),
+    uses_paper_coupon: raw.uses_paper_coupon === true,
   };
 }
 

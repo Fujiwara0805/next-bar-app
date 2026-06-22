@@ -11,7 +11,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import {
   ArrowLeft, BarChart3, Loader2, Users, Footprints, Store as StoreIcon,
-  Ticket, Banknote,
+  Ticket, Banknote, Download,
 } from 'lucide-react';
 import { useAdminTheme } from '@/lib/admin-theme-context';
 import { useAuth } from '@/lib/auth/context';
@@ -61,12 +61,24 @@ type StampSubmission = {
   submit_note: string | null;
 };
 
+type StoreBreakdown = {
+  store_id: string;
+  store_name: string;
+  paper_distributed: number;
+  paper_redeemed: number;
+  paper_reported: boolean;
+  digital_redemptions: number;
+  check_ins: number;
+  unique_customers: number;
+};
+
 type RoiResponse = {
   event: { id: string; title: string; cost_total: number | null; start_at: string | null; end_at: string | null };
   metrics: RoiMetrics;
   paper_reports: PaperReport[];
   per_user_redemptions?: PerUserRedemption[];
   stamp_submissions?: StampSubmission[];
+  store_breakdown?: StoreBreakdown[];
 };
 
 const yen = (n: number | null) => (n === null ? '—' : `¥${n.toLocaleString('ja-JP')}`);
@@ -218,6 +230,67 @@ export default function EventRoiPage() {
     },
   ];
 
+  const storeBreakdownColumns: AdminColumn<StoreBreakdown>[] = [
+    {
+      key: 'store',
+      header: '参加店',
+      width: '2.4fr',
+      render: (r) => <span className="text-sm font-semibold" style={{ color: C.text }}>{r.store_name}</span>,
+    },
+    {
+      key: 'paper',
+      header: '紙クーポン（使用/配布）',
+      width: '1.8fr',
+      render: (r) => (
+        <span className="text-sm" style={{ color: C.textMuted }}>
+          {r.paper_redeemed} / {r.paper_distributed}
+          {!r.paper_reported && <span className="text-xs ml-1" style={{ color: C.textSubtle }}>(未報告)</span>}
+        </span>
+      ),
+    },
+    {
+      key: 'digital',
+      header: 'デジタル消込',
+      width: '1.2fr',
+      render: (r) => <span className="text-sm font-semibold" style={{ color: C.text }}>{r.digital_redemptions}</span>,
+    },
+    {
+      key: 'checkins',
+      header: 'スタンプ来店（客数）',
+      width: '1.6fr',
+      render: (r) => (
+        <span className="text-sm" style={{ color: C.textMuted }}>
+          {r.check_ins} <span className="text-xs" style={{ color: C.textSubtle }}>({r.unique_customers}名)</span>
+        </span>
+      ),
+    },
+  ];
+
+  // 主催者へ提供するための参加店レポートを CSV で書き出す
+  const exportCsv = () => {
+    if (!data) return;
+    const rows = data.store_breakdown ?? [];
+    const esc = (v: string | number) => {
+      const s = String(v);
+      return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+    const header = ['参加店', '紙クーポン配布', '紙クーポン使用', '紙クーポン報告', 'デジタル消込', 'スタンプ来店数', 'ユニーク客数'];
+    const body = rows.map((r) =>
+      [r.store_name, r.paper_distributed, r.paper_redeemed, r.paper_reported ? '報告済' : '未報告', r.digital_redemptions, r.check_ins, r.unique_customers]
+        .map(esc)
+        .join(',')
+    );
+    const csv = [header.join(','), ...body].join('\n');
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const title = (data.event.title ?? 'event').replace(/[\\/:*?"<>|]/g, '_');
+    a.download = `${title}_参加店レポート.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="min-h-screen" style={{ background: C.bg }}>
       <div className="max-w-6xl mx-auto px-6 md:px-8 py-8 space-y-6">
@@ -282,6 +355,46 @@ export default function EventRoiPage() {
                   ※ イベント費用が未入力のため、コスト系指標は算出できません。イベント編集で費用を入力してください。
                 </p>
               )}
+            </section>
+
+            {/* 参加店ごとの総合内訳（主催者へ提供するレポート） */}
+            <section>
+              <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-sm font-bold tracking-wide" style={{ color: C.text }}>参加店ごとの内訳</h2>
+                  <span className="text-xs" style={{ color: C.textSubtle }}>全 {m.participating_stores} 店</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={exportCsv}
+                  disabled={!data?.store_breakdown?.length}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-opacity disabled:opacity-50"
+                  style={{ background: C.accent, color: '#13294b' }}
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  CSVで書き出す（主催者提供用）
+                </button>
+              </div>
+              <AdminDataTable
+                columns={storeBreakdownColumns}
+                data={data?.store_breakdown ?? []}
+                keyExtractor={(r) => r.store_id}
+                emptyIcon={<StoreIcon className="w-12 h-12" style={{ color: C.textSubtle }} />}
+                emptyTitle="参加店がまだありません"
+                emptyDescription="加盟店がイベントに参加すると、紙クーポン・消込・スタンプ来店がここに集計されます"
+                mobileCardRender={(r) => (
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-semibold" style={{ color: C.text }}>{r.store_name}</p>
+                      <span className="text-xs" style={{ color: C.textSubtle }}>来店 {r.check_ins}（{r.unique_customers}名）</span>
+                    </div>
+                    <div className="flex items-center gap-3 mt-1 text-xs" style={{ color: C.textMuted }}>
+                      <span>紙 {r.paper_redeemed}/{r.paper_distributed}{!r.paper_reported && '（未報告）'}</span>
+                      <span>デジタル消込 {r.digital_redemptions}</span>
+                    </div>
+                  </div>
+                )}
+              />
             </section>
 
             {/* 紙クーポン報告（店舗別内訳） */}

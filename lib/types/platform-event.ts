@@ -18,6 +18,8 @@ export type PlatformEvent = {
   cost_total: number | null;
   /** 公式LINEで告知する電子クーポン番号（例: #1111）。会員証スキャン消込の照合用 */
   redemption_code?: string | null;
+  /** true=紙クーポンを使用 / false=電子クーポン番号(redemption_code)を表示・使用（既定） */
+  uses_paper_coupon?: boolean;
   created_by: string | null;
   created_at: string;
   updated_at: string;

@@ -43,8 +43,8 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: 'イベント・販促',
     items: [
-      { href: '/store/manage/events', icon: CalendarDays, label: 'イベント' },
-      { href: '/store/manage/sponsors', icon: Megaphone, label: 'スポンサー' },
+      { href: '/store/manage/events', icon: CalendarDays, label: 'イベント管理' },
+      { href: '/store/manage/sponsors', icon: Megaphone, label: 'スポンサー管理' },
     ],
   },
 ];

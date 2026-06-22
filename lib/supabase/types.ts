@@ -228,6 +228,7 @@ export type Database = {
           status: string
           title: string
           updated_at: string
+          uses_paper_coupon: boolean
         }
         Insert: {
           area_label?: string | null
@@ -248,6 +249,7 @@ export type Database = {
           status?: string
           title: string
           updated_at?: string
+          uses_paper_coupon?: boolean
         }
         Update: {
           area_label?: string | null
@@ -268,6 +270,7 @@ export type Database = {
           status?: string
           title?: string
           updated_at?: string
+          uses_paper_coupon?: boolean
         }
         Relationships: [
           {

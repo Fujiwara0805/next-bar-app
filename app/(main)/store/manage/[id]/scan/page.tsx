@@ -45,6 +45,7 @@ type CheckInResult = {
   userId: string;
   userDisplayName: string;
   eventStamp: EventStampProgress | null;
+  couponRedeemed?: number;
   customer?: {
     user_id: string;
     display_name: string;
@@ -502,11 +503,23 @@ export default function StoreScanPage() {
                 );
               })()}
               <p
-                className="text-xs text-center mb-4"
+                className="text-xs text-center mb-2"
                 style={{ color: COLORS.warmGray }}
               >
                 {result.storeName}
               </p>
+
+              {/* 電子クーポンを同時に消し込んだ場合のバッジ */}
+              {(result.couponRedeemed ?? 0) > 0 && (
+                <div className="flex justify-center mb-4">
+                  <span
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold"
+                    style={{ background: '#13294b', color: '#ffc82c' }}
+                  >
+                    🎟 クーポンを消し込みました
+                  </span>
+                </div>
+              )}
 
               <div
                 className="rounded-xl p-4 mb-4 flex items-center gap-3"

@@ -414,6 +414,8 @@ export default function StoreUpdatePage() {
         position: 'top-center',
         duration: 1200,
       });
+      // イベント参加トグルを変更したらマップ画面へ遷移する（営業状況フォームは経由しない）
+      router.push('/map');
     } catch (error) {
       console.error('[store/update] save event participation error', error);
       toast.error('イベント参加設定の保存に失敗しました', { position: 'top-center' });

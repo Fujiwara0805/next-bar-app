@@ -34,6 +34,8 @@ type JoinedEvent = {
   reward_claimed_at: string | null;
   submitted_at: string | null;
   joined_at: string | null;
+  uses_paper_coupon?: boolean;
+  redemption_code?: string | null;
 };
 
 function formatDateTime(iso: string | null): string {
@@ -287,6 +289,29 @@ export function EventStampBoards() {
                 >
                   🎁 {ev.stamp_reward_text}
                 </p>
+              )}
+
+              {/* 電子クーポン番号（参加した電子クーポンイベントのみ） */}
+              {ev.redemption_code && (
+                <div
+                  className="mb-3 px-3 py-2.5 rounded-lg"
+                  style={{ background: NAVY }}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[11px] font-bold" style={{ color: BRASS }}>
+                      🎟 クーポン番号
+                    </span>
+                    <span
+                      className="text-lg font-extrabold tracking-[0.15em]"
+                      style={{ color: BRASS }}
+                    >
+                      {ev.redemption_code}
+                    </span>
+                  </div>
+                  <p className="text-[10px] mt-1" style={{ color: 'rgba(255,255,255,0.75)' }}>
+                    加盟店で会員証QRを提示するとスタンプ獲得と同時に消し込まれます。
+                  </p>
+                </div>
               )}
 
               {/* ゴール到達 → 送信 */}

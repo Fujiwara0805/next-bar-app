@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
   const { data: events, error: evErr } = await admin
     .from('platform_events')
     .select(
-      'id, title, area_label, image_url, start_at, end_at, status, stamp_enabled, stamp_goal, stamp_reward_text'
+      'id, title, area_label, image_url, start_at, end_at, status, stamp_enabled, stamp_goal, stamp_reward_text, redemption_code, uses_paper_coupon'
     )
     .in('id', eventIds)
     .eq('status', 'published');
@@ -88,6 +88,12 @@ export async function GET(request: NextRequest) {
       reward_claimed_at: reward?.reward_claimed_at ?? null,
       submitted_at: reward?.submitted_at ?? null,
       joined_at: joinedAtById.get(ev.id) ?? null,
+      // 電子クーポンのイベントのみ、会員に番号を表示する
+      uses_paper_coupon: (ev as { uses_paper_coupon?: boolean }).uses_paper_coupon ?? false,
+      redemption_code:
+        (ev as { uses_paper_coupon?: boolean }).uses_paper_coupon
+          ? null
+          : (ev as { redemption_code?: string | null }).redemption_code ?? null,
     });
   }
 

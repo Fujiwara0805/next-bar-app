@@ -62,12 +62,15 @@ export async function GET(
   }
 
   // チェックイン（イベント期間内・参加店舗）。期間/参加店が無ければ0。
+  // 参加店ごとの内訳も同時に集計する（来店数・ユニーク客数）。
   let checkInsTotal = 0;
   let uniqueCustomers = 0;
+  const checkInsByStore = new Map<string, number>();
+  const uniqueCustByStore = new Map<string, Set<string>>();
   if (storeIds.length > 0) {
     let q = admin
       .from('store_check_ins')
-      .select('user_id', { count: 'exact' })
+      .select('user_id, store_id', { count: 'exact' })
       .in('store_id', storeIds);
     if (event.start_at) q = q.gte('checked_in_at', event.start_at);
     if (event.end_at) q = q.lte('checked_in_at', event.end_at);
@@ -77,15 +80,32 @@ export async function GET(
     }
     checkInsTotal = typeof ciCount === 'number' ? ciCount : (checkIns ?? []).length;
     uniqueCustomers = new Set((checkIns ?? []).map((r: any) => r.user_id)).size;
+    for (const r of (checkIns ?? []) as any[]) {
+      checkInsByStore.set(r.store_id, (checkInsByStore.get(r.store_id) ?? 0) + 1);
+      if (!uniqueCustByStore.has(r.store_id)) uniqueCustByStore.set(r.store_id, new Set());
+      if (r.user_id) uniqueCustByStore.get(r.store_id)!.add(r.user_id);
+    }
   }
 
-  // デジタル特典消込（会員QR→特典消込）
+  // デジタル特典消込（会員QR→特典消込）。合計＋参加店ごとの件数。
   const { count: digitalCount, error: drErr } = await admin
     .from('store_event_benefit_redemptions')
     .select('id', { count: 'exact', head: true })
     .eq('event_id', eventId);
   if (drErr && !isMissingTable(drErr)) console.warn('[roi] digital redemption warning', drErr);
   const digitalRedemptions = typeof digitalCount === 'number' ? digitalCount : 0;
+
+  const digitalByStore = new Map<string, number>();
+  {
+    const { data: redStoreRows } = await admin
+      .from('store_event_benefit_redemptions')
+      .select('store_id')
+      .eq('event_id', eventId)
+      .limit(10000);
+    for (const r of (redStoreRows ?? []) as any[]) {
+      if (r.store_id) digitalByStore.set(r.store_id, (digitalByStore.get(r.store_id) ?? 0) + 1);
+    }
+  }
 
   // per-user 消込（会員証スキャン）の明細 — 「どの顧客がいつ消し込んだか」を把握
   type PerUserRedemption = {
@@ -209,6 +229,29 @@ export async function GET(
   const paperRedeemed = paperReports.reduce((s, r) => s + r.redeemed_count, 0);
   const paperReportedStores = paperReports.filter((r) => r.reported_at).length;
 
+  // 参加店ごとの総合内訳（主催者へ提供するレポート用）。
+  // 紙クーポン配布/使用・デジタル消込・来店(チェックイン)・ユニーク客数を1行にまとめる。
+  const paperByStoreId = new Map(paperReports.map((p) => [p.store_id, p]));
+  const storeBreakdown = storeIds
+    .map((sid) => {
+      const paper = paperByStoreId.get(sid);
+      return {
+        store_id: sid,
+        store_name: storeNameById.get(sid) ?? '—',
+        paper_distributed: paper?.distributed_count ?? 0,
+        paper_redeemed: paper?.redeemed_count ?? 0,
+        paper_reported: !!paper?.reported_at,
+        digital_redemptions: digitalByStore.get(sid) ?? 0,
+        check_ins: checkInsByStore.get(sid) ?? 0,
+        unique_customers: uniqueCustByStore.get(sid)?.size ?? 0,
+      };
+    })
+    .sort(
+      (a, b) =>
+        b.check_ins + b.digital_redemptions + b.paper_redeemed -
+        (a.check_ins + a.digital_redemptions + a.paper_redeemed)
+    );
+
   // 集計指標
   const totalRedemptions = digitalRedemptions + paperRedeemed;
   const cost = typeof event.cost_total === 'number' ? event.cost_total : null;
@@ -247,5 +290,6 @@ export async function GET(
     paper_reports: paperReports,
     per_user_redemptions: perUserRedemptions,
     stamp_submissions: stampSubmissions,
+    store_breakdown: storeBreakdown,
   });
 }

@@ -43,6 +43,7 @@ type FormState = {
   stamp_reward_text: string;
   cost_total: string;
   redemption_code: string;
+  uses_paper_coupon: boolean;
 };
 
 const emptyForm: FormState = {
@@ -60,6 +61,7 @@ const emptyForm: FormState = {
   stamp_reward_text: '',
   cost_total: '',
   redemption_code: '',
+  uses_paper_coupon: false,
 };
 
 function toDateInputValue(iso: string | null): string {
@@ -175,6 +177,7 @@ export default function PlatformEventsPage() {
       stamp_reward_text: event.stamp_reward_text ?? '',
       cost_total: event.cost_total != null ? String(event.cost_total) : '',
       redemption_code: event.redemption_code ?? '',
+      uses_paper_coupon: event.uses_paper_coupon ?? false,
     });
     setFormOpen(true);
   };
@@ -467,18 +470,36 @@ export default function PlatformEventsPage() {
               チラシ・紙クーポン・広告などの総費用。費用対効果レポート（コスト/チェックイン・コスト/消込）の算出に使用します。
             </p>
           </div>
-          {/* 電子クーポン番号（公式LINE告知用・会員証スキャン消込の照合） */}
-          <div className="rounded-lg border p-3 space-y-1.5" style={{ borderColor: '#DCE1EB', background: '#F7F8FA' }}>
-            <span className="text-sm font-bold" style={{ color: '#13294b' }}>🎟 電子クーポン番号</span>
-            <Input
-              placeholder="例: #1111"
-              value={form.redemption_code}
-              maxLength={40}
-              onChange={(e) => setForm((prev) => ({ ...prev, redemption_code: e.target.value }))}
-            />
-            <p className="text-[11px] leading-relaxed" style={{ color: '#7a6b50' }}>
-              公式LINEで告知する電子クーポンの番号。加盟店は会員証QRをスキャンして消込でき、顧客×消込が本イベントの費用対効果に記録されます。
-            </p>
+          {/* クーポン設定（紙クーポン or 電子クーポン番号） */}
+          <div className="rounded-lg border p-3 space-y-2" style={{ borderColor: '#DCE1EB', background: '#F7F8FA' }}>
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-bold" style={{ color: '#13294b' }}>🎟 クーポン</span>
+              <label className="inline-flex items-center gap-1.5 text-xs font-semibold cursor-pointer" style={{ color: '#13294b' }}>
+                <input
+                  type="checkbox"
+                  checked={form.uses_paper_coupon}
+                  onChange={(e) => setForm((prev) => ({ ...prev, uses_paper_coupon: e.target.checked }))}
+                />
+                紙クーポンを使用
+              </label>
+            </div>
+            {form.uses_paper_coupon ? (
+              <p className="text-[11px] leading-relaxed" style={{ color: '#7a6b50' }}>
+                紙クーポンを使用します。加盟店は特典管理画面から配布・使用枚数を報告し、費用対効果レポートに集計されます。
+              </p>
+            ) : (
+              <>
+                <Input
+                  placeholder="例: #1111"
+                  value={form.redemption_code}
+                  maxLength={40}
+                  onChange={(e) => setForm((prev) => ({ ...prev, redemption_code: e.target.value }))}
+                />
+                <p className="text-[11px] leading-relaxed" style={{ color: '#7a6b50' }}>
+                  電子クーポンの番号。参加した会員の会員証ページに表示され、加盟店は会員証QRのスキャンで消込できます（顧客×消込が費用対効果に記録）。
+                </p>
+              </>
+            )}
           </div>
           {/* スタンプラリー設定（回遊×特典） */}
           <div className="rounded-lg border p-3 space-y-2" style={{ borderColor: '#d6c19a', background: '#fffaf0' }}>
