@@ -5,7 +5,26 @@ import {
 } from '@/lib/api/manage-auth';
 
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+export const fetchCache = 'force-no-store';
 export const runtime = 'nodejs';
+
+const NO_STORE_HEADERS = {
+  'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+  'CDN-Cache-Control': 'no-store',
+  'Vercel-CDN-Cache-Control': 'no-store',
+  'Surrogate-Control': 'no-store',
+};
+
+function jsonNoStore(body: unknown, init?: ResponseInit) {
+  return NextResponse.json(body, {
+    ...init,
+    headers: {
+      ...NO_STORE_HEADERS,
+      ...(init?.headers ?? {}),
+    },
+  });
+}
 
 /** テーブル未作成(42P01)を 0 として扱うためのヘルパ */
 function isMissingTable(error: { code?: string } | null | undefined) {
@@ -36,10 +55,10 @@ export async function GET(
     .maybeSingle();
   if (eventErr && !isMissingTable(eventErr)) {
     console.error('[roi] event fetch error', eventErr);
-    return NextResponse.json({ error: 'fetch_failed' }, { status: 500 });
+    return jsonNoStore({ error: 'fetch_failed' }, { status: 500 });
   }
   if (!event) {
-    return NextResponse.json({ error: 'event_not_found' }, { status: 404 });
+    return jsonNoStore({ error: 'event_not_found' }, { status: 404 });
   }
 
   // 参加店舗
@@ -59,60 +78,28 @@ export async function GET(
   }
   if (partsErr && !isMissingTable(partsErr)) {
     console.error('[roi] participations fetch error', partsErr);
-    return NextResponse.json({ error: 'participations_fetch_failed' }, { status: 500 });
+    return jsonNoStore({ error: 'participations_fetch_failed' }, { status: 500 });
   }
-  const storeIds: string[] = (parts ?? []).map((p: any) => p.store_id);
-  const participatingStores = storeIds.length;
+  const participatingStoreIds: string[] = (parts ?? [])
+    .map((p: any) => p.store_id)
+    .filter(Boolean);
+  const reportStoreIds = new Set<string>(participatingStoreIds);
 
   // 店舗名（内訳表示用）
   const storeNameById = new Map<string, string>();
-  if (storeIds.length > 0) {
-    const { data: stores } = await admin
+  const loadStoreNames = async (ids: string[]) => {
+    const missingIds = Array.from(new Set(ids.filter((id) => id && !storeNameById.has(id))));
+    if (missingIds.length === 0) return;
+    const { data: stores, error: storesErr } = await admin
       .from('stores')
       .select('id, name')
-      .in('id', storeIds);
+      .in('id', missingIds);
+    if (storesErr && !isMissingTable(storesErr)) {
+      console.warn('[roi] store name warning', storesErr);
+    }
     (stores ?? []).forEach((s: any) => storeNameById.set(s.id, s.name));
-  }
-
-  // チェックイン（イベント期間内・参加店舗）。期間/参加店が無ければ0。
-  // 参加店ごとの内訳も同時に集計する（来店数・ユニーク客数）。
-  let checkInsTotal = 0;
-  let uniqueCustomers = 0;
-  const checkInsByStore = new Map<string, number>();
-  const uniqueCustByStore = new Map<string, Set<string>>();
-  // 参加店ごとの来店者明細（誰がどの店に何回来たか）。store_id → user_id → {visits,last}
-  const visitorsByStore = new Map<string, Map<string, { visits: number; last: string | null }>>();
-  if (storeIds.length > 0) {
-    let q = admin
-      .from('store_check_ins')
-      .select('user_id, store_id, checked_in_at', { count: 'exact' })
-      .in('store_id', storeIds);
-    if (event.start_at) q = q.gte('checked_in_at', event.start_at);
-    if (event.end_at) q = q.lte('checked_in_at', event.end_at);
-    const { data: checkIns, count: ciCount, error: ciErr } = await q.limit(10000);
-    if (ciErr && !isMissingTable(ciErr)) {
-      console.warn('[roi] check-in warning', ciErr);
-    }
-    checkInsTotal = typeof ciCount === 'number' ? ciCount : (checkIns ?? []).length;
-    uniqueCustomers = new Set((checkIns ?? []).map((r: any) => r.user_id)).size;
-    for (const r of (checkIns ?? []) as any[]) {
-      checkInsByStore.set(r.store_id, (checkInsByStore.get(r.store_id) ?? 0) + 1);
-      if (!uniqueCustByStore.has(r.store_id)) uniqueCustByStore.set(r.store_id, new Set());
-      if (r.user_id) uniqueCustByStore.get(r.store_id)!.add(r.user_id);
-      if (r.user_id) {
-        if (!visitorsByStore.has(r.store_id)) visitorsByStore.set(r.store_id, new Map());
-        const vmap = visitorsByStore.get(r.store_id)!;
-        const ts: string | null = r.checked_in_at ?? null;
-        const prev = vmap.get(r.user_id);
-        if (prev) {
-          prev.visits += 1;
-          if (ts && (!prev.last || ts > prev.last)) prev.last = ts;
-        } else {
-          vmap.set(r.user_id, { visits: 1, last: ts });
-        }
-      }
-    }
-  }
+  };
+  await loadStoreNames(participatingStoreIds);
 
   // デジタル特典消込（会員QR→特典消込）。合計＋参加店ごとの件数。
   const { count: digitalCount, error: drErr } = await admin
@@ -125,13 +112,19 @@ export async function GET(
   const digitalByStore = new Map<string, number>();
   const digitalUserStoreSet = new Set<string>(); // `${user_id}:${store_id}` = この店でデジタル消込した会員
   {
-    const { data: redStoreRows } = await admin
+    const { data: redStoreRows, error: redStoreErr } = await admin
       .from('store_event_benefit_redemptions')
       .select('user_id, store_id')
       .eq('event_id', eventId)
       .limit(10000);
+    if (redStoreErr && !isMissingTable(redStoreErr)) {
+      console.warn('[roi] redemption store warning', redStoreErr);
+    }
     for (const r of (redStoreRows ?? []) as any[]) {
-      if (r.store_id) digitalByStore.set(r.store_id, (digitalByStore.get(r.store_id) ?? 0) + 1);
+      if (r.store_id) {
+        reportStoreIds.add(r.store_id);
+        digitalByStore.set(r.store_id, (digitalByStore.get(r.store_id) ?? 0) + 1);
+      }
       if (r.user_id && r.store_id) digitalUserStoreSet.add(`${r.user_id}:${r.store_id}`);
     }
   }
@@ -166,17 +159,7 @@ export async function GET(
     (users ?? []).forEach((u: any) =>
       nameById.set(u.id, u.line_display_name || u.display_name || 'ゲスト')
     );
-    // 店舗名を補完（参加店以外で消込された場合も考慮）
-    const missingStoreIds = withUser
-      .map((r: any) => r.store_id)
-      .filter((sid: string) => sid && !storeNameById.has(sid));
-    if (missingStoreIds.length > 0) {
-      const { data: extraStores } = await admin
-        .from('stores')
-        .select('id, name')
-        .in('id', Array.from(new Set(missingStoreIds)));
-      (extraStores ?? []).forEach((s: any) => storeNameById.set(s.id, s.name));
-    }
+    await loadStoreNames(withUser.map((r: any) => r.store_id).filter(Boolean));
     perUserRedemptions = withUser.map((r: any) => ({
       id: r.id,
       user_id: r.user_id,
@@ -247,7 +230,12 @@ export async function GET(
     redeemed_count: number;
     reported_at: string | null;
   };
-  const paperReports: PaperReport[] = (paperRows ?? []).map((r: any) => ({
+  const paperRowList = (paperRows ?? []) as any[];
+  paperRowList.forEach((r: any) => {
+    if (r.store_id) reportStoreIds.add(r.store_id);
+  });
+  await loadStoreNames(Array.from(reportStoreIds));
+  const paperReports: PaperReport[] = paperRowList.map((r: any) => ({
     store_id: r.store_id,
     store_name: storeNameById.get(r.store_id) ?? '—',
     distributed_count: r.distributed_count ?? 0,
@@ -257,6 +245,47 @@ export async function GET(
   const paperDistributed = paperReports.reduce((s, r) => s + r.distributed_count, 0);
   const paperRedeemed = paperReports.reduce((s, r) => s + r.redeemed_count, 0);
   const paperReportedStores = paperReports.filter((r) => r.reported_at).length;
+
+  // チェックイン（イベント期間内・ROI対象店舗）。期間/対象店舗が無ければ0。
+  // 参加行が無い環境でも、紙クーポン報告や消込実績がある店舗は内訳に含める。
+  let checkInsTotal = 0;
+  let uniqueCustomers = 0;
+  const checkInsByStore = new Map<string, number>();
+  const uniqueCustByStore = new Map<string, Set<string>>();
+  // 店舗ごとの来店者明細（誰がどの店に何回来たか）。store_id → user_id → {visits,last}
+  const visitorsByStore = new Map<string, Map<string, { visits: number; last: string | null }>>();
+  const breakdownStoreIds = Array.from(reportStoreIds);
+  if (breakdownStoreIds.length > 0) {
+    let q = admin
+      .from('store_check_ins')
+      .select('user_id, store_id, checked_in_at', { count: 'exact' })
+      .in('store_id', breakdownStoreIds);
+    if (event.start_at) q = q.gte('checked_in_at', event.start_at);
+    if (event.end_at) q = q.lte('checked_in_at', event.end_at);
+    const { data: checkIns, count: ciCount, error: ciErr } = await q.limit(10000);
+    if (ciErr && !isMissingTable(ciErr)) {
+      console.warn('[roi] check-in warning', ciErr);
+    }
+    checkInsTotal = typeof ciCount === 'number' ? ciCount : (checkIns ?? []).length;
+    uniqueCustomers = new Set((checkIns ?? []).map((r: any) => r.user_id).filter(Boolean)).size;
+    for (const r of (checkIns ?? []) as any[]) {
+      checkInsByStore.set(r.store_id, (checkInsByStore.get(r.store_id) ?? 0) + 1);
+      if (!uniqueCustByStore.has(r.store_id)) uniqueCustByStore.set(r.store_id, new Set());
+      if (r.user_id) uniqueCustByStore.get(r.store_id)!.add(r.user_id);
+      if (r.user_id) {
+        if (!visitorsByStore.has(r.store_id)) visitorsByStore.set(r.store_id, new Map());
+        const vmap = visitorsByStore.get(r.store_id)!;
+        const ts: string | null = r.checked_in_at ?? null;
+        const prev = vmap.get(r.user_id);
+        if (prev) {
+          prev.visits += 1;
+          if (ts && (!prev.last || ts > prev.last)) prev.last = ts;
+        } else {
+          vmap.set(r.user_id, { visits: 1, last: ts });
+        }
+      }
+    }
+  }
 
   // 来店者の解決（参加店ごとの来店者明細用）。チェックインした全会員の表示名＋属性を一括取得。
   // 属性（性別/年代/職業/住所）は会員証ページで入力された profile_attributes に格納されている。
@@ -302,7 +331,7 @@ export async function GET(
   };
   const stampCompleterUids = new Set(stampSubmissions.map((s) => s.user_id));
   const paperByStoreId = new Map(paperReports.map((p) => [p.store_id, p]));
-  const storeBreakdown = storeIds
+  const storeBreakdown = breakdownStoreIds
     .map((sid) => {
       const paper = paperByStoreId.get(sid);
       const visitorSet = uniqueCustByStore.get(sid);
@@ -360,7 +389,7 @@ export async function GET(
 
   const metrics = {
     cost_total: cost,
-    participating_stores: participatingStores,
+    participating_stores: breakdownStoreIds.length,
     check_ins_total: checkInsTotal,
     unique_customers: uniqueCustomers,
     digital_redemptions: digitalRedemptions,
@@ -377,7 +406,7 @@ export async function GET(
     paper_redemption_rate: paperDistributed > 0 ? round2(paperRedeemed / paperDistributed) : null,
   };
 
-  return NextResponse.json({
+  return jsonNoStore({
     event: {
       id: event.id,
       title: event.title,

@@ -150,7 +150,10 @@ export default function EventRoiPage() {
     try {
       const res = await fetch(`/api/platform/events/${eventId}/roi`, {
         cache: 'no-store',
-        headers: { Authorization: `Bearer ${accessToken}` },
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Cache-Control': 'no-cache',
+        },
       });
       if (!res.ok) throw new Error(`fetch_failed:${res.status}`);
       setData(await res.json());
