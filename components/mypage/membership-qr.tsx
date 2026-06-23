@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import {
   RefreshCw,
-  Info,
   Loader2,
   QrCode,
   ScanLine,
@@ -454,30 +453,6 @@ export function MembershipQr({ displayName }: { displayName: string }) {
           </div>
         </div>
       )}
-
-      <div
-        className="rounded-2xl p-5 relative overflow-hidden"
-        style={{
-          background: 'white',
-          border: `1px solid ${BRASS}33`,
-          boxShadow: '0 12px 32px rgba(19, 41, 75, 0.08)',
-        }}
-      >
-        <div className="flex items-center gap-2 mb-3">
-          <Info className="w-4 h-4" style={{ color: COPPER }} />
-          <h3 className="font-semibold text-sm" style={{ color: NAVY }}>
-            {t('mypageQr.how_to_use_title')}
-          </h3>
-        </div>
-        <ol
-          className="text-sm space-y-2 list-decimal ml-5"
-          style={{ color: 'rgba(19, 41, 75, 0.75)' }}
-        >
-          <li>{t('mypageQr.how_to_use_1')}</li>
-          <li>{t('mypageQr.how_to_use_2')}</li>
-          <li>{t('mypageQr.how_to_use_3').replace('{sec}', String(REFRESH_INTERVAL_SEC))}</li>
-        </ol>
-      </div>
 
       {/* 店舗QRスキャナーモーダル（会員証モーダル等の transform 配下でも全画面表示
           できるよう、body 直下へポータルで描画する。z-index はモーダル(50)より上） */}

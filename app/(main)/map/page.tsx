@@ -854,9 +854,11 @@ function MapPageContent() {
   }, [stores, selectedStoreId]);
 
   // 距離順にソートされた店舗リスト（スワイプカード用）
+  // イベント絞り込み中はカードもその参加店のみを循環させるため、全件 stores ではなく
+  // 絞り込み済みの filteredStores を基準にする（非イベント時は filteredStores ≒ 全店）。
   const sortedStoresByDistance = useMemo(() => {
-    if (!userLocation) return stores;
-    
+    if (!userLocation) return filteredStores;
+
     const calcDist = (lat1: number, lon1: number, lat2: number, lon2: number) => {
       const R = 6371;
       const dLat = ((lat2 - lat1) * Math.PI) / 180;
@@ -870,8 +872,8 @@ function MapPageContent() {
       const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
       return R * c;
     };
-    
-    return [...stores].sort((a, b) => {
+
+    return [...filteredStores].sort((a, b) => {
       const latA = Number(a.latitude);
       const lngA = Number(a.longitude);
       const latB = Number(b.latitude);
@@ -880,7 +882,7 @@ function MapPageContent() {
       const distanceB = (isNaN(latB) || isNaN(lngB)) ? Infinity : calcDist(userLocation.lat, userLocation.lng, latB, lngB);
       return distanceA - distanceB;
     });
-  }, [stores, userLocation]);
+  }, [filteredStores, userLocation]);
 
   // 店舗が選択されたときにインデックスを設定
   const handleStoreSelect = useCallback((store: Store) => {

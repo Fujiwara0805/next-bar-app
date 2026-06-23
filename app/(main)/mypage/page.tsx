@@ -222,9 +222,6 @@ export default function MyPage() {
                 <span className="block font-bold text-sm" style={{ color: NAVY }}>
                   会員証を見せる
                 </span>
-                <span className="block text-xs mt-0.5" style={{ color: 'rgba(19,41,75,0.6)' }}>
-                  お店でQRを提示してチェックイン・特典消込
-                </span>
               </span>
               <span
                 className="text-xs font-bold px-3 py-1.5 rounded-lg flex-shrink-0"

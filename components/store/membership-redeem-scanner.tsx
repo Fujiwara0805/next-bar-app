@@ -24,21 +24,21 @@ type RedeemSuccess = {
 };
 
 const ERROR_MESSAGES: Record<string, string> = {
-  already_redeemed: 'この会員はすでに当該イベントの特典を消込済みです。',
+  already_redeemed: 'この会員はすでに当該イベントの特典を記録済みです。',
   not_participating: 'このイベントに参加していません。',
   token_expired: 'QRの有効期限が切れています。お客様に再表示してもらってください。',
   invalid_token: '会員証QRが正しくありません。',
   invalid_payload: '会員証QRを読み取れませんでした。',
   customer_not_found: '会員情報が見つかりませんでした。',
   customer_only: '会員アカウントのQRではありません。',
-  table_missing: '消込テーブルが未作成です。管理者にお問い合わせください。',
+  table_missing: '特典記録テーブルが未作成です。管理者にお問い合わせください。',
   unauthorized: 'セッションが切れています。再ログインしてください。',
-  unknown: '消込に失敗しました。',
+  unknown: '特典の記録に失敗しました。',
 };
 
 /**
- * 会員証QRをスキャンしてイベント特典を per-user で消し込むモーダル。
- * 成功時は対象会員名を表示し、運営のイベント管理に顧客×消込が記録される。
+ * 会員証QRをスキャンしてイベント特典を per-user で記録するモーダル。
+ * 成功時は対象会員名を表示し、運営のイベント管理に顧客×特典記録が残る。
  */
 export function MembershipRedeemScanner({
   storeId,
@@ -216,7 +216,7 @@ export function MembershipRedeemScanner({
               <ScanLine className="w-5 h-5 shrink-0" style={{ color: BRASS }} />
               <div className="min-w-0">
                 <p className="text-sm font-bold truncate" style={{ color: '#F7F3E9' }}>
-                  会員証QRで消込
+                  会員証QRで特典を記録
                 </p>
                 <p className="text-[11px] truncate" style={{ color: 'rgba(247,243,233,0.6)' }}>
                   {eventTitle}
@@ -235,7 +235,7 @@ export function MembershipRedeemScanner({
                 />
                 <p className="text-center text-xs mt-3" style={{ color: 'rgba(247,243,233,0.7)' }}>
                   {state === 'submitting'
-                    ? '消込を記録しています…'
+                    ? '特典を記録しています…'
                     : 'お客様の会員証QRを枠内に合わせてください'}
                 </p>
                 {state === 'submitting' && (
@@ -250,7 +250,7 @@ export function MembershipRedeemScanner({
               <div className="text-center py-4">
                 <CheckCircle2 className="w-14 h-14 mx-auto mb-3" style={{ color: '#4ade80' }} />
                 <p className="text-base font-bold mb-1" style={{ color: '#F7F3E9' }}>
-                  消込が完了しました
+                  特典を記録しました
                 </p>
                 <p className="text-sm" style={{ color: BRASS }}>
                   {success.customer.display_name} 様
@@ -268,7 +268,7 @@ export function MembershipRedeemScanner({
                     style={{ background: BRASS, color: NAVY }}
                   >
                     <RefreshCw className="w-4 h-4 mr-1.5" />
-                    続けて消込
+                    続けて記録
                   </Button>
                   <Button
                     type="button"
