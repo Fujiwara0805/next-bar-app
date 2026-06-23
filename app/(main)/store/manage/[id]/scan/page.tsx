@@ -10,8 +10,6 @@ import {
   CheckCircle2,
   AlertCircle,
   User,
-  Ticket,
-  Clock,
   Sparkles,
   Calendar,
   StickyNote,
@@ -97,10 +95,6 @@ export default function StoreScanPage() {
   const [errorMsg, setErrorMsg] = useState<string>('');
   const [result, setResult] = useState<CheckInResult | null>(null);
   const [resultError, setResultError] = useState<string | null>(null);
-  // 特典引換（goalReached の顧客に店舗が手渡した記録）
-  const [claimedAt, setClaimedAt] = useState<string | null>(null);
-  const [claiming, setClaiming] = useState(false);
-  const [claimError, setClaimError] = useState<string | null>(null);
 
   const isAuthorized = useMemo(() => {
     if (authLoading || !user) return false;
@@ -176,8 +170,6 @@ export default function StoreScanPage() {
         }
         const r = json as CheckInResult;
         setResult(r);
-        setClaimedAt(r.eventStamp?.rewardClaimedAt ?? null);
-        setClaimError(null);
       } catch (err) {
         console.error('[store/scan] submit error', err);
         setResultError(t('storeScan.error.unknown'));
@@ -185,42 +177,6 @@ export default function StoreScanPage() {
     },
     [storeId, t]
   );
-
-  const handleClaimReward = useCallback(async () => {
-    if (!result?.eventStamp || claiming) return;
-    setClaiming(true);
-    setClaimError(null);
-    try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData.session?.access_token;
-      if (!token) {
-        setClaimError(t('storeScan.redeem_error'));
-        return;
-      }
-      const res = await fetch(`/api/stores/${storeId}/event-stamp-claim`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          userId: result.userId,
-          eventId: result.eventStamp.eventId,
-        }),
-      });
-      const json = await res.json();
-      if (!res.ok || !json?.ok) {
-        setClaimError(t('storeScan.redeem_error'));
-        return;
-      }
-      setClaimedAt(json.rewardClaimedAt ?? new Date().toISOString());
-    } catch (err) {
-      console.error('[store/scan] claim error', err);
-      setClaimError(t('storeScan.redeem_error'));
-    } finally {
-      setClaiming(false);
-    }
-  }, [result, claiming, storeId, t]);
 
   const handleDecodedText = useCallback(
     (decoded: string) => {
@@ -308,9 +264,6 @@ export default function StoreScanPage() {
     setErrorMsg('');
     setResult(null);
     setResultError(null);
-    setClaimedAt(null);
-    setClaimError(null);
-    setClaiming(false);
     startScanner();
   };
 
@@ -482,26 +435,12 @@ export default function StoreScanPage() {
                 <CheckCircle2 className="w-8 h-8" style={{ color: '#3E8E6B' }} />
               </motion.div>
 
-              {(() => {
-                const es = result.eventStamp;
-                const title = !es
-                  ? '来店を記録しました'
-                  : es.isNewlyCompleted
-                  ? 'コンプリート！特典GET 🎉'
-                  : es.goalReached
-                  ? '特典 獲得済み'
-                  : es.isNewStamp
-                  ? 'スタンプを記録しました'
-                  : 'チェックイン済み';
-                return (
-                  <h2
-                    className="text-xl font-bold text-center mb-1"
-                    style={{ color: COLORS.deepNavy }}
-                  >
-                    {title}
-                  </h2>
-                );
-              })()}
+              <h2
+                className="text-xl font-bold text-center mb-1"
+                style={{ color: COLORS.deepNavy }}
+              >
+                来店を記録しました
+              </h2>
               <p
                 className="text-xs text-center mb-2"
                 style={{ color: COLORS.warmGray }}
@@ -608,81 +547,6 @@ export default function StoreScanPage() {
                   >
                     顧客データで詳しく見る
                   </Button>
-                </div>
-              )}
-
-              {result.eventStamp && (
-                <div
-                  className="rounded-xl p-4 mb-5"
-                  style={{ background: 'rgba(0, 0, 0, 0.03)' }}
-                >
-                  <div className="flex items-baseline justify-between mb-1">
-                    <span
-                      className="text-xs font-semibold truncate pr-2"
-                      style={{ color: COLORS.champagneGold }}
-                    >
-                      🎫 {result.eventStamp.eventTitle}
-                    </span>
-                    <span
-                      className="text-2xl font-bold tabular-nums shrink-0"
-                      style={{ color: COLORS.deepNavy }}
-                    >
-                      {Math.min(result.eventStamp.stampCount, result.eventStamp.stampGoal)}
-                      <span className="text-sm ml-0.5" style={{ color: COLORS.warmGray }}>
-                        / {result.eventStamp.stampGoal}
-                      </span>
-                    </span>
-                  </div>
-                  {result.eventStamp.goalReached ? (
-                    <div className="mt-2 space-y-2">
-                      <div className="flex items-start gap-2">
-                        <Ticket className="w-5 h-5 mt-0.5 shrink-0" style={{ color: COLORS.champagneGold }} />
-                        <div className="text-xs font-semibold leading-tight" style={{ color: COLORS.charcoal }}>
-                          コンプリート — 特典をお渡しください
-                          {result.eventStamp.rewardText?.trim() && (
-                            <span className="block font-bold mt-0.5" style={{ color: COLORS.deepNavy }}>
-                              {result.eventStamp.rewardText.trim()}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      {claimedAt ? (
-                        <div
-                          className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold"
-                          style={{ background: 'rgba(62, 142, 107, 0.12)', color: '#3E8E6B' }}
-                        >
-                          <CheckCircle2 className="w-4 h-4" />
-                          {t('storeScan.reward_redeemed')}（{fmtDate(claimedAt)}）
-                        </div>
-                      ) : (
-                        <>
-                          <Button
-                            type="button"
-                            size="sm"
-                            onClick={handleClaimReward}
-                            disabled={claiming}
-                            className="w-full rounded-xl font-bold"
-                            style={{ background: COLORS.goldGradient, color: COLORS.deepNavy }}
-                          >
-                            <Ticket className="w-4 h-4 mr-1.5" />
-                            {claiming ? t('storeScan.redeeming') : t('storeScan.redeem_reward')}
-                          </Button>
-                          {claimError && (
-                            <p className="text-xs text-center" style={{ color: '#DC2626' }}>
-                              {claimError}
-                            </p>
-                          )}
-                        </>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2 mt-1">
-                      <Clock className="w-4 h-4" style={{ color: COLORS.warmGray }} />
-                      <span className="text-xs font-semibold" style={{ color: COLORS.charcoal }}>
-                        あと{Math.max(0, result.eventStamp.stampGoal - result.eventStamp.stampCount)}店舗でコンプリート
-                      </span>
-                    </div>
-                  )}
                 </div>
               )}
 

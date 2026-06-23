@@ -218,6 +218,50 @@ export default function EventRoiPage() {
     },
   ];
 
+  // 会員別の表（要望: イベント管理にユーザー用の表）。
+  // スタンプを全て集めて運営に送信した会員 / 会員証スキャンで消し込んだ会員。
+  const submissionColumns: AdminColumn<StampSubmission>[] = [
+    {
+      key: 'name',
+      header: '会員',
+      width: '1.4fr',
+      render: (r) => <span className="text-sm font-semibold" style={{ color: C.text }}>{r.customer_name}</span>,
+    },
+    {
+      key: 'submitted',
+      header: '送信日時',
+      width: '1.2fr',
+      render: (r) => <span className="text-sm" style={{ color: C.textMuted }}>{fmtDateTime(r.submitted_at)}</span>,
+    },
+    {
+      key: 'note',
+      header: 'メッセージ',
+      width: '2fr',
+      render: (r) => <span className="text-sm" style={{ color: C.textMuted }}>{r.submit_note?.trim() || '—'}</span>,
+    },
+  ];
+
+  const redemptionColumns: AdminColumn<PerUserRedemption>[] = [
+    {
+      key: 'name',
+      header: '会員',
+      width: '1.4fr',
+      render: (r) => <span className="text-sm font-semibold" style={{ color: C.text }}>{r.customer_name}</span>,
+    },
+    {
+      key: 'store',
+      header: '店舗',
+      width: '1.6fr',
+      render: (r) => <span className="text-sm" style={{ color: C.textMuted }}>{r.store_name}</span>,
+    },
+    {
+      key: 'redeemed',
+      header: '消込日時',
+      width: '1.2fr',
+      render: (r) => <span className="text-sm" style={{ color: C.textMuted }}>{fmtDateTime(r.redeemed_at)}</span>,
+    },
+  ];
+
   // 主催者へ提供するための参加店レポートを CSV で書き出す
   const exportCsv = () => {
     if (!data) return;
@@ -462,6 +506,60 @@ export default function EventRoiPage() {
                         ))}
                       </div>
                     )}
+                  </div>
+                )}
+              />
+            </section>
+
+            {/* 会員別: スタンプ達成・送信した会員（運営が誰に特典を案内するか把握する表） */}
+            <section>
+              <div className="flex items-center gap-2 mb-3 flex-wrap">
+                <h2 className="text-sm font-bold tracking-wide" style={{ color: C.text }}>スタンプ達成・送信した会員</h2>
+                <span className="text-xs" style={{ color: C.textSubtle }}>{m.stamp_submissions ?? 0} 件</span>
+                <span className="text-[11px]" style={{ color: C.textSubtle }}>・全スタンプを集めて運営に送信した会員</span>
+              </div>
+              <AdminDataTable
+                columns={submissionColumns}
+                data={data?.stamp_submissions ?? []}
+                keyExtractor={(r) => r.user_id}
+                emptyIcon={<Users className="w-12 h-12" style={{ color: C.textSubtle }} />}
+                emptyTitle="まだ送信した会員はいません"
+                emptyDescription="会員が全スタンプを集めて運営に送信すると、ここに表示されます"
+                mobileCardRender={(r) => (
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-semibold" style={{ color: C.text }}>{r.customer_name}</p>
+                      <span className="text-xs" style={{ color: C.textSubtle }}>{fmtDateTime(r.submitted_at)}</span>
+                    </div>
+                    {r.submit_note?.trim() && (
+                      <p className="text-xs mt-1" style={{ color: C.textMuted }}>{r.submit_note.trim()}</p>
+                    )}
+                  </div>
+                )}
+              />
+            </section>
+
+            {/* 会員別: 会員証スキャン消込（どの会員がどの店で消し込んだか） */}
+            <section>
+              <div className="flex items-center gap-2 mb-3 flex-wrap">
+                <h2 className="text-sm font-bold tracking-wide" style={{ color: C.text }}>会員証スキャン消込</h2>
+                <span className="text-xs" style={{ color: C.textSubtle }}>{m.per_user_redemptions ?? 0} 件（{m.per_user_unique_customers ?? 0} 名）</span>
+                <span className="text-[11px]" style={{ color: C.textSubtle }}>・会員証QRのスキャンで電子クーポンを消し込んだ記録</span>
+              </div>
+              <AdminDataTable
+                columns={redemptionColumns}
+                data={data?.per_user_redemptions ?? []}
+                keyExtractor={(r) => r.id}
+                emptyIcon={<Ticket className="w-12 h-12" style={{ color: C.textSubtle }} />}
+                emptyTitle="まだ消込はありません"
+                emptyDescription="加盟店が会員証QRをスキャンすると、ここに会員別の消込が表示されます"
+                mobileCardRender={(r) => (
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-semibold" style={{ color: C.text }}>{r.customer_name}</p>
+                      <span className="text-xs" style={{ color: C.textSubtle }}>{fmtDateTime(r.redeemed_at)}</span>
+                    </div>
+                    <p className="text-xs mt-1" style={{ color: C.textMuted }}>{r.store_name}</p>
                   </div>
                 )}
               />

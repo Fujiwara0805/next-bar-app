@@ -12,8 +12,10 @@ import {
   ScanLine,
   X,
   AlertCircle,
+  Stamp,
 } from 'lucide-react';
 import QRCode from 'qrcode';
+import { toast } from 'sonner';
 import { useAuth } from '@/lib/auth/context';
 import { useLanguage } from '@/lib/i18n/context';
 import { supabase } from '@/lib/supabase/client';
@@ -28,6 +30,17 @@ const NAVY = '#13294b';
 const BRASS = '#ffc82c';
 const COPPER = '#B87333';
 const GOLD_GRADIENT = '#ffc82c';
+
+/** 会員証表示中に参加イベントのスタンプ進捗をポーリングする間隔（ms） */
+const PROGRESS_POLL_MS = 6000;
+
+type StampEvent = {
+  id: string;
+  title: string;
+  stamp_goal: number;
+  stamp_count: number;
+  goal_reached: boolean;
+};
 
 function getCustomerDeviceId(): string {
   const existing = localStorage.getItem(CUSTOMER_DEVICE_ID_KEY);
@@ -58,6 +71,10 @@ export function MembershipQr({ displayName }: { displayName: string }) {
   const [secondsLeft, setSecondsLeft] = useState(REFRESH_INTERVAL_SEC);
   const [error, setError] = useState<string | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // 参加イベントのスタンプ進捗（会員証表示中だけポーリングして即時反映する）
+  const [stampEvents, setStampEvents] = useState<StampEvent[]>([]);
+  const prevCountsRef = useRef<Record<string, number>>({});
 
   // 店舗QR読み取りモード
   const [scannerOpen, setScannerOpen] = useState(false);
@@ -136,6 +153,60 @@ export function MembershipQr({ displayName }: { displayName: string }) {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, [qrDataUrl, regenerate]);
+
+  // 参加イベントのスタンプ進捗を取得。会員証を店舗にスキャンされてスタンプが
+  // 増えたら、このポーリングでカウントが更新され「スタンプGET！」を通知する。
+  const fetchProgress = useCallback(async () => {
+    if (!user) return;
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      if (!token) return;
+      const res = await fetch('/api/me/joined-events', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) return;
+      const json = await res.json();
+      const evs: StampEvent[] = (json.events ?? []).map(
+        (e: {
+          id: string;
+          title: string;
+          stamp_goal?: number;
+          stamp_count?: number;
+          goal_reached?: boolean;
+        }) => ({
+          id: e.id,
+          title: e.title,
+          stamp_goal: e.stamp_goal ?? 3,
+          stamp_count: e.stamp_count ?? 0,
+          goal_reached: e.goal_reached ?? false,
+        })
+      );
+      // 既知イベントでカウントが増えていたら通知（初回ロードでは出さない）
+      const prev = prevCountsRef.current;
+      const increased = evs.some(
+        (e) => prev[e.id] != null && e.stamp_count > prev[e.id]
+      );
+      prevCountsRef.current = Object.fromEntries(
+        evs.map((e) => [e.id, e.stamp_count])
+      );
+      setStampEvents(evs);
+      if (increased) toast.success('スタンプGET！', { className: 'bg-muted' });
+    } catch {
+      // 取得失敗は無視（次のポーリングで再取得）
+    }
+  }, [user]);
+
+  // 会員証を表示している間だけポーリング（このコンポーネントはモーダルを
+  // 開いた時のみマウントされる）。タブが非表示の間はスキップ。
+  useEffect(() => {
+    if (!user) return;
+    fetchProgress();
+    const id = setInterval(() => {
+      if (document.visibilityState === 'visible') fetchProgress();
+    }, PROGRESS_POLL_MS);
+    return () => clearInterval(id);
+  }, [user, fetchProgress]);
 
   const stopScanner = useCallback(async () => {
     const scanner = scannerRef.current;
@@ -317,6 +388,72 @@ export function MembershipQr({ displayName }: { displayName: string }) {
           {error && <p className="mt-3 text-xs text-destructive">{error}</p>}
         </div>
       </div>
+
+      {/* スタンプ進捗（参加イベントのみ）。店舗が会員証QRをスキャンすると
+          ポーリングでカウントが更新され、ユーザー側に即時反映される。 */}
+      {stampEvents.length > 0 && (
+        <div
+          className="rounded-2xl p-4 mb-3 relative overflow-hidden"
+          style={{
+            background: 'white',
+            border: `1px solid ${BRASS}33`,
+            boxShadow: '0 8px 22px rgba(19, 41, 75, 0.08)',
+          }}
+        >
+          <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ background: GOLD_GRADIENT }} />
+          <div className="flex items-center gap-1.5 mb-3">
+            <Stamp className="w-4 h-4" style={{ color: COPPER }} />
+            <span className="text-xs font-bold" style={{ color: NAVY }}>
+              スタンプ進捗
+            </span>
+            <span className="text-[10px]" style={{ color: 'rgba(19,41,75,0.5)' }}>
+              スキャンで自動更新
+            </span>
+          </div>
+          <div className="space-y-3">
+            {stampEvents.map((ev) => {
+              const goal = Math.max(1, ev.stamp_goal);
+              const filled = Math.min(ev.stamp_count, goal);
+              return (
+                <div key={ev.id}>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-xs font-semibold truncate pr-2" style={{ color: NAVY }}>
+                      🎫 {ev.title}
+                    </span>
+                    <span className="text-xs font-bold tabular-nums shrink-0" style={{ color: NAVY }}>
+                      {filled} / {goal}
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {Array.from({ length: goal }).map((_, i) => {
+                      const done = i < filled;
+                      return (
+                        <div
+                          key={i}
+                          className="w-7 h-7 rounded-full flex items-center justify-center"
+                          style={
+                            done
+                              ? { background: BRASS, border: `1px solid ${BRASS}` }
+                              : { background: 'transparent', border: `1.5px dashed ${COPPER}66` }
+                          }
+                        >
+                          {done ? (
+                            <Stamp className="w-3.5 h-3.5" style={{ color: NAVY }} strokeWidth={2.5} />
+                          ) : (
+                            <span className="text-[10px] font-bold" style={{ color: `${COPPER}99` }}>
+                              {i + 1}
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       <div
         className="rounded-2xl p-5 relative overflow-hidden"

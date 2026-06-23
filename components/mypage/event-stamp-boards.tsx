@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Loader2,
   Stamp,
-  Check,
   Sparkles,
   PartyPopper,
   Send,
@@ -70,33 +69,51 @@ export function EventStampBoards() {
     return data.session?.access_token ?? null;
   }, []);
 
-  const fetchEvents = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(false);
-      const token = await getToken();
-      if (!token) {
+  const fetchEvents = useCallback(
+    async (silent = false) => {
+      try {
+        if (!silent) setLoading(true);
+        const token = await getToken();
+        if (!token) {
+          setError(true);
+          return;
+        }
+        const res = await fetch('/api/me/joined-events', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) {
+          setError(true);
+          return;
+        }
+        const json = await res.json();
+        setEvents(json.events ?? []);
+        setError(false);
+      } catch {
         setError(true);
-        return;
+      } finally {
+        if (!silent) setLoading(false);
       }
-      const res = await fetch('/api/me/joined-events', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) {
-        setError(true);
-        return;
-      }
-      const json = await res.json();
-      setEvents(json.events ?? []);
-    } catch {
-      setError(true);
-    } finally {
-      setLoading(false);
-    }
-  }, [getToken]);
+    },
+    [getToken]
+  );
 
   useEffect(() => {
     fetchEvents();
+  }, [fetchEvents]);
+
+  // 会員証スキャン（経路A）などでバックグラウンド更新された後、
+  // 画面に戻ってきたタイミングでスタンプボードを最新化する（即時反映）。
+  // silent 再取得なのでローディングのちらつきは出さない。
+  useEffect(() => {
+    const refresh = () => {
+      if (document.visibilityState === 'visible') fetchEvents(true);
+    };
+    window.addEventListener('focus', refresh);
+    document.addEventListener('visibilitychange', refresh);
+    return () => {
+      window.removeEventListener('focus', refresh);
+      document.removeEventListener('visibilitychange', refresh);
+    };
   }, [fetchEvents]);
 
   const handleSubmit = useCallback(
@@ -270,7 +287,7 @@ export function EventStampBoards() {
                       }
                     >
                       {done ? (
-                        <Check className="w-4 h-4" style={{ color: NAVY }} strokeWidth={3} />
+                        <Stamp className="w-4 h-4" style={{ color: NAVY }} strokeWidth={2.5} />
                       ) : (
                         <span className="text-xs font-bold" style={{ color: `${COPPER}99` }}>
                           {i + 1}
