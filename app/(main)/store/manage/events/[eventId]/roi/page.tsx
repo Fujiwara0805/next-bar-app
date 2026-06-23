@@ -11,7 +11,7 @@ import { useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import {
   BarChart3, Loader2, Footprints, Store as StoreIcon,
-  Ticket, Banknote, Download, Users, RotateCcw,
+  Ticket, Banknote, Download, Users,
 } from 'lucide-react';
 import { useAdminTheme } from '@/lib/admin-theme-context';
 import { useAuth } from '@/lib/auth/context';
@@ -96,57 +96,6 @@ type RoiResponse = {
   store_breakdown?: StoreBreakdown[];
 };
 
-const ROI_DISPLAY_RESET_KEY_PREFIX = 'nikenme:event-roi:display-reset:';
-
-function roiDisplayResetKey(eventId: string) {
-  return `${ROI_DISPLAY_RESET_KEY_PREFIX}${eventId}`;
-}
-
-function isRoiDisplayResetPersisted(eventId: string) {
-  if (typeof window === 'undefined') return false;
-  try {
-    return window.localStorage.getItem(roiDisplayResetKey(eventId)) === '1';
-  } catch {
-    return false;
-  }
-}
-
-function persistRoiDisplayReset(eventId: string) {
-  try {
-    window.localStorage.setItem(roiDisplayResetKey(eventId), '1');
-  } catch {
-    // localStorage が使えない環境でも、その場の表示リセットは継続する。
-  }
-}
-
-function resetRoiDisplayData(current: RoiResponse): RoiResponse {
-  return {
-    ...current,
-    metrics: {
-      ...current.metrics,
-      participating_stores: 0,
-      check_ins_total: 0,
-      unique_customers: 0,
-      digital_redemptions: 0,
-      per_user_redemptions: 0,
-      per_user_unique_customers: 0,
-      stamp_rewards_claimed: 0,
-      stamp_submissions: 0,
-      paper_distributed: 0,
-      paper_redeemed: 0,
-      paper_reported_stores: 0,
-      total_redemptions: 0,
-      cost_per_check_in: null,
-      cost_per_redemption: null,
-      paper_redemption_rate: null,
-    },
-    paper_reports: [],
-    per_user_redemptions: [],
-    stamp_submissions: [],
-    store_breakdown: [],
-  };
-}
-
 const yen = (n: number | null) => (n === null ? '—' : `¥${n.toLocaleString('ja-JP')}`);
 const pct = (n: number | null) => (n === null ? '—' : `${Math.round(n * 100)}%`);
 function fmtDate(iso: string | null) {
@@ -208,7 +157,7 @@ export default function EventRoiPage() {
       });
       if (!res.ok) throw new Error(`fetch_failed:${res.status}`);
       const json = (await res.json()) as RoiResponse;
-      setData(isRoiDisplayResetPersisted(eventId) ? resetRoiDisplayData(json) : json);
+      setData(json);
     } catch (err) {
       console.error('[roi] fetch error', err);
       setError('効果測定データの取得に失敗しました');
@@ -404,14 +353,6 @@ export default function EventRoiPage() {
     URL.revokeObjectURL(url);
   };
 
-  const resetDisplayedData = () => {
-    if (!data) return;
-    const ok = window.confirm('画面上のROI集計をリセットします。リロード後もこの端末では削除された状態で表示されます。データベースの実データは変更されません。');
-    if (!ok) return;
-    persistRoiDisplayReset(eventId);
-    setData(resetRoiDisplayData(data));
-  };
-
   return (
     <div className="min-h-screen" style={{ background: C.bg }}>
       <div className="max-w-6xl mx-auto px-6 md:px-8 py-8 space-y-6">
@@ -498,16 +439,6 @@ export default function EventRoiPage() {
                   >
                     <Download className="w-3.5 h-3.5" />
                     会員属性CSV（匿名）
-                  </button>
-                  <button
-                    type="button"
-                    onClick={resetDisplayedData}
-                    disabled={!data}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-opacity disabled:opacity-50"
-                    style={{ background: C.dangerBg, color: C.danger, border: `1px solid ${C.border}` }}
-                  >
-                    <RotateCcw className="w-3.5 h-3.5" />
-                    表示リセット
                   </button>
                 </div>
               </div>
