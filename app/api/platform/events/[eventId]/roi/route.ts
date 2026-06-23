@@ -43,11 +43,24 @@ export async function GET(
   }
 
   // 参加店舗
-  const { data: parts } = await admin
-    .from('store_event_participations')
-    .select('store_id')
-    .eq('event_id', eventId)
-    .eq('is_participating', true);
+  // 注意: ここを silent に握り潰すと「クエリ失敗」を「参加店0」と誤表示し、
+  // チェックイン/内訳まで 0 に連鎖する。失敗時は 0 を返さず明示的にエラーにする。
+  // 一過性のコールドスタート起因のエラーに備えて 1 回だけ即時リトライする。
+  const fetchParticipations = async () =>
+    admin
+      .from('store_event_participations')
+      .select('store_id')
+      .eq('event_id', eventId)
+      .eq('is_participating', true);
+  let { data: parts, error: partsErr } = await fetchParticipations();
+  if (partsErr && !isMissingTable(partsErr)) {
+    console.warn('[roi] participations fetch retry after error', partsErr);
+    ({ data: parts, error: partsErr } = await fetchParticipations());
+  }
+  if (partsErr && !isMissingTable(partsErr)) {
+    console.error('[roi] participations fetch error', partsErr);
+    return NextResponse.json({ error: 'participations_fetch_failed' }, { status: 500 });
+  }
   const storeIds: string[] = (parts ?? []).map((p: any) => p.store_id);
   const participatingStores = storeIds.length;
 
