@@ -96,6 +96,29 @@ type RoiResponse = {
   store_breakdown?: StoreBreakdown[];
 };
 
+const ROI_DISPLAY_RESET_KEY_PREFIX = 'nikenme:event-roi:display-reset:';
+
+function roiDisplayResetKey(eventId: string) {
+  return `${ROI_DISPLAY_RESET_KEY_PREFIX}${eventId}`;
+}
+
+function isRoiDisplayResetPersisted(eventId: string) {
+  if (typeof window === 'undefined') return false;
+  try {
+    return window.localStorage.getItem(roiDisplayResetKey(eventId)) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function persistRoiDisplayReset(eventId: string) {
+  try {
+    window.localStorage.setItem(roiDisplayResetKey(eventId), '1');
+  } catch {
+    // localStorage が使えない環境でも、その場の表示リセットは継続する。
+  }
+}
+
 function resetRoiDisplayData(current: RoiResponse): RoiResponse {
   return {
     ...current,
@@ -184,7 +207,8 @@ export default function EventRoiPage() {
         },
       });
       if (!res.ok) throw new Error(`fetch_failed:${res.status}`);
-      setData(await res.json());
+      const json = (await res.json()) as RoiResponse;
+      setData(isRoiDisplayResetPersisted(eventId) ? resetRoiDisplayData(json) : json);
     } catch (err) {
       console.error('[roi] fetch error', err);
       setError('効果測定データの取得に失敗しました');
@@ -382,8 +406,9 @@ export default function EventRoiPage() {
 
   const resetDisplayedData = () => {
     if (!data) return;
-    const ok = window.confirm('画面上のROI集計をリセットします。データベースの実データは変更されません。');
+    const ok = window.confirm('画面上のROI集計をリセットします。リロード後もこの端末では削除された状態で表示されます。データベースの実データは変更されません。');
     if (!ok) return;
+    persistRoiDisplayReset(eventId);
     setData(resetRoiDisplayData(data));
   };
 
