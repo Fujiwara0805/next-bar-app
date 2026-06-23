@@ -11,7 +11,7 @@ import { useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import {
   BarChart3, Loader2, Footprints, Store as StoreIcon,
-  Ticket, Banknote, Download, Users,
+  Ticket, Banknote, Download, Users, RotateCcw,
 } from 'lucide-react';
 import { useAdminTheme } from '@/lib/admin-theme-context';
 import { useAuth } from '@/lib/auth/context';
@@ -95,6 +95,34 @@ type RoiResponse = {
   stamp_submissions?: StampSubmission[];
   store_breakdown?: StoreBreakdown[];
 };
+
+function resetRoiDisplayData(current: RoiResponse): RoiResponse {
+  return {
+    ...current,
+    metrics: {
+      ...current.metrics,
+      participating_stores: 0,
+      check_ins_total: 0,
+      unique_customers: 0,
+      digital_redemptions: 0,
+      per_user_redemptions: 0,
+      per_user_unique_customers: 0,
+      stamp_rewards_claimed: 0,
+      stamp_submissions: 0,
+      paper_distributed: 0,
+      paper_redeemed: 0,
+      paper_reported_stores: 0,
+      total_redemptions: 0,
+      cost_per_check_in: null,
+      cost_per_redemption: null,
+      paper_redemption_rate: null,
+    },
+    paper_reports: [],
+    per_user_redemptions: [],
+    stamp_submissions: [],
+    store_breakdown: [],
+  };
+}
 
 const yen = (n: number | null) => (n === null ? '—' : `¥${n.toLocaleString('ja-JP')}`);
 const pct = (n: number | null) => (n === null ? '—' : `${Math.round(n * 100)}%`);
@@ -352,6 +380,13 @@ export default function EventRoiPage() {
     URL.revokeObjectURL(url);
   };
 
+  const resetDisplayedData = () => {
+    if (!data) return;
+    const ok = window.confirm('画面上のROI集計をリセットします。データベースの実データは変更されません。');
+    if (!ok) return;
+    setData(resetRoiDisplayData(data));
+  };
+
   return (
     <div className="min-h-screen" style={{ background: C.bg }}>
       <div className="max-w-6xl mx-auto px-6 md:px-8 py-8 space-y-6">
@@ -424,7 +459,7 @@ export default function EventRoiPage() {
                     onClick={exportCsv}
                     disabled={!data?.store_breakdown?.length}
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-opacity disabled:opacity-50"
-                    style={{ background: C.accent, color: '#13294b' }}
+                    style={{ background: C.accent, color: '#fffaf0' }}
                   >
                     <Download className="w-3.5 h-3.5" />
                     店舗別レポートCSV
@@ -438,6 +473,16 @@ export default function EventRoiPage() {
                   >
                     <Download className="w-3.5 h-3.5" />
                     会員属性CSV（匿名）
+                  </button>
+                  <button
+                    type="button"
+                    onClick={resetDisplayedData}
+                    disabled={!data}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-opacity disabled:opacity-50"
+                    style={{ background: C.dangerBg, color: C.danger, border: `1px solid ${C.border}` }}
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    表示リセット
                   </button>
                 </div>
               </div>
