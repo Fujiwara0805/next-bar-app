@@ -1124,9 +1124,9 @@ function MapPageContent() {
           : activeEvents[0] ?? null;
         if (!chip) return null;
         return (
-          // 左右の固定アイコン群（左:広告 / 右:店舗一覧・更新・プロフィール）と
-          // 重ならないよう left-20/right-20 の中央ゾーンに収める
-          <div className="absolute top-20 left-20 right-20 z-20 safe-top pointer-events-none">
+          // イベント名はマイページアイコン（top-20 右）より上に配置する。
+          // 左右の固定アイコン群と重ならないよう left-20/right-20 の中央ゾーンに収める
+          <div className="absolute top-4 left-20 right-20 z-20 safe-top pointer-events-none">
             <div className="flex flex-col items-center gap-2 pointer-events-auto">
               <button
                 type="button"

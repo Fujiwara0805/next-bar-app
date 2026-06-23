@@ -393,7 +393,8 @@ export function EventStampBoards() {
                 </p>
               )}
 
-              {/* 参加をやめる（インライン確認つき） */}
+              {/* 参加をやめる: スタンプを1つでも獲得したら取り消し不可 */}
+              {ev.stamp_count === 0 ? (
               <div className="mt-3 pt-3" style={{ borderTop: '1px solid rgba(19,41,75,0.08)' }}>
                 {confirmLeaveId === ev.id ? (
                   <div className="flex items-center gap-2">
@@ -435,6 +436,13 @@ export function EventStampBoards() {
                   </button>
                 )}
               </div>
+              ) : (
+                <div className="mt-3 pt-3" style={{ borderTop: '1px solid rgba(19,41,75,0.08)' }}>
+                  <p className="text-[11px]" style={{ color: 'rgba(19,41,75,0.45)' }}>
+                    スタンプ獲得後はイベント参加を取り消せません
+                  </p>
+                </div>
+              )}
             </motion.div>
           );
         })}
