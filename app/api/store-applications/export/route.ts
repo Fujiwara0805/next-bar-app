@@ -9,6 +9,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { resolveManageAuth, assertPlatformAdmin } from '@/lib/api/manage-auth';
 
+// このルートは Authorization ヘッダー（request.headers）を使うため動的レンダリング必須。
+// 宣言が無いと Next.js がビルド時に静的化を試み DYNAMIC_SERVER_USAGE で失敗する。
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 export async function GET(request: NextRequest) {
   try {
     const auth = await resolveManageAuth(request);
