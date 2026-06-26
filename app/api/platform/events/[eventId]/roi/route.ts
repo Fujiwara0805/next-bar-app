@@ -50,7 +50,7 @@ export async function GET(
   // イベント本体
   const { data: event, error: eventErr } = await admin
     .from('platform_events')
-    .select('id, title, cost_total, start_at, end_at, stamp_enabled, stamp_goal, stamp_reward_text')
+    .select('id, title, cost_total, start_at, end_at, created_at, stamp_enabled, stamp_goal, stamp_reward_text')
     .eq('id', eventId)
     .maybeSingle();
   if (eventErr && !isMissingTable(eventErr)) {
@@ -254,13 +254,20 @@ export async function GET(
   const uniqueCustByStore = new Map<string, Set<string>>();
   // 店舗ごとの来店者明細（誰がどの店に何回来たか）。store_id → user_id → {visits,last}
   const visitorsByStore = new Map<string, Map<string, { visits: number; last: string | null }>>();
+  // チェックイン期間の下限は「イベント開始」と「イベント作成」の遅い方。
+  // イベントが存在する前（作成前）は店舗が参加表明しようがないため、
+  // それ以前の来店を当該イベントの参加店チェックインとして計上しない。
+  const periodStart =
+    event.start_at && event.start_at > event.created_at
+      ? event.start_at
+      : event.created_at;
   const breakdownStoreIds = Array.from(reportStoreIds);
   if (breakdownStoreIds.length > 0) {
     let q = admin
       .from('store_check_ins')
       .select('user_id, store_id, checked_in_at', { count: 'exact' })
       .in('store_id', breakdownStoreIds);
-    if (event.start_at) q = q.gte('checked_in_at', event.start_at);
+    if (periodStart) q = q.gte('checked_in_at', periodStart);
     if (event.end_at) q = q.lte('checked_in_at', event.end_at);
     const { data: checkIns, count: ciCount, error: ciErr } = await q.limit(10000);
     if (ciErr && !isMissingTable(ciErr)) {

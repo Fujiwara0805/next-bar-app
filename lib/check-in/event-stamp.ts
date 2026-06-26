@@ -22,6 +22,12 @@ type Admin = SupabaseClient<Database>;
 /** start_at が null のイベント窓の下限フォールバック */
 const FAR_PAST_ISO = '1970-01-01T00:00:00.000Z';
 
+/** 2つの ISO 文字列の遅い方(max)を返す。両方 null なら FAR_PAST。 */
+function laterIso(a: string | null | undefined, b: string | null | undefined): string {
+  if (a && b) return a > b ? a : b;
+  return a ?? b ?? FAR_PAST_ISO;
+}
+
 /** insert 前のスナップショット（finalize に渡す） */
 export type EventStampSnapshot = {
   eventId: string;
@@ -50,11 +56,13 @@ export type EventStampProgress = {
 };
 
 /**
- * 店舗が参加している「現在アクティブなスタンプ有効イベント」を1件返す。
- * 複数該当時は終了が近いものを優先（end_at 昇順）。
+ * 店舗が参加していて、かつ「当該会員が参加表明済み」の現在アクティブなスタンプ有効
+ * イベントを1件返す。複数該当時は終了が近いものを優先（end_at 昇順）。
+ * スタンプは参加表明後にのみ貯まるため、未参加の会員には null を返す。
  */
-async function findActiveStampEvent(
+async function findActiveJoinedStampEvent(
   admin: Admin,
+  userId: string,
   storeId: string,
   nowIso: string
 ): Promise<{
@@ -64,6 +72,7 @@ async function findActiveStampEvent(
   stamp_reward_text: string | null;
   start_at: string | null;
   end_at: string | null;
+  joined_at: string;
 } | null> {
   const { data: parts } = await admin
     .from('store_event_participations')
@@ -88,12 +97,29 @@ async function findActiveStampEvent(
   });
   if (active.length === 0) return null;
 
-  active.sort((a, b) => {
+  // 会員が参加表明済みのイベントのみ対象（store が複数イベントに参加していても、
+  // 会員が join したものだけを拾う）。
+  const { data: joins } = await admin
+    .from('user_event_participations')
+    .select('event_id, joined_at')
+    .eq('user_id', userId)
+    .in(
+      'event_id',
+      active.map((e) => e.id)
+    );
+  const joinedAtById = new Map<string, string>(
+    (joins ?? []).map((j) => [j.event_id, j.joined_at as string])
+  );
+  const joinedActive = active.filter((e) => joinedAtById.has(e.id));
+  if (joinedActive.length === 0) return null;
+
+  joinedActive.sort((a, b) => {
     const ae = a.end_at ?? '9999-12-31';
     const be = b.end_at ?? '9999-12-31';
     return ae < be ? -1 : ae > be ? 1 : 0;
   });
-  return active[0];
+  const ev = joinedActive[0];
+  return { ...ev, joined_at: joinedAtById.get(ev.id)! };
 }
 
 /** イベント窓内で user が訪れた distinct 参加店の集合 */
@@ -127,7 +153,7 @@ export async function snapshotEventStampPre(
   now: Date = new Date()
 ): Promise<EventStampSnapshot | null> {
   const nowIso = now.toISOString();
-  const event = await findActiveStampEvent(admin, storeId, nowIso);
+  const event = await findActiveJoinedStampEvent(admin, userId, storeId, nowIso);
   if (!event) return null;
 
   const { data: parts } = await admin
@@ -139,7 +165,8 @@ export async function snapshotEventStampPre(
     new Set((parts ?? []).map((p) => p.store_id))
   );
 
-  const startIso = event.start_at ?? FAR_PAST_ISO;
+  // 参加表明後の来店のみ集計（start_at と joined_at の遅い方を窓の下限にする）
+  const startIso = laterIso(event.start_at, event.joined_at);
   const preSet = await distinctVisitedStores(
     admin,
     userId,
@@ -239,6 +266,19 @@ export async function getEventStampProgress(
     .maybeSingle();
   if (!event || event.status !== 'published' || !event.stamp_enabled) return null;
 
+  const stampGoal = event.stamp_goal ?? 3;
+
+  // 参加表明していなければスタンプ0（スタンプは参加表明後の来店のみ集計）
+  const { data: join } = await admin
+    .from('user_event_participations')
+    .select('joined_at')
+    .eq('user_id', userId)
+    .eq('event_id', eventId)
+    .maybeSingle();
+  if (!join) {
+    return { eventId, stampCount: 0, stampGoal, goalReached: false, rewardClaimedAt: null };
+  }
+
   const { data: parts } = await admin
     .from('store_event_participations')
     .select('store_id')
@@ -248,7 +288,8 @@ export async function getEventStampProgress(
     new Set((parts ?? []).map((p) => p.store_id))
   );
 
-  const startIso = event.start_at ?? FAR_PAST_ISO;
+  // 参加表明後の来店のみ集計（start_at と joined_at の遅い方を窓の下限にする）
+  const startIso = laterIso(event.start_at, (join as { joined_at: string }).joined_at);
   const visited = await distinctVisitedStores(
     admin,
     userId,
@@ -257,7 +298,6 @@ export async function getEventStampProgress(
     now.toISOString()
   );
   const stampCount = visited.size;
-  const stampGoal = event.stamp_goal ?? 3;
   const goalReached = stampCount >= stampGoal;
 
   let rewardClaimedAt: string | null = null;
