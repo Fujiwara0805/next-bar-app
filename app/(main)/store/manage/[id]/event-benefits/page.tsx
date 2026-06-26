@@ -21,11 +21,9 @@ import {
   ChevronDown,
   ChevronUp,
 } from 'lucide-react';
-import { ScanLine } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { CloseCircleButton } from '@/components/ui/close-circle-button';
-import { MembershipRedeemScanner } from '@/components/store/membership-redeem-scanner';
 import { useAuth } from '@/lib/auth/context';
 import { useAppMode } from '@/lib/app-mode-context';
 import { supabase } from '@/lib/supabase/client';
@@ -66,7 +64,6 @@ export default function StoreEventBenefitsPage() {
   const [events, setEvents] = useState<StoreEventRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [recordingEventId, setRecordingEventId] = useState<string | null>(null);
-  const [scanEvent, setScanEvent] = useState<{ id: string; title: string } | null>(null);
   const [expandedEventId, setExpandedEventId] = useState<string | null>(null);
   const [historiesByEvent, setHistoriesByEvent] = useState<
     Record<string, StoreEventBenefitRedemption[]>
@@ -296,15 +293,6 @@ export default function StoreEventBenefitsPage() {
       }
     },
     [storeId, session?.access_token, expandedEventId, fetchHistory]
-  );
-
-  // 会員証QRスキャン記録の成功時: 件数と履歴を最新化
-  const handleRedeemed = useCallback(
-    (eventId: string) => {
-      fetchEvents();
-      if (expandedEventId === eventId) fetchHistory(eventId);
-    },
-    [fetchEvents, expandedEventId, fetchHistory]
   );
 
   const toggleHistory = useCallback(
@@ -560,20 +548,8 @@ export default function StoreEventBenefitsPage() {
                     </div>
                   </div>
 
-                  <Button
-                    type="button"
-                    onClick={() => setScanEvent({ id: event.id, title: event.title })}
-                    className="w-full py-3 rounded-xl font-bold text-sm shadow-md mb-2"
-                    style={{
-                      background: COLORS.goldGradient,
-                      color: COLORS.deepNavy,
-                      boxShadow: '0 6px 18px rgba(201, 168, 108, 0.28)',
-                    }}
-                  >
-                    <ScanLine className="w-4 h-4 mr-1.5" />
-                    会員証QRで特典を記録
-                  </Button>
-
+                  {/* 会員ごとの特典消込は店舗管理「会員証読み取り」に一本化（電子クーポンは
+                      会員証スキャンで自動消込・同テーブルへ記録）。ここは件数のみの手動記録を残す。 */}
                   <Button
                     type="button"
                     variant="outline"
@@ -590,10 +566,16 @@ export default function StoreEventBenefitsPage() {
                     ) : (
                       <>
                         <Plus className="w-4 h-4 mr-1.5" />
-                        QRなしで件数のみ記録
+                        特典利用を記録（+1）
                       </>
                     )}
                   </Button>
+                  <p
+                    className="mt-2 text-[11px] leading-relaxed text-center"
+                    style={{ color: COLORS.warmGray }}
+                  >
+                    会員ごとの記録は「会員証読み取り」での会員証QRスキャンが自動で行います（電子クーポンも同時に消込）。
+                  </p>
 
                   <button
                     type="button"
@@ -658,16 +640,6 @@ export default function StoreEventBenefitsPage() {
           })
         )}
       </div>
-
-      {scanEvent && (
-        <MembershipRedeemScanner
-          storeId={storeId}
-          eventId={scanEvent.id}
-          eventTitle={scanEvent.title}
-          onClose={() => setScanEvent(null)}
-          onRedeemed={() => handleRedeemed(scanEvent.id)}
-        />
-      )}
     </div>
   );
 }
