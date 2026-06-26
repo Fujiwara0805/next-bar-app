@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
   const { data: events, error: evErr } = await admin
     .from('platform_events')
     .select(
-      'id, title, area_label, image_url, start_at, end_at, status, stamp_enabled, stamp_goal, stamp_reward_text, redemption_code, uses_paper_coupon'
+      'id, title, area_label, image_url, description, start_at, end_at, status, stamp_enabled, stamp_goal, stamp_reward_text, redemption_code, uses_paper_coupon'
     )
     .in('id', eventIds)
     .eq('status', 'published');
@@ -68,10 +68,55 @@ export async function GET(request: NextRequest) {
     ])
   );
 
+  // クーポンイベントの per-user 消込状況（電子クーポンは会員証スキャンで消込）。
+  // 「参加中（クーポン）」カードで「利用済み」を表示するために使う。
+  const { data: redemptions } = await admin
+    .from('store_event_benefit_redemptions')
+    .select('event_id, redeemed_at')
+    .eq('user_id', userId)
+    .in('event_id', eventIds);
+  const redeemedByEvent = new Map<string, string>();
+  for (const r of redemptions ?? []) {
+    if (!r.event_id || !r.redeemed_at) continue;
+    const prev = redeemedByEvent.get(r.event_id);
+    if (!prev || r.redeemed_at < prev) redeemedByEvent.set(r.event_id, r.redeemed_at);
+  }
+
   const now = new Date();
   const result = [];
   for (const ev of events ?? []) {
-    if (!ev.stamp_enabled) continue; // スタンプ無効イベントはボード対象外
+    const usesPaper = (ev as { uses_paper_coupon?: boolean }).uses_paper_coupon ?? false;
+    // 電子クーポンのイベントのみ、会員に番号を表示する
+    const redemptionCode = usesPaper
+      ? null
+      : (ev as { redemption_code?: string | null }).redemption_code ?? null;
+
+    // スタンプ無効イベント = クーポンイベント。
+    // スタンプボードの代わりに「参加中（クーポン）」カードとして返す。
+    if (!ev.stamp_enabled) {
+      result.push({
+        id: ev.id,
+        title: ev.title,
+        area_label: ev.area_label,
+        image_url: ev.image_url,
+        description: (ev as { description?: string | null }).description ?? null,
+        start_at: ev.start_at,
+        end_at: ev.end_at,
+        stamp_enabled: false,
+        stamp_goal: 0,
+        stamp_reward_text: ev.stamp_reward_text,
+        stamp_count: 0,
+        goal_reached: false,
+        reward_claimed_at: null,
+        submitted_at: null,
+        joined_at: joinedAtById.get(ev.id) ?? null,
+        uses_paper_coupon: usesPaper,
+        redemption_code: redemptionCode,
+        coupon_redeemed_at: redeemedByEvent.get(ev.id) ?? null,
+      });
+      continue;
+    }
+
     const progress = await getEventStampProgress(admin, userId, ev.id, now);
     const reward = rewardByEvent.get(ev.id);
     result.push({
@@ -79,8 +124,10 @@ export async function GET(request: NextRequest) {
       title: ev.title,
       area_label: ev.area_label,
       image_url: ev.image_url,
+      description: (ev as { description?: string | null }).description ?? null,
       start_at: ev.start_at,
       end_at: ev.end_at,
+      stamp_enabled: true,
       stamp_goal: progress?.stampGoal ?? ev.stamp_goal ?? 3,
       stamp_reward_text: ev.stamp_reward_text,
       stamp_count: progress?.stampCount ?? 0,
@@ -88,12 +135,9 @@ export async function GET(request: NextRequest) {
       reward_claimed_at: reward?.reward_claimed_at ?? null,
       submitted_at: reward?.submitted_at ?? null,
       joined_at: joinedAtById.get(ev.id) ?? null,
-      // 電子クーポンのイベントのみ、会員に番号を表示する
-      uses_paper_coupon: (ev as { uses_paper_coupon?: boolean }).uses_paper_coupon ?? false,
-      redemption_code:
-        (ev as { uses_paper_coupon?: boolean }).uses_paper_coupon
-          ? null
-          : (ev as { redemption_code?: string | null }).redemption_code ?? null,
+      uses_paper_coupon: usesPaper,
+      redemption_code: redemptionCode,
+      coupon_redeemed_at: null,
     });
   }
 

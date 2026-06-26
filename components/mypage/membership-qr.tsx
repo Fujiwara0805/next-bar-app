@@ -166,7 +166,10 @@ export function MembershipQr({ displayName }: { displayName: string }) {
       });
       if (!res.ok) return;
       const json = await res.json();
-      const evs: StampEvent[] = (json.events ?? []).map(
+      const evs: StampEvent[] = (json.events ?? [])
+        // クーポンイベント（スタンプ無効）は会員証のスタンプ進捗表示・通知の対象外
+        .filter((e: { stamp_enabled?: boolean }) => e.stamp_enabled !== false)
+        .map(
         (e: {
           id: string;
           title: string;

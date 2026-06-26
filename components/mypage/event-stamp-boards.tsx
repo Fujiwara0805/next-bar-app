@@ -11,6 +11,7 @@ import {
   CheckCircle2,
   MessageSquare,
   Trash2,
+  Ticket,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
 import { toast } from 'sonner';
@@ -24,8 +25,11 @@ type JoinedEvent = {
   title: string;
   area_label: string | null;
   image_url: string | null;
+  description?: string | null;
   start_at: string | null;
   end_at: string | null;
+  /** true=スタンプラリー / false=クーポンイベント（スタンプ無効） */
+  stamp_enabled?: boolean;
   stamp_goal: number;
   stamp_reward_text: string | null;
   stamp_count: number;
@@ -35,6 +39,8 @@ type JoinedEvent = {
   joined_at: string | null;
   uses_paper_coupon?: boolean;
   redemption_code?: string | null;
+  /** クーポンイベントで会員証スキャン等により消し込まれた日時（あれば「利用済み」表示） */
+  coupon_redeemed_at?: string | null;
 };
 
 function formatDateTime(iso: string | null): string {
@@ -205,17 +211,179 @@ export function EventStampBoards() {
   // 参加イベントが無い / 取得失敗時は何も表示しない（会員ページをすっきり保つ）
   if (error || events.length === 0) return null;
 
+  // 「参加をやめる」操作 UI（スタンプ／クーポン両カードで共用）
+  const renderLeaveControl = (eventId: string) => (
+    <div className="mt-3 pt-3" style={{ borderTop: '1px solid rgba(19,41,75,0.08)' }}>
+      {confirmLeaveId === eventId ? (
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] flex-1" style={{ color: 'rgba(19,41,75,0.7)' }}>
+            参加をやめると表示されなくなります
+          </span>
+          <button
+            type="button"
+            onClick={() => setConfirmLeaveId(null)}
+            disabled={leavingId === eventId}
+            className="text-xs font-bold px-3 py-1.5 rounded-lg"
+            style={{ background: `${NAVY}0D`, color: NAVY }}
+          >
+            キャンセル
+          </button>
+          <button
+            type="button"
+            onClick={() => handleLeave(eventId)}
+            disabled={leavingId === eventId}
+            className="text-xs font-bold px-3 py-1.5 rounded-lg inline-flex items-center gap-1 disabled:opacity-60"
+            style={{ background: '#B3453F', color: '#fff' }}
+          >
+            {leavingId === eventId ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              'やめる'
+            )}
+          </button>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setConfirmLeaveId(eventId)}
+          className="inline-flex items-center gap-1 text-[11px] font-bold transition-colors"
+          style={{ color: 'rgba(19,41,75,0.5)' }}
+        >
+          <Trash2 className="w-3.5 h-3.5" />
+          このイベントの参加をやめる
+        </button>
+      )}
+    </div>
+  );
+
   return (
     <div className="mb-4 space-y-3">
       <div className="flex items-center gap-2 px-1">
         <Sparkles className="w-4 h-4" style={{ color: COPPER }} />
         <h3 className="font-bold text-sm" style={{ color: NAVY }}>
-          参加中のイベント・スタンプ
+          参加中のイベント
         </h3>
       </div>
 
       <AnimatePresence initial={false}>
         {events.map((ev) => {
+          // クーポンイベント（スタンプ無効）: 参加中であることと使い方を伝えるカード。
+          if (ev.stamp_enabled === false) {
+            const redeemed = !!ev.coupon_redeemed_at;
+            const offerText = ev.description || ev.stamp_reward_text;
+            return (
+              <motion.div
+                key={ev.id}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className="rounded-2xl p-5 bg-white relative overflow-hidden"
+                style={{
+                  border: `1px solid ${BRASS}33`,
+                  boxShadow: '0 8px 22px rgba(19, 41, 75, 0.08)',
+                }}
+              >
+                <div
+                  className="absolute top-0 left-0 right-0 h-[3px]"
+                  style={{ background: BRASS }}
+                />
+
+                {/* イベント見出し */}
+                <div className="flex items-center gap-3 mb-3">
+                  {ev.image_url ? (
+                    <img
+                      src={ev.image_url}
+                      alt={ev.title}
+                      className="w-11 h-11 rounded-lg object-cover flex-shrink-0"
+                    />
+                  ) : (
+                    <div
+                      className="w-11 h-11 rounded-lg flex items-center justify-center flex-shrink-0"
+                      style={{ background: `${NAVY}0D` }}
+                    >
+                      <Ticket className="w-5 h-5" style={{ color: COPPER }} />
+                    </div>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-bold truncate" style={{ color: NAVY }}>
+                      🎊 {ev.title}
+                    </p>
+                    {ev.area_label && (
+                      <p className="text-xs truncate" style={{ color: 'rgba(19,41,75,0.55)' }}>
+                        {ev.area_label}
+                      </p>
+                    )}
+                  </div>
+                  <span
+                    className="text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0"
+                    style={{ background: `${NAVY}0D`, color: NAVY }}
+                  >
+                    参加中
+                  </span>
+                </div>
+
+                {/* 特典文（あれば） */}
+                {offerText && (
+                  <p
+                    className="text-xs mb-3 px-3 py-2 rounded-lg"
+                    style={{ background: `${BRASS}14`, color: NAVY }}
+                  >
+                    🎁 {offerText}
+                  </p>
+                )}
+
+                {/* 電子クーポン番号（電子クーポンイベントのみ） */}
+                {ev.redemption_code && (
+                  <div className="mb-3 px-3 py-2.5 rounded-lg" style={{ background: NAVY }}>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[11px] font-bold" style={{ color: BRASS }}>
+                        🎟 クーポン番号
+                      </span>
+                      <span
+                        className="text-lg font-extrabold tracking-[0.15em]"
+                        style={{ color: BRASS }}
+                      >
+                        {ev.redemption_code}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* 使い方 / 利用済み */}
+                {redeemed ? (
+                  <div
+                    className="flex items-center justify-center gap-2 h-11 rounded-xl text-sm font-bold"
+                    style={{ background: `${NAVY}0D`, color: NAVY }}
+                  >
+                    <CheckCircle2 className="w-4 h-4" style={{ color: '#2E7D32' }} />
+                    クーポン利用済み（{formatDateTime(ev.coupon_redeemed_at ?? null)}）
+                  </div>
+                ) : (
+                  <div
+                    className="rounded-xl px-3 py-3 text-center"
+                    style={{ background: `${COPPER}12`, border: `1px solid ${COPPER}40` }}
+                  >
+                    <p
+                      className="flex items-center justify-center gap-1.5 text-xs font-bold mb-1"
+                      style={{ color: '#8A531A' }}
+                    >
+                      <Ticket className="w-3.5 h-3.5" />
+                      クーポンを使おう！
+                    </p>
+                    <p className="text-[11px] leading-relaxed" style={{ color: 'rgba(19,41,75,0.7)' }}>
+                      {ev.uses_paper_coupon
+                        ? '参加店で紙クーポンを提示してご利用ください。'
+                        : '参加店で店内のQRコードを読み取るか、会員証QRを提示するとクーポンが消し込まれます。'}
+                    </p>
+                  </div>
+                )}
+
+                {/* 参加をやめる: まだ消し込まれていない場合のみ */}
+                {!redeemed && renderLeaveControl(ev.id)}
+              </motion.div>
+            );
+          }
+
           const goal = Math.max(1, ev.stamp_goal);
           const filled = Math.min(ev.stamp_count, goal);
           return (
@@ -395,47 +563,7 @@ export function EventStampBoards() {
 
               {/* 参加をやめる: スタンプを1つでも獲得したら取り消し不可 */}
               {ev.stamp_count === 0 ? (
-              <div className="mt-3 pt-3" style={{ borderTop: '1px solid rgba(19,41,75,0.08)' }}>
-                {confirmLeaveId === ev.id ? (
-                  <div className="flex items-center gap-2">
-                    <span className="text-[11px] flex-1" style={{ color: 'rgba(19,41,75,0.7)' }}>
-                      参加をやめると進捗は表示されなくなります
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setConfirmLeaveId(null)}
-                      disabled={leavingId === ev.id}
-                      className="text-xs font-bold px-3 py-1.5 rounded-lg"
-                      style={{ background: `${NAVY}0D`, color: NAVY }}
-                    >
-                      キャンセル
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleLeave(ev.id)}
-                      disabled={leavingId === ev.id}
-                      className="text-xs font-bold px-3 py-1.5 rounded-lg inline-flex items-center gap-1 disabled:opacity-60"
-                      style={{ background: '#B3453F', color: '#fff' }}
-                    >
-                      {leavingId === ev.id ? (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      ) : (
-                        'やめる'
-                      )}
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => setConfirmLeaveId(ev.id)}
-                    className="inline-flex items-center gap-1 text-[11px] font-bold transition-colors"
-                    style={{ color: 'rgba(19,41,75,0.5)' }}
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                    このイベントの参加をやめる
-                  </button>
-                )}
-              </div>
+                renderLeaveControl(ev.id)
               ) : (
                 <div className="mt-3 pt-3" style={{ borderTop: '1px solid rgba(19,41,75,0.08)' }}>
                   <p className="text-[11px]" style={{ color: 'rgba(19,41,75,0.45)' }}>
