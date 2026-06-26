@@ -20,6 +20,7 @@ import {
   snapshotEventStampPre,
   finalizeEventStamp,
 } from '@/lib/check-in/event-stamp';
+import { autoRedeemElectronicCoupons } from '@/lib/check-in/coupon-redeem';
 import type { Database } from '@/lib/supabase/types';
 
 export const dynamic = 'force-dynamic';
@@ -226,6 +227,16 @@ export async function POST(request: NextRequest) {
     ? await finalizeEventStamp(admin, customer.id, stampPre, now)
     : null;
 
+  // 電子クーポンの自動消込：店舗QR（客セルフ）チェックインでも、来店と同時に
+  // デジタル消込を完了させる。会員証スキャン経路（check-in-scan）と共通ロジック。
+  // createdBy は客本人のセルフチェックインのため null。
+  const couponRedeemed = await autoRedeemElectronicCoupons(
+    admin,
+    customer.id,
+    store.id,
+    { createdBy: null, now }
+  );
+
   const userDisplayName =
     customer.line_display_name || customer.display_name || 'ゲスト';
 
@@ -238,5 +249,6 @@ export async function POST(request: NextRequest) {
     distanceM: Math.round(distanceM),
     thresholdM: Math.round(threshold),
     eventStamp,
+    couponRedeemed,
   });
 }

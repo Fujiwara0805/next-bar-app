@@ -16,6 +16,7 @@ import {
   snapshotEventStampPre,
   finalizeEventStamp,
 } from '@/lib/check-in/event-stamp';
+import { autoRedeemElectronicCoupons } from '@/lib/check-in/coupon-redeem';
 import { CUSTOMER_IDENTITY_SELECT } from '@/lib/customer-identity';
 import type { Database } from '@/lib/supabase/types';
 import type { ProfileAttrs, StoreCustomerMemo } from '@/lib/types/store-customer';
@@ -109,6 +110,19 @@ export async function POST(
     return NextResponse.json({ error: 'customer_only' }, { status: 403 });
   }
 
+  // セルフチェックイン(store-checkin)と同条件: プロフィール(住所・年齢・職業・性別)必須。
+  // 店スキャン・セルフのどちらの来店経路でも会員の属性が揃ってから記録する。
+  const attrs = (customer.profile_attributes ?? {}) as ProfileAttrs;
+  const profileComplete = Boolean(
+    attrs.address?.trim() &&
+      attrs.age?.trim() &&
+      attrs.occupation?.trim() &&
+      attrs.gender?.trim()
+  );
+  if (!profileComplete) {
+    return NextResponse.json({ error: 'profile_incomplete' }, { status: 403 });
+  }
+
   const now = new Date();
   const stampPre = await snapshotEventStampPre(admin, customer.id, store.id, now);
 
@@ -128,45 +142,14 @@ export async function POST(
     ? await finalizeEventStamp(admin, customer.id, stampPre, now)
     : null;
 
-  // 電子クーポンの自動消込：この店舗が参加している「電子クーポン」イベント
-  // （uses_paper_coupon=false・公開中・期間内）について、会員へ紐付けて消し込む。
-  // 1会員1イベント1回（uq_sebr_event_user）。重複(23505)・列/表未作成は無視。
-  // → 会員証QRを1回スキャンするだけで「スタンプ獲得」と「クーポン消込」が同時に完了する。
-  let couponRedeemedCount = 0;
-  try {
-    const nowIso = now.toISOString();
-    const { data: storeParts } = await admin
-      .from('store_event_participations')
-      .select('event_id')
-      .eq('store_id', store.id)
-      .eq('is_participating', true);
-    const evIds = Array.from(new Set((storeParts ?? []).map((p) => p.event_id)));
-    if (evIds.length > 0) {
-      const { data: evs } = await admin
-        .from('platform_events')
-        .select('id, status, start_at, end_at, uses_paper_coupon')
-        .in('id', evIds)
-        .eq('status', 'published')
-        .eq('uses_paper_coupon', false);
-      const activeElectronic = (evs ?? []).filter((e) => {
-        const startOk = !e.start_at || e.start_at <= nowIso;
-        const endOk = !e.end_at || e.end_at >= nowIso;
-        return startOk && endOk;
-      });
-      for (const e of activeElectronic) {
-        const ins = await admin.from('store_event_benefit_redemptions').insert({
-          event_id: e.id,
-          store_id: store.id,
-          user_id: customer.id,
-          redeemed_at: nowIso,
-          created_by: operator.id,
-        });
-        if (!ins.error) couponRedeemedCount += 1; // 23505=既消込 等は加算しない
-      }
-    }
-  } catch (e) {
-    console.warn('[check-in-scan] coupon auto-redeem warning', e);
-  }
+  // 電子クーポンの自動消込：会員証QRを1回スキャンするだけで「スタンプ獲得」と
+  // 「クーポン消込」が同時に完了する。ロジックは店舗QR経路（store-checkin）と共通化。
+  const couponRedeemedCount = await autoRedeemElectronicCoupons(
+    admin,
+    customer.id,
+    store.id,
+    { createdBy: operator.id, now }
+  );
 
   const userDisplayName =
     customer.line_display_name || customer.display_name || 'ゲスト';

@@ -72,7 +72,7 @@ function StoreCheckinInner() {
   const router = useRouter();
   const search = useSearchParams();
   const storeId = search.get('store') ?? '';
-  const { isLiffReady, isLineLoggedIn, liffLogin } = useLiff();
+  const { isLiffReady, isInLine, isLineLoggedIn, liffLogin } = useLiff();
   const { colorsB: COLORS } = useAppMode();
 
   const [stage, setStage] = useState<Stage>('init');
@@ -94,6 +94,18 @@ function StoreCheckinInner() {
       body.style.background = prevBody;
     };
   }, [COLORS.cardGradient]);
+
+  // 未ログインかつ LINE 外（メール/パスワード会員が店舗QRをカメラで読んだ等）は、
+  // LINE ログインを強制せず通常ログイン（メール/LINE 両対応）へ送り、認証後に本画面へ戻す。
+  // LINE アプリ内のときだけ LIFF ネイティブの liffLogin を使う。
+  const routeToLogin = useCallback(async () => {
+    if (isInLine) {
+      await liffLogin();
+      return;
+    }
+    const target = `/liff/store-checkin?store=${encodeURIComponent(storeId)}&v=1`;
+    router.replace(`/login?redirect=${encodeURIComponent(target)}`);
+  }, [isInLine, liffLogin, router, storeId]);
 
   const requestLocation = useCallback((): Promise<GeolocationPosition> => {
     return new Promise((resolve, reject) => {
@@ -124,7 +136,7 @@ function StoreCheckinInner() {
         }
         if (!token) {
           setStage('awaiting_login');
-          await liffLogin();
+          await routeToLogin();
           return;
         }
         const res = await fetch('/api/store-checkin', {
@@ -154,7 +166,7 @@ function StoreCheckinInner() {
         setStage('error');
       }
     },
-    [storeId, isLineLoggedIn, liffLogin]
+    [storeId, isLineLoggedIn, routeToLogin]
   );
 
   const start = useCallback(async () => {
@@ -171,7 +183,7 @@ function StoreCheckinInner() {
     const { data: sessionData } = await supabase.auth.getSession();
     if (!sessionData.session?.access_token && !isLineLoggedIn) {
       setStage('awaiting_login');
-      await liffLogin();
+      await routeToLogin();
       return;
     }
 
@@ -197,7 +209,7 @@ function StoreCheckinInner() {
       setError({ code, message: errorMessage(code) });
       setStage('error');
     }
-  }, [storeId, isLiffReady, isLineLoggedIn, liffLogin, requestLocation, submitCheckIn]);
+  }, [storeId, isLiffReady, isLineLoggedIn, routeToLogin, requestLocation, submitCheckIn]);
 
   useEffect(() => {
     start();
@@ -277,8 +289,8 @@ function StoreCheckinInner() {
                     className="text-base font-bold mb-1"
                     style={{ color: COLORS.deepNavy }}
                   >
-                    {stage === 'init' && 'LINE連携を準備中...'}
-                    {stage === 'awaiting_login' && 'LINEログインに進みます...'}
+                    {stage === 'init' && 'ログインを準備中...'}
+                    {stage === 'awaiting_login' && 'ログインに進みます...'}
                     {stage === 'requesting_location' && '位置情報を確認中'}
                     {stage === 'checking_in' && 'チェックイン中...'}
                   </h2>
