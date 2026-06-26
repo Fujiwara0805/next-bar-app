@@ -113,6 +113,21 @@ export async function POST(
     return NextResponse.json({ error: 'not_participating' }, { status: 400 });
   }
 
+  // 紙クーポンイベントはデジタル消込の対象外（デジタル消込は常に 0）。
+  // 紙の使用枚数は store_event_paper_coupons（使用報告）で集計する。
+  const { data: ev, error: evErr } = await (auth.ctx.admin as any)
+    .from('platform_events')
+    .select('uses_paper_coupon')
+    .eq('id', params.eventId)
+    .maybeSingle();
+  if (evErr && evErr.code !== '42P01') {
+    console.error('[redemptions] event lookup error', evErr);
+    return NextResponse.json({ error: 'fetch_failed' }, { status: 500 });
+  }
+  if (ev?.uses_paper_coupon) {
+    return NextResponse.json({ error: 'paper_coupon_event' }, { status: 400 });
+  }
+
   const createdBy =
     auth.ctx.operatorRole === 'admin' ? auth.ctx.operatorId : null;
 

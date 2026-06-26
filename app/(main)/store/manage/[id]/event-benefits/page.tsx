@@ -410,6 +410,9 @@ export default function StoreEventBenefitsPage() {
             const paper = paperByEvent[event.id];
             const pDraft = paperDraft[event.id] ?? { distributed: '', redeemed: '' };
             const savingPaper = paperSaving === event.id;
+            // 紙クーポンイベント=デジタル消込なし（紙の使用報告で集計）。
+            // 電子クーポンイベント=会員証スキャンでデジタル消込（来店と同時にカウント）。
+            const isPaper = !!event.uses_paper_coupon;
             return (
               <motion.div
                 key={event.id}
@@ -447,34 +450,38 @@ export default function StoreEventBenefitsPage() {
                     </div>
                   )}
 
-                  <div className="grid grid-cols-2 gap-3 mb-3">
-                    <div
-                      className="rounded-xl p-3"
-                      style={{
-                        background: 'rgba(19, 41, 75, 0.04)',
-                        border: '1px solid rgba(19, 41, 75, 0.08)',
-                      }}
-                    >
-                      <p className="text-[11px] font-bold" style={{ color: COLORS.warmGray }}>累計利用件数</p>
-                      <p className="text-2xl font-extrabold" style={{ color: COLORS.deepNavy }}>{count}</p>
+                  {/* デジタル消込の実績（電子クーポンのみ。紙クーポンは常に 0 のため非表示） */}
+                  {!isPaper && (
+                    <div className="grid grid-cols-2 gap-3 mb-3">
+                      <div
+                        className="rounded-xl p-3"
+                        style={{
+                          background: 'rgba(19, 41, 75, 0.04)',
+                          border: '1px solid rgba(19, 41, 75, 0.08)',
+                        }}
+                      >
+                        <p className="text-[11px] font-bold" style={{ color: COLORS.warmGray }}>デジタル消込</p>
+                        <p className="text-2xl font-extrabold" style={{ color: COLORS.deepNavy }}>{count}</p>
+                      </div>
+                      <div
+                        className="rounded-xl p-3"
+                        style={{
+                          background: 'rgba(19, 41, 75, 0.04)',
+                          border: '1px solid rgba(19, 41, 75, 0.08)',
+                        }}
+                      >
+                        <p className="text-[11px] font-bold inline-flex items-center gap-1" style={{ color: COLORS.warmGray }}>
+                          <CalendarDays className="w-3 h-3" /> 最終利用
+                        </p>
+                        <p className="text-sm font-bold" style={{ color: COLORS.deepNavy }}>
+                          {formatDateTime(lastAt)}
+                        </p>
+                      </div>
                     </div>
-                    <div
-                      className="rounded-xl p-3"
-                      style={{
-                        background: 'rgba(19, 41, 75, 0.04)',
-                        border: '1px solid rgba(19, 41, 75, 0.08)',
-                      }}
-                    >
-                      <p className="text-[11px] font-bold inline-flex items-center gap-1" style={{ color: COLORS.warmGray }}>
-                        <CalendarDays className="w-3 h-3" /> 最終利用
-                      </p>
-                      <p className="text-sm font-bold" style={{ color: COLORS.deepNavy }}>
-                        {formatDateTime(lastAt)}
-                      </p>
-                    </div>
-                  </div>
+                  )}
 
-                  {/* 紙クーポン使用報告（イベント終了時に運営へ報告） */}
+                  {/* 紙クーポン使用報告（紙クーポンイベントのみ。イベント終了時に運営へ報告） */}
+                  {isPaper && (
                   <div
                     className="rounded-xl p-3 mb-3"
                     style={{
@@ -547,92 +554,109 @@ export default function StoreEventBenefitsPage() {
                       </Button>
                     </div>
                   </div>
+                  )}
 
-                  {/* 会員ごとの特典消込は店舗管理「会員証読み取り」に一本化（電子クーポンは
-                      会員証スキャンで自動消込・同テーブルへ記録）。ここは件数のみの手動記録を残す。 */}
-                  <Button
-                    type="button"
-                    variant="outline"
-                    disabled={recording}
-                    onClick={() => recordRedemption(event.id)}
-                    className="w-full py-2.5 rounded-xl font-bold text-xs"
-                    style={{ borderColor: 'rgba(19,41,75,0.25)', color: COLORS.deepNavy }}
-                  >
-                    {recording ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        記録中…
-                      </>
-                    ) : (
-                      <>
-                        <Plus className="w-4 h-4 mr-1.5" />
-                        特典利用を記録（+1）
-                      </>
-                    )}
-                  </Button>
-                  <p
-                    className="mt-2 text-[11px] leading-relaxed text-center"
-                    style={{ color: COLORS.warmGray }}
-                  >
-                    会員ごとの記録は「会員証読み取り」での会員証QRスキャンが自動で行います（電子クーポンも同時に消込）。
-                  </p>
+                  {/* 電子クーポン: 会員ごとの消込は「会員証読み取り」に一本化。手動は件数のみのフォールバック。
+                      紙クーポン: デジタル消込は行わない旨を案内。 */}
+                  {!isPaper ? (
+                    <>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        disabled={recording}
+                        onClick={() => recordRedemption(event.id)}
+                        className="w-full py-2.5 rounded-xl font-bold text-xs"
+                        style={{ borderColor: 'rgba(19,41,75,0.25)', color: COLORS.deepNavy }}
+                      >
+                        {recording ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            記録中…
+                          </>
+                        ) : (
+                          <>
+                            <Plus className="w-4 h-4 mr-1.5" />
+                            特典利用を記録（+1）
+                          </>
+                        )}
+                      </Button>
+                      <p
+                        className="mt-2 text-[11px] leading-relaxed text-center"
+                        style={{ color: COLORS.warmGray }}
+                      >
+                        会員ごとの記録は「会員証読み取り」での会員証QRスキャンが自動で行います（来店と同時にデジタル消込）。
+                      </p>
+                    </>
+                  ) : (
+                    <p
+                      className="text-[11px] leading-relaxed text-center"
+                      style={{ color: COLORS.warmGray }}
+                    >
+                      紙クーポンの使用は上の「紙クーポン使用報告」で集計します。会員証読み取りは来店記録のみで、デジタル消込は行いません。
+                    </p>
+                  )}
 
-                  <button
-                    type="button"
-                    onClick={() => toggleHistory(event.id)}
-                    className="mt-3 w-full inline-flex items-center justify-center gap-1 text-xs font-bold transition-colors"
-                    style={{ color: COLORS.warmGray }}
-                  >
-                    利用履歴を{expanded ? '閉じる' : '見る'}
-                    {expanded ? (
-                      <ChevronUp className="w-3.5 h-3.5" />
-                    ) : (
-                      <ChevronDown className="w-3.5 h-3.5" />
-                    )}
-                  </button>
+                  {/* デジタル消込の利用履歴（電子クーポンのみ） */}
+                  {!isPaper && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => toggleHistory(event.id)}
+                        className="mt-3 w-full inline-flex items-center justify-center gap-1 text-xs font-bold transition-colors"
+                        style={{ color: COLORS.warmGray }}
+                      >
+                        利用履歴を{expanded ? '閉じる' : '見る'}
+                        {expanded ? (
+                          <ChevronUp className="w-3.5 h-3.5" />
+                        ) : (
+                          <ChevronDown className="w-3.5 h-3.5" />
+                        )}
+                      </button>
 
-                  {expanded && (
-                    <div className="mt-3">
-                      {historyLoading === event.id ? (
-                        <div className="flex items-center justify-center gap-2 py-3 text-xs" style={{ color: COLORS.warmGray }}>
-                          <Loader2 className="w-3 h-3 animate-spin" />
-                          履歴を読み込み中…
-                        </div>
-                      ) : history.length === 0 ? (
-                        <p className="text-xs text-center py-3 font-semibold" style={{ color: COLORS.warmGray }}>
-                          まだ利用記録がありません
-                        </p>
-                      ) : (
-                        <ul
-                          className="rounded-xl divide-y"
-                          style={{
-                            background: 'rgba(19, 41, 75, 0.03)',
-                            borderColor: 'rgba(19, 41, 75, 0.08)',
-                          }}
-                        >
-                          {history.map((row) => (
-                            <li
-                              key={row.id}
-                              className="px-3 py-2 text-xs font-semibold"
-                              style={{ color: COLORS.deepNavy, borderColor: 'rgba(19, 41, 75, 0.08)' }}
+                      {expanded && (
+                        <div className="mt-3">
+                          {historyLoading === event.id ? (
+                            <div className="flex items-center justify-center gap-2 py-3 text-xs" style={{ color: COLORS.warmGray }}>
+                              <Loader2 className="w-3 h-3 animate-spin" />
+                              履歴を読み込み中…
+                            </div>
+                          ) : history.length === 0 ? (
+                            <p className="text-xs text-center py-3 font-semibold" style={{ color: COLORS.warmGray }}>
+                              まだ利用記録がありません
+                            </p>
+                          ) : (
+                            <ul
+                              className="rounded-xl divide-y"
+                              style={{
+                                background: 'rgba(19, 41, 75, 0.03)',
+                                borderColor: 'rgba(19, 41, 75, 0.08)',
+                              }}
                             >
-                              <span className="inline-flex items-center gap-1.5">
-                                <CalendarDays className="w-3 h-3" style={{ color: '#13294b' }} />
-                                {formatDateTime(row.redeemed_at)}
-                                {row.customer_name && (
-                                  <span
-                                    className="ml-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold"
-                                    style={{ background: 'rgba(255,200,44,0.18)', color: '#13294b' }}
-                                  >
-                                    {row.customer_name}
+                              {history.map((row) => (
+                                <li
+                                  key={row.id}
+                                  className="px-3 py-2 text-xs font-semibold"
+                                  style={{ color: COLORS.deepNavy, borderColor: 'rgba(19, 41, 75, 0.08)' }}
+                                >
+                                  <span className="inline-flex items-center gap-1.5">
+                                    <CalendarDays className="w-3 h-3" style={{ color: '#13294b' }} />
+                                    {formatDateTime(row.redeemed_at)}
+                                    {row.customer_name && (
+                                      <span
+                                        className="ml-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold"
+                                        style={{ background: 'rgba(255,200,44,0.18)', color: '#13294b' }}
+                                      >
+                                        {row.customer_name}
+                                      </span>
+                                    )}
                                   </span>
-                                )}
-                              </span>
-                            </li>
-                          ))}
-                        </ul>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
                       )}
-                    </div>
+                    </>
                   )}
                 </Card>
               </motion.div>
