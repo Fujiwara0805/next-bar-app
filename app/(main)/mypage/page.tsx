@@ -284,13 +284,13 @@ export default function MyPage() {
           <VisitHistory />
 
           {/* その他導線（空席通知の設定・お店を探すは左右2カラムで同じ行に表示） */}
-          <div className="space-y-2 mb-4">
-            <div className="grid grid-cols-2 gap-2">
+          <div className="space-y-3 mb-4">
+            <div className="grid grid-cols-2 gap-3">
               {/* 空席通知の設定 = 銅/琥珀トーン */}
               <Link href="/liff/vacancy" className="block">
                 <Button
                   variant="outline"
-                  className="w-full justify-center h-12 rounded-xl font-bold text-xs px-2"
+                  className="w-full justify-center h-14 rounded-2xl font-bold text-sm px-2"
                   style={{
                     background: '#FBEFD9',
                     border: `1px solid ${COPPER}66`,
@@ -304,7 +304,7 @@ export default function MyPage() {
               {/* お店を探す = ネイビー塗り（主アクション） */}
               <Link href="/map" className="block">
                 <Button
-                  className="w-full justify-center h-12 rounded-xl font-bold text-xs px-2"
+                  className="w-full justify-center h-14 rounded-2xl font-bold text-sm px-2"
                   style={{
                     background: NAVY,
                     border: `1px solid ${NAVY}`,
@@ -318,7 +318,7 @@ export default function MyPage() {
             </div>
             <Button
               variant="outline"
-              className="w-full justify-start h-12 rounded-xl font-medium"
+              className="w-full justify-start h-14 rounded-2xl font-medium"
               onClick={handleSignOut}
               style={{
                 background: 'white',
