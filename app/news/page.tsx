@@ -67,7 +67,7 @@ export default function NewsPage() {
               </div>
               <div className="p-4 rounded-xl" style={{ background: `${COLORS.surface}80`, border: `1px solid ${COLORS.borderSubtle}` }}>
                 <h3 className="font-bold text-base mb-2" style={{ color: COLORS.text }}>{item.title}</h3>
-                <p className="text-sm leading-relaxed" style={{ color: COLORS.textMuted }}>{item.body}</p>
+                <p className="text-sm leading-relaxed line-clamp-3" style={{ color: COLORS.textMuted }}>{item.body}</p>
                 {item.link && (
                   <a
                     href={item.link}

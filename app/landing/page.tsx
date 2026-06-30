@@ -761,7 +761,7 @@ export default function LandingPage() {
                 <span className="text-xs font-medium flex-shrink-0 pt-0.5 lg:text-base" style={{ color: LP_YELLOW }}>{item.date}</span>
                 <div>
                   <p className="text-sm font-bold mb-0.5 lg:text-lg" style={{ color: lpMid.elevated.text }}>{item.title}</p>
-                  <p className="text-xs lg:text-base" style={{ color: lpMid.elevated.textMuted }}>{item.body}</p>
+                  <p className="text-xs lg:text-base line-clamp-2" style={{ color: lpMid.elevated.textMuted }}>{item.body}</p>
                   {item.link && (
                     <a href={item.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 mt-1.5 text-xs font-medium transition-all hover:opacity-80 lg:text-base" style={{ color: lpMid.linkOnElevated }}>
                       <ExternalLink className="w-3 h-3" />

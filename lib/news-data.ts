@@ -21,6 +21,26 @@ export interface NewsItem {
 export const newsTranslations: Record<string, NewsItem[]> = {
   ja: [
     {
+      date: '2026.06.30',
+      title: 'デザインと新ロゴをリニューアル',
+      body: '明るく見やすいライト基調のデザインへ刷新し、新しいロゴをアプリ全体に反映しました。',
+    },
+    {
+      date: '2026.06.26',
+      title: 'イベント＆スタンプラリー機能をリリース',
+      body: '対象店をめぐってチェックインするとスタンプがたまり、特典と交換できます。',
+    },
+    {
+      date: '2026.06.20',
+      title: 'マイページに会員証QR・来店履歴を追加',
+      body: '会員証QRを提示してチェックイン。来店履歴やスタンプの進み具合も確認できます。',
+    },
+    {
+      date: '2026.06.13',
+      title: '空席マップをフルスクリーン化・鮮度表示を強化',
+      body: '地図を全画面表示にし、空席情報の新しさ（鮮度）が一目でわかるようになりました。',
+    },
+    {
       date: '2026.04.23',
       title: 'LINEクーポン発行機能をリリース',
       body: '店舗がLINE公式アカウントからクーポンを直接配信できるようになりました。お客様はLIFFで受け取り、6桁コードを店舗で提示するだけで使用できます。',
@@ -59,6 +79,26 @@ export const newsTranslations: Record<string, NewsItem[]> = {
     },
   ],
   en: [
+    {
+      date: '2026.06.30',
+      title: 'Refreshed Design & New Logo',
+      body: 'We rolled out a brighter, easier-to-read light theme and applied a new logo across the app.',
+    },
+    {
+      date: '2026.06.26',
+      title: 'Events & Stamp Rally Released',
+      body: 'Check in at participating venues to collect stamps and redeem them for rewards.',
+    },
+    {
+      date: '2026.06.20',
+      title: 'Membership QR & Visit History on My Page',
+      body: 'Show your membership QR to check in, and track your visit history and stamp progress.',
+    },
+    {
+      date: '2026.06.13',
+      title: 'Full-Screen Vacancy Map with Freshness',
+      body: 'The map is now full-screen, and you can see at a glance how fresh each vacancy update is.',
+    },
     {
       date: '2026.04.23',
       title: 'LINE Coupon Distribution Released',
@@ -99,6 +139,26 @@ export const newsTranslations: Record<string, NewsItem[]> = {
   ],
   ko: [
     {
+      date: '2026.06.30',
+      title: '디자인과 새 로고 리뉴얼',
+      body: '밝고 보기 편한 라이트 테마로 디자인을 개편하고 새 로고를 앱 전체에 반영했습니다.',
+    },
+    {
+      date: '2026.06.26',
+      title: '이벤트 & 스탬프 랠리 기능 출시',
+      body: '참여 매장을 돌며 체크인하면 스탬프가 쌓이고 특전과 교환할 수 있습니다.',
+    },
+    {
+      date: '2026.06.20',
+      title: '마이페이지에 회원증 QR·방문 이력 추가',
+      body: '회원증 QR을 제시해 체크인하고, 방문 이력과 스탬프 진행 상황도 확인할 수 있습니다.',
+    },
+    {
+      date: '2026.06.13',
+      title: '빈자리 지도 전체화면·신선도 표시 강화',
+      body: '지도를 전체화면으로 표시하고, 빈자리 정보의 최신 정도(신선도)를 한눈에 알 수 있게 했습니다.',
+    },
+    {
       date: '2026.04.23',
       title: 'LINE 쿠폰 발행 기능 출시',
       body: '매장이 LINE 공식 계정에서 직접 쿠폰을 배포할 수 있게 되었습니다. 고객은 LIFF에서 받아 6자리 코드를 매장에 제시하면 사용할 수 있습니다.',
@@ -137,6 +197,26 @@ export const newsTranslations: Record<string, NewsItem[]> = {
     },
   ],
   zh: [
+    {
+      date: '2026.06.30',
+      title: '设计与全新Logo焕新',
+      body: '全面改用更明亮易读的浅色主题，并在整个应用启用全新Logo。',
+    },
+    {
+      date: '2026.06.26',
+      title: '活动＆集章打卡功能上线',
+      body: '到参与店铺打卡即可累积印章，并可兑换专属奖励。',
+    },
+    {
+      date: '2026.06.20',
+      title: '个人页新增会员码与到店记录',
+      body: '出示会员二维码即可打卡，并可查看到店记录与集章进度。',
+    },
+    {
+      date: '2026.06.13',
+      title: '空位地图全屏显示·强化鲜度提示',
+      body: '地图改为全屏显示，空位信息的新鲜程度一目了然。',
+    },
     {
       date: '2026.04.23',
       title: 'LINE优惠券发放功能上线',
