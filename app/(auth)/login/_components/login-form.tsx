@@ -16,7 +16,7 @@ import { useLanguage } from '@/lib/i18n/context';
 import { useAppMode } from '@/lib/app-mode-context';
 
 const LOGO_URL =
-  'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_384/v1782794527/ChatGPT_Image_2026%E5%B9%B46%E6%9C%8830%E6%97%A5_13_41_29_ihpvbi.png';
+  'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_384/v1782798987/ChatGPT_Image_2026%E5%B9%B46%E6%9C%8830%E6%97%A5_14_54_57_tjuisz.png';
 
 const LINE_BRAND_ICON_URL =
   'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1776852523/LINE_Brand_icon_zfypmz.png';
