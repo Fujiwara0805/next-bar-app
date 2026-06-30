@@ -423,7 +423,7 @@ export default function LandingPage() {
               aria-label={t('menu.for_stores')}
             >
               <img
-                src="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1777628277/e075bc44-b508-4353-ad2e-b91e79e08186_fqrdzs.png"
+                src="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_120/v1782794527/ChatGPT_Image_2026%E5%B9%B46%E6%9C%8830%E6%97%A5_13_41_29_ihpvbi.png"
                 alt="NIKENME+"
                 className="h-10 w-auto shrink-0"
               />
@@ -518,7 +518,7 @@ export default function LandingPage() {
                   style={{ borderBottom: `1px solid ${lpPage.border}` }}
                 >
                   <img
-                    src="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1777628277/e075bc44-b508-4353-ad2e-b91e79e08186_fqrdzs.png"
+                    src="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_180/v1782794527/ChatGPT_Image_2026%E5%B9%B46%E6%9C%8830%E6%97%A5_13_41_29_ihpvbi.png"
                     alt="NIKENME+"
                     className="h-14 w-auto max-w-[240px] object-contain object-center"
                   />
@@ -1322,7 +1322,7 @@ export default function LandingPage() {
       <footer className="py-12 px-4" style={{ background: lpPage.bg }}>
         <div className="container mx-auto max-w-6xl">
           <div className="flex justify-center mb-8">
-            <img src="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1777628277/e075bc44-b508-4353-ad2e-b91e79e08186_fqrdzs.png" alt="NIKENME+" className="h-12 w-auto object-contain opacity-70" />
+            <img src="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_144/v1782794527/ChatGPT_Image_2026%E5%B9%B46%E6%9C%8830%E6%97%A5_13_41_29_ihpvbi.png" alt="NIKENME+" className="h-12 w-auto object-contain opacity-70" />
           </div>
           <nav className="grid grid-cols-2 gap-4 sm:gap-6 max-w-md mx-auto mb-8">
             {footerLinks.map((link, index) => {

@@ -148,8 +148,8 @@ function calculateDistanceMeters(
   return R * c;
 }
 
-const MARKER_ICON_WIDTH_PX = 112;
-const MARKER_ICON_HEIGHT_PX = 66;
+const MARKER_ICON_WIDTH_PX = 136;
+const MARKER_ICON_HEIGHT_PX = 70;
 const MARKER_FRAME_SIZE_PX = 46;
 
 /**
@@ -262,9 +262,10 @@ function createMarkerSvgDataUrl(
   // 営業中=グリーン / 営業時間外(closed)=グレー / その他=白
   const borderColor =
     status === 'open' ? '#22c55e' : status === 'closed' ? '#9CA3AF' : '#FFFFFF';
-  // 店舗名はネイビー(#13294b)の文字に白い縁取りを付与（paint-order="stroke" で白縁を文字背面に描画）
+  // 店舗名はネイビー(#13294b)の文字に白い縁取りを付与（paint-order="stroke" で白縁を文字背面に描画）。
+  // ドロップシャドウは掛けない（文字に影が乗ると白フチがにじんで"もやっと"するため、影は円フレームのみ）。
   const label = `
-    <text x="${centerX}" y="${labelY + 11.5}" text-anchor="middle" fill="#13294b" stroke="#FFFFFF" stroke-width="3" stroke-linejoin="round" paint-order="stroke" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="10" font-weight="800">${labelText}</text>
+    <text x="${centerX}" y="${labelY + 12}" text-anchor="middle" fill="#13294b" stroke="#FFFFFF" stroke-width="3.5" stroke-linejoin="round" paint-order="stroke" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="12" font-weight="800">${labelText}</text>
   `;
 
   let body = '';
@@ -309,7 +310,7 @@ function createMarkerSvgDataUrl(
       <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
         <feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#000000" flood-opacity="0.32"/>
       </filter>
-      <g filter="url(#shadow)">${body}${label}</g>
+      <g filter="url(#shadow)">${body}</g>${label}
     </svg>
   `;
 

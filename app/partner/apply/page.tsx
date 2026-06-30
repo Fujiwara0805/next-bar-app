@@ -1090,7 +1090,7 @@ export default function PartnerApplyPage() {
                 加盟店申し込み
               </h1>
               <p className="text-sm" style={{ color: `${COLORS.ivory}80` }}>
-                NIKENME+に掲載する店舗情報をご入力ください
+                にけんめぷらすに掲載する店舗情報をご入力ください
               </p>
             </motion.div>
 

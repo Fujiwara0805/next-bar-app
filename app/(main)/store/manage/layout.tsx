@@ -13,7 +13,7 @@ import { useAuth } from '@/lib/auth/context';
 import { LoadingScreen } from '@/components/ui/loading-screen';
 import { toast } from 'sonner';
 
-const LOGO_URL = 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1777620739/a7ec37de-d4b1-46ff-8639-f2d49f567279_kym3yo.png';
+const LOGO_URL = 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_96/v1782794527/ChatGPT_Image_2026%E5%B9%B46%E6%9C%8830%E6%97%A5_13_41_29_ihpvbi.png';
 const COMPANY_NAME = '株式会社Nobody';
 
 interface NavItem {

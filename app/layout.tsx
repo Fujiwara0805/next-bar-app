@@ -37,18 +37,18 @@ export const metadata: Metadata = {
   // アイコン設定を最適化（Googleの検索結果に表示されるように）
   icons: {
     icon: [
-      { url: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_16/v1777620612/ChatGPT_Image_2026%E5%B9%B45%E6%9C%881%E6%97%A5_16_25_22_wopehc.png', sizes: '16x16', type: 'image/png' },
-      { url: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_32/v1777620612/ChatGPT_Image_2026%E5%B9%B45%E6%9C%881%E6%97%A5_16_25_22_wopehc.png', sizes: '32x32', type: 'image/png' },
-      { url: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_48/v1777620612/ChatGPT_Image_2026%E5%B9%B45%E6%9C%881%E6%97%A5_16_25_22_wopehc.png', sizes: '48x48', type: 'image/png' },
-      { url: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_154,c_pad,w_192,h_192,b_white/v1777620612/ChatGPT_Image_2026%E5%B9%B45%E6%9C%881%E6%97%A5_16_25_22_wopehc.png', sizes: '192x192', type: 'image/png' },
+      { url: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_16/v1782794527/ChatGPT_Image_2026%E5%B9%B46%E6%9C%8830%E6%97%A5_13_41_29_ihpvbi.png', sizes: '16x16', type: 'image/png' },
+      { url: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_32/v1782794527/ChatGPT_Image_2026%E5%B9%B46%E6%9C%8830%E6%97%A5_13_41_29_ihpvbi.png', sizes: '32x32', type: 'image/png' },
+      { url: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_48/v1782794527/ChatGPT_Image_2026%E5%B9%B46%E6%9C%8830%E6%97%A5_13_41_29_ihpvbi.png', sizes: '48x48', type: 'image/png' },
+      { url: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_154,c_pad,w_192,h_192,b_white/v1782794527/ChatGPT_Image_2026%E5%B9%B46%E6%9C%8830%E6%97%A5_13_41_29_ihpvbi.png', sizes: '192x192', type: 'image/png' },
     ],
     apple: [
-      { url: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_144,c_pad,w_180,h_180,b_white/v1777620612/ChatGPT_Image_2026%E5%B9%B45%E6%9C%881%E6%97%A5_16_25_22_wopehc.png', sizes: '180x180', type: 'image/png' },
+      { url: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_144,c_pad,w_180,h_180,b_white/v1782794527/ChatGPT_Image_2026%E5%B9%B46%E6%9C%8830%E6%97%A5_13_41_29_ihpvbi.png', sizes: '180x180', type: 'image/png' },
     ],
     other: [
       {
         rel: 'mask-icon',
-        url: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1777620612/ChatGPT_Image_2026%E5%B9%B45%E6%9C%881%E6%97%A5_16_25_22_wopehc.png',
+        url: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1782794527/ChatGPT_Image_2026%E5%B9%B46%E6%9C%8830%E6%97%A5_13_41_29_ihpvbi.png',
       },
     ],
   },
@@ -288,7 +288,7 @@ export const metadata: Metadata = {
     url: 'https://nikenme.jp',
     images: [
       {
-        url: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761311529/NIKENME_%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_r5gzn4.png',
+        url: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1782794527/ChatGPT_Image_2026%E5%B9%B46%E6%9C%8830%E6%97%A5_13_41_29_ihpvbi.png',
         width: 1200,
         height: 630,
         alt: 'にけんめぷらす - “今いける”お店が見つかる街の回遊コミュニティマップ＋空席通知',
@@ -300,7 +300,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: seo.twitter_title,
     description: seo.twitter_description,
-    images: ['https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761311529/NIKENME_%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_r5gzn4.png'],
+    images: ['https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1782794527/ChatGPT_Image_2026%E5%B9%B46%E6%9C%8830%E6%97%A5_13_41_29_ihpvbi.png'],
     creator: '@nikenme',
   },
   verification: {
@@ -326,10 +326,10 @@ export default function RootLayout({
     <html lang="ja">
       <head>
         {/* ファビコン - 複数サイズを提供（Google検索結果表示用に最適化） */}
-        <link rel="icon" type="image/png" sizes="16x16" href="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_16/v1777620612/ChatGPT_Image_2026%E5%B9%B45%E6%9C%881%E6%97%A5_16_25_22_wopehc.png" />
-        <link rel="icon" type="image/png" sizes="32x32" href="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_32/v1777620612/ChatGPT_Image_2026%E5%B9%B45%E6%9C%881%E6%97%A5_16_25_22_wopehc.png" />
-        <link rel="icon" type="image/png" sizes="48x48" href="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_48/v1777620612/ChatGPT_Image_2026%E5%B9%B45%E6%9C%881%E6%97%A5_16_25_22_wopehc.png" />
-        <link rel="apple-touch-icon" sizes="180x180" href="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_144,c_pad,w_180,h_180,b_white/v1777620612/ChatGPT_Image_2026%E5%B9%B45%E6%9C%881%E6%97%A5_16_25_22_wopehc.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_16/v1782794527/ChatGPT_Image_2026%E5%B9%B46%E6%9C%8830%E6%97%A5_13_41_29_ihpvbi.png" />
+        <link rel="icon" type="image/png" sizes="32x32" href="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_32/v1782794527/ChatGPT_Image_2026%E5%B9%B46%E6%9C%8830%E6%97%A5_13_41_29_ihpvbi.png" />
+        <link rel="icon" type="image/png" sizes="48x48" href="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_48/v1782794527/ChatGPT_Image_2026%E5%B9%B46%E6%9C%8830%E6%97%A5_13_41_29_ihpvbi.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto,c_scale,w_144,c_pad,w_180,h_180,b_white/v1782794527/ChatGPT_Image_2026%E5%B9%B46%E6%9C%8830%E6%97%A5_13_41_29_ihpvbi.png" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#13294b" />
         <meta name="mobile-web-app-capable" content="yes" />
@@ -361,7 +361,7 @@ export default function RootLayout({
                 ratingCount: '100',
               },
               url: 'https://nikenme.jp',
-              image: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761311529/NIKENME_%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_r5gzn4.png',
+              image: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1782794527/ChatGPT_Image_2026%E5%B9%B46%E6%9C%8830%E6%97%A5_13_41_29_ihpvbi.png',
               inLanguage: 'ja',
               
               // 主な機能を明示
@@ -412,7 +412,7 @@ export default function RootLayout({
               url: 'https://nikenme.jp',
               logo: {
                 '@type': 'ImageObject',
-                url: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761311529/NIKENME_%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_r5gzn4.png',
+                url: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1782794527/ChatGPT_Image_2026%E5%B9%B46%E6%9C%8830%E6%97%A5_13_41_29_ihpvbi.png',
                 width: 512,
                 height: 512,
               },
@@ -434,7 +434,7 @@ export default function RootLayout({
               '@type': 'LocalBusiness',
               '@id': 'https://nikenme.jp/#business',
               name: 'にけんめぷらす',
-              image: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1761311529/NIKENME_%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B3_r5gzn4.png',
+              image: 'https://res.cloudinary.com/dz9trbwma/image/upload/f_auto,q_auto/v1782794527/ChatGPT_Image_2026%E5%B9%B46%E6%9C%8830%E6%97%A5_13_41_29_ihpvbi.png',
               description: '大分の街の回遊コミュニティマップ。地域の“今いける”お店（カフェ・食堂・バー・居酒屋など）の空席をリアルタイム地図表示し、街歩き・回遊をLINEの空席通知でサポート。デート、一人飲み、出張、観光、地域イベントの回遊、はしご酒に最適。',
               url: 'https://nikenme.jp',
               address: {
