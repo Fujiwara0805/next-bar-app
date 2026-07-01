@@ -136,7 +136,8 @@ export function VisitHistory() {
         <div className="py-5 text-center">
           <MapPin className="w-6 h-6 mx-auto mb-2" style={{ color: `${COPPER}99` }} />
           <p className="text-xs" style={{ color: 'rgba(19,41,75,0.6)' }}>
-            まだ来店履歴がありません。お店で会員証QRを提示してチェックインしましょう。
+            <span className="block">まだ来店履歴がありません。</span>
+            <span className="block">会員証を提示してチェックインしよう</span>
           </p>
         </div>
       ) : (
