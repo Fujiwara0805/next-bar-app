@@ -8,6 +8,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '@/lib/supabase/types';
 import { verifyLineIdToken } from '@/lib/line/verify-id-token';
+import {
+  LINE_DELIVERY_DEFAULT_RADIUS_KM,
+  LINE_DELIVERY_MAX_RADIUS_KM,
+  LINE_DELIVERY_MIN_RADIUS_KM,
+  normalizeLineDeliveryRadiusKm,
+} from '@/lib/line/delivery-radius';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -15,9 +21,9 @@ export const runtime = 'nodejs';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-const DEFAULT_RADIUS_KM = 1.5;
-const MIN_RADIUS_KM = 0.5;
-const MAX_RADIUS_KM = 5;
+const DEFAULT_RADIUS_KM = LINE_DELIVERY_DEFAULT_RADIUS_KM;
+const MIN_RADIUS_KM = LINE_DELIVERY_MIN_RADIUS_KM;
+const MAX_RADIUS_KM = LINE_DELIVERY_MAX_RADIUS_KM;
 
 type SubscriptionPayload = {
   lineUserId: string;
@@ -147,7 +153,7 @@ export async function PATCH(request: NextRequest) {
       if (!Number.isFinite(n) || n < MIN_RADIUS_KM || n > MAX_RADIUS_KM) {
         return NextResponse.json({ error: 'invalid_radius' }, { status: 400 });
       }
-      update.vacancy_notify_radius_km = n;
+      update.vacancy_notify_radius_km = normalizeLineDeliveryRadiusKm(n);
     }
   }
   if (body.centerLatitude !== undefined) {

@@ -25,6 +25,12 @@ import { useAuth } from '@/lib/auth/context';
 import { supabase } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/i18n/context';
 import { useAppMode } from '@/lib/app-mode-context';
+import {
+  LINE_DELIVERY_DEFAULT_RADIUS_KM,
+  LINE_DELIVERY_MAX_RADIUS_KM,
+  LINE_DELIVERY_MIN_RADIUS_KM,
+  normalizeLineDeliveryRadiusKm,
+} from '@/lib/line/delivery-radius';
 import { toast } from 'sonner';
 
 type BroadcastKind = 'announcement' | 'open_signal';
@@ -98,7 +104,7 @@ function StoreBroadcastPageInner() {
 
   const [kind, setKind] = useState<BroadcastKind>('open_signal');
   const [target, setTarget] = useState<TargetAudience>('nearby');
-  const [radiusKm, setRadiusKm] = useState<number>(1.5);
+  const [radiusKm, setRadiusKm] = useState<number>(LINE_DELIVERY_DEFAULT_RADIUS_KM);
   const [body, setBody] = useState<string>('');
   const [sending, setSending] = useState(false);
   const [history, setHistory] = useState<StoreMessageRow[]>([]);
@@ -206,7 +212,7 @@ function StoreBroadcastPageInner() {
           kind,
           body: text,
           targetAudience: target,
-          radiusKm: target === 'nearby' ? radiusKm : undefined,
+          radiusKm: target === 'nearby' ? normalizeLineDeliveryRadiusKm(radiusKm) : undefined,
         }),
       });
       const json = await res.json();
@@ -441,11 +447,13 @@ function StoreBroadcastPageInner() {
                           </label>
                           <input
                             type="range"
-                            min={0.5}
-                            max={5}
+                            min={LINE_DELIVERY_MIN_RADIUS_KM}
+                            max={LINE_DELIVERY_MAX_RADIUS_KM}
                             step={0.5}
                             value={radiusKm}
-                            onChange={(e) => setRadiusKm(Number(e.target.value))}
+                            onChange={(e) =>
+                              setRadiusKm(normalizeLineDeliveryRadiusKm(e.target.value))
+                            }
                             className="w-full accent-[#ffc82c]"
                           />
                         </div>

@@ -9,13 +9,13 @@ import type { Database } from '@/lib/supabase/types';
 import { DAILY_NOTIFY_CAP, filterVacancyTargets, isMessagingConfigured, multicast, todayJst } from '@/lib/line/messaging';
 import { buildAnnouncementFlexMessage } from '@/lib/line/flex-announcement';
 import { buildLiffTrackingUrl } from '@/lib/line/liff-url';
+import { LINE_DELIVERY_DEFAULT_RADIUS_KM, normalizeLineDeliveryRadiusKm } from '@/lib/line/delivery-radius';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 const MAX_BODY_LEN = 400;
 const MAX_ALL_OA_PER_DAY = 3;
-const DEFAULT_RADIUS_KM = 1.5;
 const BROADCAST_THROTTLE_HOURS = 0.05; // 1ユーザー3分に1通まで（運用緩和: テスト中は連続送信可）
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -56,7 +56,9 @@ export async function POST(
   const text = body.body?.trim();
   const targetAudience = body.targetAudience ?? 'nearby';
   const radiusKm =
-    targetAudience === 'nearby' ? body.radiusKm ?? DEFAULT_RADIUS_KM : null;
+    targetAudience === 'nearby'
+      ? normalizeLineDeliveryRadiusKm(body.radiusKm, LINE_DELIVERY_DEFAULT_RADIUS_KM)
+      : null;
 
   if (kind !== 'announcement' && kind !== 'open_signal') {
     return NextResponse.json({ error: 'invalid_kind' }, { status: 400 });
@@ -147,7 +149,7 @@ export async function POST(
       subscribers ?? [],
       store.latitude as number,
       store.longitude as number,
-      radiusKm ?? DEFAULT_RADIUS_KM,
+      radiusKm ?? LINE_DELIVERY_DEFAULT_RADIUS_KM,
       BROADCAST_THROTTLE_HOURS
     );
   } else {
@@ -155,7 +157,7 @@ export async function POST(
       .from('line_oa_subscribers')
       .select('line_user_id, daily_notify_count, daily_notify_date')
       .is('unfollowed_at', null);
-    // 全友だち向けでも日次キャップは適用する（1ユーザー1日最大 DAILY_NOTIFY_CAP 通）
+    // 全フォロワー向けは従来どおり全フォロワー対象。日次キャップのみ適用する。
     const today = todayJst();
     targetIds = (subscribers ?? [])
       .filter((s) => {

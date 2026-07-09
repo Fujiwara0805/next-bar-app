@@ -15,8 +15,9 @@ import { filterVacancyTargets, isMessagingConfigured, multicast } from '@/lib/li
 import { buildAnnouncementFlexMessage } from '@/lib/line/flex-announcement';
 import { buildLiffPathUrl, buildLiffTrackingUrl } from '@/lib/line/liff-url';
 import { assertStoreAccess, resolveManageAuth } from '@/lib/api/manage-auth';
+import { LINE_DELIVERY_DEFAULT_RADIUS_KM, normalizeLineDeliveryRadiusKm } from '@/lib/line/delivery-radius';
 
-const DEFAULT_LINE_VACANCY_RADIUS_KM = 1.0;
+const DEFAULT_LINE_VACANCY_RADIUS_KM = LINE_DELIVERY_DEFAULT_RADIUS_KM;
 const VACANCY_THROTTLE_HOURS = 0.05; // 1ユーザー3分に1通まで（運用緩和: テスト中は連続送信可）
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -25,6 +26,25 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 // 有効なvacancy_statusの値
 const VALID_VACANCY_STATUSES = ['vacant', 'open', 'full', 'closed'] as const;
 type VacancyStatus = (typeof VALID_VACANCY_STATUSES)[number];
+
+async function resolveStoreLineDeliveryRadiusKm(
+  supabase: any,
+  storeId: string
+): Promise<number> {
+  const { data } = await supabase
+    .from('store_messages')
+    .select('target_radius_km')
+    .eq('store_id', storeId)
+    .not('target_radius_km', 'is', null)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  return normalizeLineDeliveryRadiusKm(
+    data?.target_radius_km,
+    DEFAULT_LINE_VACANCY_RADIUS_KM
+  );
+}
 
 /**
  * 店舗のvacancy_statusを更新
@@ -175,11 +195,12 @@ export async function PATCH(
               .is('unfollowed_at', null)
               .eq('vacancy_notify_opt_in', true);
 
+            const deliveryRadiusKm = await resolveStoreLineDeliveryRadiusKm(supabase, storeId);
             const targets = filterVacancyTargets(
               subscribers ?? [],
               storeLat,
               storeLng,
-              DEFAULT_LINE_VACANCY_RADIUS_KM,
+              deliveryRadiusKm,
               VACANCY_THROTTLE_HOURS
             );
 
@@ -191,7 +212,7 @@ export async function PATCH(
                 kind: 'auto_vacancy',
                 body: `${store.name} に空席が出ました`,
                 target_audience: 'nearby',
-                target_radius_km: DEFAULT_LINE_VACANCY_RADIUS_KM,
+                target_radius_km: deliveryRadiusKm,
                 sent_count: 0,
                 failed_count: 0,
                 status: 'pending',

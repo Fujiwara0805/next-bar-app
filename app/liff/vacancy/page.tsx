@@ -17,6 +17,12 @@ import { CloseCircleButton } from '@/components/ui/close-circle-button';
 import { useLiff } from '@/lib/line/context';
 import { useLanguage } from '@/lib/i18n/context';
 import { LINE_BRAND_COLOR } from '@/lib/line/constants';
+import {
+  LINE_DELIVERY_DEFAULT_RADIUS_KM,
+  LINE_DELIVERY_MAX_RADIUS_KM,
+  LINE_DELIVERY_MIN_RADIUS_KM,
+  normalizeLineDeliveryRadiusKm,
+} from '@/lib/line/delivery-radius';
 import { useAppMode } from '@/lib/app-mode-context';
 import { toast } from 'sonner';
 
@@ -61,12 +67,12 @@ export default function LiffVacancyOptInPage() {
   const [saving, setSaving] = useState(false);
   const [exists, setExists] = useState<boolean | null>(null);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
-  const [defaultRadius, setDefaultRadius] = useState(1.5);
-  const [minRadius, setMinRadius] = useState(0.5);
-  const [maxRadius, setMaxRadius] = useState(5);
+  const [defaultRadius, setDefaultRadius] = useState(LINE_DELIVERY_DEFAULT_RADIUS_KM);
+  const [minRadius, setMinRadius] = useState(LINE_DELIVERY_MIN_RADIUS_KM);
+  const [maxRadius, setMaxRadius] = useState(LINE_DELIVERY_MAX_RADIUS_KM);
 
   const [optIn, setOptIn] = useState(true);
-  const [radiusKm, setRadiusKm] = useState(1.5);
+  const [radiusKm, setRadiusKm] = useState(LINE_DELIVERY_DEFAULT_RADIUS_KM);
   const [areaLabel, setAreaLabel] = useState('');
   const [centerLat, setCenterLat] = useState<number | null>(null);
   const [centerLng, setCenterLng] = useState<number | null>(null);
@@ -91,19 +97,24 @@ export default function LiffVacancyOptInPage() {
         return;
       }
       setExists(Boolean(json.exists));
-      setDefaultRadius(json.defaultRadiusKm ?? 1.5);
-      setMinRadius(json.minRadiusKm ?? 0.5);
-      setMaxRadius(json.maxRadiusKm ?? 5);
+      setDefaultRadius(json.defaultRadiusKm ?? LINE_DELIVERY_DEFAULT_RADIUS_KM);
+      setMinRadius(json.minRadiusKm ?? LINE_DELIVERY_MIN_RADIUS_KM);
+      setMaxRadius(json.maxRadiusKm ?? LINE_DELIVERY_MAX_RADIUS_KM);
       const sub = json.subscription as Subscription | null;
       if (sub) {
         setSubscription(sub);
         setOptIn(sub.optIn);
-        setRadiusKm(sub.radiusKm ?? json.defaultRadiusKm ?? 1.5);
+        setRadiusKm(
+          normalizeLineDeliveryRadiusKm(
+            sub.radiusKm,
+            json.defaultRadiusKm ?? LINE_DELIVERY_DEFAULT_RADIUS_KM
+          )
+        );
         setAreaLabel(sub.areaLabel ?? '');
         setCenterLat(sub.centerLatitude);
         setCenterLng(sub.centerLongitude);
       } else {
-        setRadiusKm(json.defaultRadiusKm ?? 1.5);
+        setRadiusKm(json.defaultRadiusKm ?? LINE_DELIVERY_DEFAULT_RADIUS_KM);
       }
     } catch (err) {
       console.error('[liffVacancy] fetch error', err);
@@ -353,7 +364,7 @@ export default function LiffVacancyOptInPage() {
                   max={maxRadius}
                   step={0.5}
                   value={radiusKm}
-                  onChange={(e) => setRadiusKm(Number(e.target.value))}
+                  onChange={(e) => setRadiusKm(normalizeLineDeliveryRadiusKm(e.target.value))}
                   className="w-full accent-current"
                   style={{ accentColor: COLORS.champagneGold }}
                   disabled={!optIn}

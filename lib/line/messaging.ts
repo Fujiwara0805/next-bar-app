@@ -9,6 +9,7 @@
 // Docs: https://developers.line.biz/ja/reference/messaging-api/
 
 import { messagingApi, validateSignature } from '@line/bot-sdk';
+import { normalizeLineDeliveryRadiusKm } from '@/lib/line/delivery-radius';
 
 const { MessagingApiClient } = messagingApi;
 
@@ -151,6 +152,55 @@ function pickNotifyCoord(c: NearbyCandidate): { lat: number; lng: number } | nul
 }
 
 /**
+ * 店舗側の配信半径とユーザー側の通知半径の小さい方を実効半径にする。
+ * 店舗側が1kmなら、ユーザー側が5kmでも1km外には配信しない。
+ */
+export function filterLineDeliveryTargets(
+  subscribers: NearbyCandidate[],
+  storeLat: number,
+  storeLng: number,
+  deliveryRadiusKm: number,
+  options: {
+    requireOptIn?: boolean;
+    throttleHours?: number;
+    dailyCap?: number;
+  } = {}
+): string[] {
+  const cappedDeliveryRadiusKm = normalizeLineDeliveryRadiusKm(deliveryRadiusKm);
+  const threshold =
+    options.throttleHours != null
+      ? Date.now() - options.throttleHours * 60 * 60 * 1000
+      : null;
+  const today = todayJst();
+
+  return subscribers
+    .filter((s) => s.unfollowed_at === null)
+    .filter((s) => !options.requireOptIn || s.vacancy_notify_opt_in)
+    .filter((s) => {
+      if (threshold == null || !s.last_vacancy_sent_at) return true;
+      const ts = new Date(s.last_vacancy_sent_at).getTime();
+      if (Number.isNaN(ts)) return true;
+      return ts <= threshold;
+    })
+    .filter((s) => {
+      if (options.dailyCap == null) return true;
+      if (s.daily_notify_date !== today) return true;
+      return (s.daily_notify_count ?? 0) < options.dailyCap;
+    })
+    .filter((s) => {
+      const coord = pickNotifyCoord(s);
+      if (!coord) return false;
+      const userRadius = normalizeLineDeliveryRadiusKm(
+        s.vacancy_notify_radius_km,
+        cappedDeliveryRadiusKm
+      );
+      const radius = Math.min(userRadius, cappedDeliveryRadiusKm);
+      return distanceKm(storeLat, storeLng, coord.lat, coord.lng) <= radius;
+    })
+    .map((s) => s.line_user_id);
+}
+
+/**
  * 店舗位置を中心に、OA友だちのうち通知拠点（または位置共有）が指定半径内 & 通知ON のユーザーを抽出する。
  * （broadcast "nearby" ターゲット用。スロットルは適用しない）
  */
@@ -158,17 +208,11 @@ export function filterNearbySubscribers(
   subscribers: NearbyCandidate[],
   storeLat: number,
   storeLng: number,
-  defaultRadiusKm: number
+  deliveryRadiusKm: number
 ): string[] {
-  return subscribers
-    .filter((s) => s.unfollowed_at === null && s.vacancy_notify_opt_in)
-    .filter((s) => {
-      const coord = pickNotifyCoord(s);
-      if (!coord) return false;
-      const radius = s.vacancy_notify_radius_km ?? defaultRadiusKm;
-      return distanceKm(storeLat, storeLng, coord.lat, coord.lng) <= radius;
-    })
-    .map((s) => s.line_user_id);
+  return filterLineDeliveryTargets(subscribers, storeLat, storeLng, deliveryRadiusKm, {
+    requireOptIn: true,
+  });
 }
 
 /**
@@ -181,32 +225,15 @@ export function filterVacancyTargets(
   subscribers: NearbyCandidate[],
   storeLat: number,
   storeLng: number,
-  defaultRadiusKm: number,
+  deliveryRadiusKm: number,
   throttleHours: number,
   dailyCap: number = DAILY_NOTIFY_CAP
 ): string[] {
-  const threshold = Date.now() - throttleHours * 60 * 60 * 1000;
-  const today = todayJst();
-  return subscribers
-    .filter((s) => s.unfollowed_at === null && s.vacancy_notify_opt_in)
-    .filter((s) => {
-      if (!s.last_vacancy_sent_at) return true;
-      const ts = new Date(s.last_vacancy_sent_at).getTime();
-      if (Number.isNaN(ts)) return true;
-      return ts <= threshold;
-    })
-    .filter((s) => {
-      // JSTの「今日」と一致する日付のカウンタのみ有効。日付が違う/NULLなら 0 扱い。
-      if (s.daily_notify_date !== today) return true;
-      return (s.daily_notify_count ?? 0) < dailyCap;
-    })
-    .filter((s) => {
-      const coord = pickNotifyCoord(s);
-      if (!coord) return false;
-      const radius = s.vacancy_notify_radius_km ?? defaultRadiusKm;
-      return distanceKm(storeLat, storeLng, coord.lat, coord.lng) <= radius;
-    })
-    .map((s) => s.line_user_id);
+  return filterLineDeliveryTargets(subscribers, storeLat, storeLng, deliveryRadiusKm, {
+    requireOptIn: true,
+    throttleHours,
+    dailyCap,
+  });
 }
 
 /**
