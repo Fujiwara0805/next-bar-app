@@ -16,6 +16,7 @@ import { Input } from '@/components/ui/input';
 import { CloseCircleButton } from '@/components/ui/close-circle-button';
 import { useLiff } from '@/lib/line/context';
 import { useLanguage } from '@/lib/i18n/context';
+import { useAuth } from '@/lib/auth/context';
 import { LINE_BRAND_COLOR } from '@/lib/line/constants';
 import {
   LINE_DELIVERY_DEFAULT_RADIUS_KM,
@@ -43,6 +44,7 @@ export default function LiffVacancyOptInPage() {
   const router = useRouter();
   const { t } = useLanguage();
   const { isLiffReady, isLineLoggedIn, liffLogin, getIdToken, liffError } = useLiff();
+  const { user } = useAuth();
   const { colorsB: COLORS } = useAppMode();
 
   // 画面外（オーバースクロール領域含む）まで navy 系で塗りつぶす。
@@ -186,6 +188,7 @@ export default function LiffVacancyOptInPage() {
       }
       setSubscription(json.subscription);
       toast.success(t('liffVacancy.saved'));
+      router.push(user ? '/mypage' : '/login?redirect=/mypage');
     } catch (err) {
       console.error('[liffVacancy] save error', err);
       toast.error(t('liffVacancy.error.save_failed'));
