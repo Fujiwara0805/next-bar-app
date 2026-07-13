@@ -1109,7 +1109,7 @@ export default function StoreUpdatePage() {
                                   }}
                                 />
                                 <p className="text-[11px] text-right mt-0.5 font-medium" style={{ color: COLORS.warmGray }}>
-                                  {(benefitDrafts[event.id] ?? '').length} / 200文字　マップ・店舗一覧では通常の一言メッセージに代わって表示されます
+                                  {(benefitDrafts[event.id] ?? '').length} / 200文字
                                 </p>
                               </div>
                             )}

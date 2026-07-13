@@ -422,7 +422,7 @@ export function StoreDetailPanel({
 
             {isEventStore ? (
               <div style={{ borderTop: `1px solid ${theme.borderSubtle}` }} className="pt-2">
-                <div className="flex items-start gap-2">
+                <div className="flex flex-col items-start gap-1.5">
                   <span
                     className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-extrabold"
                     style={{ background: '#13294b', color: '#ffc82c' }}
@@ -430,7 +430,7 @@ export function StoreDetailPanel({
                     🎊 {t('map.event_participating')}
                   </span>
                   {eventMessage && (
-                    <p className="text-sm font-bold line-clamp-2" style={{ color: theme.textMuted }}>
+                    <p className="w-full text-sm font-bold leading-snug line-clamp-2" style={{ color: theme.textMuted }}>
                       {eventMessage}
                     </p>
                   )}

@@ -886,7 +886,7 @@ function StoreListContent() {
                               })()}
                               
                               {isEventStore ? (
-                                <div className="flex items-start gap-2 pt-1">
+                                <div className="flex flex-col items-start gap-1.5 pt-1">
                                   <span
                                     className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-extrabold"
                                     style={{ background: EVENT_CARD_FG, color: EVENT_CARD_BG }}
@@ -894,7 +894,7 @@ function StoreListContent() {
                                     🎊 {t('map.event_participating')}
                                   </span>
                                   {store.active_event?.benefit_text?.trim() && (
-                                    <p className="text-sm font-bold line-clamp-2" style={{ color: EVENT_CARD_FG }}>
+                                    <p className="w-full text-sm font-bold leading-snug line-clamp-2" style={{ color: EVENT_CARD_FG }}>
                                       {store.active_event.benefit_text.trim()}
                                     </p>
                                   )}
