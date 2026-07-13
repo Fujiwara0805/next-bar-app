@@ -16,27 +16,56 @@ export const DEFAULT_LOCATION = {
   lng: 131.6126,
 };
 
+export type GeolocationStatus =
+  | 'idle'
+  | 'requesting'
+  | 'granted'
+  | 'denied'
+  | 'unavailable'
+  | 'timeout'
+  | 'error';
+
 export function useOptimizedLocation() {
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const isInitializedRef = useRef(false);
+  const [isDefaultLocation, setIsDefaultLocation] = useState(true);
+  const [locationStatus, setLocationStatus] = useState<GeolocationStatus>('idle');
   const isUpdatingRef = useRef(false);
   const isMountedRef = useRef(true);
+  const hasRealLocationRef = useRef(false);
 
   const updateLocationInBackground = useCallback(() => {
     if (isUpdatingRef.current || !isMountedRef.current) return;
     if (!navigator.geolocation) {
-      locationCache.set({ ...DEFAULT_LOCATION, isDefault: true });
+      if (hasRealLocationRef.current) {
+        setIsDefaultLocation(false);
+        setLocationStatus('granted');
+      } else {
+        locationCache.set({ ...DEFAULT_LOCATION, isDefault: true });
+        setLocation(DEFAULT_LOCATION);
+        setIsDefaultLocation(true);
+        setLocationStatus('unavailable');
+      }
       return;
     }
 
     isUpdatingRef.current = true;
+    setLocationStatus('requesting');
     let resolved = false;
 
     const timeoutId = setTimeout(() => {
       if (!resolved) {
         resolved = true;
         isUpdatingRef.current = false;
+        if (isMountedRef.current) {
+          if (hasRealLocationRef.current) {
+            setIsDefaultLocation(false);
+            setLocationStatus('granted');
+          } else {
+            setIsDefaultLocation(true);
+            setLocationStatus('timeout');
+          }
+        }
       }
     }, 3000);
 
@@ -53,6 +82,9 @@ export function useOptimizedLocation() {
           };
 
           setLocation(newLocation);
+          hasRealLocationRef.current = true;
+          setIsDefaultLocation(false);
+          setLocationStatus('granted');
           locationCache.set({
             lat: newLocation.lat,
             lng: newLocation.lng,
@@ -66,7 +98,25 @@ export function useOptimizedLocation() {
           resolved = true;
           clearTimeout(timeoutId);
           isUpdatingRef.current = false;
-          locationCache.set({ ...DEFAULT_LOCATION, isDefault: true });
+          if (isMountedRef.current) {
+            if (hasRealLocationRef.current) {
+              setIsDefaultLocation(false);
+              setLocationStatus('granted');
+            } else {
+              locationCache.set({ ...DEFAULT_LOCATION, isDefault: true });
+              setLocation(DEFAULT_LOCATION);
+              setIsDefaultLocation(true);
+              setLocationStatus(
+                error.code === error.PERMISSION_DENIED
+                  ? 'denied'
+                  : error.code === error.POSITION_UNAVAILABLE
+                    ? 'unavailable'
+                    : error.code === error.TIMEOUT
+                      ? 'timeout'
+                      : 'error'
+              );
+            }
+          }
         }
       },
       {
@@ -80,20 +130,21 @@ export function useOptimizedLocation() {
   useEffect(() => {
     isMountedRef.current = true;
 
-    if (isInitializedRef.current) return;
-    isInitializedRef.current = true;
-
     const cached = locationCache.get();
     if (cached && !cached.isDefault) {
+      hasRealLocationRef.current = true;
       setLocation({ lat: cached.lat, lng: cached.lng });
+      setIsDefaultLocation(false);
+      setLocationStatus('granted');
       setIsLoading(false);
       updateLocationInBackground();
-      return;
+    } else {
+      hasRealLocationRef.current = false;
+      setLocation(DEFAULT_LOCATION);
+      setIsDefaultLocation(true);
+      setIsLoading(false);
+      updateLocationInBackground();
     }
-
-    setLocation(DEFAULT_LOCATION);
-    setIsLoading(false);
-    updateLocationInBackground();
 
     return () => {
       isMountedRef.current = false;
@@ -104,5 +155,11 @@ export function useOptimizedLocation() {
     updateLocationInBackground();
   }, [updateLocationInBackground]);
 
-  return { location, isLoading, refreshLocation };
+  return {
+    location,
+    isLoading,
+    isDefaultLocation,
+    locationStatus,
+    refreshLocation,
+  };
 }

@@ -217,6 +217,8 @@ export function StoreDetailPanel({
 
   // テーマ切替
   const isEventStore = !!store.active_event;
+  const eventMessage = store.active_event?.benefit_text?.trim() || null;
+  const regularMessage = store.status_message?.trim() || null;
   const eventCompactTheme = {
     ...darkTheme,
     text: '#13294b',
@@ -418,13 +420,29 @@ export function StoreDetailPanel({
               </div>
             </div>
 
-            {store.status_message && (
+            {isEventStore ? (
+              <div style={{ borderTop: `1px solid ${theme.borderSubtle}` }} className="pt-2">
+                <div className="flex items-start gap-2">
+                  <span
+                    className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-extrabold"
+                    style={{ background: '#13294b', color: '#ffc82c' }}
+                  >
+                    🎊 {t('map.event_participating')}
+                  </span>
+                  {eventMessage && (
+                    <p className="text-sm font-bold line-clamp-2" style={{ color: theme.textMuted }}>
+                      {eventMessage}
+                    </p>
+                  )}
+                </div>
+              </div>
+            ) : regularMessage ? (
               <div style={{ borderTop: `1px solid ${theme.borderSubtle}` }} className="pt-2">
                 <p className="text-sm font-bold line-clamp-2" style={{ color: theme.textMuted }}>
-                  {store.status_message}
+                  {regularMessage}
                 </p>
               </div>
-            )}
+            ) : null}
 
           </div>
 

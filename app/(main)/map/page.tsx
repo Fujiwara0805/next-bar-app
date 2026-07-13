@@ -21,7 +21,7 @@
 import { useEffect, useState, Suspense, useRef, useCallback, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { List, RefreshCw, AlertCircle, User, Utensils } from 'lucide-react';
+import { List, RefreshCw, AlertCircle, User, Utensils, MapPin } from 'lucide-react';
 import { LoadingScreen } from '@/components/ui/loading-screen';
 import { MapView } from '@/components/map/map-view';
 import { Button } from '@/components/ui/button';
@@ -46,6 +46,7 @@ import { sendGAEvent } from '@/lib/analytics';
 import { StoreDetailPanel } from '@/components/map/StoreDetailPanel';
 import { checkIsOpenFromStructuredHours, isManualCloseActive } from '@/lib/structured-business-hours';
 import type { BusinessHours } from '@/lib/types/business-hours';
+import { useLiff } from '@/lib/line/context';
 import { SponsorMapIcon } from '@/components/sponsors/sponsor-map-icon';
 import { UserPushSubscription } from '@/components/user-push-subscription';
 import {
@@ -455,6 +456,7 @@ function MapPageContent() {
   const { t } = useLanguage();
   const { colorsA: colors } = useAppMode();
   const { user, accountType, store: authStore, profile: authProfile } = useAuth();
+  const { isLiffReady, isInLine } = useLiff();
 
   // body背景色をページの背景色に同期（画面外の色漏れ防止）
   useEffect(() => {
@@ -469,16 +471,28 @@ function MapPageContent() {
   const [isNavigating, setIsNavigating] = useState(false);
   const [selectedStoreIndex, setSelectedStoreIndex] = useState(0);
   const [isUpdatingOpenStatus, setIsUpdatingOpenStatus] = useState(false);
+  const [locationPromptDismissed, setLocationPromptDismissed] = useState(false);
   // `?event=` は true（全イベント参加店）と event-id（特定イベントの参加店のみ）の両対応。
   const eventParam = searchParams?.get('event') || null;
   const eventOnly = eventParam === 'true';
   const eventId = eventParam && eventParam !== 'true' ? eventParam : null;
   const eventTitle = searchParams?.get('et') || null;
 
-  const { location: userLocation, refreshLocation } = useOptimizedLocation();
+  const {
+    location: userLocation,
+    isDefaultLocation,
+    locationStatus,
+    refreshLocation,
+  } = useOptimizedLocation();
   const { stores, isLoading, error, retryCount, fetchStores, refreshStores } = useStores();
   const isOpenUpdatedRef = useRef(false);
   const lastFetchBoundsRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (locationStatus === 'granted') {
+      setLocationPromptDismissed(false);
+    }
+  }, [locationStatus]);
 
   /**
    * 【コスト最適化】is_open更新APIを呼び出す
@@ -934,6 +948,85 @@ function MapPageContent() {
             onRetry={() => refreshStores()}
           />
         )}
+      </AnimatePresence>
+
+      {/* LINE内で現在地を取得できなかった場合の案内 */}
+      <AnimatePresence>
+        {isLiffReady &&
+          isInLine &&
+          isDefaultLocation &&
+          locationStatus !== 'idle' &&
+          locationStatus !== 'requesting' &&
+          !locationPromptDismissed && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[70] flex items-center justify-center px-5"
+              style={{ background: 'rgba(10, 22, 40, 0.58)', backdropFilter: 'blur(5px)' }}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="line-location-prompt-title"
+            >
+              <motion.div
+                initial={{ opacity: 0, y: 18, scale: 0.97 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 12, scale: 0.98 }}
+                className="w-full max-w-sm rounded-3xl p-6 shadow-2xl"
+                style={{
+                  background: '#F7F3E9',
+                  border: '1px solid rgba(255, 200, 44, 0.65)',
+                }}
+              >
+                <div
+                  className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl"
+                  style={{ background: '#ffc82c' }}
+                >
+                  <MapPin className="h-7 w-7" style={{ color: '#13294b' }} />
+                </div>
+                <h2
+                  id="line-location-prompt-title"
+                  className="text-center text-lg font-extrabold"
+                  style={{ color: '#13294b' }}
+                >
+                  {t('map.location_prompt_title')}
+                </h2>
+                <p className="mt-2 text-center text-sm font-medium leading-relaxed" style={{ color: '#5E6470' }}>
+                  {t('map.location_prompt_description')}
+                </p>
+                {locationStatus === 'denied' && (
+                  <p
+                    className="mt-3 rounded-xl px-3 py-2 text-center text-xs font-bold leading-relaxed"
+                    style={{ background: 'rgba(255, 200, 44, 0.18)', color: '#13294b' }}
+                  >
+                    {t('map.location_prompt_denied_hint')}
+                  </p>
+                )}
+                <div className="mt-5 grid gap-2">
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      setLocationPromptDismissed(false);
+                      refreshLocation();
+                    }}
+                    className="h-12 rounded-xl text-sm font-extrabold"
+                    style={{ background: '#ffc82c', color: '#13294b' }}
+                  >
+                    <MapPin className="mr-2 h-4 w-4" />
+                    {t('map.location_prompt_action')}
+                  </Button>
+                  <button
+                    type="button"
+                    onClick={() => setLocationPromptDismissed(true)}
+                    className="h-10 text-xs font-bold"
+                    style={{ color: '#5E6470' }}
+                  >
+                    {t('map.location_prompt_later')}
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
       </AnimatePresence>
 
       {/* 営業状態更新インジケーター */}

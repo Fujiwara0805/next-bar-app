@@ -759,7 +759,6 @@ function StoreListContent() {
                           >
                             <p className="text-[11px] font-bold truncate leading-tight" style={{ color: '#F7F3E9' }}>
                               🎊 {store.active_event.title}
-                              {store.active_event.benefit_text?.trim() ? `・特典: ${store.active_event.benefit_text.trim()}` : ''}
                             </p>
                           </div>
                         )}
@@ -886,9 +885,25 @@ function StoreListContent() {
                                 );
                               })()}
                               
-                              {store.status_message && (
-                                <p className="text-sm font-bold line-clamp-2 pt-1" style={{ color: isEventStore ? EVENT_CARD_FG : COLORS.deepNavy }}>{store.status_message}</p>
-                              )}
+                              {isEventStore ? (
+                                <div className="flex items-start gap-2 pt-1">
+                                  <span
+                                    className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-extrabold"
+                                    style={{ background: EVENT_CARD_FG, color: EVENT_CARD_BG }}
+                                  >
+                                    🎊 {t('map.event_participating')}
+                                  </span>
+                                  {store.active_event?.benefit_text?.trim() && (
+                                    <p className="text-sm font-bold line-clamp-2" style={{ color: EVENT_CARD_FG }}>
+                                      {store.active_event.benefit_text.trim()}
+                                    </p>
+                                  )}
+                                </div>
+                              ) : store.status_message?.trim() ? (
+                                <p className="text-sm font-bold line-clamp-2 pt-1" style={{ color: COLORS.deepNavy }}>
+                                  {store.status_message.trim()}
+                                </p>
+                              ) : null}
 
                               {isConciergeActive && matchScore > 0 && (
                                 <p className="text-xs mt-2 px-2 py-1 rounded-md inline-block" style={{

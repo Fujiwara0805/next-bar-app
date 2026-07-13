@@ -57,6 +57,7 @@ import { useAppMode } from '@/lib/app-mode-context';
 import { useLanguage } from '@/lib/i18n/context';
 import type { Database } from '@/lib/supabase/types';
 import type { StoreEventParticipation, StoreEventRow } from '@/lib/types/platform-event';
+import { storesCache } from '@/lib/cache';
 
 type Store = Database['public']['Tables']['stores']['Row'];
 type StoreUpdate = Database['public']['Tables']['stores']['Update'];
@@ -410,12 +411,16 @@ export default function StoreUpdatePage() {
           event.id === eventId ? { ...event, participation } : event
         )
       );
+      storesCache.clear();
       toast.success(isParticipating ? 'イベント参加をONにしました' : 'イベント参加をOFFにしました', {
         position: 'top-center',
         duration: 1200,
       });
-      // イベント参加トグルを変更したらマップ画面へ遷移する（営業状況フォームは経由しない）
-      router.push('/map');
+      if (isParticipating) {
+        window.setTimeout(() => {
+          document.getElementById(`benefit-${eventId}`)?.focus();
+        }, 0);
+      }
     } catch (error) {
       console.error('[store/update] save event participation error', error);
       toast.error('イベント参加設定の保存に失敗しました', { position: 'top-center' });
@@ -453,6 +458,7 @@ export default function StoreUpdatePage() {
             event.id === eventId ? { ...event, participation } : event
           )
         );
+        storesCache.clear();
       } catch (error) {
         console.error('[store/update] save benefit error', error);
         toast.error('特典内容の保存に失敗しました', { position: 'top-center' });
@@ -1078,7 +1084,7 @@ export default function StoreUpdatePage() {
                                     style={{ color: COLORS.deepNavy }}
                                   >
                                     <PartyPopper className="w-3.5 h-3.5" style={{ color: '#13294b' }} />
-                                    お客様への特典（任意）
+                                    イベント提供内容・一言メッセージ（任意）
                                   </Label>
                                   {savingBenefitEventId === event.id && (
                                     <Loader2 className="w-3 h-3 animate-spin" style={{ color: COLORS.warmGray }} />
@@ -1090,7 +1096,7 @@ export default function StoreUpdatePage() {
                                   onChange={(e) =>
                                     setBenefitDrafts((prev) => ({ ...prev, [event.id]: e.target.value }))
                                   }
-                                  placeholder="例: ご来店時にスタッフへお声掛けください。生ビール1杯サービス！"
+                                  placeholder="例: 自家栽培ミントのプレミアムモヒートをご提供します！"
                                   rows={2}
                                   maxLength={200}
                                   className="rounded-lg border-2 font-medium transition-all focus:border-[#335280] focus:ring-2 focus:ring-[#335280]/20"
@@ -1103,7 +1109,7 @@ export default function StoreUpdatePage() {
                                   }}
                                 />
                                 <p className="text-[11px] text-right mt-0.5 font-medium" style={{ color: COLORS.warmGray }}>
-                                  {(benefitDrafts[event.id] ?? '').length} / 200文字　未入力時は特典欄を非表示にします
+                                  {(benefitDrafts[event.id] ?? '').length} / 200文字　マップ・店舗一覧では通常の一言メッセージに代わって表示されます
                                 </p>
                               </div>
                             )}
