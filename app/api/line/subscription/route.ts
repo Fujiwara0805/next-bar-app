@@ -138,6 +138,14 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: 'invalid_body' }, { status: 400 });
   }
 
+  // 通知ONでは現在地座標を必須にし、任意地点を拠点として保存できないようにする。
+  if (
+    body.optIn === true &&
+    (typeof body.centerLatitude !== 'number' || typeof body.centerLongitude !== 'number')
+  ) {
+    return NextResponse.json({ error: 'location_required' }, { status: 400 });
+  }
+
   const update: Database['public']['Tables']['line_oa_subscribers']['Update'] = {
     notify_updated_at: new Date().toISOString(),
   };
@@ -178,14 +186,8 @@ export async function PATCH(request: NextRequest) {
       update.notify_center_longitude = n;
     }
   }
-  if (body.areaLabel !== undefined) {
-    if (body.areaLabel === null || body.areaLabel === '') {
-      update.notify_area_label = null;
-    } else {
-      const label = String(body.areaLabel).slice(0, 64);
-      update.notify_area_label = label;
-    }
-  }
+  // エリア名による固定拠点は廃止し、現在地座標のみを利用する。
+  update.notify_area_label = null;
 
   const admin = createClient<Database>(supabaseUrl, serviceRoleKey, {
     auth: { autoRefreshToken: false, persistSession: false },

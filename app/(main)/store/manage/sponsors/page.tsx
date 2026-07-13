@@ -189,15 +189,15 @@ export default function SponsorsPage() {
 
   return (
     <div className="min-h-screen" style={{ background: C.bg }}>
-      <div className="max-w-6xl mx-auto px-6 md:px-8 py-8 space-y-6">
+      <div className="max-w-6xl mx-auto space-y-6 px-4 py-5 sm:py-8 md:px-8">
         {/* Page Header */}
-        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
+        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight" style={{ color: C.text }}>スポンサー管理</h1>
+            <h1 className="text-xl font-bold tracking-tight sm:text-2xl" style={{ color: C.text }}>スポンサー管理</h1>
             <p className="text-sm mt-1" style={{ color: C.textSubtle }}>{filtered.length} スポンサー</p>
           </div>
           <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={openCreate}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold"
+            className="flex h-11 w-full items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold sm:w-auto"
             style={{ background: C.accent, color: C.accentForeground }}>
             <Plus className="w-4 h-4" /> 新規登録
           </motion.button>
@@ -212,7 +212,7 @@ export default function SponsorsPage() {
 
         {/* Filters */}
         <div className="flex flex-wrap items-center gap-3">
-          <div className="relative flex-1 min-w-[200px] max-w-sm">
+          <div className="relative w-full flex-1 min-w-0 max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: C.textSubtle }} />
             <input type="text" placeholder="企業名・担当者・メールで検索..." value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -292,6 +292,28 @@ export default function SponsorsPage() {
               onRowClick={(s) => handleSponsorClick(s.id)}
               emptyIcon={<Building2 className="w-12 h-12" style={{ color: C.textSubtle }} />}
               emptyTitle={searchQuery ? '検索結果がありません' : 'スポンサーが登録されていません'}
+              mobileCardRender={(s) => (
+                <div>
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-sm font-bold" style={{ background: C.accentBg, color: C.accent }}>
+                      {s.company_name.charAt(0)}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold" style={{ color: C.text }}>{s.company_name}</p>
+                      <p className="truncate text-xs" style={{ color: C.textSubtle }}>{s.contact_name || '担当者未設定'}</p>
+                    </div>
+                    <AdminStatusBadge label={s.is_active ? 'アクティブ' : '非アクティブ'} variant={s.is_active ? 'success' : 'neutral'} dot />
+                  </div>
+                  <div className="mt-4 grid grid-cols-2 gap-2" onClick={(e) => e.stopPropagation()}>
+                    <button type="button" onClick={() => openEdit(s)} className="flex h-10 items-center justify-center gap-1 rounded-lg text-xs font-semibold" style={{ background: C.accentBg, color: C.accent }}>
+                      <Edit className="h-3.5 w-3.5" /> 編集
+                    </button>
+                    <button type="button" onClick={() => { setDeleteTarget(s); setDeleteOpen(true); }} className="flex h-10 items-center justify-center gap-1 rounded-lg text-xs font-semibold" style={{ background: C.dangerBg, color: C.danger }}>
+                      <Trash2 className="h-3.5 w-3.5" /> 削除
+                    </button>
+                  </div>
+                </div>
+              )}
             />
 
             {totalPages > 1 && (
@@ -332,7 +354,7 @@ export default function SponsorsPage() {
               className="w-full px-3 py-2.5 rounded-lg text-sm outline-none transition-colors focus:ring-2 focus:ring-[#335280]/30"
               style={inputStyle} placeholder="株式会社〇〇" />
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 min-[380px]:grid-cols-2">
             <div>
               <label className="block text-xs font-semibold mb-1" style={labelStyle}>担当者名</label>
               <input type="text" value={formValues.contact_name}

@@ -49,7 +49,7 @@ export function AdminDataTable<T>({
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="flex flex-col items-center justify-center py-16 rounded-2xl"
+        className="flex flex-col items-center justify-center rounded-2xl px-5 py-12 text-center sm:py-16"
         style={{ background: C.bgCard, border: `1px dashed ${C.border}` }}
       >
         {emptyIcon && <div className="mb-3 opacity-40">{emptyIcon}</div>}
@@ -166,7 +166,7 @@ export function AdminDataTable<T>({
                   onRowClick?.(item);
                   if (expandable) toggleExpand(key);
                 }}
-                className={mobileCardRender ? 'rounded-xl p-4' : 'rounded-xl p-4 space-y-2'}
+                className={mobileCardRender ? 'rounded-xl p-4' : 'rounded-xl p-4 space-y-3'}
                 style={{
                   background: C.bgCard,
                   border: `1px solid ${C.border}`,
@@ -187,11 +187,16 @@ export function AdminDataTable<T>({
                   columns
                     .filter((c) => !c.hideOnMobile)
                     .map((col) => (
-                      <div key={col.key} className="flex items-center justify-between text-sm">
-                        <span className="text-xs font-medium" style={{ color: C.textSubtle }}>
-                          {col.header}
-                        </span>
-                        <div>{col.render(item, i)}</div>
+                      <div
+                        key={col.key}
+                        className={col.header ? 'flex items-start justify-between gap-4 text-sm' : 'flex justify-end pt-1'}
+                      >
+                        {col.header && (
+                          <span className="shrink-0 text-xs font-medium" style={{ color: C.textSubtle }}>
+                            {col.header}
+                          </span>
+                        )}
+                        <div className="min-w-0 text-right">{col.render(item, i)}</div>
                       </div>
                     ))
                 )}

@@ -6,13 +6,12 @@
 // LINEアプリ内で開かれる前提だが、ブラウザLIFF (LINE Login) でも動作する。
 // ============================================
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { BellOff, Loader2, MapPin, Save, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { CloseCircleButton } from '@/components/ui/close-circle-button';
 import { useLiff } from '@/lib/line/context';
 import { useLanguage } from '@/lib/i18n/context';
@@ -75,10 +74,10 @@ export default function LiffVacancyOptInPage() {
 
   const [optIn, setOptIn] = useState(true);
   const [radiusKm, setRadiusKm] = useState(LINE_DELIVERY_DEFAULT_RADIUS_KM);
-  const [areaLabel, setAreaLabel] = useState('');
   const [centerLat, setCenterLat] = useState<number | null>(null);
   const [centerLng, setCenterLng] = useState<number | null>(null);
   const [locating, setLocating] = useState(false);
+  const currentLocationRequestedRef = useRef(false);
 
   const canUseLine = isLiffReady && isLineLoggedIn;
 
@@ -112,7 +111,6 @@ export default function LiffVacancyOptInPage() {
             json.defaultRadiusKm ?? LINE_DELIVERY_DEFAULT_RADIUS_KM
           )
         );
-        setAreaLabel(sub.areaLabel ?? '');
         setCenterLat(sub.centerLatitude);
         setCenterLng(sub.centerLongitude);
       } else {
@@ -136,27 +134,45 @@ export default function LiffVacancyOptInPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLiffReady, isLineLoggedIn]);
 
-  const handleUseCurrentLocation = () => {
+  const requestCurrentLocation = useCallback(async (showSuccessToast = true) => {
     if (!navigator.geolocation) {
       toast.error(t('liffVacancy.error.geolocation_unavailable'));
-      return;
+      return null;
     }
     setLocating(true);
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setCenterLat(pos.coords.latitude);
-        setCenterLng(pos.coords.longitude);
-        setLocating(false);
+    try {
+      const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0,
+        });
+      });
+      const current = {
+        latitude: pos.coords.latitude,
+        longitude: pos.coords.longitude,
+      };
+      setCenterLat(current.latitude);
+      setCenterLng(current.longitude);
+      if (showSuccessToast) {
         toast.success(t('liffVacancy.location_set'));
-      },
-      (err) => {
-        console.warn('geolocation error', err);
-        setLocating(false);
-        toast.error(t('liffVacancy.error.geolocation_denied'));
-      },
-      { enableHighAccuracy: false, timeout: 10000 }
-    );
-  };
+      }
+      return current;
+    } catch (err) {
+      console.warn('geolocation error', err);
+      toast.error(t('liffVacancy.error.geolocation_denied'));
+      return null;
+    } finally {
+      setLocating(false);
+    }
+  }, [t]);
+
+  // 通知ONの場合、設定画面を開いた時点でも最新の現在地へ更新する。
+  useEffect(() => {
+    if (!canUseLine || exists !== true || !optIn || currentLocationRequestedRef.current) return;
+    currentLocationRequestedRef.current = true;
+    void requestCurrentLocation(false);
+  }, [canUseLine, exists, optIn, requestCurrentLocation]);
 
   const handleSave = async () => {
     const token = getIdToken();
@@ -166,6 +182,18 @@ export default function LiffVacancyOptInPage() {
     }
     setSaving(true);
     try {
+      let currentLatitude = centerLat;
+      let currentLongitude = centerLng;
+      if (optIn) {
+        // 保存直前に必ずGPSを再取得し、任意地点や古い座標を通知拠点にしない。
+        const current = await requestCurrentLocation(false);
+        if (!current) {
+          toast.error(t('liffVacancy.error.location_required'));
+          return;
+        }
+        currentLatitude = current.latitude;
+        currentLongitude = current.longitude;
+      }
       const res = await fetch('/api/line/subscription', {
         method: 'PATCH',
         headers: {
@@ -175,9 +203,9 @@ export default function LiffVacancyOptInPage() {
         body: JSON.stringify({
           optIn,
           radiusKm,
-          centerLatitude: centerLat,
-          centerLongitude: centerLng,
-          areaLabel: areaLabel.trim() || null,
+          centerLatitude: currentLatitude,
+          centerLongitude: currentLongitude,
+          areaLabel: null,
         }),
       });
       const json = await res.json();
@@ -384,25 +412,13 @@ export default function LiffVacancyOptInPage() {
                 </p>
               </Card>
 
-              {/* エリア + 中心位置 */}
+              {/* 通知の中心位置（常に現在地） */}
               <Card className="p-5 rounded-2xl mb-5" style={cardStyle}>
                 <p className="text-sm font-bold mb-2" style={labelStyle}>
-                  {t('liffVacancy.area_label')}
+                  {t('liffVacancy.current_location_label')}
                 </p>
-                <Input
-                  value={areaLabel}
-                  onChange={(e) => setAreaLabel(e.target.value.slice(0, 64))}
-                  placeholder={t('liffVacancy.area_placeholder')}
-                  disabled={!optIn}
-                  className="h-11 rounded-xl border-2"
-                  style={{
-                    borderColor: `${COLORS.champagneGold}55`,
-                    color: COLORS.deepNavy,
-                    fontSize: '16px',
-                  }}
-                />
                 <p className="text-xs mt-2 leading-relaxed" style={hintStyle}>
-                  {t('liffVacancy.area_hint')}
+                  {t('liffVacancy.current_location_hint')}
                 </p>
                 <div
                   className="flex items-center justify-between gap-2 mt-3 pt-3"
@@ -421,7 +437,7 @@ export default function LiffVacancyOptInPage() {
                   <Button
                     type="button"
                     size="sm"
-                    onClick={handleUseCurrentLocation}
+                    onClick={() => void requestCurrentLocation()}
                     disabled={!optIn || locating}
                     className="rounded-lg font-semibold shrink-0"
                     style={{
@@ -443,7 +459,7 @@ export default function LiffVacancyOptInPage() {
               {/* 保存ボタン */}
               <Button
                 onClick={handleSave}
-                disabled={saving}
+                disabled={saving || locating}
                 className="w-full h-12 text-sm font-bold rounded-xl shadow-lg"
                 size="lg"
                 style={{

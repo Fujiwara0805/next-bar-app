@@ -25,6 +25,8 @@ import {
   Upload,
   X,
   Image as ImageIcon,
+  Send,
+  CheckCircle2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -49,8 +51,18 @@ import {
 import { CustomFacilityInput } from '@/components/store/custom-facility-input';
 import { useAppMode } from '@/lib/app-mode-context';
 import { checkIsOpenFromStructuredHours } from '@/lib/structured-business-hours';
+import { CustomModal } from '@/components/ui/custom-modal';
+import { buildStoreRegistrationEmail } from '@/lib/email/store-registration-template';
 
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+
+type RegisteredStoreCredentials = {
+  id: string;
+  name: string;
+  email: string;
+  password: string;
+  requestId: string;
+};
 
 /**
  * セクションヘッダーコンポーネント
@@ -171,6 +183,9 @@ function NewStorePage() {
   const [websiteUrl, setWebsiteUrl] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [registeredStore, setRegisteredStore] = useState<RegisteredStoreCredentials | null>(null);
+  const [sendingRegistrationEmail, setSendingRegistrationEmail] = useState(false);
+  const [registrationEmailSent, setRegistrationEmailSent] = useState(false);
 
   // 営業時間をテキスト形式に変更
   const [businessHours, setBusinessHours] = useState('');
@@ -800,7 +815,13 @@ function NewStorePage() {
         duration: 1000,
         className: 'bg-muted'
       });
-      router.push('/store/manage');
+      setRegisteredStore({
+        id: String(createJson.id),
+        name: name.trim(),
+        email: email.trim(),
+        password,
+        requestId: crypto.randomUUID(),
+      });
     } catch (error) {
       console.error('Error:', error);
       const errorMsg = error instanceof Error ? error.message : '店舗の登録に失敗しました';
@@ -811,6 +832,43 @@ function NewStorePage() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSendRegistrationEmail = async () => {
+    if (!registeredStore) return;
+    setSendingRegistrationEmail(true);
+    try {
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      if (!currentSession) throw new Error('セッションが切れています。再度ログインしてください。');
+      const res = await fetch(`/api/platform/stores/${registeredStore.id}/registration-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${currentSession.access_token}`,
+        },
+        body: JSON.stringify({
+          initialPassword: registeredStore.password,
+          requestId: registeredStore.requestId,
+        }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        if (json?.error === 'email_not_configured') {
+          throw new Error('Resendの環境変数が設定されていません。');
+        }
+        throw new Error(json?.message || '登録完了メールの送信に失敗しました。');
+      }
+      setRegistrationEmailSent(true);
+      toast.success(`${registeredStore.email} へ登録完了メールを送信しました`, {
+        position: 'top-center',
+      });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : '登録完了メールの送信に失敗しました', {
+        position: 'top-center',
+      });
+    } finally {
+      setSendingRegistrationEmail(false);
     }
   };
 
@@ -837,6 +895,82 @@ function NewStorePage() {
       className="min-h-screen pb-20"
       style={{ background: COLORS.cardGradient }}
     >
+      <CustomModal
+        isOpen={Boolean(registeredStore)}
+        onClose={() => router.push('/store/manage')}
+        title={registrationEmailSent ? '登録完了メールを送信しました' : '登録完了メール（下書き）'}
+        description={registrationEmailSent
+          ? '店舗登録とメール送信が完了しました。'
+          : '店舗登録が完了しました。以下は送信前の下書きで、自動送信されません。'}
+        showCloseButton={false}
+        size="lg"
+      >
+        {registeredStore && (() => {
+          const preview = buildStoreRegistrationEmail({
+            storeName: registeredStore.name,
+            loginEmail: registeredStore.email,
+            initialPassword: registeredStore.password,
+          });
+          return (
+            <div className="space-y-4">
+              <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-[#13294b]">
+                <p><strong>店舗名:</strong> {registeredStore.name}</p>
+                <p><strong>送信先・ログインID:</strong> {registeredStore.email}</p>
+                <p><strong>初期パスワード:</strong> {registeredStore.password}</p>
+              </div>
+              <div>
+                <p className="mb-2 text-sm font-bold text-[#13294b]">件名</p>
+                <div className="rounded-lg border bg-slate-50 p-3 text-sm text-[#13294b]">
+                  {preview.subject}
+                </div>
+              </div>
+              <div>
+                <p className="mb-2 text-sm font-bold text-[#13294b]">メール本文</p>
+                <pre className="max-h-64 overflow-y-auto whitespace-pre-wrap rounded-lg border bg-slate-50 p-3 text-xs leading-relaxed text-[#344054]">
+                  {preview.text}
+                </pre>
+              </div>
+              {registrationEmailSent ? (
+                <div className="flex items-center gap-2 rounded-xl bg-emerald-50 p-3 text-sm font-bold text-emerald-700">
+                  <CheckCircle2 className="h-5 w-5" />
+                  送信を受け付けました
+                </div>
+              ) : (
+                <p className="text-xs leading-relaxed text-amber-700">
+                  初期パスワードを含む下書きです。宛先と内容が正しいことを管理者が確認し、「店舗へメール送信」を押した場合のみ送信されます。
+                </p>
+              )}
+              <div className="grid gap-2 sm:grid-cols-2">
+                {!registrationEmailSent && (
+                  <Button
+                    type="button"
+                    onClick={handleSendRegistrationEmail}
+                    disabled={sendingRegistrationEmail}
+                    className="h-12 rounded-xl font-bold"
+                    style={{ background: COLORS.deepNavy, color: COLORS.champagneGold }}
+                  >
+                    {sendingRegistrationEmail ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Send className="mr-2 h-4 w-4" />
+                    )}
+                    店舗へメール送信
+                  </Button>
+                )}
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => router.push('/store/manage')}
+                  className="h-12 rounded-xl font-bold"
+                >
+                  {registrationEmailSent ? '店舗一覧へ' : '送信せず店舗一覧へ'}
+                </Button>
+              </div>
+            </div>
+          );
+        })()}
+      </CustomModal>
+
       {/* ヘッダー */}
       <header 
         className="sticky top-0 z-10 safe-top"

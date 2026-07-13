@@ -193,18 +193,18 @@ export default function ApplicationsManagePage() {
 
   return (
     <div className="min-h-screen" style={{ background: C.bg }}>
-      <div className="max-w-6xl mx-auto px-6 md:px-8 py-8 space-y-8">
+      <div className="max-w-6xl mx-auto space-y-6 px-4 py-5 sm:space-y-8 sm:py-8 md:px-8">
         {/* Page Title */}
-        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
+        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight" style={{ color: C.text }}>申し込み管理</h1>
+            <h1 className="text-xl font-bold tracking-tight sm:text-2xl" style={{ color: C.text }}>申し込み管理</h1>
             <p className="text-sm mt-1" style={{ color: C.textSubtle }}>パートナー申請の審査・管理を行います</p>
           </div>
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={handleExportCSV}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold"
+            className="flex h-11 w-full items-center justify-center gap-1.5 rounded-lg px-4 text-sm font-semibold sm:h-auto sm:w-auto sm:py-2"
             style={{ background: C.accent, color: C.accentForeground }}
           >
             <Download className="w-3.5 h-3.5" />
@@ -303,6 +303,34 @@ export default function ApplicationsManagePage() {
             emptyIcon={<Store className="w-12 h-12" style={{ color: C.textSubtle }} />}
             emptyTitle="まだ申し込みがありません"
             emptyDescription="新しい申し込みが届くとここに表示されます"
+            mobileCardRender={(a) => (
+              <div>
+                <div className="flex items-start gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg" style={{ background: C.accentBg }}>
+                    <Store className="h-5 w-5" style={{ color: C.accent }} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold" style={{ color: C.text }}>{a.store_name}</p>
+                    <p className="truncate text-xs" style={{ color: C.textSubtle }}>{a.contact_email}</p>
+                    <p className="mt-1 text-xs" style={{ color: C.textSubtle }}>{formatDate(a.created_at ?? '')}</p>
+                  </div>
+                  <AdminStatusBadge label="審査待ち" variant="warning" dot />
+                </div>
+                <div className="mt-4 grid grid-cols-3 gap-2" onClick={(e) => e.stopPropagation()}>
+                  <Link href={`/store/manage/new?application_id=${a.id}`} className="contents">
+                    <button className="flex h-10 items-center justify-center gap-1 rounded-lg text-xs font-semibold" style={{ background: C.accent, color: C.accentForeground }}>
+                      <ChevronRight className="h-3.5 w-3.5" /> 審査
+                    </button>
+                  </Link>
+                  <button onClick={() => handleCompleteClick(a)} className="flex h-10 items-center justify-center gap-1 rounded-lg text-xs font-semibold" style={{ background: C.successBg, color: C.success }}>
+                    <FileText className="h-3.5 w-3.5" /> 完了
+                  </button>
+                  <button onClick={() => handleRejectClick(a)} className="flex h-10 items-center justify-center gap-1 rounded-lg text-xs font-semibold" style={{ background: C.dangerBg, color: C.danger }}>
+                    <Trash2 className="h-3.5 w-3.5" /> 却下
+                  </button>
+                </div>
+              </div>
+            )}
           />
         </section>
       </div>
@@ -327,7 +355,7 @@ export default function ApplicationsManagePage() {
               の申し込みを完全に削除します。この操作は取り消せません。
             </p>
           )}
-          <div className="flex gap-3 pt-2">
+          <div className="flex flex-col-reverse gap-3 pt-2 min-[380px]:flex-row">
             <Button variant="outline" className="flex-1 font-semibold rounded-lg" onClick={() => setRejectModalOpen(false)} disabled={rejecting}
               style={{ background: '#ffffff', borderColor: C.border, color: C.textMuted }}>
               キャンセル
@@ -360,7 +388,7 @@ export default function ApplicationsManagePage() {
               の申し込みを登録完了済みにします。一覧から非表示になります。
             </p>
           )}
-          <div className="flex gap-3 pt-2">
+          <div className="flex flex-col-reverse gap-3 pt-2 min-[380px]:flex-row">
             <Button variant="outline" className="flex-1 font-semibold rounded-lg" onClick={() => setCompleteModalOpen(false)} disabled={completing}
               style={{ background: '#ffffff', borderColor: C.border, color: C.textMuted }}>
               キャンセル

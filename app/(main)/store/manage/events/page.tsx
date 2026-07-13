@@ -371,16 +371,16 @@ export default function PlatformEventsPage() {
 
   return (
     <div className="min-h-screen" style={{ background: C.bg }}>
-      <div className="max-w-6xl mx-auto px-6 md:px-8 py-8 space-y-6">
-        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
+      <div className="max-w-6xl mx-auto space-y-6 px-4 py-5 sm:py-8 md:px-8">
+        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight" style={{ color: C.text }}>イベント管理</h1>
+            <h1 className="text-xl font-bold tracking-tight sm:text-2xl" style={{ color: C.text }}>イベント管理</h1>
             <p className="text-sm mt-1" style={{ color: C.textSubtle }}>自治体・地域イベントを追加し、加盟店の参加設定へ公開します</p>
           </div>
           <button
             type="button"
             onClick={openCreate}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold"
+            className="flex h-11 w-full items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold sm:w-auto"
             style={{ background: C.accent, color: C.accentForeground }}
           >
             <Plus className="w-4 h-4" />
@@ -393,7 +393,7 @@ export default function PlatformEventsPage() {
           <AdminKpiCard icon={CheckCircle2} label="公開中" value={events.filter((event) => event.status === 'published').length} gradient={getKpiGradient('green')} index={1} />
         </AdminKpiGrid>
 
-        <div className="relative max-w-sm">
+        <div className="relative w-full max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: C.textSubtle }} />
           <input
             value={query}
@@ -446,12 +446,12 @@ export default function PlatformEventsPage() {
       >
         <div className="space-y-3" style={{ color: '#13294b' }}>
           <Input placeholder="イベント名" value={form.title} onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))} />
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <Input placeholder="主催者・自治体名" value={form.organizer_name} onChange={(e) => setForm((prev) => ({ ...prev, organizer_name: e.target.value }))} />
             <Input placeholder="対象エリア" value={form.area_label} onChange={(e) => setForm((prev) => ({ ...prev, area_label: e.target.value }))} />
           </div>
           <Textarea placeholder="イベント説明" value={form.description} onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))} className="min-h-[100px]" />
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <Input type="date" value={form.start_at} onChange={(e) => setForm((prev) => ({ ...prev, start_at: e.target.value }))} />
             <Input type="date" value={form.end_at} onChange={(e) => setForm((prev) => ({ ...prev, end_at: e.target.value }))} />
           </div>

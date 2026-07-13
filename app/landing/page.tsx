@@ -965,7 +965,7 @@ export default function LandingPage() {
           </motion.div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              // 消費者向け2枚（空席通知での店探し） + 自治体・主催者向け2枚（夜の回遊マップ）
+              // 消費者向け2枚（空席通知での店探し） + 自治体・主催者向け2枚（飲食店回遊マップ）
               { Icon: Users, audience: 'consumer' as const, n: 1 },
               { Icon: Plane, audience: 'consumer' as const, n: 2 },
               { Icon: Landmark, audience: 'organizer' as const, n: 4 },

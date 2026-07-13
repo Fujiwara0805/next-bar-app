@@ -187,6 +187,21 @@ function AdminTopBar() {
 function ManageLayoutInner({ children }: { children: React.ReactNode }) {
   const { colors: C } = useAdminTheme();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const pathname = usePathname();
+  const currentLabel = useCurrentNavLabel();
+
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!sidebarOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [sidebarOpen]);
 
   return (
     <div className="theme-light min-h-screen flex" style={{ background: C.bg }}>
@@ -203,7 +218,7 @@ function ManageLayoutInner({ children }: { children: React.ReactNode }) {
 
       {/* Mobile Header */}
       <div
-        className="md:hidden fixed top-0 left-0 right-0 z-40 flex items-center px-4 py-3"
+        className="md:hidden fixed top-0 left-0 right-0 z-40 flex h-14 items-center gap-2 px-3"
         style={{
           background: 'rgba(255, 255, 255, 0.92)',
           borderBottom: `1px solid ${C.border}`,
@@ -212,15 +227,26 @@ function ManageLayoutInner({ children }: { children: React.ReactNode }) {
       >
         <button
           onClick={() => setSidebarOpen(true)}
-          className="p-2 rounded-lg"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg"
           style={{ color: C.text }}
+          aria-label="管理メニューを開く"
+          aria-expanded={sidebarOpen}
         >
-          <Menu className="w-5 h-5" />
+          <Menu className="w-5 h-5" aria-hidden />
         </button>
-        <div className="flex items-center gap-2 ml-2">
-          <img src={LOGO_URL} alt="" className="w-5 h-5 rounded" />
-          <span className="text-sm font-semibold" style={{ color: C.text }}>にけんめぷらす</span>
+        <div className="flex min-w-0 flex-1 items-center gap-2">
+          <img src={LOGO_URL} alt="" className="w-6 h-6 shrink-0 rounded-md" />
+          <div className="min-w-0 leading-tight">
+            <p className="truncate text-[10px] font-medium" style={{ color: C.textSubtle }}>運営管理</p>
+            <p className="truncate text-sm font-bold" style={{ color: C.text }}>{currentLabel}</p>
+          </div>
         </div>
+        <span
+          className="shrink-0 rounded-full px-2 py-1 font-en text-[9px] font-bold tracking-[0.08em]"
+          style={{ background: '#ffc82c', color: '#13294b' }}
+        >
+          ADMIN
+        </span>
       </div>
 
       {/* Mobile Sidebar Overlay */}
@@ -240,7 +266,7 @@ function ManageLayoutInner({ children }: { children: React.ReactNode }) {
               animate={{ x: 0 }}
               exit={{ x: -280 }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="md:hidden fixed inset-y-0 left-0 z-50 w-[260px]"
+              className="md:hidden fixed inset-y-0 left-0 z-50 w-[min(86vw,320px)]"
               style={{
                 background: '#ffffff',
                 borderRight: `1px solid ${C.border}`,
@@ -249,10 +275,11 @@ function ManageLayoutInner({ children }: { children: React.ReactNode }) {
               <div className="absolute top-3 right-3">
                 <button
                   onClick={() => setSidebarOpen(false)}
-                  className="p-1.5 rounded-lg"
+                  className="flex h-11 w-11 items-center justify-center rounded-lg"
                   style={{ color: C.textSubtle }}
+                  aria-label="管理メニューを閉じる"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-5 h-5" aria-hidden />
                 </button>
               </div>
               <SidebarContent onNavigate={() => setSidebarOpen(false)} />
@@ -262,7 +289,7 @@ function ManageLayoutInner({ children }: { children: React.ReactNode }) {
       </AnimatePresence>
 
       {/* Main Content */}
-      <main className="flex-1 md:ml-[240px] min-h-screen pt-14 md:pt-0">
+      <main className="min-w-0 flex-1 overflow-x-hidden md:ml-[240px] min-h-screen pt-14 md:pt-0">
         <AdminTopBar />
         {children}
       </main>

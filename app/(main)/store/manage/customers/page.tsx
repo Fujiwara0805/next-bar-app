@@ -183,11 +183,11 @@ export default function CustomersPage() {
 
   return (
     <div className="min-h-screen" style={{ background: C.bg }}>
-      <div className="max-w-6xl mx-auto px-4 md:px-8 py-8 space-y-8">
+      <div className="max-w-6xl mx-auto space-y-6 px-4 py-5 sm:space-y-8 sm:py-8 md:px-8">
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight" style={{ color: C.text }}>
+          <h1 className="text-xl font-bold tracking-tight sm:text-2xl" style={{ color: C.text }}>
               顧客管理
             </h1>
             <p className="text-sm mt-1" style={{ color: C.textSubtle }}>
@@ -205,7 +205,7 @@ export default function CustomersPage() {
 
         {/* 検索 */}
         {users.length > 0 && (
-          <div className="relative max-w-sm">
+          <div className="relative w-full max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: C.textSubtle }} />
             <input
               type="text"
@@ -282,7 +282,7 @@ export default function CustomersPage() {
       >
         {selected && (
           <div className="space-y-3 text-sm" style={{ color: '#13294b' }}>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 min-[380px]:grid-cols-2">
               <div>
                 <p className="text-xs font-semibold" style={{ color: '#13294b', opacity: 0.7 }}>電話番号</p>
                 <p className="font-semibold" style={{ color: '#13294b' }}>{selected.phone || '—'}</p>

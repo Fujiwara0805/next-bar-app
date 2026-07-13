@@ -355,7 +355,7 @@ export default function EventRoiPage() {
 
   return (
     <div className="min-h-screen" style={{ background: C.bg }}>
-      <div className="max-w-6xl mx-auto px-6 md:px-8 py-8 space-y-6">
+      <div className="max-w-6xl mx-auto space-y-6 px-4 py-5 sm:py-8 md:px-8">
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}>
           <div className="flex items-center gap-2">
@@ -364,7 +364,7 @@ export default function EventRoiPage() {
               EVENT ROI
             </span>
           </div>
-          <h1 className="text-2xl font-bold tracking-tight" style={{ color: C.text }}>
+          <h1 className="text-xl font-bold tracking-tight sm:text-2xl" style={{ color: C.text }}>
             {data?.event.title ?? 'イベント'}
           </h1>
           <p className="text-sm mt-1" style={{ color: C.textSubtle }}>

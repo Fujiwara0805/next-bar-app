@@ -75,17 +75,17 @@ export default function SponsorDetailPage() {
           borderBottom: `1px solid ${C.border}`,
         }}
       >
-        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
+        <div className="max-w-5xl mx-auto flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-3">
               <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold"
+                className="w-10 h-10 shrink-0 rounded-xl flex items-center justify-center text-lg font-bold"
                 style={{ background: C.accentBg, color: C.accent }}
               >
                 {sponsor.company_name.charAt(0)}
               </div>
-              <div>
-                <h1 className="text-lg font-bold tracking-tight" style={{ color: C.text }}>
+              <div className="min-w-0">
+                <h1 className="truncate text-base font-bold tracking-tight sm:text-lg" style={{ color: C.text }}>
                   {sponsor.company_name}
                 </h1>
                 <span
@@ -104,9 +104,9 @@ export default function SponsorDetailPage() {
       </div>
 
       {/* Tabs */}
-      <div className="max-w-5xl mx-auto px-6">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6">
         <div
-          className="flex gap-1 mt-4 p-1 rounded-xl"
+          className="mt-4 grid grid-cols-2 gap-1 rounded-xl p-1 sm:grid-cols-4"
           style={{ background: C.bgCard, border: `1px solid ${C.border}` }}
         >
           {TABS.map((tab) => (
@@ -114,7 +114,7 @@ export default function SponsorDetailPage() {
               key={tab.id}
               whileTap={{ scale: 0.97 }}
               onClick={() => setActiveTab(tab.id)}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-colors flex-1 justify-center"
+              className="flex min-h-10 items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-xs font-semibold transition-colors sm:px-4"
               style={{
                 background: activeTab === tab.id ? C.accent : 'transparent',
                 color: activeTab === tab.id ? '#fff' : C.textMuted,

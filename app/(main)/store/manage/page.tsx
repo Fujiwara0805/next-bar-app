@@ -331,13 +331,13 @@ export default function StoreManagePage() {
 
   return (
     <div className="min-h-screen" style={{ background: C.bg }}>
-      <div className="max-w-6xl mx-auto px-4 md:px-8 py-8 space-y-8">
+      <div className="max-w-6xl mx-auto space-y-6 px-4 py-5 sm:space-y-8 sm:py-8 md:px-8">
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}>
           <span className="font-en block text-[12px] font-bold uppercase tracking-[0.1em]" style={{ color: C.textSubtle }}>
             DASHBOARD
           </span>
-          <h1 className="text-2xl font-bold tracking-tight" style={{ color: C.text }}>
+          <h1 className="text-xl font-bold tracking-tight sm:text-2xl" style={{ color: C.text }}>
             ダッシュボード
           </h1>
           <p className="text-sm mt-1" style={{ color: C.textSubtle }}>
@@ -362,7 +362,7 @@ export default function StoreManagePage() {
             </h2>
             <span className="text-xs" style={{ color: C.textSubtle }}>7件のアクション</span>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <AdminQuickAction icon={StoreIcon} label="店舗管理" subLabel="店舗の一覧・編集" href="/store/manage" index={0} />
             <AdminQuickAction icon={Users} label="顧客管理" subLabel="登録ユーザーの一覧" href="/store/manage/customers" index={1} />
             <AdminQuickAction icon={FileText} label="申込管理" subLabel="加盟店申込の管理" href="/store/manage/applications" index={2} />
@@ -374,7 +374,7 @@ export default function StoreManagePage() {
         </section>
 
         {/* Vacancy breakdown */}
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {[
             { label: '開店', count: vacancyCounts.open, color: C.success },
             { label: '閉店', count: vacancyCounts.closed, color: C.textSubtle },

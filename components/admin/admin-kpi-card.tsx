@@ -64,7 +64,7 @@ export function AdminKpiCard({
       transition={{ delay: index * 0.06, duration: 0.4 }}
       whileHover={{ y: -2 }}
       whileTap={{ scale: 0.99 }}
-      className="relative rounded-xl p-5 overflow-hidden cursor-pointer min-w-[180px]"
+      className="relative h-full min-w-0 cursor-pointer overflow-hidden rounded-xl p-4 sm:p-5"
       style={{ background: C.bgCard, border: `1px solid ${C.border}` }}
     >
       <div className="relative z-10 flex flex-col gap-1">
@@ -84,7 +84,7 @@ export function AdminKpiCard({
             </span>
           )}
         </div>
-        <span className="text-3xl font-bold mt-3 tracking-tight" style={{ color: C.text }}>
+        <span className="mt-3 text-2xl font-bold tracking-tight sm:text-3xl" style={{ color: C.text }}>
           {value}
         </span>
         <span className="text-sm font-medium" style={{ color: C.textMuted }}>{label}</span>
@@ -106,7 +106,7 @@ export function AdminKpiCard({
 
 export function AdminKpiGrid({ children }: { children: React.ReactNode }) {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+    <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-6">
       {children}
     </div>
   );
@@ -134,7 +134,7 @@ export function AdminQuickAction({
         transition={{ delay: 0.3 + index * 0.05, duration: 0.35 }}
         whileHover={{ scale: 1.03, y: -1 }}
         whileTap={{ scale: 0.97 }}
-        className="flex items-center gap-3 rounded-xl p-4 cursor-pointer transition-colors"
+        className="flex min-h-16 items-center gap-3 rounded-xl p-3.5 cursor-pointer transition-colors sm:p-4"
         style={{ background: C.bgCard, border: `1px solid ${C.border}` }}
       >
         <div
