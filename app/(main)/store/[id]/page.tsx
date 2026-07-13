@@ -244,6 +244,9 @@ export default function StoreDetailPage() {
 
   // 参加中イベント＆特典
   const [activeStoreEvents, setActiveStoreEvents] = useState<StoreEventRow[]>([]);
+  const [activeStoreEventsLoading, setActiveStoreEventsLoading] = useState(true);
+  const primaryActiveStoreEvent = activeStoreEvents[0] ?? null;
+  const primaryEventMessage = primaryActiveStoreEvent?.participation?.benefit_text?.trim() || null;
   // ログイン中ユーザーの、このイベント群におけるスタンプ進捗（常設表示用・eventId キー）
   const [eventStampProgress, setEventStampProgress] = useState<
     Record<
@@ -419,6 +422,7 @@ export default function StoreDetailPage() {
   useEffect(() => {
     if (!params.id) return;
     let cancelled = false;
+    setActiveStoreEventsLoading(true);
     (async () => {
       try {
         const res = await fetch(`/api/stores/${params.id}/public-events`, { cache: 'no-store' });
@@ -435,6 +439,8 @@ export default function StoreDetailPage() {
         if (!cancelled) setActiveStoreEvents(active);
       } catch (error) {
         console.warn('[store/detail] fetch events warning', error);
+      } finally {
+        if (!cancelled) setActiveStoreEventsLoading(false);
       }
     })();
     return () => {
@@ -1011,7 +1017,30 @@ export default function StoreDetailPage() {
               </>
             )}
 
-            {store.status_message && (
+            {!activeStoreEventsLoading && primaryActiveStoreEvent ? (
+              <>
+                <div
+                  className="p-4 rounded-xl mb-4"
+                  style={{
+                    backgroundColor: 'rgba(255, 200, 44, 0.14)',
+                    borderLeft: '4px solid #13294b',
+                  }}
+                >
+                  <span
+                    className="inline-flex rounded-full px-2 py-0.5 text-[10px] font-extrabold"
+                    style={{ background: '#13294b', color: '#ffc82c' }}
+                  >
+                    🎊 {t('map.event_participating')}
+                  </span>
+                  {primaryEventMessage && (
+                    <p className="mt-2 text-sm font-bold leading-relaxed" style={{ color: COLORS.deepNavy }}>
+                      {primaryEventMessage}
+                    </p>
+                  )}
+                </div>
+                <GoldDivider />
+              </>
+            ) : !activeStoreEventsLoading && store.status_message ? (
               <>
                 <div
                   className="p-4 rounded-xl mb-4"
@@ -1026,14 +1055,12 @@ export default function StoreDetailPage() {
                 </div>
                 <GoldDivider />
               </>
-            )}
+            ) : null}
 
             {activeStoreEvents.length > 0 && (
               <>
                 <div className="space-y-2 mb-4">
-                  {activeStoreEvents.map((event) => {
-                    const benefit = event.participation?.benefit_text?.trim() || '';
-                    return (
+                  {activeStoreEvents.map((event) => (
                       <div
                         key={event.id}
                         className="p-4 rounded-xl"
@@ -1049,11 +1076,6 @@ export default function StoreDetailPage() {
                         <p className="text-sm font-bold leading-relaxed mt-1" style={{ color: '#13294b' }}>
                           {event.title}
                         </p>
-                        {benefit && (
-                          <p className="text-sm font-bold leading-relaxed mt-1" style={{ color: '#13294b' }}>
-                            特典: {benefit}
-                          </p>
-                        )}
                         {event.stamp_enabled && (() => {
                           const joined = joinedEventIds.has(event.id);
                           // 未ログイン → ログイン誘導
@@ -1096,8 +1118,7 @@ export default function StoreDetailPage() {
                           );
                         })()}
                       </div>
-                    );
-                  })}
+                  ))}
                 </div>
                 <GoldDivider />
               </>
